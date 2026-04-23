@@ -37,3 +37,13 @@
     </div>
 </div>
 @endsection
+
+@section('scripts')
+@if(session('success') && str_contains(session('success'), '註冊成功'))
+<script>
+if (typeof gtag !== 'undefined') {
+    gtag('event', 'signup_completed');
+}
+</script>
+@endif
+@endsection

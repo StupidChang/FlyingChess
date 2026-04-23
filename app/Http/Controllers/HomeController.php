@@ -9,7 +9,10 @@ class HomeController extends Controller
 {
     public function index()
     {
+        // All system boards: preset + templates (user_id=null)
+        // Load squares for mini-preview on homepage cards
         $presetBoards = Board::withCount('squares')
+            ->with('squares:id,board_id,position,grid_row,grid_col')
             ->whereNull('user_id')
             ->latest()
             ->get();

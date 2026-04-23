@@ -11,15 +11,18 @@ class Board extends Model
 {
     protected $fillable = [
         'name', 'description', 'is_default',
+        'is_template', 'is_premium_template',
         'canvas_rows', 'canvas_cols', 'path_data',
         'user_id', 'share_code',
     ];
 
     protected $casts = [
-        'is_default'  => 'boolean',
-        'path_data'   => 'array',
-        'canvas_rows' => 'integer',
-        'canvas_cols' => 'integer',
+        'is_default'           => 'boolean',
+        'is_template'          => 'boolean',
+        'is_premium_template'  => 'boolean',
+        'path_data'            => 'array',
+        'canvas_rows'          => 'integer',
+        'canvas_cols'          => 'integer',
     ];
 
     protected static function boot(): void

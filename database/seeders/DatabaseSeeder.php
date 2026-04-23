@@ -15,6 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(BoardSeeder::class);
+        $this->call([
+            BoardSeeder::class,
+            TruthDareCardSeeder::class,
+            BoardTemplateSeeder::class,
+            DevAccountSeeder::class,
+        ]);
     }
 }

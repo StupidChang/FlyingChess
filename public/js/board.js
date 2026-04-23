@@ -66,6 +66,91 @@ function computeArrowMap(path, squaresData) {
 }
 
 /* ═══════════════════════════════════════════════════
+   3D DICE — Face builder & rolling
+   ═══════════════════════════════════════════════════ */
+const DICE_DOTS = {
+  1: [0,0,0, 0,1,0, 0,0,0],
+  2: [0,0,1, 0,0,0, 1,0,0],
+  3: [0,0,1, 0,1,0, 1,0,0],
+  4: [1,0,1, 0,0,0, 1,0,1],
+  5: [1,0,1, 0,1,0, 1,0,1],
+  6: [1,0,1, 1,0,1, 1,0,1],
+};
+
+/** Build an HTML dice face with correct dots */
+function diceFaceHtml(n, cls) {
+  const d = DICE_DOTS[n] || DICE_DOTS[1];
+  let html = '<div class="' + (cls || 'dice-face-flat') + '">';
+  for (let i = 0; i < 9; i++) {
+    html += d[i] ? '<span class="dot"></span>' : '<span></span>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/** Build full 3D cube faces inside the cube element */
+function build3dCube() {
+  const cube = document.getElementById('dice-cube');
+  if (!cube) return;
+  cube.innerHTML = '';
+  for (let face = 1; face <= 6; face++) {
+    const d = DICE_DOTS[face];
+    let faceEl = document.createElement('div');
+    faceEl.className = 'dice-face-3d dice-f' + face;
+    for (let i = 0; i < 9; i++) {
+      const sp = document.createElement('span');
+      if (d[i]) sp.className = 'dot';
+      faceEl.appendChild(sp);
+    }
+    cube.appendChild(faceEl);
+  }
+}
+
+// Rotation to show each face value
+const FACE_ROTATIONS = {
+  1: 'rotateX(0deg) rotateY(0deg)',
+  2: 'rotateX(-90deg) rotateY(0deg)',
+  3: 'rotateX(0deg) rotateY(90deg)',
+  4: 'rotateX(0deg) rotateY(-90deg)',
+  5: 'rotateX(90deg) rotateY(0deg)',
+  6: 'rotateX(0deg) rotateY(180deg)',
+};
+
+/** Animate 3D dice roll and resolve with value */
+function roll3dDice() {
+  return new Promise(function(resolve) {
+    const overlay = document.getElementById('dice-overlay');
+    const cube = document.getElementById('dice-cube');
+    if (!overlay || !cube) {
+      resolve(Math.floor(Math.random() * 6) + 1);
+      return;
+    }
+
+    const result = Math.floor(Math.random() * 6) + 1;
+
+    // Show overlay
+    overlay.classList.add('active');
+
+    // Start spin
+    cube.className = 'dice-cube rolling';
+    cube.style.transform = '';
+
+    // After spin animation ends, land on result face
+    setTimeout(function() {
+      cube.className = 'dice-cube landing';
+      cube.style.transform = FACE_ROTATIONS[result];
+    }, 1000);
+
+    // Hide overlay after landing
+    setTimeout(function() {
+      overlay.classList.remove('active');
+      cube.className = 'dice-cube';
+      resolve(result);
+    }, 1700);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
    BOARD RENDERING  (content + play modes)
    ═══════════════════════════════════════════════════ */
 function buildBoard() {
@@ -73,16 +158,36 @@ function buildBoard() {
   if (!board) return;
   board.innerHTML = '';
 
-  const rows = window.CANVAS_ROWS || 11;
-  const cols = window.CANVAS_COLS || 13;
+  let rows = window.CANVAS_ROWS || 11;
+  let cols = window.CANVAS_COLS || 13;
+  const sqData     = window.SQUARES_DATA || {};
+  const isEditMode = window.EDIT_MODE;
+
+  // Auto-shrink: in play mode, detect actual used bounding box and offset squares
+  let rowOffset = 0, colOffset = 0;
+  if (!isEditMode) {
+    let minR = Infinity, maxR = 0, minC = Infinity, maxC = 0;
+    Object.values(sqData).forEach(sq => {
+      if (!sq.grid_row || !sq.grid_col) return;
+      if (sq.grid_row < minR) minR = sq.grid_row;
+      if (sq.grid_row > maxR) maxR = sq.grid_row;
+      if (sq.grid_col < minC) minC = sq.grid_col;
+      if (sq.grid_col > maxC) maxC = sq.grid_col;
+    });
+    if (minR !== Infinity) {
+      rowOffset = minR - 1;
+      colOffset = minC - 1;
+      rows = maxR - minR + 1;
+      cols = maxC - minC + 1;
+    }
+  }
+
   board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   board.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
   board.style.aspectRatio         = `${cols} / ${rows}`;
 
   const allPaths   = getEffectivePath('all');
-  const arrowMap   = computeArrowMap(allPaths, window.SQUARES_DATA || {});
-  const sqData     = window.SQUARES_DATA || {};
-  const isEditMode = window.EDIT_MODE;
+  const arrowMap   = computeArrowMap(allPaths, sqData);
 
   Object.entries(sqData).forEach(([posStr, sq]) => {
     const pos = parseInt(posStr, 10);
@@ -91,8 +196,8 @@ function buildBoard() {
     const div = document.createElement('div');
     div.className        = `board-sq color-${sq.color}`;
     div.id               = `sq-${pos}`;
-    div.style.gridRow    = sq.grid_row;
-    div.style.gridColumn = sq.grid_col;
+    div.style.gridRow    = sq.grid_row - rowOffset;
+    div.style.gridColumn = sq.grid_col - colOffset;
 
     const flyBadge = sq.fly_to != null
       ? `<div class="sq-fly-badge">✈→${sq.fly_to}</div>` : '';
@@ -111,7 +216,9 @@ function buildBoard() {
   });
 
   // Center banner + corner decos only on default 11×13 cross board
-  if (rows === 11 && cols === 13) {
+  const origRows = window.CANVAS_ROWS || 11;
+  const origCols = window.CANVAS_COLS || 13;
+  if (origRows === 11 && origCols === 13 && rowOffset === 0 && colOffset === 0) {
     const center = document.createElement('div');
     center.className        = 'board-center';
     center.style.gridRow    = '6';
@@ -275,6 +382,7 @@ function startSetup() {
 
   closeModal('setup-modal');
   buildBoard();
+  build3dCube();
   updateTurnUI();
 }
 
@@ -288,6 +396,7 @@ function rollDice() {
   if (player.skip) {
     player.skip = false;
     document.getElementById('action-dice').textContent = '-';
+    updateActionDiceFace(0);
     document.getElementById('action-text').textContent = `${player.name} 本回合跳過！`;
     document.getElementById('action-color-bar').style.background = '#9e9e9e';
     document.getElementById('skip-notice').classList.remove('hidden');
@@ -300,71 +409,150 @@ function rollDice() {
   state.rolling = true;
   document.getElementById('roll-btn').disabled = true;
 
-  const diceEl = document.getElementById('dice');
-  diceEl.classList.add('rolling');
-  const FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-  let ticks = 0;
-  const timer = setInterval(() => {
-    diceEl.textContent = FACES[Math.floor(Math.random()*6)];
-    if (++ticks >= 10) {
-      clearInterval(timer);
-      const roll = Math.floor(Math.random()*6)+1;
-      diceEl.textContent = FACES[roll-1];
-      diceEl.classList.remove('rolling');
-      setTimeout(() => applyMove(roll), 300);
-    }
-  }, 55);
+  // Use 3D dice animation
+  roll3dDice().then(function(roll) {
+    // Update player bar dice display
+    const diceEl = document.getElementById('dice');
+    if (diceEl) diceEl.innerHTML = diceFaceHtml(roll);
+
+    // Animate piece movement step by step
+    animateMove(roll).then(function() {
+      state.rolling = false;
+    });
+  });
 }
 
-function applyMove(roll) {
-  const player  = state.players[state.current];
-  const path    = getEffectivePath(player.gender);
-  const endIdx  = path.length - 1;
-  const rawNext = player.stepIndex + roll;
+/** Animate piece movement step-by-step, then show action modal */
+function animateMove(roll) {
+  return new Promise(function(resolve) {
+    const player  = state.players[state.current];
+    const path    = getEffectivePath(player.gender);
+    const endIdx  = path.length - 1;
+    const startIdx = player.stepIndex;
+    const rawNext = startIdx + roll;
 
-  /* Win: overshoot or land on end */
-  if (rawNext >= endIdx) {
-    player.stepIndex = endIdx;
-    const endPos = path[endIdx];
-    renderPieces(); flashSquare(endPos); updatePosDisplay();
-    state.rolling = false;
-    setTimeout(() => showWin(player.name), 600);
+    /* Win: overshoot or land on end */
+    if (rawNext >= endIdx) {
+      animateSteps(player, startIdx, endIdx, function() {
+        updatePosDisplay();
+        setTimeout(function() { showWin(player.name); }, 400);
+        resolve();
+      });
+      return;
+    }
+
+    animateSteps(player, startIdx, rawNext, function() {
+      const pos = currentPos(player);
+      updatePosDisplay();
+
+      /* Collision */
+      if (state.players.length > 1 && player.stepIndex > 0) {
+        const other = state.players[(state.current+1) % state.players.length];
+        if (other.stepIndex > 0 && currentPos(other) === pos) {
+          other.stepIndex = 0;
+          renderPieces(); updatePosDisplay();
+        }
+      }
+
+      const sq = getSq(pos);
+      if (sq.color === 'move') {
+        applyMoveEffect(sq, function() {
+          const finalPos = currentPos(player);
+          /* Collision check after move effect */
+          if (state.players.length > 1 && player.stepIndex > 0) {
+            const other = state.players[(state.current+1) % state.players.length];
+            if (other.stepIndex > 0 && currentPos(other) === finalPos) {
+              other.stepIndex = 0;
+              renderPieces(); updatePosDisplay();
+            }
+          }
+          setTimeout(function() { showActionModal(roll, finalPos); resolve(); }, 200);
+        });
+        return;
+      }
+
+      setTimeout(function() {
+        showActionModal(roll, pos);
+        resolve();
+      }, 200);
+    });
+  });
+}
+
+/** Animate piece moving one square at a time */
+function animateSteps(player, fromIdx, toIdx, callback) {
+  if (fromIdx >= toIdx) {
+    callback();
     return;
   }
-
-  player.stepIndex = rawNext;
-  const pos = currentPos(player);
-  renderPieces(); flashSquare(pos); updatePosDisplay();
-  state.rolling = false;
-
-  /* Collision */
-  if (state.players.length > 1 && player.stepIndex > 0) {
-    const other = state.players[(state.current+1) % state.players.length];
-    if (other.stepIndex > 0 && currentPos(other) === pos) {
-      other.stepIndex = 0;
-      renderPieces(); updatePosDisplay();
+  let step = fromIdx;
+  function nextStep() {
+    step++;
+    player.stepIndex = step;
+    renderPieces();
+    const pos = currentPos(player);
+    flashSquare(pos);
+    if (step >= toIdx) {
+      setTimeout(callback, 200);
+    } else {
+      setTimeout(nextStep, 200);
     }
   }
-
-  const sq = getSq(pos);
-  if (sq.color === 'move') applyMoveEffect(sq);
-
-  setTimeout(() => showActionModal(roll, pos), 400);
+  nextStep();
 }
 
-function applyMoveEffect(sq) {
+function applyMoveEffect(sq, callback) {
+  callback = callback || function(){};
   const player = state.players[state.current];
   const path   = getEffectivePath(player.gender);
   const fwd    = sq.text?.match(/前進\s*(\d+)\s*格/);
   const bwd    = sq.text?.match(/後退\s*(\d+)\s*格/);
   if (fwd) {
-    player.stepIndex = Math.min(path.length-1, player.stepIndex+parseInt(fwd[1],10));
-    renderPieces(); updatePosDisplay();
+    const from = player.stepIndex;
+    const to = Math.min(path.length-1, player.stepIndex+parseInt(fwd[1],10));
+    animateSteps(player, from, to, function() { updatePosDisplay(); callback(); });
   } else if (bwd) {
-    player.stepIndex = Math.max(0, player.stepIndex-parseInt(bwd[1],10));
-    renderPieces(); updatePosDisplay();
+    const from = player.stepIndex;
+    const to = Math.max(0, player.stepIndex-parseInt(bwd[1],10));
+    animateStepsBackward(player, from, to, function() { updatePosDisplay(); callback(); });
   } else if (/跳過/.test(sq.text||'')) {
     player.skip = true;
+    callback();
+  } else {
+    callback();
+  }
+}
+
+/** Animate piece moving backward one square at a time */
+function animateStepsBackward(player, fromIdx, toIdx, callback) {
+  if (fromIdx <= toIdx) {
+    callback();
+    return;
+  }
+  let step = fromIdx;
+  function nextStep() {
+    step--;
+    player.stepIndex = step;
+    renderPieces();
+    const pos = currentPos(player);
+    flashSquare(pos);
+    if (step <= toIdx) {
+      setTimeout(callback, 200);
+    } else {
+      setTimeout(nextStep, 200);
+    }
+  }
+  nextStep();
+}
+
+/** Update the dice face in the action modal */
+function updateActionDiceFace(n) {
+  const el = document.getElementById('action-dice-face');
+  if (!el) return;
+  if (n > 0) {
+    el.innerHTML = diceFaceHtml(n, 'dice-face-flat large');
+  } else {
+    el.innerHTML = '';
   }
 }
 
@@ -376,6 +564,7 @@ function showActionModal(roll, pos) {
   const textEl   = document.getElementById('action-text');
 
   document.getElementById('action-dice').textContent = roll;
+  updateActionDiceFace(roll);
   document.getElementById('action-color-bar').style.background = COLOR_HEX[sq.color]||COLOR_HEX.normal;
   skipNote.classList.add('hidden'); genderEl.classList.add('hidden');
 
@@ -433,6 +622,14 @@ function confirmAction(choice) {
         }
         player.stepIndex = flyIdx;
         renderPieces(); flashSquare(currentPos(player)); updatePosDisplay();
+        /* Collision check after fly */
+        if (state.players.length > 1 && player.stepIndex > 0) {
+          const other = state.players[(state.current+1) % state.players.length];
+          if (other.stepIndex > 0 && currentPos(other) === currentPos(player)) {
+            other.stepIndex = 0;
+            renderPieces(); updatePosDisplay();
+          }
+        }
       }
     }
   }
@@ -498,6 +695,7 @@ function closeModal(id) { document.getElementById(id)?.classList.remove('open');
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof window.EDIT_MODE === 'undefined') window.EDIT_MODE = false;
   buildBoard();
+  build3dCube();
   const sqText = document.getElementById('sq-text');
   if (sqText) sqText.addEventListener('input', () => {
     document.getElementById('sq-char').textContent = sqText.value.length;

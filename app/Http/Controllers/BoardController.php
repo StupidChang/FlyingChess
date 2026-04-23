@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Board;
 use App\Models\BoardSquare;
+use App\Rules\NoBlockedWords;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -119,11 +120,23 @@ class BoardController extends Controller
     public function updateSquare(Request $request, Board $board, int $position)
     {
         $this->checkOwnership($board);
-        $data = $request->validate([
-            'text'   => 'nullable|string|max:200',
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'text'   => ['nullable', 'string', 'max:200', new NoBlockedWords],
             'color'  => 'required|string|in:action,drink,dare,truth,strip,move,normal,start,end,male,female',
             'fly_to' => 'nullable|integer|min:0|max:999',
         ]);
+
+        if ($validator->fails()) {
+            // Remap error keys: text → squares.{position}.text
+            $errors = [];
+            foreach ($validator->errors()->toArray() as $field => $messages) {
+                $errors["squares.{$position}.{$field}"] = $messages;
+            }
+            return response()->json(['errors' => $errors], 422);
+        }
+
+        $data = $validator->validated();
 
         BoardSquare::updateOrCreate(
             ['board_id' => $board->id, 'position' => $position],
@@ -302,5 +315,69 @@ class BoardController extends Controller
 
         $board->load('squares');
         return response()->json(['success'=>true,'squares'=>$board->squaresArray(),'canvas_rows'=>$board->canvas_rows,'canvas_cols'=>$board->canvas_cols,'path_data'=>$board->path_data]);
+    }
+
+    /* ── Templates ── */
+
+    public function templates()
+    {
+        $templates = Board::withCount('squares')
+            ->where('is_template', true)
+            ->orderBy('is_premium_template')
+            ->latest()
+            ->get();
+
+        return view('boards.templates', compact('templates'));
+    }
+
+    public function templatePreview(Board $board)
+    {
+        if (!$board->is_template) {
+            abort(404);
+        }
+
+        $board->load('squares');
+
+        return view('boards.template-preview', compact('board'));
+    }
+
+    public function cloneTemplate(Request $request, Board $board)
+    {
+        if (!$board->is_template) {
+            abort(404);
+        }
+
+        if ($board->is_premium_template) {
+            $user = $request->user();
+            if (!$user || !$user->isPremium()) {
+                return redirect()->route('premium.index')
+                    ->with('error', '此模板僅限付費會員使用，請先升級。');
+            }
+        }
+
+        // Clone the board
+        $newBoard = Board::create([
+            'name' => $board->name . ' (副本)',
+            'description' => $board->description,
+            'user_id' => Auth::id(),
+            'canvas_rows' => $board->canvas_rows,
+            'canvas_cols' => $board->canvas_cols,
+            'path_data' => $board->path_data,
+        ]);
+
+        foreach ($board->squares as $sq) {
+            BoardSquare::create([
+                'board_id' => $newBoard->id,
+                'position' => $sq->position,
+                'text' => $sq->text,
+                'color' => $sq->color,
+                'fly_to' => $sq->fly_to,
+                'grid_row' => $sq->grid_row,
+                'grid_col' => $sq->grid_col,
+            ]);
+        }
+
+        return redirect()->route('boards.edit', $newBoard)
+            ->with('success', '模板已複製到你的棋盤！');
     }
 }

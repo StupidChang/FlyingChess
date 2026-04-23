@@ -12,11 +12,7 @@
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
-    <url>
-        <loc>{{ url('/games') }}</loc>
-        <changefreq>hourly</changefreq>
-        <priority>0.8</priority>
-    </url>
+    {{-- /games is noindex — omitted from sitemap --}}
     <url>
         <loc>{{ url('/privacy') }}</loc>
         <changefreq>yearly</changefreq>

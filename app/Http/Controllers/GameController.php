@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Game;
 use App\Models\GamePlayer;
+use App\Rules\NoBlockedWords;
 use App\Services\GameService;
 use Illuminate\Http\Request;
 
@@ -13,12 +14,7 @@ class GameController extends Controller
 
     public function lobby()
     {
-        $games = Game::where('status', 'waiting')
-            ->withCount('players')
-            ->orderByDesc('created_at')
-            ->paginate(12);
-
-        return view('games.lobby', compact('games'));
+        return view('games.lobby');
     }
 
     public function create(Request $request)
@@ -26,7 +22,7 @@ class GameController extends Controller
         $solo = $request->boolean('solo');
 
         $data = $request->validate([
-            'player_name' => 'required|string|min:1|max:20',
+            'player_name' => ['required', 'string', 'min:1', 'max:20', new NoBlockedWords],
             'max_players' => $solo ? 'nullable' : 'required|integer|in:2,3,4',
         ]);
 
@@ -46,6 +42,7 @@ class GameController extends Controller
     public function show(Request $request, string $code)
     {
         $game = Game::where('code', $code)
+            ->where('game_type', 'flying_chess')
             ->withCount('players')
             ->with('players')
             ->firstOrFail();
@@ -69,10 +66,10 @@ class GameController extends Controller
     public function join(Request $request, string $code)
     {
         $data = $request->validate([
-            'player_name' => 'required|string|min:1|max:20',
+            'player_name' => ['required', 'string', 'min:1', 'max:20', new NoBlockedWords],
         ]);
 
-        $game   = Game::where('code', $code)->firstOrFail();
+        $game   = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
         $result = $this->gameService->joinGame(
             $game,
             $data['player_name'],
@@ -90,7 +87,7 @@ class GameController extends Controller
 
     public function start(Request $request, string $code)
     {
-        $game      = Game::where('code', $code)->firstOrFail();
+        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
         $sessionId = $request->session()->getId();
         $myPlayer  = $game->players()->where('session_id', $sessionId)->first();
 
@@ -104,7 +101,7 @@ class GameController extends Controller
 
     public function roll(Request $request, string $code)
     {
-        $game      = Game::where('code', $code)->firstOrFail();
+        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
         $sessionId = $request->session()->getId();
         $myPlayer  = $game->players()->where('session_id', $sessionId)->first();
 
@@ -135,7 +132,7 @@ class GameController extends Controller
     {
         $data = $request->validate(['piece_index' => 'required|integer|between:0,3']);
 
-        $game      = Game::where('code', $code)->firstOrFail();
+        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
         $sessionId = $request->session()->getId();
         $myPlayer  = $game->players()->where('session_id', $sessionId)->first();
 
@@ -165,7 +162,7 @@ class GameController extends Controller
 
     public function state(Request $request, string $code)
     {
-        $game      = Game::where('code', $code)->with('players')->firstOrFail();
+        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->with('players')->firstOrFail();
         $sessionId = $request->session()->getId();
         $myPlayer  = $game->players->firstWhere('session_id', $sessionId);
 

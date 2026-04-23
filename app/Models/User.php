@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'premium_expires_at',
     ];
 
     /**
@@ -45,11 +46,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'premium_expires_at' => 'datetime',
         ];
     }
 
     public function boards(): HasMany
     {
         return $this->hasMany(Board::class);
+    }
+
+    public function isPremium(): bool
+    {
+        return $this->premium_expires_at && $this->premium_expires_at->isFuture();
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(\App\Models\PaymentOrder::class);
     }
 }

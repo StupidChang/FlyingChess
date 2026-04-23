@@ -7,10 +7,19 @@ use App\Http\Controllers\PlayController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\PremiumController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\TruthDareController;
+use App\Http\Controllers\CardGameController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Age verification POST endpoint
+Route::post('/age-verify', function () {
+    $cookie = cookie('age_verified', '1', 30 * 24 * 60);
+    return redirect()->back()->withCookie($cookie);
+})->name('age.verify');
 
 // Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -61,6 +70,22 @@ Route::prefix('games')->name('games.')->group(function () {
     Route::get('/{code}/state',              [GameController::class, 'state'])->name('state');
 });
 
+// Truth or Dare (公開，session-based)
+Route::prefix('truth-dare')->name('truth-dare.')->group(function () {
+    Route::get('/',                          [TruthDareController::class, 'lobby'])->name('lobby');
+    Route::post('/',                         [TruthDareController::class, 'create'])->name('create');
+    Route::get('/{code}',                    [TruthDareController::class, 'show'])->name('show');
+    Route::post('/{code}/join',              [TruthDareController::class, 'join'])->name('join');
+    Route::post('/{code}/start',             [TruthDareController::class, 'start'])->name('start');
+    Route::post('/{code}/draw',              [TruthDareController::class, 'draw'])->name('draw');
+    Route::post('/{code}/next',              [TruthDareController::class, 'nextPlayer'])->name('next');
+    Route::get('/{code}/state',              [TruthDareController::class, 'state'])->name('state');
+    Route::post('/{code}/leave',             [TruthDareController::class, 'leave'])->name('leave');
+});
+
+// Card Game (單機版，所有邏輯在前端 JS)
+Route::get('/card-game', [CardGameController::class, 'show'])->name('card-game.show');
+
 // Play (公開)
 Route::get('/play',                [PlayController::class, 'show'])->name('play');
 Route::get('/play/share/{code}',   [PlayController::class, 'showByCode'])->name('play.code');
@@ -88,4 +113,21 @@ Route::prefix('boards')->name('boards.')->middleware(['auth', 'verified'])->grou
     Route::patch('/{board}/path',                [BoardController::class, 'updatePath'])->name('path.update');
     // Apply preset
     Route::post('/{board}/preset',               [BoardController::class, 'applyPreset'])->name('preset');
+});
+
+// Board templates (公開預覽)
+Route::get('/templates',            [BoardController::class, 'templates'])->name('boards.templates');
+Route::get('/templates/{board}',    [BoardController::class, 'templatePreview'])->name('boards.template.preview');
+Route::post('/templates/{board}/clone', [BoardController::class, 'cloneTemplate'])
+    ->name('boards.template.clone')
+    ->middleware(['auth', 'verified']);
+
+// Premium membership
+Route::prefix('premium')->name('premium.')->group(function () {
+    Route::get('/',         [PremiumController::class, 'index'])->name('index');
+    Route::post('/checkout',[PremiumController::class, 'checkout'])->name('checkout')->middleware('auth');
+    Route::post('/callback',[PremiumController::class, 'callback'])->name('callback')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+    Route::match(['get', 'post'], '/result', [PremiumController::class, 'result'])
+        ->name('result')
+        ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 });

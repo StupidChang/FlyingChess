@@ -65,9 +65,20 @@
   align-items: center;
   justify-content: center;
   padding: 12px;
-  background: var(--bg);
+  background: transparent;
   overflow: auto;
+  position: relative;
 }
+.board-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(var(--glow-rgb, 180,60,100), .08) 0%, transparent 70%);
+  animation: hero-glow 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.board-wrap > * { position: relative; z-index: 1; }
 
 /* =====================================================
    THE GAME BOARD — 11×13 CSS Grid, cross/十字 shape
@@ -429,11 +440,89 @@
   color: var(--text);
 }
 
+/* =====================================================
+   3D DICE OVERLAY
+   ===================================================== */
+.dice-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.65);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+.dice-overlay.active { opacity: 1; pointer-events: auto; }
+.dice-scene { width: 120px; height: 120px; perspective: 500px; }
+.dice-cube {
+  width: 100%; height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(0) rotateY(0);
+}
+.dice-cube.rolling {
+  animation: diceRoll3d 1s ease-out forwards;
+}
+.dice-cube.landing {
+  transition: transform .6s cubic-bezier(.22,.68,.36,1.2);
+}
+@keyframes diceRoll3d {
+  0%   { transform: rotateX(0)    rotateY(0)    rotateZ(0); }
+  25%  { transform: rotateX(270deg) rotateY(180deg) rotateZ(90deg); }
+  50%  { transform: rotateX(540deg) rotateY(360deg) rotateZ(180deg); }
+  75%  { transform: rotateX(720deg) rotateY(540deg) rotateZ(270deg); }
+  100% { transform: rotateX(900deg) rotateY(720deg) rotateZ(360deg); }
+}
+.dice-face-3d {
+  position: absolute; width: 120px; height: 120px;
+  background: #fff; border: 3px solid #e0e0e0; border-radius: 14px;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: 16px; box-sizing: border-box;
+  backface-visibility: hidden;
+}
+.dice-face-3d span.dot {
+  background: #333; border-radius: 50%;
+  width: 75%; height: 75%; margin: auto;
+}
+/* Cube face positions */
+.dice-f1 { transform: rotateY(0deg) translateZ(60px); }
+.dice-f6 { transform: rotateY(180deg) translateZ(60px); }
+.dice-f3 { transform: rotateY(-90deg) translateZ(60px); }
+.dice-f4 { transform: rotateY(90deg) translateZ(60px); }
+.dice-f2 { transform: rotateX(90deg) translateZ(60px); }
+.dice-f5 { transform: rotateX(-90deg) translateZ(60px); }
+
+/* Dice result display (flat, for modal/player bar) */
+.dice-face-flat {
+  display: inline-grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  width: 32px; height: 32px;
+  padding: 4px; box-sizing: border-box;
+  background: #fff; border: 2px solid #ddd; border-radius: 5px;
+  vertical-align: middle;
+}
+.dice-face-flat span.dot {
+  background: #333; border-radius: 50%;
+  width: 80%; height: 80%; margin: auto;
+}
+.dice-face-flat.large {
+  width: 48px; height: 48px;
+  padding: 6px; border-radius: 8px;
+  border-width: 2.5px;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 700px) {
   .player-panel { min-width: 0; padding: 4px 6px; }
   .pname { font-size: .78rem; }
   .btn-roll { padding: 5px 12px; font-size: .78rem; }
+  .dice-scene { width: 90px; height: 90px; }
+  .dice-face-3d { width: 90px; height: 90px; padding: 12px; }
+  .dice-f1 { transform: rotateY(0deg) translateZ(45px); }
+  .dice-f6 { transform: rotateY(180deg) translateZ(45px); }
+  .dice-f3 { transform: rotateY(-90deg) translateZ(45px); }
+  .dice-f4 { transform: rotateY(90deg) translateZ(45px); }
+  .dice-f2 { transform: rotateX(90deg) translateZ(45px); }
+  .dice-f5 { transform: rotateX(-90deg) translateZ(45px); }
 }
 
 /* =====================================================
