@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /boards/
+Disallow: /email/
+Disallow: /admin/
+Disallow: /forgot-password
+Disallow: /reset-password/
+
+Sitemap: https://yourdomain.com/sitemap.xml

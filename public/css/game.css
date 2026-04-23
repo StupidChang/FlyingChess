@@ -1,0 +1,208 @@
+/* =============================================
+   FlyingChessOnline - Game Board Styles
+   ============================================= */
+
+/* ---- Game Layout ---- */
+.game-page { display: flex; gap: 0; min-height: calc(100vh - 60px); }
+
+/* ---- Sidebar ---- */
+.game-sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+
+.room-info-box, .players-box, .join-box, .host-controls,
+.waiting-box, .turn-info-box, .dice-box, .pieces-box, .log-box {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
+}
+.room-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 8px; }
+.room-code-display { font-size: 2rem; font-weight: 800; font-family: monospace; letter-spacing: 4px; color: var(--yellow); margin-bottom: 8px; }
+.copy-btn { width: 100%; }
+
+.players-box h3, .join-box h3, .dice-box h3, .pieces-box h3, .log-box h3, .turn-info-box h3 {
+    font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); margin-bottom: 10px;
+}
+.players-list { display: flex; flex-direction: column; gap: 6px; }
+.player-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; }
+.player-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.player-dot.yellow { background: var(--yellow); }
+.player-dot.blue   { background: var(--blue); }
+.player-dot.green  { background: var(--green); }
+.player-dot.red    { background: var(--red); }
+.player-name { flex: 1; font-size: .92rem; }
+.host-badge { font-size: .7rem; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--yellow); border: 1px solid var(--yellow); }
+.me-badge  { font-size: .7rem; background: var(--primary); padding: 2px 6px; border-radius: 4px; color: #fff; }
+.bot-badge { font-size: .7rem; background: #2d1f47; padding: 2px 6px; border-radius: 4px; color: #c084fc; border: 1px solid #7e22ce; }
+.player-item.player-yellow { border-left: 3px solid var(--yellow); }
+.player-item.player-blue   { border-left: 3px solid var(--blue); }
+.player-item.player-green  { border-left: 3px solid var(--green); }
+.player-item.player-red    { border-left: 3px solid var(--red); }
+
+.waiting-text { color: var(--text-dim); font-size: .9rem; margin-bottom: 10px; text-align: center; }
+.hint-text { color: var(--text-dim); font-size: .78rem; text-align: center; margin-top: 8px; }
+
+/* Turn display */
+.turn-display { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.turn-dot { width: 14px; height: 14px; border-radius: 50%; }
+#turn-dot.yellow { background: var(--yellow); }
+#turn-dot.blue   { background: var(--blue); }
+#turn-dot.green  { background: var(--green); }
+#turn-dot.red    { background: var(--red); }
+
+/* Dice */
+.dice-display { text-align: center; margin-bottom: 12px; }
+.dice {
+    width: 64px; height: 64px; background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 2rem; font-weight: 800; margin-bottom: 8px;
+    transition: transform .2s;
+}
+.dice.rolling { animation: rollAnim .5s ease; }
+@keyframes rollAnim {
+    0%   { transform: rotate(0) scale(1); }
+    25%  { transform: rotate(20deg) scale(1.15); }
+    50%  { transform: rotate(-20deg) scale(1.05); }
+    75%  { transform: rotate(10deg) scale(1.1); }
+    100% { transform: rotate(0) scale(1); }
+}
+
+/* My pieces sidebar display */
+.my-pieces { display: flex; gap: 8px; flex-wrap: wrap; }
+.my-piece-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent;
+    cursor: pointer; font-size: .75rem; font-weight: 700; color: #fff;
+    transition: all .2s; position: relative; display: flex; align-items: center; justify-content: center;
+}
+.my-piece-btn.yellow { background: var(--yellow); color: #000; }
+.my-piece-btn.blue   { background: var(--blue); }
+.my-piece-btn.green  { background: var(--green); }
+.my-piece-btn.red    { background: var(--red); }
+.my-piece-btn.selectable { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.4); animation: pulse 1s infinite; }
+.my-piece-btn.finished { opacity: .5; cursor: default; }
+.my-piece-btn:disabled { cursor: not-allowed; opacity: .4; animation: none; box-shadow: none; border-color: transparent; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,.4); } 50% { box-shadow: 0 0 0 6px rgba(255,255,255,.15); } }
+
+/* Game log */
+.game-log { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }
+.log-entry { font-size: .78rem; color: var(--text-dim); padding: 2px 0; border-bottom: 1px solid var(--border); }
+.log-entry:last-child { border-bottom: none; }
+
+/* ---- Main Board Area ---- */
+.game-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; background: var(--bg); }
+
+/* Overlays */
+.waiting-overlay, .winner-overlay {
+    position: absolute; inset: 0; background: rgba(13,17,23,.85);
+    display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.waiting-card, .winner-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px; text-align: center; max-width: 360px;
+}
+.waiting-icon, .trophy-icon { font-size: 3rem; margin-bottom: 16px; }
+.waiting-card h2, .winner-card h2 { margin-bottom: 12px; font-size: 1.6rem; }
+.waiting-card p { color: var(--text-dim); margin-bottom: 8px; }
+.code-highlight { color: var(--yellow); font-family: monospace; font-size: 1.2rem; letter-spacing: 3px; }
+
+/* ---- Chess Board ---- */
+.board-container { width: min(90vmin, 660px); aspect-ratio: 1; }
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    width: 100%; height: 100%;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #1a2030;
+    position: relative;
+}
+
+/* Board cells */
+.board-cell {
+    border: 1px solid rgba(255,255,255,.06);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; font-size: .5rem;
+    transition: background .15s;
+}
+
+/* Home base areas */
+.cell-home-yellow { background: rgba(245,197,24,.18); }
+.cell-home-blue   { background: rgba(41,121,255,.18); }
+.cell-home-green  { background: rgba(0,200,83,.18); }
+.cell-home-red    { background: rgba(244,67,54,.18); }
+
+/* Home piece circles */
+.cell-home-circle { background: rgba(255,255,255,.05); border-radius: 50%; width: 80%; height: 80%; border: 2px solid rgba(255,255,255,.15); }
+.cell-home-circle.yellow { border-color: var(--yellow); background: rgba(245,197,24,.15); }
+.cell-home-circle.blue   { border-color: var(--blue); background: rgba(41,121,255,.15); }
+.cell-home-circle.green  { border-color: var(--green); background: rgba(0,200,83,.15); }
+.cell-home-circle.red    { border-color: var(--red); background: rgba(244,67,54,.15); }
+
+/* Path cells */
+.cell-path { background: #1e2a3a; }
+.cell-path:hover { background: #253040; }
+
+/* Safe squares (starred) */
+.cell-safe { background: #1e2a3a; }
+.cell-safe::after { content: '★'; position: absolute; font-size: .7em; color: rgba(255,255,255,.3); }
+
+/* Safe lane cells */
+.cell-lane-yellow { background: rgba(245,197,24,.25); }
+.cell-lane-blue   { background: rgba(41,121,255,.25); }
+.cell-lane-green  { background: rgba(0,200,83,.25); }
+.cell-lane-red    { background: rgba(244,67,54,.25); }
+
+/* Start squares */
+.cell-start-yellow { background: rgba(245,197,24,.35); }
+.cell-start-blue   { background: rgba(41,121,255,.35); }
+.cell-start-green  { background: rgba(0,200,83,.35); }
+.cell-start-red    { background: rgba(244,67,54,.35); }
+
+/* Center cell */
+.cell-center {
+    background: conic-gradient(var(--yellow) 0 25%, var(--blue) 25% 50%, var(--green) 50% 75%, var(--red) 75%);
+    font-size: 1.2rem; z-index: 2;
+}
+
+/* Pieces on board */
+.piece {
+    width: 70%; height: 70%; border-radius: 50%;
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    font-size: .55rem; font-weight: 800; color: #fff;
+    cursor: default; z-index: 10; border: 2px solid rgba(255,255,255,.5);
+    box-shadow: 0 2px 6px rgba(0,0,0,.5);
+    transition: transform .3s ease;
+    pointer-events: none;
+}
+.piece.yellow { background: var(--yellow); color: #000; }
+.piece.blue   { background: var(--blue); }
+.piece.green  { background: var(--green); }
+.piece.red    { background: var(--red); }
+.piece.selectable { cursor: pointer; pointer-events: auto; animation: piecePulse 1s infinite; border-color: #fff; }
+@keyframes piecePulse { 0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,.5); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,.15); transform: scale(1.1); } }
+
+/* Stacked pieces offset */
+.piece-offset-1 { transform: translate(20%, -20%); }
+.piece-offset-2 { transform: translate(-20%, 20%); }
+.piece-offset-3 { transform: translate(20%, 20%); }
+
+/* Bot thinking indicator */
+.bot-status {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    background: #2d1f47; border: 1px solid #7e22ce; border-radius: 20px;
+    padding: 6px 16px; display: flex; align-items: center; gap: 8px;
+    font-size: .88rem; color: #c084fc; z-index: 60; white-space: nowrap;
+    box-shadow: 0 2px 12px rgba(126,34,206,.3);
+}
+.bot-status.hidden { display: none; }
+.bot-spinner {
+    width: 14px; height: 14px; border: 2px solid rgba(192,132,252,.3);
+    border-top-color: #c084fc; border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .game-page { flex-direction: column; }
+    .game-sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; overflow-x: auto; padding: 12px; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
+    .game-sidebar > * { flex: 0 0 auto; max-width: 200px; }
+    .board-container { width: min(98vmin, 500px); }
+}

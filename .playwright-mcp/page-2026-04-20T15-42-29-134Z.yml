@@ -1,0 +1,164 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e10]: Internal Server Error
+    - button "Copy as Markdown" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
+      - generic [ref=e15]: Copy as Markdown
+  - generic [ref=e18]:
+    - generic [ref=e19]:
+      - heading "ParseError" [level=1] [ref=e20]
+      - generic [ref=e22]: resources\views\home.blade.php:321
+      - paragraph [ref=e23]: syntax error, unexpected end of file, expecting "elseif" or "else" or "endif"
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: LARAVEL
+          - generic [ref=e28]: 12.56.0
+        - generic [ref=e29]:
+          - generic [ref=e30]: PHP
+          - generic [ref=e31]: 8.2.0
+      - generic [ref=e32]:
+        - img [ref=e33]
+        - text: UNHANDLED
+      - generic [ref=e36]: CODE 0
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - img [ref=e40]
+        - text: "500"
+      - generic [ref=e43]:
+        - img [ref=e44]
+        - text: GET
+      - generic [ref=e47]: http://127.0.0.1:8001
+      - button [ref=e48] [cursor=pointer]:
+        - img [ref=e49]
+  - generic [ref=e53]:
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - img [ref=e57]
+        - heading "Exception trace" [level=3] [ref=e60]
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - generic [ref=e63] [cursor=pointer]:
+            - generic [ref=e66]:
+              - code [ref=e70]:
+                - generic [ref=e71]: "Illuminate\\Filesystem\\Filesystem::Illuminate\\Filesystem\\{closure}()"
+              - generic [ref=e73]: resources\views\home.blade.php:321
+            - button [ref=e75]:
+              - img [ref=e76]
+          - code [ref=e84]:
+            - generic [ref=e85]: "316 \"url\": \"{{ url('/') }}\","
+            - generic [ref=e86]: "317 \"description\": \"情侶專屬飛行棋線上遊戲，支援自訂棋盤與多種遊戲模式，免費開始，雙人互動\","
+            - generic [ref=e87]: "318 \"sameAs\": []"
+            - generic [ref=e88]: "319}"
+            - generic [ref=e89]: 320</script>
+            - generic [ref=e90]: 321@endsection
+            - generic [ref=e91]: "322"
+        - generic [ref=e93] [cursor=pointer]:
+          - img [ref=e94]
+          - generic [ref=e98]: 54 vendor frames
+          - button [ref=e99]:
+            - img [ref=e100]
+        - generic [ref=e105] [cursor=pointer]:
+          - generic [ref=e108]:
+            - code [ref=e112]:
+              - generic [ref=e113]: Illuminate\Foundation\Application->handleRequest(object(Illuminate\Http\Request))
+            - generic [ref=e115]: public\index.php:20
+          - button [ref=e117]:
+            - img [ref=e118]
+        - generic [ref=e123] [cursor=pointer]:
+          - img [ref=e124]
+          - generic [ref=e128]: 1 vendor frame
+          - button [ref=e129]:
+            - img [ref=e130]
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - generic [ref=e136]:
+          - img [ref=e138]
+          - heading "Queries" [level=3] [ref=e140]
+        - generic [ref=e142]: 1-2 of 2
+      - generic [ref=e143]:
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - img [ref=e147]
+              - generic [ref=e149]: sqlite
+            - code [ref=e153]:
+              - generic [ref=e154]: select * from "sessions" where "id" = 'iEhD2BPkWRH1cg3Pu0wO2jc1vsyAgxr6rt6R79Gj' limit 1
+          - generic [ref=e155]: 1.07ms
+        - generic [ref=e156]:
+          - generic [ref=e157]:
+            - generic [ref=e158]:
+              - img [ref=e159]
+              - generic [ref=e161]: sqlite
+            - code [ref=e165]:
+              - generic [ref=e166]: select "boards".*, (select count(*) from "board_squares" where "boards"."id" = "board_squares"."board_id") as "squares_count" from "boards" where "user_id" is null order by "created_at" desc
+          - generic [ref=e167]: 0.18ms
+  - generic [ref=e169]:
+    - generic [ref=e170]:
+      - heading "Headers" [level=2] [ref=e171]
+      - generic [ref=e172]:
+        - generic [ref=e173]:
+          - generic [ref=e174]: host
+          - generic [ref=e176]: 127.0.0.1:8001
+        - generic [ref=e177]:
+          - generic [ref=e178]: connection
+          - generic [ref=e180]: keep-alive
+        - generic [ref=e181]:
+          - generic [ref=e182]: sec-ch-ua
+          - generic [ref=e184]: "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+        - generic [ref=e185]:
+          - generic [ref=e186]: sec-ch-ua-mobile
+          - generic [ref=e188]: "?0"
+        - generic [ref=e189]:
+          - generic [ref=e190]: sec-ch-ua-platform
+          - generic [ref=e192]: "\"Windows\""
+        - generic [ref=e193]:
+          - generic [ref=e194]: upgrade-insecure-requests
+          - generic [ref=e196]: "1"
+        - generic [ref=e197]:
+          - generic [ref=e198]: user-agent
+          - generic [ref=e200]: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36
+        - generic [ref=e201]:
+          - generic [ref=e202]: accept
+          - generic [ref=e204]: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+        - generic [ref=e205]:
+          - generic [ref=e206]: sec-fetch-site
+          - generic [ref=e208]: none
+        - generic [ref=e209]:
+          - generic [ref=e210]: sec-fetch-mode
+          - generic [ref=e212]: navigate
+        - generic [ref=e213]:
+          - generic [ref=e214]: sec-fetch-user
+          - generic [ref=e216]: "?1"
+        - generic [ref=e217]:
+          - generic [ref=e218]: sec-fetch-dest
+          - generic [ref=e220]: document
+        - generic [ref=e221]:
+          - generic [ref=e222]: accept-encoding
+          - generic [ref=e224]: gzip, deflate, br, zstd
+        - generic [ref=e225]:
+          - generic [ref=e226]: accept-language
+          - generic [ref=e228]: zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7
+    - generic [ref=e229]:
+      - heading "Body" [level=2] [ref=e230]
+      - generic [ref=e231]: // No request body
+    - generic [ref=e232]:
+      - heading "Routing" [level=2] [ref=e233]
+      - generic [ref=e234]:
+        - generic [ref=e235]:
+          - generic [ref=e236]: controller
+          - generic [ref=e238]: App\Http\Controllers\HomeController@index
+        - generic [ref=e239]:
+          - generic [ref=e240]: route name
+          - generic [ref=e242]: home
+        - generic [ref=e243]:
+          - generic [ref=e244]: middleware
+          - generic [ref=e246]: web
+    - generic [ref=e247]:
+      - heading "Routing parameters" [level=2] [ref=e248]
+      - generic [ref=e249]: // No routing parameters
+  - generic [ref=e252]:
+    - img [ref=e254]
+    - img [ref=e3292]

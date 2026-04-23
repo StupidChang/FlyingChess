@@ -1,0 +1,3 @@
+This directory is reserved for user journey screenshots.
+Since this is a code-based UX audit (no browser automation), screenshots cannot be captured automatically.
+Manual screenshots should be saved here during live testing sessions.

@@ -1,0 +1,711 @@
+/* =====================================================
+   情侶飛行棋 V2 — Board & Play Styles
+   Board: 11-col × 11-row CSS Grid (40 perimeter squares)
+   Visual: Light board on dark site (physical board feel)
+   ===================================================== */
+
+/* ---- Square color tokens (badges / legend) ---- */
+:root {
+  --sq-action: #e65100;
+  --sq-drink:  #f9a825;
+  --sq-dare:   #6a1b9a;
+  --sq-truth:  #0d47a1;
+  --sq-strip:  #880e4f;
+  --sq-move:   #1b5e20;
+  --sq-normal: #555;
+  --sq-start:  #bf360c;
+  --sq-end:    #b71c1c;
+  --sq-male:   #0d47a1;
+  --sq-female: #880e4f;
+}
+
+/* Shared square badge (legend + edit picker) */
+.sq { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.75rem; font-weight:700; }
+.sq-action { background:#fff3e0; color:var(--sq-action); border:1px solid #ff9800; }
+.sq-drink  { background:#fffde7; color:var(--sq-drink);  border:1px solid #fdd835; }
+.sq-dare   { background:#f3e5f5; color:var(--sq-dare);   border:1px solid #9c27b0; }
+.sq-truth  { background:#e3f2fd; color:var(--sq-truth);  border:1px solid #1976d2; }
+.sq-strip  { background:#fce4ec; color:var(--sq-strip);  border:1px solid #e91e63; }
+.sq-move   { background:#e8f5e9; color:var(--sq-move);   border:1px solid #43a047; }
+.sq-normal { background:#f5f5f5; color:var(--sq-normal); border:1px solid #bdbdbd; }
+.sq-start  { background:#fff8e1; color:var(--sq-start);  border:1px solid #ffc107; }
+.sq-end    { background:#ffebee; color:var(--sq-end);    border:1px solid #f44336; }
+.sq-male   { background:#e3f2fd; color:var(--sq-male);   border:1px solid #1565c0; }
+.sq-female { background:#fce4ec; color:var(--sq-female); border:1px solid #c2185b; }
+
+/* =====================================================
+   EDIT PAGE
+   ===================================================== */
+.edit-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 56px);
+}
+.edit-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.edit-toolbar-left { display:flex; align-items:center; gap:10px; }
+.edit-toolbar-left h1 { font-size:1.2rem; color:var(--gold); }
+.edit-toolbar-right { display:flex; gap:8px; }
+.edit-hint { text-align:center; color:var(--text-dim); font-size:.85rem; padding:8px; }
+
+/* =====================================================
+   BOARD WRAPPER
+   ===================================================== */
+.board-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: var(--bg);
+  overflow: auto;
+}
+
+/* =====================================================
+   THE GAME BOARD — 11×13 CSS Grid, cross/十字 shape
+   ===================================================== */
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+  grid-template-rows: repeat(11, 1fr);
+  width: min(96vw, min(76vh, 960px));
+  aspect-ratio: 13 / 11;
+  /* Board felt — green background shows outside the cross */
+  background: #1b5e20;
+  border: 4px solid #111;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.08);
+  position: relative;
+}
+
+/* ---- Individual board square ---- */
+.board-sq {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2px 3px;
+  border: 1px solid #ccc;
+  cursor: default;
+  overflow: hidden;
+  min-height: 0;
+  background: #fff;
+}
+
+/* Corner squares — slightly heavier border */
+.board-sq.sq-corner {
+  border-width: 2px;
+}
+
+/* ---- Color variants (light backgrounds, colored borders/text) ---- */
+.board-sq.color-action { background:#fff8f0; border-color:#ff9800; }
+.board-sq.color-drink  { background:#fffde7; border-color:#fbc02d; }
+.board-sq.color-dare   { background:#f5f0ff; border-color:#7b1fa2; }
+.board-sq.color-truth  { background:#e8f4fd; border-color:#1565c0; }
+.board-sq.color-strip  { background:#fff0f5; border-color:#c2185b; }
+.board-sq.color-move   { background:#f1faf2; border-color:#388e3c; }
+.board-sq.color-normal { background:#fafafa; border-color:#e0e0e0; }
+.board-sq.color-start  {
+  background: linear-gradient(135deg,#fff8e1,#ffecb3);
+  border: 2px solid #f9a825;
+}
+.board-sq.color-end    {
+  background: linear-gradient(135deg,#ffebee,#ffcdd2);
+  border: 2px solid #e53935;
+}
+.board-sq.color-male   { background:#e8f0fe; border-color:#1565c0; border-width:2px; }
+.board-sq.color-female { background:#fde8f5; border-color:#c2185b; border-width:2px; }
+
+/* ---- Square text ---- */
+.sq-text {
+  font-size: clamp(0.38rem, 0.9vw, 0.7rem);
+  line-height: 1.3;
+  color: #222;
+  word-break: break-all;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  max-height: 100%;
+}
+.board-sq.color-action .sq-text { color:#bf360c; font-weight:600; }
+.board-sq.color-drink  .sq-text { color:#e65100; font-weight:600; }
+.board-sq.color-dare   .sq-text { color:#4a148c; font-weight:700; }
+.board-sq.color-truth  .sq-text { color:#0d47a1; font-weight:700; }
+.board-sq.color-strip  .sq-text { color:#880e4f; font-weight:700; }
+.board-sq.color-move   .sq-text { color:#1b5e20; font-weight:600; }
+.board-sq.color-start  .sq-text { color:#e65100; font-weight:900; font-size:clamp(.42rem,1vw,.8rem); }
+.board-sq.color-end    .sq-text { color:#b71c1c; font-weight:900; }
+.board-sq.color-male   .sq-text { color:#0d47a1; font-weight:700; }
+.board-sq.color-female .sq-text { color:#880e4f; font-weight:700; }
+
+/* ---- Position number badge ---- */
+.sq-num {
+  font-size: clamp(0.32rem, 0.6vw, 0.5rem);
+  color: #bbb;
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  font-weight: 400;
+}
+
+/* ---- Direction arrow ---- */
+.sq-arrow {
+  font-size: clamp(0.5rem, 0.9vw, 0.75rem);
+  color: rgba(0,0,0,.28);
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+}
+/* END star arrow — more prominent */
+.board-sq.color-end .sq-arrow { color:#e53935; font-size:1rem; }
+
+/* ---- Gender indicator stripe ---- */
+.board-sq.color-male::before {
+  content: '♂';
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: clamp(.45rem,.8vw,.65rem);
+  color: #1565c0;
+  opacity: .7;
+}
+.board-sq.color-female::before {
+  content: '♀';
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: clamp(.45rem,.8vw,.65rem);
+  color: #c2185b;
+  opacity: .7;
+}
+
+/* ---- CENTER BANNER (row 6, cols 2-12 of h-bar interior) ---- */
+.board-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.10);
+  border-top: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 2px 8px;
+  text-align: center;
+  gap: 2px;
+  overflow: hidden;
+}
+.center-title {
+  font-size: clamp(.55rem, 1.4vw, 1rem);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.center-rules-inline {
+  font-size: clamp(.3rem, .7vw, .55rem);
+  color: rgba(255,255,255,.65);
+  white-space: nowrap;
+}
+
+/* ---- CORNER DECORATION AREAS (outside the cross path) ---- */
+.board-corner-deco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.18);
+  border-radius: 4px;
+  margin: 3px;
+  text-align: center;
+  overflow: hidden;
+}
+.corner-icon {
+  font-size: clamp(1rem, 3vw, 2rem);
+  line-height: 1;
+}
+.corner-sub {
+  font-size: clamp(.28rem, .6vw, .48rem);
+  color: rgba(255,255,255,.5);
+  line-height: 1.35;
+  white-space: pre-line;
+}
+
+/* ---- FLY-TO BADGE on squares (prominent solid band at bottom) ---- */
+.sq-fly-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: clamp(.3rem, .62vw, .5rem);
+  color: #fff;
+  font-weight: 800;
+  background: #1565c0;
+  text-align: center;
+  padding: 1px 2px;
+  line-height: 1.5;
+  z-index: 3;
+  letter-spacing: .3px;
+}
+
+/* =====================================================
+   EDIT MODE — clickable squares
+   ===================================================== */
+.edit-mode .board-sq:not(.board-center) {
+  cursor: pointer;
+  transition: filter .15s, transform .15s, box-shadow .15s;
+}
+.edit-mode .board-sq:not(.board-center):hover {
+  filter: brightness(0.92);
+  transform: scale(1.06);
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.edit-icon {
+  display: none;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: .6rem;
+  color: rgba(0,0,0,.45);
+}
+.edit-mode .board-sq:hover .edit-icon { display: block; }
+
+/* =====================================================
+   PLAY PAGE
+   ===================================================== */
+.play-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+/* Player bar */
+.player-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.player-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  transition: .25s;
+  min-width: 130px;
+}
+.player-panel.active { border-color: var(--gold); background: rgba(212,160,23,.1); }
+.pawn  { font-size: 1.7rem; line-height:1; }
+.pawn-1 { color: #e84060; }
+.pawn-2 { color: #4080e8; }
+.pname { font-weight:700; font-size:.9rem; display:block; }
+.ppos  { font-size:.72rem; color:var(--text-dim); }
+
+.turn-center { text-align:center; flex:1; }
+.turn-label  { font-size:.85rem; color:var(--gold); font-weight:600; margin-bottom:4px; }
+.dice-display { margin-bottom:4px; }
+.dice {
+  font-size: 2rem;
+  display: inline-block;
+  transition: transform .1s;
+  cursor: default;
+  user-select: none;
+}
+.dice.rolling { animation: diceRoll .4s ease; }
+@keyframes diceRoll {
+  0%   { transform: rotate(0)     scale(1);    }
+  25%  { transform: rotate(25deg) scale(1.2);  }
+  50%  { transform: rotate(-20deg) scale(1.1); }
+  75%  { transform: rotate(15deg) scale(1.15); }
+  100% { transform: rotate(0)     scale(1);    }
+}
+.btn-roll { padding:6px 20px; font-size:.9rem; }
+.play-mode .board-wrap { flex:1; overflow:auto; }
+
+/* Piece tokens */
+.piece-token {
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .55rem;
+  font-weight: 900;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,.9);
+  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  z-index: 10;
+  pointer-events: none;
+  transition: all .35s ease;
+}
+.piece-1 { background: #e53935; top:4%; left:4%; }
+.piece-2 { background: #1e88e5; top:4%; right:4%; left:auto; }
+
+/* Highlight landing square */
+.board-sq.highlight { animation: squareFlash .5s ease 3; }
+@keyframes squareFlash {
+  0%,100% { filter: brightness(1); }
+  50%      { filter: brightness(1.6) saturate(1.5); }
+}
+
+/* =====================================================
+   ACTION MODAL
+   ===================================================== */
+.action-modal .modal-box,
+.win-modal    .modal-box,
+.setup-modal  .modal-box { max-width: 420px; text-align: center; }
+.action-box { padding: 24px 22px; }
+.action-dice-result { font-size:.92rem; color:var(--text-dim); margin-bottom:8px; }
+.action-color-bar   { height:5px; border-radius:3px; margin-bottom:14px; }
+.action-text {
+  font-size: clamp(1rem, 3vw, 1.45rem);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.45;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+.skip-notice   { color: #f0c040; font-size:.88rem; margin-bottom:10px; }
+.gender-notice { color: #90caf9; font-size:.85rem; margin-bottom:10px;
+                 background: rgba(21,101,192,.15); padding:6px 10px; border-radius:6px; }
+.hidden { display:none !important; }
+
+/* Fly choice buttons */
+.fly-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.btn-fly    { background: #1565c0; color: #fff; border: 1px solid #1565c0; }
+.btn-fly:hover { background: #0d47a1; }
+.btn-punish { background: #c62828; color: #fff; border: 1px solid #c62828; }
+.btn-punish:hover { background: #b71c1c; }
+
+/* Win */
+.win-box { padding: 32px 24px; }
+.win-trophy { font-size: 3rem; margin-bottom:10px; }
+.win-box h2 { font-size:1.5rem; color:var(--gold); margin-bottom:8px; }
+.win-box p  { color:var(--text-dim); margin-bottom:18px; }
+.win-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+/* Setup — gender radios */
+.gender-radio-group {
+  display: flex;
+  gap: 20px;
+  margin-top: 6px;
+}
+.gender-radio-group label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .9rem;
+  color: var(--text);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 700px) {
+  .player-panel { min-width: 0; padding: 4px 6px; }
+  .pname { font-size: .78rem; }
+  .btn-roll { padding: 5px 12px; font-size: .78rem; }
+}
+
+/* =====================================================
+   EDIT PAGE — TAB BAR
+   ===================================================== */
+.tab-bar {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+.tab-btn {
+  padding: 8px 18px;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.tab-btn:hover      { color: var(--text); }
+.tab-btn.tab-active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* Tab panel toggle */
+.tab-panel   { flex-shrink: 0; }
+.tab-hidden  { display: none !important; }
+
+/* =====================================================
+   EDIT PAGE — MAIN FLEX ROW (board + side panel)
+   ===================================================== */
+.edit-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+.edit-main .board-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =====================================================
+   LAYOUT CONTROLS BAR
+   ===================================================== */
+.layout-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.layout-canvas-controls,
+.layout-preset-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.layout-label {
+  font-size: .82rem;
+  color: var(--text-dim);
+}
+.canvas-size-input {
+  width: 58px;
+  padding: 4px 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: .85rem;
+}
+
+/* =====================================================
+   LAYOUT BOARD (empty cells + occupied)
+   ===================================================== */
+.layout-empty-cell {
+  cursor: pointer;
+  background: rgba(255,255,255,.03);
+  border: 1px dashed rgba(255,255,255,.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  transition: background .15s, border-color .15s;
+}
+.layout-empty-cell:hover {
+  background: rgba(97,218,251,.08);
+  border-color: rgba(97,218,251,.35);
+}
+.layout-add-icon {
+  font-size: clamp(.7rem, 1.4vw, 1.1rem);
+  color: rgba(255,255,255,.2);
+  user-select: none;
+}
+.layout-empty-cell:hover .layout-add-icon { color: rgba(97,218,251,.6); }
+
+.layout-occupied { position: relative; }
+.layout-del-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #c62828;
+  color: #fff;
+  border: none;
+  font-size: .55rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity .15s;
+  padding: 0;
+  line-height: 1;
+}
+.layout-occupied:hover .layout-del-btn { opacity: 1; }
+
+/* =====================================================
+   PATH SIDE PANEL
+   ===================================================== */
+.path-side-panel {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+}
+.path-group-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.path-group-tab {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.path-group-tab:hover      { color: var(--text); }
+.path-group-tab.active     { color: var(--gold); border-bottom-color: var(--gold); }
+.path-group-hint {
+  font-size: .72rem;
+  color: var(--text-dim);
+  padding: 6px 10px;
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+.path-list-ul {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+}
+.path-empty-hint {
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: .8rem;
+}
+.path-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  font-size: .78rem;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  transition: background .15s;
+}
+.path-item.dragging  { opacity: .4; }
+.path-item.drag-over { background: rgba(212,160,23,.15); border-top: 2px solid var(--gold); }
+.drag-handle {
+  color: var(--text-dim);
+  cursor: grab;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+.step-label {
+  font-size: .68rem;
+  color: var(--text-dim);
+  min-width: 38px;
+  flex-shrink: 0;
+}
+.step-start { color: #f9a825; font-weight: 700; }
+.step-end   { color: #e53935; font-weight: 700; }
+.pos-chip {
+  font-size: .65rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.1);
+  color: var(--text);
+}
+.path-item-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dim);
+  font-size: .72rem;
+}
+.path-remove-btn {
+  background: none;
+  border: none;
+  color: #c62828;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+.path-remove-btn:hover { color: #ff5252; }
+.path-panel-actions {
+  display: flex;
+  gap: 5px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.path-panel-actions .btn {
+  flex: 1;
+  min-width: 0;
+  font-size: .75rem;
+  padding: 5px 6px;
+}
+.path-save-status {
+  padding: 4px 8px;
+  font-size: .75rem;
+  min-height: 22px;
+  flex-shrink: 0;
+}
+
+/* ---- Path board: squares with step number overlay ---- */
+.path-sq           { cursor: pointer; }
+.path-sq.in-path   { box-shadow: inset 0 0 0 2px #1565c0; }
+.path-step-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(.65rem, 1.5vw, 1.1rem);
+  font-weight: 900;
+  color: #1565c0;
+  text-shadow: 0 0 4px #fff, 0 0 8px #fff;
+  z-index: 5;
+  pointer-events: none;
+}
+.path-ghost {
+  pointer-events: none;
+  background: rgba(255,255,255,.02);
+  border: 1px dashed rgba(255,255,255,.07);
+}

@@ -1,0 +1,144 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "情侶飛行棋" [ref=e4] [cursor=pointer]:
+        - /url: http://127.0.0.1:8001
+      - navigation [ref=e5]:
+        - link "首頁" [ref=e6] [cursor=pointer]:
+          - /url: http://127.0.0.1:8001
+        - link "飛行棋大廳" [ref=e7] [cursor=pointer]:
+          - /url: http://127.0.0.1:8001/games
+        - link "自訂棋盤" [ref=e8] [cursor=pointer]:
+          - /url: http://127.0.0.1:8001/play
+        - link "登入" [ref=e9] [cursor=pointer]:
+          - /url: http://127.0.0.1:8001/login
+        - link "註冊" [ref=e10] [cursor=pointer]:
+          - /url: http://127.0.0.1:8001/register
+  - main [ref=e11]:
+    - generic [ref=e13]:
+      - heading "情侶飛行棋 — 讓感情更有趣" [level=1] [ref=e14]
+      - paragraph [ref=e15]: 線上雙人棋盤遊戲，免費開始，格子任務自己設計，一起玩才夠親密
+      - generic [ref=e16]:
+        - link "立即玩飛行棋" [ref=e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8001/games
+          - img
+          - text: 立即玩飛行棋
+        - link "玩自訂棋盤" [ref=e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8001/play/2
+          - img
+          - text: 玩自訂棋盤
+    - generic [ref=e21]:
+      - heading "選擇遊戲模式" [level=2] [ref=e22]
+      - generic [ref=e23]:
+        - article [ref=e24]:
+          - img [ref=e26]
+          - heading "飛行棋" [level=3] [ref=e28]
+          - paragraph [ref=e29]: 經典飛行棋對戰，每局 2–4 人，支援 AI 電腦對手，不用等朋友也能玩
+          - link "進入大廳" [ref=e30] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/games
+            - img [ref=e31]
+            - text: 進入大廳
+        - article [ref=e33]:
+          - img [ref=e35]
+          - heading "自訂棋盤遊玩" [level=3] [ref=e37]
+          - paragraph [ref=e38]: 雙人同機在自訂棋盤上對玩，格子任務自己設計，情侶最愛的互動模式
+          - link "開始遊玩" [ref=e39] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/play/2
+            - img [ref=e40]
+            - text: 開始遊玩
+        - article [ref=e42]:
+          - img [ref=e44]
+          - heading "棋盤編輯器" [level=3] [ref=e46]
+          - paragraph [ref=e47]: 登入後免費建立棋盤，自訂每個格子的文字與類型，設計屬於你們的專屬版本
+          - link "免費註冊開始建立" [ref=e48] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/register
+            - img [ref=e49]
+            - text: 免費註冊開始建立
+    - generic [ref=e53]:
+      - generic [ref=e54]: 有分享碼？
+      - generic [ref=e55]:
+        - textbox "輸入 8 碼分享碼" [ref=e56]
+        - button "進入棋盤" [ref=e57] [cursor=pointer]:
+          - img
+          - text: 進入棋盤
+    - generic [ref=e59]:
+      - heading "預設棋盤" [level=2] [ref=e61]
+      - generic [ref=e62]:
+        - article [ref=e63]:
+          - generic [ref=e64]:
+            - heading "輕度暖身版" [level=3] [ref=e65]
+            - paragraph [ref=e66]: 溫馨甜蜜風格，適合剛開始約會或想來點浪漫互動的情侶（40格，十字棋盤）
+            - text: 40 格
+          - link "玩" [ref=e68] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/play/3
+            - img
+            - text: 玩
+        - article [ref=e70]:
+          - generic [ref=e71]:
+            - heading "飲酒開嗨版" [level=3] [ref=e72]
+            - paragraph [ref=e73]: 以喝酒罰則為主題，歡樂派對必備！適合多人聚會或好友一起玩（40格，十字棋盤）
+            - text: 40 格
+          - link "玩" [ref=e75] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/play/4
+            - img
+            - text: 玩
+        - article [ref=e77]:
+          - generic [ref=e78]:
+            - heading "情侶飛行棋 V2.0" [level=3] [ref=e79]
+            - paragraph [ref=e80]: 雙人同機情趣版（40格）——支援男女專屬格子，適合情侶或親密夥伴一起玩
+            - text: 48 格 預設
+          - link "玩" [ref=e82] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/play/2
+            - img
+            - text: 玩
+    - generic [ref=e84]:
+      - heading "為什麼選擇情侶飛行棋" [level=2] [ref=e85]
+      - generic [ref=e86]:
+        - generic [ref=e87]:
+          - img [ref=e89]
+          - heading "免費開始" [level=3] [ref=e91]
+          - paragraph [ref=e92]: 無需下載、無需付費，開啟瀏覽器即可立即遊玩，飛行棋與自訂棋盤全程免費
+        - generic [ref=e93]:
+          - img [ref=e95]
+          - heading "情侶專屬" [level=3] [ref=e97]
+          - paragraph [ref=e98]: 為情侶設計的棋盤任務系統，獨家支援男女生差異路徑，讓互動更有趣、更親密
+        - generic [ref=e99]:
+          - img [ref=e101]
+          - heading "自訂玩法" [level=3] [ref=e103]
+          - paragraph [ref=e104]: 棋盤格子文字、顏色、飛行目標全部可自訂，打造只屬於你們兩人的專屬版本
+    - generic [ref=e105]:
+      - heading "常見問題" [level=2] [ref=e106]
+      - generic [ref=e107]:
+        - group [ref=e108]:
+          - generic "情侶飛行棋是什麼遊戲？" [ref=e109]
+          - paragraph [ref=e111]: 情侶飛行棋是一款專為情侶設計的線上棋盤遊戲，結合了經典飛行棋的擲骰對戰玩法與可自訂格子任務的互動棋盤模式。玩家可以在格子上設計真心話、挑戰、喝酒等各種任務，讓每一局都充滿驚喜與互動，幫助情侶增進感情。
+        - group [ref=e112]:
+          - generic "需要付費才能玩嗎？" [ref=e113]
+        - group [ref=e114]:
+          - generic "如何自訂棋盤？" [ref=e115]
+        - group [ref=e116]:
+          - generic "遊戲支援幾人遊玩？" [ref=e117]
+  - contentinfo [ref=e118]:
+    - generic [ref=e119]:
+      - generic [ref=e120]:
+        - generic [ref=e121]: 情侶飛行棋
+        - generic [ref=e122]: 雙人同機 · 自訂格子 · 越玩越親密
+        - generic [ref=e123]:
+          - link "首頁" [ref=e124] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001
+          - link "遊戲" [ref=e125] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/play
+          - link "註冊" [ref=e126] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/register
+          - link "隱私權政策" [ref=e127] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/privacy
+          - link "使用條款" [ref=e128] [cursor=pointer]:
+            - /url: http://127.0.0.1:8001/terms
+      - generic [ref=e129]: © 2026 情侶飛行棋
+  - generic [ref=e131]:
+    - heading "年齡確認" [level=2] [ref=e132]
+    - paragraph [ref=e133]: 本站包含成人向趣味遊戲內容。
+    - paragraph [ref=e134]: 請確認您已年滿 18 歲再進入。
+    - generic [ref=e135]:
+      - button "我已年滿 18 歲，進入" [ref=e136] [cursor=pointer]
+      - button "離開" [ref=e137] [cursor=pointer]
