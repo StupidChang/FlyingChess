@@ -25,7 +25,7 @@ phpunit.xml
 .phpunit.result.cache
 
 # Docker build context exclusions
-docker
+# NOTE: do NOT exclude the `docker/` directory — Dockerfile copies nginx/supervisord/entrypoint from it
 Dockerfile
 docker-compose.yml
 docker-compose.override.yml
