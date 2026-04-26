@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class TruthDareService
 {
-    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null): array
+    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false): array
     {
         $game = Game::create([
             'code' => $this->generateCode(),
@@ -23,6 +23,7 @@ class TruthDareService
                 'started' => false,
                 'used_card_ids' => [],
                 'host_user_id' => $hostUserId,
+                'is_adult' => $isAdult,
             ],
         ]);
 
@@ -80,11 +81,16 @@ class TruthDareService
         return ['success' => true];
     }
 
-    public function drawCard(Game $game, string $category, bool $hostIsPremium): array
+    public function drawCard(Game $game, string $category, bool $hostIsPremium, bool $isAdult = false): array
     {
-        $tiers = ['free'];
-        if ($hostIsPremium) {
-            $tiers[] = 'premium';
+        if ($isAdult) {
+            // 18+ mode: only show adult (premium) cards
+            $tiers = ['premium'];
+        } else {
+            $tiers = ['free'];
+            if ($hostIsPremium) {
+                $tiers[] = 'premium';
+            }
         }
 
         $state = $game->game_state ?? [];

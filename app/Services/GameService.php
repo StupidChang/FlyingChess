@@ -290,8 +290,12 @@ class GameService
 
             $newPos = $pos + $dice;
             if ($newPos > self::MAX_PROGRESS) {
-                // Would overshoot — only valid if bounce doesn't land on same square
-                // Actually we allow bounce in some rules; for simplicity, disallow overshoot
+                // Bounce back: same rule as movePiece
+                $bounced = self::MAX_PROGRESS - ($newPos - self::MAX_PROGRESS);
+                if ($bounced === $pos) {
+                    continue; // Would land on same square — meaningless move
+                }
+                $valid[] = $i;
                 continue;
             }
 

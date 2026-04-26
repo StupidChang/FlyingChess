@@ -77,6 +77,11 @@ class AgeVerification
             return redirect()->back()->withCookie($cookie);
         }
 
+        // Let all other POST/PUT/PATCH/DELETE through (game actions need CSRF anyway)
+        if (!$request->isMethod('GET') && !$request->isMethod('HEAD')) {
+            return $next($request);
+        }
+
         // Show age gate
         return response()->view('partials.age-gate-full', [], 200);
     }

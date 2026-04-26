@@ -12,49 +12,46 @@ class TruthDareController extends Controller
 {
     public function __construct(private TruthDareService $service) {}
 
+    /**
+     * Build a unique player identity string.
+     * Combines the PHP session ID with an optional per-tab token so that
+     * two browser tabs sharing the same session can be separate players.
+     */
+    private function playerSessionId(Request $request): string
+    {
+        $base = $request->session()->getId();
+        $tab  = $request->input('tab_id') ?? $request->header('X-Tab-Id', '');
+        return $tab ? "{$base}|{$tab}" : $base;
+    }
+
     public function lobby()
     {
-        $games = Game::where('game_type', 'truth_or_dare')
-            ->where('status', 'waiting')
-            ->where('is_private', false)
-            ->withCount('players')
-            ->orderByDesc('created_at')
-            ->paginate(12);
-
-        return view('truth-dare.lobby', compact('games'));
+        return view('truth-dare.lobby');
     }
 
     public function create(Request $request)
     {
         $data = $request->validate([
             'player_name' => ['required', 'string', 'min:1', 'max:20', new NoBlockedWords],
-            'is_private' => 'boolean',
+            'is_adult' => 'boolean',
         ]);
 
-        $isPrivate = $data['is_private'] ?? false;
-
-        // Private rooms require premium
-        if ($isPrivate) {
-            $user = $request->user();
-            if (!$user || !$user->isPremium()) {
-                return back()->with('error', '建立私人房間需要付費會員，請先升級。');
-            }
-        }
-
-        // Store host user_id for premium card pool detection (driver-agnostic)
         $hostUserId = $request->user()?->id;
 
         $result = $this->service->createGame(
             $data['player_name'],
-            $request->session()->getId(),
-            $isPrivate,
-            $hostUserId
+            $this->playerSessionId($request),
+            false,
+            $hostUserId,
+            (bool) ($data['is_adult'] ?? false)
         );
 
         $request->session()->put('player_name', $data['player_name']);
 
-        return redirect()->route('truth-dare.show', $result['game']->code)
-            ->with('success', '房間已建立！');
+        // Auto-start the game for direct play
+        $this->service->startGame($result['game']);
+
+        return redirect()->route('truth-dare.show', $result['game']->code);
     }
 
     public function show(Request $request, string $code)
@@ -64,15 +61,26 @@ class TruthDareController extends Controller
             ->with('players')
             ->firstOrFail();
 
-        $sessionId = $request->session()->getId();
-        $myPlayer = $game->players->firstWhere('session_id', $sessionId);
+        $sessionId = $this->playerSessionId($request);
+        $baseSessionId = $request->session()->getId();
+        $myPlayer  = $game->players->firstWhere('session_id', $sessionId)
+                  ?? $game->players->firstWhere('session_id', $baseSessionId)
+                  ?? $game->players->first(fn($p) => str_starts_with($p->session_id, $baseSessionId . '|'));
+
+        // Non-players cannot view game page — redirect to lobby with message
+        if (!$myPlayer) {
+            return redirect()->route('truth-dare.lobby')
+                ->with('error', '無法進入此房間，可能連線已過期，請重新建立遊戲。');
+        }
+
         $playerName = $request->session()->get('player_name', '玩家');
 
         // Host premium: stored in game_state (session-driver agnostic)
         $hostIsPremium = $this->resolveHostPremium($game);
+        $isAdult = (bool) ($game->game_state['is_adult'] ?? false);
 
         return view('truth-dare.show', compact(
-            'game', 'myPlayer', 'playerName', 'hostIsPremium'
+            'game', 'myPlayer', 'playerName', 'hostIsPremium', 'isAdult'
         ));
     }
 
@@ -89,7 +97,7 @@ class TruthDareController extends Controller
         $result = $this->service->joinGame(
             $game,
             $data['player_name'],
-            $request->session()->getId()
+            $this->playerSessionId($request)
         );
 
         if (!$result['success']) {
@@ -108,8 +116,9 @@ class TruthDareController extends Controller
             ->firstOrFail();
 
         // Must be in the room to start
-        $sessionId = $request->session()->getId();
-        if (!$game->players()->where('session_id', $sessionId)->exists()) {
+        $sessionId = $this->playerSessionId($request);
+        if (!$game->players()->where('session_id', $sessionId)->exists()
+            && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
             return response()->json(['success' => false, 'message' => '你不在此房間中。'], 403);
         }
 
@@ -129,8 +138,9 @@ class TruthDareController extends Controller
             ->firstOrFail();
 
         // Must be in the room to draw
-        $sessionId = $request->session()->getId();
-        if (!$game->players()->where('session_id', $sessionId)->exists()) {
+        $sessionId = $this->playerSessionId($request);
+        if (!$game->players()->where('session_id', $sessionId)->exists()
+            && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
             return response()->json(['success' => false, 'message' => '你不在此房間中。'], 403);
         }
 
@@ -143,13 +153,15 @@ class TruthDareController extends Controller
         $currentIndex = $game->game_state['current_player_index'] ?? 0;
         $currentPlayer = $players->values()->get($currentIndex);
 
-        if (!$currentPlayer || $currentPlayer->session_id !== $sessionId) {
+        $baseSessionId = $request->session()->getId();
+        if (!$currentPlayer || ($currentPlayer->session_id !== $sessionId && $currentPlayer->session_id !== $baseSessionId)) {
             return response()->json(['success' => false, 'message' => '還沒輪到你。']);
         }
 
         $hostIsPremium = $this->resolveHostPremium($game);
+        $isAdult = (bool) ($game->game_state['is_adult'] ?? false);
 
-        $result = $this->service->drawCard($game, $data['category'], $hostIsPremium);
+        $result = $this->service->drawCard($game, $data['category'], $hostIsPremium, $isAdult);
 
         return response()->json($result);
     }
@@ -161,8 +173,9 @@ class TruthDareController extends Controller
             ->firstOrFail();
 
         // Must be in the room
-        $sessionId = $request->session()->getId();
-        if (!$game->players()->where('session_id', $sessionId)->exists()) {
+        $sessionId = $this->playerSessionId($request);
+        if (!$game->players()->where('session_id', $sessionId)->exists()
+            && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
             return response()->json(['success' => false, 'message' => '你不在此房間中。'], 403);
         }
 
@@ -171,7 +184,8 @@ class TruthDareController extends Controller
         $currentIndex = $game->game_state['current_player_index'] ?? 0;
         $currentPlayer = $players->values()->get($currentIndex);
 
-        if (!$currentPlayer || $currentPlayer->session_id !== $sessionId) {
+        $baseSessionId = $request->session()->getId();
+        if (!$currentPlayer || ($currentPlayer->session_id !== $sessionId && $currentPlayer->session_id !== $baseSessionId)) {
             return response()->json(['success' => false, 'message' => '還沒輪到你。']);
         }
 
@@ -187,8 +201,11 @@ class TruthDareController extends Controller
             ->with('players')
             ->firstOrFail();
 
-        $sessionId = $request->session()->getId();
-        $myPlayer = $game->players->firstWhere('session_id', $sessionId);
+        $sessionId = $this->playerSessionId($request);
+        $baseSessionId = $request->session()->getId();
+        $myPlayer  = $game->players->firstWhere('session_id', $sessionId)
+                  ?? $game->players->firstWhere('session_id', $baseSessionId)
+                  ?? $game->players->first(fn($p) => str_starts_with($p->session_id, $baseSessionId . '|'));
 
         // Must be in the room to see state
         if (!$myPlayer) {
@@ -224,7 +241,13 @@ class TruthDareController extends Controller
             ->where('game_type', 'truth_or_dare')
             ->firstOrFail();
 
-        $result = $this->service->leaveGame($game, $request->session()->getId());
+        $sessionId = $this->playerSessionId($request);
+        $result = $this->service->leaveGame($game, $sessionId);
+
+        // Fallback: try plain session ID if composite didn't match
+        if (!($result['success'] ?? true)) {
+            $result = $this->service->leaveGame($game, $request->session()->getId());
+        }
 
         if ($request->expectsJson()) {
             return response()->json($result);

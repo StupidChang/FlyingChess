@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+.playwright-mcp/
+.claude/session-logs/
+.claude/current-review-brief.md
+.claude/risk-priority.md
+.claude/agent-memory/
+/database/database.sqlite

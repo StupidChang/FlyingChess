@@ -45,8 +45,9 @@
                 <p style="font-size:.85rem;color:var(--text-dim);margin-bottom:12px">
                     輸入名稱後加入此房間
                 </p>
-                <form action="{{ route('games.join', $game->code) }}" method="POST">
+                <form action="{{ route('games.join', $game->code) }}" method="POST" id="join-form">
                     @csrf
+                    <input type="hidden" name="tab_id" id="join-tab-id">
                     <div class="form-group">
                         <input type="text" name="player_name" class="form-control"
                             placeholder="你的名稱" maxlength="20" required
@@ -59,6 +60,16 @@
                         加入遊戲
                     </button>
                 </form>
+                <script>
+                    // Set tab_id in join form before submission
+                    (function() {
+                        if (!sessionStorage.getItem('tab_id')) {
+                            sessionStorage.setItem('tab_id', Math.random().toString(36).slice(2, 11));
+                        }
+                        var el = document.getElementById('join-tab-id');
+                        if (el) el.value = sessionStorage.getItem('tab_id');
+                    })();
+                </script>
             </div>
             @elseif($myPlayer->is_host)
             <div class="host-controls">
@@ -175,6 +186,11 @@
 
 @section('scripts')
 <script>
+    // Per-tab unique ID — allows two tabs in the same browser to be different players
+    if (!sessionStorage.getItem('tab_id')) {
+        sessionStorage.setItem('tab_id', Math.random().toString(36).slice(2, 11));
+    }
+    window.TAB_ID       = sessionStorage.getItem('tab_id');
     window.GAME_CODE    = '{{ $game->code }}';
     window.MY_COLOR     = '{{ $myPlayer?->color ?? "" }}';
     window.GAME_STATUS  = '{{ $game->status }}';

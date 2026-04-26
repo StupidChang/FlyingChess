@@ -184,7 +184,19 @@ function buildBoard() {
 
   board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   board.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
-  board.style.aspectRatio         = `${cols} / ${rows}`;
+
+  // Calculate board dimensions to fit within viewport
+  if (!isEditMode) {
+    const ar = cols / rows;
+    const maxW = Math.min(window.innerWidth * 0.96, 960);
+    const maxH = window.innerHeight - 140; // header + player bar
+    let bw = maxW, bh = bw / ar;
+    if (bh > maxH) { bh = maxH; bw = bh * ar; }
+    board.style.width  = bw + 'px';
+    board.style.height = bh + 'px';
+  } else {
+    board.style.aspectRatio = `${cols} / ${rows}`;
+  }
 
   const allPaths   = getEffectivePath('all');
   const arrowMap   = computeArrowMap(allPaths, sqData);

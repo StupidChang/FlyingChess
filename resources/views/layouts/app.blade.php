@@ -15,6 +15,9 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <link rel="icon" href="{{ asset('images/favicon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @yield('styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -57,12 +60,22 @@
         {{-- Desktop nav — explicit .nav-desktop class; hidden on mobile via .nav-desktop{display:none} in media query --}}
         <nav class="nav-desktop">
             <a href="{{ route('home') }}" class="nav-link">首頁</a>
-            <a href="{{ route('games.lobby') }}" class="nav-link nav-play">飛行棋</a>
-            <a href="{{ route('truth-dare.lobby') }}" class="nav-link">真心話大冒險</a>
-            <a href="{{ route('card-game.show') }}" class="nav-link">撲克牌</a>
-            <a href="{{ route('play') }}" class="nav-link">自訂棋盤</a>
+            <div class="nav-dropdown">
+                <a href="{{ route('game-hall.index') }}" class="nav-link nav-play nav-dropdown-toggle" aria-haspopup="true">遊戲大廳</a>
+                <div class="nav-dropdown-menu">
+                    <a href="{{ route('games.lobby') }}">飛行棋</a>
+                    <a href="{{ route('truth-dare.lobby') }}">真心話大冒險</a>
+                    <a href="{{ route('card-game.show') }}">撲克牌</a>
+                    <a href="{{ route('dice-game.show') }}">骰子挑戰</a>
+                    <a href="{{ route('king-game.show') }}">國王遊戲</a>
+                    <a href="{{ route('wheel-game.show') }}">命運轉盤</a>
+                </div>
+            </div>
             @auth
-                <a href="{{ route('boards.index') }}" class="nav-link">我的棋盤</a>
+                <a href="{{ route('profile.index') }}" class="nav-link">個人頁</a>
+                @if(Auth::user()->isAdmin())
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">後台</a>
+                @endif
                 <span class="nav-user">
                     {{ Auth::user()->name }}
                     @if(Auth::user()->isPremium())
@@ -93,12 +106,23 @@
     {{-- Mobile nav — .nav-mobile is never targeted by the desktop hide rule --}}
     <nav class="nav-mobile" id="mobileNav">
         <a href="{{ route('home') }}" class="nav-link">首頁</a>
-        <a href="{{ route('games.lobby') }}" class="nav-link">飛行棋大廳</a>
-        <a href="{{ route('truth-dare.lobby') }}" class="nav-link">真心話大冒險</a>
-        <a href="{{ route('card-game.show') }}" class="nav-link">撲克牌</a>
-        <a href="{{ route('play') }}" class="nav-link">自訂棋盤</a>
+        <button class="nav-link nav-mobile-games-toggle" onclick="toggleMobileGames(this)">
+            遊戲大廳 <span class="toggle-arrow">▾</span>
+        </button>
+        <div class="nav-mobile-games" id="mobileGamesMenu">
+            <a href="{{ route('game-hall.index') }}" class="nav-link" style="color:var(--gold);font-weight:600">查看全部遊戲 →</a>
+            <a href="{{ route('games.lobby') }}" class="nav-link">飛行棋</a>
+            <a href="{{ route('truth-dare.lobby') }}" class="nav-link">真心話大冒險</a>
+            <a href="{{ route('card-game.show') }}" class="nav-link">撲克牌</a>
+            <a href="{{ route('dice-game.show') }}" class="nav-link">骰子挑戰</a>
+            <a href="{{ route('king-game.show') }}" class="nav-link">國王遊戲</a>
+            <a href="{{ route('wheel-game.show') }}" class="nav-link">命運轉盤</a>
+        </div>
         @auth
-            <a href="{{ route('boards.index') }}" class="nav-link">我的棋盤</a>
+            <a href="{{ route('profile.index') }}" class="nav-link">個人頁</a>
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">後台管理</a>
+            @endif
             <a href="{{ route('premium.index') }}" class="nav-link">
                 會員中心
                 @if(Auth::user()->isPremium())
@@ -121,11 +145,12 @@
 
 <main>
     @if(session('success'))
-        <div class="toast toast-ok">{{ session('success') }}</div>
+        <div class="toast toast-ok" onclick="this.remove()">{{ session('success') }}</div>
     @endif
     @if(session('error'))
-        <div class="toast toast-err">{{ session('error') }}</div>
+        <div class="toast toast-err" onclick="this.remove()">{{ session('error') }}</div>
     @endif
+    <script>document.querySelectorAll('.toast').forEach(function(t){setTimeout(function(){t.remove()},3400)})</script>
     @yield('content')
 </main>
 
@@ -141,9 +166,12 @@
                 <a href="{{ route('games.lobby') }}">飛行棋</a>
                 <a href="{{ route('truth-dare.lobby') }}">真心話大冒險</a>
                 <a href="{{ route('card-game.show') }}">撲克牌</a>
+                <a href="{{ route('dice-game.show') }}">骰子挑戰</a>
+                <a href="{{ route('king-game.show') }}">國王遊戲</a>
+                <a href="{{ route('wheel-game.show') }}">命運轉盤</a>
                 <a href="{{ route('play') }}">自訂棋盤</a>
                 @auth
-                <a href="{{ route('boards.index') }}">我的棋盤</a>
+                <a href="{{ route('profile.index') }}">個人頁</a>
                 <a href="{{ route('premium.index') }}">會員中心</a>
                 @else
                 <a href="{{ route('register') }}">免費註冊</a>
@@ -183,6 +211,11 @@ updateThemeLabels(localStorage.getItem('theme') || 'pink');
 // Mobile nav toggle
 function toggleMobileNav() {
     document.getElementById('mobileNav').classList.toggle('open');
+}
+// Mobile games sub-menu toggle
+function toggleMobileGames(btn) {
+    btn.classList.toggle('open');
+    document.getElementById('mobileGamesMenu').classList.toggle('open');
 }
 </script>
 @yield('scripts')

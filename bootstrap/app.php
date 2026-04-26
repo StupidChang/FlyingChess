@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'age.verify' => \App\Http\Middleware\AgeVerification::class,
             'premium' => \App\Http\Middleware\EnsurePremium::class,
+            'admin' => \App\Http\Middleware\EnsureAdmin::class,
         ]);
 
         $middleware->append(\App\Http\Middleware\AgeVerification::class);

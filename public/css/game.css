@@ -3,7 +3,7 @@
    ============================================= */
 
 /* ---- Game Layout ---- */
-.game-page { display: flex; gap: 0; min-height: calc(100vh - 60px); }
+.game-page { display: flex; gap: 0; min-height: calc(100vh - 60px); font-family: 'Noto Sans TC', sans-serif; font-weight: 700; }
 
 /* ---- Sidebar ---- */
 .game-sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
@@ -13,7 +13,7 @@
     background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
 }
 .room-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 8px; }
-.room-code-display { font-size: 2rem; font-weight: 800; font-family: monospace; letter-spacing: 4px; color: var(--yellow); margin-bottom: 8px; }
+.room-code-display { font-size: 2rem; font-weight: 900; font-family: 'Noto Sans TC', monospace; letter-spacing: 4px; color: var(--yellow); margin-bottom: 8px; }
 .copy-btn { width: 100%; }
 
 .players-box h3, .join-box h3, .dice-box h3, .pieces-box h3, .log-box h3, .turn-info-box h3 {
@@ -21,11 +21,11 @@
 }
 .players-list { display: flex; flex-direction: column; gap: 6px; }
 .player-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; }
-.player-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.player-dot.yellow { background: var(--yellow); }
-.player-dot.blue   { background: var(--blue); }
-.player-dot.green  { background: var(--green); }
-.player-dot.red    { background: var(--red); }
+.player-dot { width: 14px; height: 14px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; display: inline-block; }
+.player-dot.yellow { background: radial-gradient(ellipse at 35% 30%, #ffe066, var(--yellow) 60%, #b8860b); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.player-dot.blue   { background: radial-gradient(ellipse at 35% 30%, #64b5f6, var(--blue) 60%, #0d47a1); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.player-dot.green  { background: radial-gradient(ellipse at 35% 30%, #66dd8a, var(--green) 60%, #1b7a2a); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.player-dot.red    { background: radial-gradient(ellipse at 35% 30%, #ef8a8a, var(--red) 60%, #8b1a1a); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .player-name { flex: 1; font-size: .92rem; }
 .host-badge { font-size: .7rem; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--yellow); border: 1px solid var(--yellow); }
 .me-badge  { font-size: .7rem; background: var(--primary); padding: 2px 6px; border-radius: 4px; color: #fff; }
@@ -91,10 +91,20 @@
 .waiting-overlay, .winner-overlay {
     position: absolute; inset: 0; background: rgba(13,17,23,.85);
     display: flex; align-items: center; justify-content: center; z-index: 50;
+    animation: overlayFadeIn .4s ease-out;
 }
 .waiting-card, .winner-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
     padding: 40px; text-align: center; max-width: 360px;
+    animation: cardSlideIn .5s ease-out;
+}
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes cardSlideIn {
+    from { opacity: 0; transform: scale(.9) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 .waiting-icon, .trophy-icon { font-size: 3rem; margin-bottom: 16px; }
 .waiting-card h2, .winner-card h2 { margin-bottom: 12px; font-size: 1.6rem; }
@@ -163,22 +173,56 @@
     font-size: 1.2rem; z-index: 2;
 }
 
-/* Pieces on board */
+/* Pieces on board — 3D chess pawn style */
 .piece {
-    width: 70%; height: 70%; border-radius: 50%;
+    width: 70%; height: 70%;
     position: absolute; display: flex; align-items: center; justify-content: center;
-    font-size: .55rem; font-weight: 800; color: #fff;
-    cursor: default; z-index: 10; border: 2px solid rgba(255,255,255,.5);
-    box-shadow: 0 2px 6px rgba(0,0,0,.5);
+    font-size: .55rem; font-weight: 900; color: #fff;
+    cursor: default; z-index: 10;
     transition: transform .3s ease;
     pointer-events: none;
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    border: none;
+    font-family: 'Noto Sans TC', sans-serif;
 }
-.piece.yellow { background: var(--yellow); color: #000; }
-.piece.blue   { background: var(--blue); }
-.piece.green  { background: var(--green); }
-.piece.red    { background: var(--red); }
-.piece.selectable { cursor: pointer; pointer-events: auto; animation: piecePulse 1s infinite; border-color: #fff; }
-@keyframes piecePulse { 0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,.5); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,.15); transform: scale(1.1); } }
+.piece::before {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 10%; right: 10%; height: 35%;
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    z-index: -1;
+}
+.piece::after {
+    content: '';
+    position: absolute;
+    top: 8%; left: 15%; width: 35%; height: 25%;
+    background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,.55), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.piece.yellow {
+    background: radial-gradient(ellipse at 35% 30%, #ffe066, var(--yellow) 50%, #b8860b);
+    box-shadow: 0 3px 6px rgba(0,0,0,.5), inset 0 -3px 6px rgba(0,0,0,.2), inset 0 2px 4px rgba(255,255,255,.3);
+    color: #000;
+}
+.piece.yellow::before { background: radial-gradient(ellipse at 50% 0%, #c9a000, #8b6914); }
+.piece.blue {
+    background: radial-gradient(ellipse at 35% 30%, #64b5f6, var(--blue) 50%, #0d47a1);
+    box-shadow: 0 3px 6px rgba(0,0,0,.5), inset 0 -3px 6px rgba(0,0,0,.2), inset 0 2px 4px rgba(255,255,255,.3);
+}
+.piece.blue::before { background: radial-gradient(ellipse at 50% 0%, #1565c0, #0a3270); }
+.piece.green {
+    background: radial-gradient(ellipse at 35% 30%, #66dd8a, var(--green) 50%, #1b7a2a);
+    box-shadow: 0 3px 6px rgba(0,0,0,.5), inset 0 -3px 6px rgba(0,0,0,.2), inset 0 2px 4px rgba(255,255,255,.3);
+}
+.piece.green::before { background: radial-gradient(ellipse at 50% 0%, #1b8a2e, #0d5c1a); }
+.piece.red {
+    background: radial-gradient(ellipse at 35% 30%, #ef8a8a, var(--red) 50%, #8b1a1a);
+    box-shadow: 0 3px 6px rgba(0,0,0,.5), inset 0 -3px 6px rgba(0,0,0,.2), inset 0 2px 4px rgba(255,255,255,.3);
+}
+.piece.red::before { background: radial-gradient(ellipse at 50% 0%, #b71c1c, #7a1010); }
+.piece.selectable { cursor: pointer; pointer-events: auto; animation: piecePulse 1s infinite; }
+@keyframes piecePulse { 0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,.5), 0 3px 6px rgba(0,0,0,.5); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,.2), 0 3px 6px rgba(0,0,0,.5); transform: scale(1.1); } }
 
 /* Stacked pieces offset */
 .piece-offset-1 { transform: translate(20%, -20%); }

@@ -85,10 +85,10 @@
    ===================================================== */
 .game-board {
   display: grid;
-  grid-template-columns: repeat(13, 1fr);
-  grid-template-rows: repeat(11, 1fr);
-  width: min(96vw, min(76vh, 960px));
-  aspect-ratio: 13 / 11;
+  /* grid-template-columns/rows set by JS based on board dimensions */
+  /* width/height set by JS to fit within viewport */
+  width: min(96vw, 960px);
+  max-width: 100%;
   /* Board felt — green background shows outside the cross */
   background: #1b5e20;
   border: 4px solid #111;

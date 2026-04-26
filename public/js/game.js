@@ -438,6 +438,11 @@ async function fetchState() {
         const prevStatus = gameStatus;
         gameStatus = res.status;
 
+        // Update my_color from server (handles tab_id-based identity)
+        if (res.my_color && !myColor) {
+            myColor = res.my_color;
+        }
+
         updatePlayersList(res.players || []);
         if (playerCountEl) playerCountEl.textContent = res.players_count;
         if (startBtn) startBtn.disabled = (res.players_count < 2);
@@ -481,6 +486,10 @@ function showWinner(winnerColor, players) {
         document.querySelector('.game-main')?.appendChild(overlay);
     }
     overlay.style.display = 'flex';
+    // Re-trigger fade-in animation
+    overlay.style.animation = 'none';
+    overlay.offsetHeight; // force reflow
+    overlay.style.animation = '';
     const winnerPlayer = (players || playersList).find(p => p.color === winnerColor);
     const name = winnerPlayer?.player_name || COLOR_ZH[winnerColor];
     const wt = document.getElementById('winner-text');
@@ -489,11 +498,14 @@ function showWinner(winnerColor, players) {
 
 /* ---- HTTP helpers ---- */
 async function apiFetch(url) {
-    const r = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+    const sep = url.includes('?') ? '&' : '?';
+    const fullUrl = window.TAB_ID ? `${url}${sep}tab_id=${window.TAB_ID}` : url;
+    const r = await fetch(fullUrl, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Tab-Id': window.TAB_ID || '' } });
     return r.json();
 }
 
 async function apiPost(url, data = {}) {
+    if (window.TAB_ID) data.tab_id = window.TAB_ID;
     const r = await fetch(url, {
         method: 'POST',
         headers: {
@@ -501,6 +513,7 @@ async function apiPost(url, data = {}) {
             'Accept': 'application/json',
             'X-CSRF-TOKEN': window.CSRF_TOKEN,
             'X-Requested-With': 'XMLHttpRequest',
+            'X-Tab-Id': window.TAB_ID || '',
         },
         body: JSON.stringify(data),
     });

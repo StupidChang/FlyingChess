@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Board;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Rules\NoBlockedWords;
@@ -12,9 +13,31 @@ class GameController extends Controller
 {
     public function __construct(private GameService $gameService) {}
 
+    /**
+     * Build a unique player identity string.
+     * Combines the PHP session ID with an optional per-tab token so that
+     * two browser tabs sharing the same session can be separate players.
+     */
+    private function playerSessionId(Request $request): string
+    {
+        $base = $request->session()->getId();
+        $tab  = $request->input('tab_id') ?? $request->header('X-Tab-Id', '');
+        return $tab ? "{$base}|{$tab}" : $base;
+    }
+
     public function lobby()
     {
-        return view('games.lobby');
+        $boards = Board::where(function ($q) {
+                $q->where('is_template', true)
+                  ->orWhere('is_default', true);
+            })
+            ->with('squares')
+            ->withCount('squares')
+            ->orderByDesc('is_default')
+            ->orderByDesc('created_at')
+            ->paginate(12);
+
+        return view('games.lobby', compact('boards'));
     }
 
     public function create(Request $request)
@@ -29,7 +52,7 @@ class GameController extends Controller
         $result = $this->gameService->createGame(
             $data['player_name'],
             (int) ($data['max_players'] ?? 4),
-            $request->session()->getId(),
+            $this->playerSessionId($request),
             $solo
         );
 
@@ -47,8 +70,9 @@ class GameController extends Controller
             ->with('players')
             ->firstOrFail();
 
-        $sessionId  = $request->session()->getId();
-        $myPlayer   = $game->players->firstWhere('session_id', $sessionId);
+        $sessionId  = $this->playerSessionId($request);
+        $myPlayer   = $game->players->firstWhere('session_id', $sessionId)
+                   ?? $game->players->firstWhere('session_id', $request->session()->getId());
         $playerName = $request->session()->get('player_name', '玩家');
 
         $boardData = [
@@ -73,7 +97,7 @@ class GameController extends Controller
         $result = $this->gameService->joinGame(
             $game,
             $data['player_name'],
-            $request->session()->getId()
+            $this->playerSessionId($request)
         );
 
         if (!$result['success']) {
@@ -88,8 +112,9 @@ class GameController extends Controller
     public function start(Request $request, string $code)
     {
         $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
-        $sessionId = $request->session()->getId();
-        $myPlayer  = $game->players()->where('session_id', $sessionId)->first();
+        $sessionId = $this->playerSessionId($request);
+        $myPlayer  = $game->players()->where('session_id', $sessionId)->first()
+                  ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
         if (!$myPlayer || !$myPlayer->is_host) {
             return response()->json(['success' => false, 'message' => '只有房主可以開始遊戲'], 403);
@@ -102,8 +127,9 @@ class GameController extends Controller
     public function roll(Request $request, string $code)
     {
         $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
-        $sessionId = $request->session()->getId();
-        $myPlayer  = $game->players()->where('session_id', $sessionId)->first();
+        $sessionId = $this->playerSessionId($request);
+        $myPlayer  = $game->players()->where('session_id', $sessionId)->first()
+                  ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
         if (!$myPlayer) {
             return response()->json(['success' => false, 'message' => '你不在此遊戲中'], 403);
@@ -133,8 +159,9 @@ class GameController extends Controller
         $data = $request->validate(['piece_index' => 'required|integer|between:0,3']);
 
         $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
-        $sessionId = $request->session()->getId();
-        $myPlayer  = $game->players()->where('session_id', $sessionId)->first();
+        $sessionId = $this->playerSessionId($request);
+        $myPlayer  = $game->players()->where('session_id', $sessionId)->first()
+                  ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
         if (!$myPlayer) {
             return response()->json(['success' => false, 'message' => '你不在此遊戲中'], 403);
@@ -163,8 +190,9 @@ class GameController extends Controller
     public function state(Request $request, string $code)
     {
         $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->with('players')->firstOrFail();
-        $sessionId = $request->session()->getId();
-        $myPlayer  = $game->players->firstWhere('session_id', $sessionId);
+        $sessionId = $this->playerSessionId($request);
+        $myPlayer  = $game->players->firstWhere('session_id', $sessionId)
+                  ?? $game->players->firstWhere('session_id', $request->session()->getId());
 
         return response()->json([
             'status'        => $game->status,

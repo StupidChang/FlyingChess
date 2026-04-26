@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GameHallController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\PlayController;
@@ -11,9 +13,14 @@ use App\Http\Controllers\PremiumController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\CardGameController;
+use App\Http\Controllers\DiceGameController;
+use App\Http\Controllers\KingGameController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WheelGameController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/game-hall', [GameHallController::class, 'index'])->name('game-hall.index');
 
 // Age verification POST endpoint
 Route::post('/age-verify', function () {
@@ -86,10 +93,22 @@ Route::prefix('truth-dare')->name('truth-dare.')->group(function () {
 // Card Game (單機版，所有邏輯在前端 JS)
 Route::get('/card-game', [CardGameController::class, 'show'])->name('card-game.show');
 
+// Dice Game (單機版)
+Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
+
+// King Game (單機版)
+Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');
+
+// Wheel Game (單機版)
+Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
+
 // Play (公開)
 Route::get('/play',                [PlayController::class, 'show'])->name('play');
 Route::get('/play/share/{code}',   [PlayController::class, 'showByCode'])->name('play.code');
 Route::get('/play/{board}',        [PlayController::class, 'show'])->name('play.board');
+
+// Profile (auth required)
+Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index')->middleware(['auth', 'verified']);
 
 // Board CRUD (auth required)
 Route::prefix('boards')->name('boards.')->middleware(['auth', 'verified'])->group(function () {
@@ -130,4 +149,27 @@ Route::prefix('premium')->name('premium.')->group(function () {
     Route::match(['get', 'post'], '/result', [PremiumController::class, 'result'])
         ->name('result')
         ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+});
+
+// Admin backend
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/',                      [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/boards',                [AdminController::class, 'boards'])->name('boards');
+    Route::get('/boards/{board}/edit',   [AdminController::class, 'editBoard'])->name('boards.edit');
+    Route::patch('/boards/{board}',      [AdminController::class, 'updateBoard'])->name('boards.update');
+    Route::get('/cards',                 [AdminController::class, 'cards'])->name('cards');
+    Route::get('/cards/create',          [AdminController::class, 'createCard'])->name('cards.create');
+    Route::post('/cards',                [AdminController::class, 'storeCard'])->name('cards.store');
+    Route::get('/cards/{card}/edit',     [AdminController::class, 'editCard'])->name('cards.edit');
+    Route::patch('/cards/{card}',        [AdminController::class, 'updateCard'])->name('cards.update');
+    Route::delete('/cards/{card}',       [AdminController::class, 'destroyCard'])->name('cards.destroy');
+    Route::get('/users',                 [AdminController::class, 'users'])->name('users');
+    Route::get('/users/{user}/edit',     [AdminController::class, 'editUser'])->name('users.edit');
+    Route::patch('/users/{user}',        [AdminController::class, 'updateUser'])->name('users.update');
+    Route::get('/wheel-segments',                       [AdminController::class, 'wheelSegments'])->name('wheel-segments');
+    Route::get('/wheel-segments/create',                [AdminController::class, 'createWheelSegment'])->name('wheel-segments.create');
+    Route::post('/wheel-segments',                      [AdminController::class, 'storeWheelSegment'])->name('wheel-segments.store');
+    Route::get('/wheel-segments/{wheelSegment}/edit',   [AdminController::class, 'editWheelSegment'])->name('wheel-segments.edit');
+    Route::patch('/wheel-segments/{wheelSegment}',      [AdminController::class, 'updateWheelSegment'])->name('wheel-segments.update');
+    Route::delete('/wheel-segments/{wheelSegment}',     [AdminController::class, 'destroyWheelSegment'])->name('wheel-segments.destroy');
 });

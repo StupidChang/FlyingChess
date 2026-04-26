@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'premium_expires_at',
+        'is_admin',
     ];
 
     /**
@@ -47,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'premium_expires_at' => 'datetime',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -58,6 +60,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isPremium(): bool
     {
         return $this->premium_expires_at && $this->premium_expires_at->isFuture();
+    }
+
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
     }
 
     public function orders(): HasMany
