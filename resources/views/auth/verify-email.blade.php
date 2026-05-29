@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title','驗證電子信箱 — 情侶飛行棋')
+@section('title', __('auth.verify_email_heading') . ' — ' . __('ui.site_name'))
 @section('content')
 <div class="form-page">
     <div class="form-card">
-        <h1 style="font-size:1.5rem;color:var(--gold);margin-bottom:16px;text-align:center">驗證電子信箱</h1>
+        <h1 style="font-size:1.5rem;color:var(--gold);margin-bottom:16px;text-align:center">{{ __('auth.verify_email_heading') }}</h1>
 
         @if(session('success'))
         <div class="toast toast-ok" style="margin-bottom:16px">
@@ -12,26 +12,26 @@
         @endif
 
         <p style="text-align:center;color:var(--text-dim);margin-bottom:24px;line-height:1.7">
-            感謝您的註冊！<br>
-            驗證信已寄送至您的電子信箱，請點擊信中的連結完成驗證。<br>
-            若未收到，請檢查垃圾郵件資料夾，或點擊下方按鈕重新寄送。
+            {{ __('auth.verify_email_thanks') }}<br>
+            {{ __('auth.verify_email_sent') }}<br>
+            {{ __('auth.verify_email_spam') }}
         </p>
 
         <form action="{{ route('verification.send') }}" method="POST">
             @csrf
             <div class="form-actions">
-                <button type="submit" class="btn btn-gold btn-full">重新寄送驗證信</button>
+                <button type="submit" class="btn btn-gold btn-full">{{ __('auth.verify_email_resend') }}</button>
             </div>
         </form>
 
         <div style="text-align:center;margin-top:16px">
-            <a href="{{ route('home') }}" class="btn btn-outline btn-full" style="margin-bottom:8px">先去玩，稍後再驗證</a>
+            <a href="{{ route('home') }}" class="btn btn-outline btn-full" style="margin-bottom:8px">{{ __('auth.verify_email_play_first') }}</a>
         </div>
 
         <p style="text-align:center;margin-top:12px;font-size:.88rem;color:var(--text-dim)">
             <form action="{{ route('logout') }}" method="POST" style="display:inline">
                 @csrf
-                <button type="submit" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:.88rem">登出</button>
+                <button type="submit" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:.88rem">{{ __('auth.logout') }}</button>
             </form>
         </p>
     </div>

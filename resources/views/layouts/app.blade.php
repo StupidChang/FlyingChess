@@ -1,15 +1,31 @@
+@php
+    use App\Support\LocaleHelper;
+    $currentLocale = app()->getLocale();
+    $currentHreflang = LocaleHelper::hreflang($currentLocale) ?? 'zh-TW';
+    $defaultLocale = LocaleHelper::defaultLocale();
+@endphp
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="{{ $currentHreflang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', '情侶飛行棋 — 成人趣味桌遊')</title>
-    <meta name="description" content="@yield('meta_description', '情侶飛行棋 — 線上情趣小遊戲，免費開始玩')">
+    <title>@yield('title', __('seo.home_title'))</title>
+    <meta name="description" content="@yield('meta_description', __('seo.home_description'))">
     <meta name="robots" content="@yield('robots', 'index,follow')">
-    <link rel="canonical" href="@yield('canonical', url()->current())">
+    <link rel="canonical" href="@yield('canonical', LocaleHelper::localizedUrl($currentLocale, request()->path()))">
+    @foreach (LocaleHelper::readyLocales() as $locale => $meta)
+        <link rel="alternate" hreflang="{{ $meta['hreflang'] }}" href="{{ LocaleHelper::localizedUrl($locale, request()->path()) }}">
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ LocaleHelper::localizedUrl($defaultLocale, request()->path()) }}">
     <meta property="og:title" content="@yield('og_title', config('app.name'))">
-    <meta property="og:description" content="@yield('og_description', '情侶飛行棋 — 線上情趣小遊戲')">
-    <meta property="og:url" content="@yield('canonical', url()->current())">
+    <meta property="og:description" content="@yield('og_description', __('seo.home_description'))">
+    <meta property="og:url" content="@yield('canonical', LocaleHelper::localizedUrl($currentLocale, request()->path()))">
+    <meta property="og:locale" content="{{ str_replace('-', '_', $currentHreflang) }}">
+    @foreach (LocaleHelper::readyLocales() as $locale => $meta)
+        @if ($locale !== $currentLocale)
+            <meta property="og:locale:alternate" content="{{ str_replace('-', '_', $meta['hreflang']) }}">
+        @endif
+    @endforeach
     <meta property="og:type" content="website">
     <meta property="og:image" content="@yield('og_image', asset('images/174655ssvy4mu6pwyllysm.jpg'))">
     <meta property="og:image:width" content="1200">
@@ -55,26 +71,26 @@
 <body>
 <header class="site-header">
     <div class="container">
-        <a href="{{ route('home') }}" class="logo">情侶飛行棋</a>
+        <a href="{{ route('home') }}" class="logo">{{ __('ui.site_name') }}</a>
 
         {{-- Desktop nav — explicit .nav-desktop class; hidden on mobile via .nav-desktop{display:none} in media query --}}
         <nav class="nav-desktop">
-            <a href="{{ route('home') }}" class="nav-link">首頁</a>
+            <a href="{{ route('home') }}" class="nav-link">{{ __('ui.home') }}</a>
             <div class="nav-dropdown">
-                <a href="{{ route('game-hall.index') }}" class="nav-link nav-play nav-dropdown-toggle" aria-haspopup="true">遊戲大廳</a>
+                <a href="{{ route('game-hall.index') }}" class="nav-link nav-play nav-dropdown-toggle" aria-haspopup="true">{{ __('games.lobby') }}</a>
                 <div class="nav-dropdown-menu">
-                    <a href="{{ route('games.lobby') }}">飛行棋</a>
-                    <a href="{{ route('truth-dare.lobby') }}">真心話大冒險</a>
-                    <a href="{{ route('card-game.show') }}">撲克牌</a>
-                    <a href="{{ route('dice-game.show') }}">骰子挑戰</a>
-                    <a href="{{ route('king-game.show') }}">國王遊戲</a>
-                    <a href="{{ route('wheel-game.show') }}">命運轉盤</a>
+                    <a href="{{ route('games.lobby') }}">{{ __('games.flying_chess') }}</a>
+                    <a href="{{ route('truth-dare.lobby') }}">{{ __('games.truth_dare') }}</a>
+                    <a href="{{ route('card-game.show') }}">{{ __('games.card_game') }}</a>
+                    <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
+                    <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
+                    <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
                 </div>
             </div>
             @auth
-                <a href="{{ route('profile.index') }}" class="nav-link">個人頁</a>
+                <a href="{{ route('profile.index') }}" class="nav-link">{{ __('ui.profile') }}</a>
                 @if(Auth::user()->isAdmin())
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">後台</a>
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">{{ __('ui.admin') }}</a>
                 @endif
                 <span class="nav-user">
                     {{ Auth::user()->name }}
@@ -84,19 +100,20 @@
                 </span>
                 <form action="{{ route('logout') }}" method="POST" style="display:inline">
                     @csrf
-                    <button type="submit" class="btn btn-sm btn-outline" style="margin-left:4px">登出</button>
+                    <button type="submit" class="btn btn-sm btn-outline" style="margin-left:4px">{{ __('auth.logout') }}</button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="nav-link">登入</a>
-                <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold" style="margin-left:4px">註冊</a>
+                <a href="{{ route('login') }}" class="nav-link">{{ __('auth.login_title') }}</a>
+                <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold" style="margin-left:4px">{{ __('auth.register_title') }}</a>
             @endauth
-            <button class="theme-toggle" onclick="toggleTheme()" title="切換配色">
+            @include('partials.lang-switcher')
+            <button class="theme-toggle" onclick="toggleTheme()" title="{{ __('ui.switch_language') }}">
                 <span id="theme-label">粉色</span>
             </button>
         </nav>
 
         {{-- Mobile hamburger --}}
-        <button class="hamburger" onclick="toggleMobileNav()" aria-label="選單">
+        <button class="hamburger" onclick="toggleMobileNav()" aria-label="{{ __('ui.menu') }}">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px">
                 <path fill-rule="evenodd" d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75ZM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12Zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75Z" clip-rule="evenodd"/>
             </svg>
@@ -105,38 +122,39 @@
 
     {{-- Mobile nav — .nav-mobile is never targeted by the desktop hide rule --}}
     <nav class="nav-mobile" id="mobileNav">
-        <a href="{{ route('home') }}" class="nav-link">首頁</a>
+        <a href="{{ route('home') }}" class="nav-link">{{ __('ui.home') }}</a>
         <button class="nav-link nav-mobile-games-toggle" onclick="toggleMobileGames(this)">
-            遊戲大廳 <span class="toggle-arrow">▾</span>
+            {{ __('games.lobby') }} <span class="toggle-arrow">▾</span>
         </button>
         <div class="nav-mobile-games" id="mobileGamesMenu">
-            <a href="{{ route('game-hall.index') }}" class="nav-link" style="color:var(--gold);font-weight:600">查看全部遊戲 →</a>
-            <a href="{{ route('games.lobby') }}" class="nav-link">飛行棋</a>
-            <a href="{{ route('truth-dare.lobby') }}" class="nav-link">真心話大冒險</a>
-            <a href="{{ route('card-game.show') }}" class="nav-link">撲克牌</a>
-            <a href="{{ route('dice-game.show') }}" class="nav-link">骰子挑戰</a>
-            <a href="{{ route('king-game.show') }}" class="nav-link">國王遊戲</a>
-            <a href="{{ route('wheel-game.show') }}" class="nav-link">命運轉盤</a>
+            <a href="{{ route('game-hall.index') }}" class="nav-link" style="color:var(--gold);font-weight:600">{{ __('ui.next') }} →</a>
+            <a href="{{ route('games.lobby') }}" class="nav-link">{{ __('games.flying_chess') }}</a>
+            <a href="{{ route('truth-dare.lobby') }}" class="nav-link">{{ __('games.truth_dare') }}</a>
+            <a href="{{ route('card-game.show') }}" class="nav-link">{{ __('games.card_game') }}</a>
+            <a href="{{ route('dice-game.show') }}" class="nav-link">{{ __('games.dice_game') }}</a>
+            <a href="{{ route('king-game.show') }}" class="nav-link">{{ __('games.king_game') }}</a>
+            <a href="{{ route('wheel-game.show') }}" class="nav-link">{{ __('games.wheel_game') }}</a>
         </div>
         @auth
-            <a href="{{ route('profile.index') }}" class="nav-link">個人頁</a>
+            <a href="{{ route('profile.index') }}" class="nav-link">{{ __('ui.profile') }}</a>
             @if(Auth::user()->isAdmin())
-                <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">後台管理</a>
+                <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">{{ __('ui.admin') }}</a>
             @endif
             <a href="{{ route('premium.index') }}" class="nav-link">
-                會員中心
+                {{ __('premium.page_title') }}
                 @if(Auth::user()->isPremium())
                     <span class="nav-premium">Premium</span>
                 @endif
             </a>
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button type="submit" class="btn btn-sm btn-outline btn-full">登出</button>
+                <button type="submit" class="btn btn-sm btn-outline btn-full">{{ __('auth.logout') }}</button>
             </form>
         @else
-            <a href="{{ route('login') }}" class="nav-link">登入</a>
-            <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold btn-full">免費註冊</a>
+            <a href="{{ route('login') }}" class="nav-link">{{ __('auth.login_title') }}</a>
+            <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold btn-full">{{ __('auth.register_title') }}</a>
         @endauth
+        @include('partials.lang-switcher', ['mobile' => true])
         <button class="theme-toggle" onclick="toggleTheme()">
             <span id="theme-label-m">粉色</span> 切換配色
         </button>
@@ -158,29 +176,29 @@
     <div class="container">
         <div class="footer-inner">
             <div class="footer-brand">
-                <span class="footer-logo">情侶飛行棋</span>
-                <span class="footer-tagline">情侶升溫 · 派對助興 · 越玩越親密</span>
+                <span class="footer-logo">{{ __('ui.site_name') }}</span>
+                <span class="footer-tagline">{{ __('ui.tagline') }}</span>
             </div>
             <div class="footer-links">
-                <a href="{{ route('home') }}">首頁</a>
-                <a href="{{ route('games.lobby') }}">飛行棋</a>
-                <a href="{{ route('truth-dare.lobby') }}">真心話大冒險</a>
-                <a href="{{ route('card-game.show') }}">撲克牌</a>
-                <a href="{{ route('dice-game.show') }}">骰子挑戰</a>
-                <a href="{{ route('king-game.show') }}">國王遊戲</a>
-                <a href="{{ route('wheel-game.show') }}">命運轉盤</a>
-                <a href="{{ route('play') }}">自訂棋盤</a>
+                <a href="{{ route('home') }}">{{ __('ui.home') }}</a>
+                <a href="{{ route('games.lobby') }}">{{ __('games.flying_chess') }}</a>
+                <a href="{{ route('truth-dare.lobby') }}">{{ __('games.truth_dare') }}</a>
+                <a href="{{ route('card-game.show') }}">{{ __('games.card_game') }}</a>
+                <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
+                <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
+                <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
+                <a href="{{ route('play') }}">{{ __('play.create_board') }}</a>
                 @auth
-                <a href="{{ route('profile.index') }}">個人頁</a>
-                <a href="{{ route('premium.index') }}">會員中心</a>
+                <a href="{{ route('profile.index') }}">{{ __('ui.profile') }}</a>
+                <a href="{{ route('premium.index') }}">{{ __('premium.page_title') }}</a>
                 @else
-                <a href="{{ route('register') }}">免費註冊</a>
+                <a href="{{ route('register') }}">{{ __('auth.register_title') }}</a>
                 @endauth
-                <a href="{{ route('legal.privacy') }}" rel="nofollow">隱私權政策</a>
-                <a href="{{ route('legal.terms') }}" rel="nofollow">使用條款</a>
+                <a href="{{ route('legal.privacy') }}" rel="nofollow">{{ __('legal.privacy_title') }}</a>
+                <a href="{{ route('legal.terms') }}" rel="nofollow">{{ __('legal.terms_title') }}</a>
             </div>
         </div>
-        <p class="footer-copy">&copy; {{ date('Y') }} 情侶飛行棋 — 成人趣味互動遊戲平台</p>
+        <p class="footer-copy">&copy; {{ date('Y') }} {{ __('ui.site_name') }}</p>
         {{-- Social placeholders --}}
         <div class="footer-social" style="justify-content:center">
             {{-- <a href="#" target="_blank" rel="nofollow noopener">Instagram</a> --}}

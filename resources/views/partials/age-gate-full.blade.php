@@ -1,9 +1,14 @@
+@php
+    use App\Support\LocaleHelper;
+    $currentLocale = app()->getLocale();
+    $currentHreflang = LocaleHelper::hreflang($currentLocale) ?? 'zh-TW';
+@endphp
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="{{ $currentHreflang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>年齡確認 — 情侶飛行棋</title>
+    <title>{{ __('legal.age_gate_title') }} — {{ __('ui.site_name') }}</title>
     <meta name="robots" content="noindex,nofollow">
     <link rel="icon" href="{{ asset('images/favicon.svg') }}">
     <style>
@@ -25,19 +30,28 @@
 </head>
 <body>
     <div class="age-gate">
-        <h1>年齡確認</h1>
-        <p class="warning">本站含有成人內容，僅限 18 歲以上使用者瀏覽。</p>
-        <p>繼續瀏覽即表示您已確認年滿 18 歲，並同意本站的使用條款。</p>
+        <h1>{{ __('legal.age_gate_title') }}</h1>
+        <p class="warning">{{ __('legal.age_gate_text') }}</p>
+        <p>{{ __('legal.age_gate_consent') }}</p>
         <div class="age-gate-btns">
             <form action="{{ route('age.verify') }}" method="POST">
                 @csrf
-                <button type="submit" class="btn-enter">我已滿 18 歲，進入</button>
+                <button type="submit" class="btn-enter">{{ __('legal.enter_18') }}</button>
             </form>
-            <a href="https://www.google.com" class="btn-leave">離開</a>
+            <a href="https://www.google.com" class="btn-leave">{{ __('legal.leave') }}</a>
         </div>
         <div class="age-gate-links">
-            <a href="{{ route('legal.privacy') }}">隱私權政策</a>
-            <a href="{{ route('legal.terms') }}">使用條款</a>
+            <a href="{{ LocaleHelper::localizedUrl($currentLocale, 'privacy') }}">{{ __('legal.privacy_title') }}</a>
+            <a href="{{ LocaleHelper::localizedUrl($currentLocale, 'terms') }}">{{ __('legal.terms_title') }}</a>
+        </div>
+        <div style="margin-top:18px;font-size:.78rem;color:#666">
+            @foreach (LocaleHelper::supported() as $loc => $meta)
+                @if ($loc !== $currentLocale)
+                    <a href="{{ LocaleHelper::localizedUrl($loc, request()->path()) }}"
+                       hreflang="{{ $meta['hreflang'] }}"
+                       style="color:#888;margin:0 6px;text-decoration:underline">{{ $meta['native'] }}</a>
+                @endif
+            @endforeach
         </div>
     </div>
     @if(env('GOOGLE_GA4_ID'))

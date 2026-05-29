@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title','使用條款 — 情侶飛行棋')
-@section('meta_description','情侶飛行棋使用條款，使用本站即表示您同意以下規範。')
+@section('title', __('legal.terms_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('legal.terms_meta_description'))
 @section('canonical', route('legal.terms'))
 @section('content')
 <div class="container" style="max-width:800px;padding:40px 16px">

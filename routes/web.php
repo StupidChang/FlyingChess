@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BucketListController;
 use App\Http\Controllers\GameHallController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BoardController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PremiumController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\TimeCapsuleController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\CardGameController;
 use App\Http\Controllers\DiceGameController;
@@ -19,157 +21,215 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WheelGameController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/game-hall', [GameHallController::class, 'index'])->name('game-hall.index');
+/*
+|--------------------------------------------------------------------------
+| Locale-exempt routes
+|--------------------------------------------------------------------------
+| These endpoints MUST NOT carry a /tw|cn|jp|en prefix. They are either
+| infrastructural (sitemap, robots, health) or contracts with external
+| systems (age-verify cookie write, payment gateway callback / redirect).
+| RedirectUnprefixedUrl::NEVER_PREFIX keeps them out of the 301 sweep.
+*/
 
-// Age verification POST endpoint
 Route::post('/age-verify', function () {
     $cookie = cookie('age_verified', '1', 30 * 24 * 60);
     return redirect()->back()->withCookie($cookie);
 })->name('age.verify');
 
-// Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
-// Legal pages
-Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
-Route::get('/terms',   [LegalController::class, 'terms'])->name('legal.terms');
+// Per-locale sitemap (referenced by /sitemap.xml index)
+Route::get('/sitemap-{prefix}.xml', [SitemapController::class, 'locale'])
+    ->where('prefix', 'tw|cn|jp|en')
+    ->name('sitemap.locale');
 
-// Auth routes (guest only)
-Route::middleware('guest')->group(function () {
-    Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login',   [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register',[AuthController::class, 'register']);
+Route::get('/robots.txt', function () {
+    return response(
+        "User-agent: *\nDisallow: /admin/\nSitemap: ".url('/sitemap.xml')."\n",
+        200,
+        ['Content-Type' => 'text/plain']
+    );
+})->name('robots');
 
-    // Password reset (guest only)
-    Route::get('/forgot-password',        [PasswordResetController::class, 'showForgotForm'])->name('password.request');
-    Route::post('/forgot-password',       [PasswordResetController::class, 'sendResetLink'])->name('password.email');
-    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password',        [PasswordResetController::class, 'resetPassword'])->name('password.update');
-});
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+// Premium gateway callbacks: URLs are pinned by the payment provider — adding
+// a locale prefix would break the contract. The view handler picks language
+// from cookie / Accept-Language internally.
+Route::post('/premium/callback', [PremiumController::class, 'callback'])
+    ->name('premium.callback')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
-// Email verification routes
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
+// Payment gateway redirect URL. ECPay's OrderResultURL is a client-side POST
+// callback (browser form-posts here after payment), so this route must accept
+// both GET (ClientBackURL fallback) and POST (OrderResultURL) and be CSRF-exempt.
+// Layout shared with localized routes calls route('home') etc., which require
+// the {locale} URL default. set.locale falls back to cookie/Accept-Language when
+// no route parameter exists, so the shared layout renders correctly here.
+Route::match(['get', 'post'], '/premium/result', [PremiumController::class, 'result'])
+    ->name('premium.result')
+    ->middleware('set.locale')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
-Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
-    $request->fulfill();
-    return redirect()->route('home')->with('success', '電子信箱驗證成功！歡迎加入。');
-})->middleware(['auth', 'signed'])->name('verification.verify');
+/*
+|--------------------------------------------------------------------------
+| Localized routes (everything else)
+|--------------------------------------------------------------------------
+| All public + authed pages go through this group. {locale} is constrained
+| to the four supported URL prefixes. SetLocale middleware reads the prefix,
+| sets app()->setLocale(zh_TW|zh_CN|ja|en), and pins URL::defaults so that
+| existing route('foo') / url() calls automatically inherit the prefix.
+*/
 
-Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return back()->with('success', '驗證信已重新寄出，請查收信箱。');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+Route::prefix('{locale}')
+    ->where(['locale' => 'tw|cn|jp|en'])
+    ->middleware(['set.locale'])
+    ->group(function () {
+        Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('/game-hall', [GameHallController::class, 'index'])->name('game-hall.index');
 
-// Flying Chess (公開，session-based)
-Route::prefix('games')->name('games.')->group(function () {
-    Route::get('/',                          [GameController::class, 'lobby'])->name('lobby');
-    Route::post('/',                         [GameController::class, 'create'])->name('create');
-    Route::get('/{code}',                    [GameController::class, 'show'])->name('show');
-    Route::post('/{code}/join',              [GameController::class, 'join'])->name('join');
-    Route::post('/{code}/start',             [GameController::class, 'start'])->name('start');
-    Route::post('/{code}/roll',              [GameController::class, 'roll'])->name('roll');
-    Route::post('/{code}/move',              [GameController::class, 'move'])->name('move');
-    Route::get('/{code}/state',              [GameController::class, 'state'])->name('state');
-});
+        // Legal pages
+        Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+        Route::get('/terms',   [LegalController::class, 'terms'])->name('legal.terms');
 
-// Truth or Dare (公開，session-based)
-Route::prefix('truth-dare')->name('truth-dare.')->group(function () {
-    Route::get('/',                          [TruthDareController::class, 'lobby'])->name('lobby');
-    Route::post('/',                         [TruthDareController::class, 'create'])->name('create');
-    Route::get('/{code}',                    [TruthDareController::class, 'show'])->name('show');
-    Route::post('/{code}/join',              [TruthDareController::class, 'join'])->name('join');
-    Route::post('/{code}/start',             [TruthDareController::class, 'start'])->name('start');
-    Route::post('/{code}/draw',              [TruthDareController::class, 'draw'])->name('draw');
-    Route::post('/{code}/next',              [TruthDareController::class, 'nextPlayer'])->name('next');
-    Route::get('/{code}/state',              [TruthDareController::class, 'state'])->name('state');
-    Route::post('/{code}/leave',             [TruthDareController::class, 'leave'])->name('leave');
-});
+        // Auth (guest only)
+        Route::middleware('guest')->group(function () {
+            Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
+            Route::post('/login',   [AuthController::class, 'login']);
+            Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+            Route::post('/register',[AuthController::class, 'register']);
 
-// Card Game (單機版，所有邏輯在前端 JS)
-Route::get('/card-game', [CardGameController::class, 'show'])->name('card-game.show');
+            Route::get('/forgot-password',        [PasswordResetController::class, 'showForgotForm'])->name('password.request');
+            Route::post('/forgot-password',       [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+            Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+            Route::post('/reset-password',        [PasswordResetController::class, 'resetPassword'])->name('password.update');
+        });
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Dice Game (單機版)
-Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
+        // Email verification
+        Route::get('/email/verify', function () {
+            return view('auth.verify-email');
+        })->middleware('auth')->name('verification.notice');
 
-// King Game (單機版)
-Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');
+        Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+            $request->fulfill();
+            return redirect()->route('home')->with('success', __('auth.verify_email_success', [], 'zh_TW'));
+        })->middleware(['auth', 'signed'])->name('verification.verify');
 
-// Wheel Game (單機版)
-Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
+        Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
+            $request->user()->sendEmailVerificationNotification();
+            return back()->with('success', __('auth.verify_email_resent', [], 'zh_TW'));
+        })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-// Play (公開)
-Route::get('/play',                [PlayController::class, 'show'])->name('play');
-Route::get('/play/share/{code}',   [PlayController::class, 'showByCode'])->name('play.code');
-Route::get('/play/{board}',        [PlayController::class, 'show'])->name('play.board');
+        // Flying Chess
+        Route::prefix('games')->name('games.')->group(function () {
+            Route::get('/',                 [GameController::class, 'lobby'])->name('lobby');
+            Route::post('/',                [GameController::class, 'create'])->name('create');
+            Route::get('/{code}',           [GameController::class, 'show'])->name('show');
+            Route::post('/{code}/join',     [GameController::class, 'join'])->name('join');
+            Route::post('/{code}/start',    [GameController::class, 'start'])->name('start');
+            Route::post('/{code}/roll',     [GameController::class, 'roll'])->name('roll');
+            Route::post('/{code}/move',     [GameController::class, 'move'])->name('move');
+            Route::get('/{code}/state',     [GameController::class, 'state'])->name('state');
+        });
 
-// Profile (auth required)
-Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index')->middleware(['auth', 'verified']);
+        // Truth or Dare
+        Route::prefix('truth-dare')->name('truth-dare.')->group(function () {
+            Route::get('/',                  [TruthDareController::class, 'lobby'])->name('lobby');
+            Route::post('/',                 [TruthDareController::class, 'create'])->name('create');
+            Route::get('/{code}',            [TruthDareController::class, 'show'])->name('show');
+            Route::post('/{code}/join',      [TruthDareController::class, 'join'])->name('join');
+            Route::post('/{code}/start',     [TruthDareController::class, 'start'])->name('start');
+            Route::post('/{code}/draw',      [TruthDareController::class, 'draw'])->name('draw');
+            Route::post('/{code}/next',      [TruthDareController::class, 'nextPlayer'])->name('next');
+            Route::get('/{code}/state',      [TruthDareController::class, 'state'])->name('state');
+            Route::post('/{code}/leave',     [TruthDareController::class, 'leave'])->name('leave');
+        });
 
-// Board CRUD (auth required)
-Route::prefix('boards')->name('boards.')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('/',                              [BoardController::class, 'index'])->name('index');
-    Route::get('/create',                        [BoardController::class, 'create'])->name('create');
-    Route::post('/',                             [BoardController::class, 'store'])->name('store');
-    Route::get('/{board}/edit',                  [BoardController::class, 'edit'])->name('edit');
-    Route::patch('/{board}',                     [BoardController::class, 'update'])->name('update');
-    Route::delete('/{board}',                    [BoardController::class, 'destroy'])->name('destroy');
+        // Single-player mini games
+        Route::get('/card-game',  [CardGameController::class, 'show'])->name('card-game.show');
+        Route::get('/dice-game',  [DiceGameController::class, 'show'])->name('dice-game.show');
+        Route::get('/king-game',  [KingGameController::class, 'show'])->name('king-game.show');
+        Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
 
-    // Square content
-    Route::patch('/{board}/squares/{position}',  [BoardController::class, 'updateSquare'])->name('squares.update');
-    // Square create/delete (canvas editor)
-    Route::post('/{board}/squares',              [BoardController::class, 'storeSquare'])->name('squares.store');
-    Route::delete('/{board}/squares/{position}', [BoardController::class, 'destroySquare'])->name('squares.destroy');
-    // Bulk grid positions
-    Route::patch('/{board}/squares',             [BoardController::class, 'bulkUpdateSquares'])->name('squares.bulk');
-    // Canvas size
-    Route::patch('/{board}/canvas',              [BoardController::class, 'updateCanvas'])->name('canvas.update');
-    // Path data
-    Route::patch('/{board}/path',                [BoardController::class, 'updatePath'])->name('path.update');
-    // Apply preset
-    Route::post('/{board}/preset',               [BoardController::class, 'applyPreset'])->name('preset');
-});
+        // Bucket List
+        Route::prefix('bucket-list')->name('bucket-list.')->group(function () {
+            Route::get('/',                                 [BucketListController::class, 'lobby'])->name('lobby');
+            Route::post('/',                                [BucketListController::class, 'create'])->name('create');
+            Route::get('/{shareCode}',                      [BucketListController::class, 'show'])->name('show')
+                ->middleware('throttle:60,1');
+            Route::post('/{shareCode}/items',               [BucketListController::class, 'addItem'])->name('items.add');
+            Route::post('/{shareCode}/items/{itemId}/vote', [BucketListController::class, 'voteItem'])->name('items.vote');
+            Route::delete('/{shareCode}/items/{itemId}',    [BucketListController::class, 'deleteItem'])->name('items.delete');
+        });
 
-// Board templates (公開預覽)
-Route::get('/templates',            [BoardController::class, 'templates'])->name('boards.templates');
-Route::get('/templates/{board}',    [BoardController::class, 'templatePreview'])->name('boards.template.preview');
-Route::post('/templates/{board}/clone', [BoardController::class, 'cloneTemplate'])
-    ->name('boards.template.clone')
-    ->middleware(['auth', 'verified']);
+        // Time Capsule
+        Route::prefix('time-capsule')->name('time-capsule.')->group(function () {
+            Route::get('/',                       [TimeCapsuleController::class, 'lobby'])->name('lobby');
+            Route::post('/',                      [TimeCapsuleController::class, 'create'])->name('create');
+            Route::get('/{shareCode}',            [TimeCapsuleController::class, 'show'])->name('show')
+                ->middleware('throttle:60,1');
+            Route::post('/{shareCode}/answers',   [TimeCapsuleController::class, 'saveAnswers'])->name('answers');
+            Route::post('/{shareCode}/seal',      [TimeCapsuleController::class, 'seal'])->name('seal');
+        });
 
-// Premium membership
-Route::prefix('premium')->name('premium.')->group(function () {
-    Route::get('/',         [PremiumController::class, 'index'])->name('index');
-    Route::post('/checkout',[PremiumController::class, 'checkout'])->name('checkout')->middleware('auth');
-    Route::post('/callback',[PremiumController::class, 'callback'])->name('callback')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-    Route::match(['get', 'post'], '/result', [PremiumController::class, 'result'])
-        ->name('result')
-        ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-});
+        // Custom board play
+        Route::get('/play',              [PlayController::class, 'show'])->name('play');
+        Route::get('/play/share/{code}', [PlayController::class, 'showByCode'])->name('play.code')->middleware('throttle:60,1');
+        Route::get('/play/{board}',      [PlayController::class, 'show'])->name('play.board');
 
-// Admin backend
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
-    Route::get('/',                      [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/boards',                [AdminController::class, 'boards'])->name('boards');
-    Route::get('/boards/{board}/edit',   [AdminController::class, 'editBoard'])->name('boards.edit');
-    Route::patch('/boards/{board}',      [AdminController::class, 'updateBoard'])->name('boards.update');
-    Route::get('/cards',                 [AdminController::class, 'cards'])->name('cards');
-    Route::get('/cards/create',          [AdminController::class, 'createCard'])->name('cards.create');
-    Route::post('/cards',                [AdminController::class, 'storeCard'])->name('cards.store');
-    Route::get('/cards/{card}/edit',     [AdminController::class, 'editCard'])->name('cards.edit');
-    Route::patch('/cards/{card}',        [AdminController::class, 'updateCard'])->name('cards.update');
-    Route::delete('/cards/{card}',       [AdminController::class, 'destroyCard'])->name('cards.destroy');
-    Route::get('/users',                 [AdminController::class, 'users'])->name('users');
-    Route::get('/users/{user}/edit',     [AdminController::class, 'editUser'])->name('users.edit');
-    Route::patch('/users/{user}',        [AdminController::class, 'updateUser'])->name('users.update');
-    Route::get('/wheel-segments',                       [AdminController::class, 'wheelSegments'])->name('wheel-segments');
-    Route::get('/wheel-segments/create',                [AdminController::class, 'createWheelSegment'])->name('wheel-segments.create');
-    Route::post('/wheel-segments',                      [AdminController::class, 'storeWheelSegment'])->name('wheel-segments.store');
-    Route::get('/wheel-segments/{wheelSegment}/edit',   [AdminController::class, 'editWheelSegment'])->name('wheel-segments.edit');
-    Route::patch('/wheel-segments/{wheelSegment}',      [AdminController::class, 'updateWheelSegment'])->name('wheel-segments.update');
-    Route::delete('/wheel-segments/{wheelSegment}',     [AdminController::class, 'destroyWheelSegment'])->name('wheel-segments.destroy');
-});
+        // Profile
+        Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index')->middleware(['auth', 'verified']);
+
+        // Board CRUD
+        Route::prefix('boards')->name('boards.')->middleware(['auth', 'verified'])->group(function () {
+            Route::get('/',                              [BoardController::class, 'index'])->name('index');
+            Route::get('/create',                        [BoardController::class, 'create'])->name('create');
+            Route::post('/',                             [BoardController::class, 'store'])->name('store');
+            Route::get('/{board}/edit',                  [BoardController::class, 'edit'])->name('edit');
+            Route::patch('/{board}',                     [BoardController::class, 'update'])->name('update');
+            Route::delete('/{board}',                    [BoardController::class, 'destroy'])->name('destroy');
+
+            Route::patch('/{board}/squares/{position}',  [BoardController::class, 'updateSquare'])->name('squares.update');
+            Route::post('/{board}/squares',              [BoardController::class, 'storeSquare'])->name('squares.store');
+            Route::delete('/{board}/squares/{position}', [BoardController::class, 'destroySquare'])->name('squares.destroy');
+            Route::patch('/{board}/squares',             [BoardController::class, 'bulkUpdateSquares'])->name('squares.bulk');
+            Route::patch('/{board}/canvas',              [BoardController::class, 'updateCanvas'])->name('canvas.update');
+            Route::patch('/{board}/path',                [BoardController::class, 'updatePath'])->name('path.update');
+            Route::post('/{board}/preset',               [BoardController::class, 'applyPreset'])->name('preset');
+        });
+
+        // Templates
+        Route::get('/templates',                [BoardController::class, 'templates'])->name('boards.templates');
+        Route::get('/templates/{board}',        [BoardController::class, 'templatePreview'])->name('boards.template.preview');
+        Route::post('/templates/{board}/clone', [BoardController::class, 'cloneTemplate'])
+            ->name('boards.template.clone')
+            ->middleware(['auth', 'verified']);
+
+        // Premium (index + checkout only — callback/result are non-localized above)
+        Route::prefix('premium')->name('premium.')->group(function () {
+            Route::get('/',          [PremiumController::class, 'index'])->name('index');
+            Route::post('/checkout', [PremiumController::class, 'checkout'])->name('checkout')->middleware('auth');
+        });
+
+        // Admin
+        Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+            Route::get('/',                                       [AdminController::class, 'dashboard'])->name('dashboard');
+            Route::get('/boards',                                 [AdminController::class, 'boards'])->name('boards');
+            Route::get('/boards/{board}/edit',                    [AdminController::class, 'editBoard'])->name('boards.edit');
+            Route::patch('/boards/{board}',                       [AdminController::class, 'updateBoard'])->name('boards.update');
+            Route::get('/cards',                                  [AdminController::class, 'cards'])->name('cards');
+            Route::get('/cards/create',                           [AdminController::class, 'createCard'])->name('cards.create');
+            Route::post('/cards',                                 [AdminController::class, 'storeCard'])->name('cards.store');
+            Route::get('/cards/{card}/edit',                      [AdminController::class, 'editCard'])->name('cards.edit');
+            Route::patch('/cards/{card}',                         [AdminController::class, 'updateCard'])->name('cards.update');
+            Route::delete('/cards/{card}',                        [AdminController::class, 'destroyCard'])->name('cards.destroy');
+            Route::get('/users',                                  [AdminController::class, 'users'])->name('users');
+            Route::get('/users/{user}/edit',                      [AdminController::class, 'editUser'])->name('users.edit');
+            Route::patch('/users/{user}',                         [AdminController::class, 'updateUser'])->name('users.update');
+            Route::get('/wheel-segments',                         [AdminController::class, 'wheelSegments'])->name('wheel-segments');
+            Route::get('/wheel-segments/create',                  [AdminController::class, 'createWheelSegment'])->name('wheel-segments.create');
+            Route::post('/wheel-segments',                        [AdminController::class, 'storeWheelSegment'])->name('wheel-segments.store');
+            Route::get('/wheel-segments/{wheelSegment}/edit',     [AdminController::class, 'editWheelSegment'])->name('wheel-segments.edit');
+            Route::patch('/wheel-segments/{wheelSegment}',        [AdminController::class, 'updateWheelSegment'])->name('wheel-segments.update');
+            Route::delete('/wheel-segments/{wheelSegment}',       [AdminController::class, 'destroyWheelSegment'])->name('wheel-segments.destroy');
+        });
+    });

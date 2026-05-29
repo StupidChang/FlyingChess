@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title', '自訂棋盤遊玩 — ' . $board->name . ' — 情侶飛行棋')
-@section('meta_description', '使用「' . $board->name . '」自訂棋盤進行情侶遊戲，支援真心話、挑戰等各種格子類型，雙人同機互動。')
-@section('og_title', '自訂棋盤遊玩 — ' . $board->name . ' — 情侶飛行棋')
-@section('og_description', '使用「' . $board->name . '」自訂棋盤進行情侶遊戲，支援真心話、挑戰等各種格子類型。')
+@section('title', __('seo.play_meta_title', ['board' => $board->name]) . ' — ' . __('ui.site_name'))
+@section('meta_description', __('seo.play_meta_description', ['board' => $board->name]))
+@section('og_title', __('seo.play_meta_title', ['board' => $board->name]) . ' — ' . __('ui.site_name'))
+@section('og_description', __('seo.play_meta_description', ['board' => $board->name]))
 @section('canonical', url()->current())
 @section('styles')
 <link rel="stylesheet" href="{{ asset('css/board.css') }}">

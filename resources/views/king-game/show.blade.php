@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', '國王遊戲 — 情侶派對遊戲 — 情侶飛行棋')
-@section('meta_description', '經典國王遊戲線上版！抽號碼牌決定身份，國王下指令，身份揭曉才知道是誰。2-6 人同機暢玩。')
+@section('title', __('minigame.king_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('minigame.king_meta'))
 @section('canonical', route('king-game.show'))
 
 @section('styles')
@@ -87,39 +87,39 @@
 
 @section('content')
 <div class="kg-page">
-    <h1 class="kg-title">國王遊戲</h1>
-    <p class="kg-subtitle">每人點自己的撲克牌偷看身份，抽到 K 的就是國王！</p>
+    <h1 class="kg-title">{{ __('minigame.king_title') }}</h1>
+    <p class="kg-subtitle">{{ __('minigame.king_subtitle_long') }}</p>
 
     {{-- Setup Phase --}}
     <div id="setup-phase" class="kg-setup">
-        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">設定玩家 (3-6人)</h2>
+        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">{{ __('minigame.king_setup') }}</h2>
         <div id="players-list">
             <div class="kg-player-row" data-idx="0">
-                <input type="text" class="form-control p-name" value="玩家 1" maxlength="12">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="12">
             </div>
             <div class="kg-player-row" data-idx="1">
-                <input type="text" class="form-control p-name" value="玩家 2" maxlength="12">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="12">
             </div>
             <div class="kg-player-row" data-idx="2">
-                <input type="text" class="form-control p-name" value="玩家 3" maxlength="12">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 3]) }}" maxlength="12">
             </div>
         </div>
-        <button class="btn btn-sm btn-outline kg-add-player" id="add-player-btn" onclick="addPlayer()">+ 新增玩家</button>
-        <button class="btn btn-gold btn-full" onclick="startGame()">開始遊戲</button>
+        <button class="btn btn-sm btn-outline kg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
     {{-- Deal Phase --}}
     <div id="deal-phase" style="display:none">
         <div class="kg-round-badge" id="round-badge"></div>
-        <p style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:12px">每人點自己的牌偷看身份（不要讓別人看到！）</p>
+        <p style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:12px">{{ __('minigame.king_peek_tip') }}</p>
         <div class="kg-card-area" id="card-area"></div>
         <div class="kg-action-btns">
-            <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">下一回合</button>
-            <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">重新開始</button>
+            <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">{{ __('minigame.next_turn') }}</button>
+            <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
         <div id="upgrade-notice" style="display:none;text-align:center;margin-top:12px">
-            <p style="color:var(--gold);margin-bottom:8px">免費版最多 6 回合，升級 Premium 解鎖無限回合！</p>
-            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">升級 Premium</a>
+            <p style="color:var(--gold);margin-bottom:8px">{{ __('minigame.king_premium_gate') }}</p>
+            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">{{ __('minigame.go_premium') }}</a>
         </div>
     </div>
 </div>
@@ -155,7 +155,8 @@
         playerCount++;
         var row=document.createElement('div');
         row.className='kg-player-row';
-        row.innerHTML='<input type="text" class="form-control p-name" value="玩家 '+playerCount+'" maxlength="12">'+
+        var defaultName = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', playerCount);
+        row.innerHTML='<input type="text" class="form-control p-name" value="'+escHtml(defaultName)+'" maxlength="12">'+
             '<button class="kg-player-remove" onclick="removePlayer(this)">✕</button>';
         document.getElementById('players-list').appendChild(row);
         if(playerCount>=6) document.getElementById('add-player-btn').style.display='none';
@@ -169,10 +170,11 @@
     window.startGame=function(){
         var rows=document.querySelectorAll('.kg-player-row');
         players=[];
+        var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){
-            players.push(r.querySelector('.p-name').value.trim()||'玩家');
+            players.push(r.querySelector('.p-name').value.trim()||fallbackName);
         });
-        if(players.length<3){showToast('國王遊戲至少需要 3 位玩家');return;}
+        if(players.length<3){showToast(@json(__('minigame.king_min_players')));return;}
         round=1;
         dealRound();
     };
@@ -192,7 +194,7 @@
         shuffle(pool);
         // Pick (count-1) cards for non-king, plus 1 King with random suit
         var kingSuit=allSuits[Math.floor(Math.random()*4)];
-        var cards=[{role:'king',rank:'K',suit:kingSuit,isRed:!!redSuits[kingSuit],label:'國王'}];
+        var cards=[{role:'king',rank:'K',suit:kingSuit,isRed:!!redSuits[kingSuit],label:@json(__('minigame.king_role_king'))}];
         for(var i=0;i<count-1;i++){
             var c=pool[i];
             cards.push({role:'number',rank:c.rank,suit:c.suit,isRed:c.isRed,label:c.rank+c.suit});
@@ -203,7 +205,8 @@
     function dealRound(){
         document.getElementById('setup-phase').style.display='none';
         document.getElementById('deal-phase').style.display='block';
-        document.getElementById('round-badge').innerHTML='第 '+round+' 回合';
+        var roundLabel = @json(__('minigame.king_round_n', ['n' => '__N__'])).replace('__N__', round);
+        document.getElementById('round-badge').innerHTML=escHtml(roundLabel);
         document.getElementById('next-round-btn').style.display='none';
         document.getElementById('reset-btn').style.display='none';
         document.getElementById('upgrade-notice').style.display='none';
@@ -227,7 +230,7 @@
                 '<div class="kg-card-corner kg-card-corner-tl"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
                 '<div class="kg-card-corner kg-card-corner-br"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
                 '<div class="kg-card-center"><span class="center-suit">'+a.suit+'</span>'+
-                (isKing?'<span class="center-label">國王</span>':'<span class="center-label">'+a.rank+' '+a.suit+'</span>')+'</div>';
+                (isKing?'<span class="center-label">'+escHtml(@json(__('minigame.king_role_king')))+'</span>':'<span class="center-label">'+a.rank+' '+a.suit+'</span>')+'</div>';
 
             var backSuit=['♠','♥','♦','♣'][i%4];
             var slot=document.createElement('div');

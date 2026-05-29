@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 
@@ -30,15 +31,22 @@ class PasswordResetController extends Controller
             'email.email'    => '電子信箱格式不正確',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-
-        if ($status === Password::RESET_LINK_SENT) {
-            return back()->with('success', '重設連結已寄出，請查收信箱。');
+        // Rate limit: 3 attempts per hour per IP+email composite key.
+        // Prevents email enumeration via differential responses and reset-link spam.
+        $key = 'password-reset:' . $request->ip() . ':' . strtolower($request->input('email'));
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $seconds = RateLimiter::availableIn($key);
+            return back()->withErrors([
+                'email' => "重設請求過於頻繁，請 {$seconds} 秒後再試。",
+            ])->withInput();
         }
+        RateLimiter::hit($key, 3600);
 
-        return back()->withErrors(['email' => __($status)]);
+        Password::sendResetLink($request->only('email'));
+
+        // Always return the same message regardless of whether the email exists,
+        // to prevent attackers from enumerating registered addresses.
+        return back()->with('success', '若該電子信箱已註冊，重設連結已寄出，請查收信箱。');
     }
 
     /**

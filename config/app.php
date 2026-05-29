@@ -78,11 +78,35 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'zh_TW'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'zh_TW'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'zh_TW'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Supported Locales (i18n)
+    |--------------------------------------------------------------------------
+    |
+    | List of locales available in this app. Used by views, controllers,
+    | and the language switcher. The URL prefix is mapped separately in
+    | config/laravellocalization.php.
+    |
+    */
+
+    /*
+    | `ready=true` means the locale's translations are reviewed and we expose
+    | it via <link rel="alternate" hreflang> and the per-locale sitemap. When
+    | a locale is `ready=false`, the URL still works (falls back to zh_TW) but
+    | we omit it from hreflang/sitemap to avoid duplicate-content penalties.
+    */
+    'available_locales' => [
+        'zh_TW' => ['name' => '繁體中文', 'native' => '繁體中文', 'prefix' => 'tw', 'hreflang' => 'zh-TW', 'ready' => true],
+        'en'    => ['name' => 'English',  'native' => 'English',  'prefix' => 'en', 'hreflang' => 'en',    'ready' => true],
+        'zh_CN' => ['name' => '簡體中文', 'native' => '简体中文', 'prefix' => 'cn', 'hreflang' => 'zh-CN', 'ready' => false],
+        'ja'    => ['name' => '日本語',   'native' => '日本語',   'prefix' => 'jp', 'hreflang' => 'ja',    'ready' => false],
+    ],
 
     /*
     |--------------------------------------------------------------------------

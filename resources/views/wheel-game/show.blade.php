@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', '命運轉盤 — 情侶派對遊戲 — 情侶飛行棋')
-@section('meta_description', '情侶命運轉盤！轉動轉盤隨機決定任務，三階段升溫。2-6 人輪流挑戰，同機暢玩。')
+@section('title', __('minigame.wheel_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('minigame.wheel_meta'))
 @section('canonical', route('wheel-game.show'))
 
 @section('styles')
@@ -111,8 +111,8 @@
 
 @section('content')
 <div class="wg-page">
-    <h1 class="wg-title">命運轉盤</h1>
-    <p class="wg-subtitle">選擇轉盤風格，轉動命運之輪！</p>
+    <h1 class="wg-title">{{ __('minigame.wheel_title') }}</h1>
+    <p class="wg-subtitle">{{ __('minigame.wheel_subtitle_long') }}</p>
 
     {{-- Phase 1: Lobby — pick a wheel --}}
     <div id="lobby-phase">
@@ -124,17 +124,17 @@
         <div class="wg-setup">
             <div class="wg-selected-wheel" id="selected-wheel-bar"></div>
 
-            <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">設定玩家 (2-6人)</h2>
+            <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">{{ __('minigame.wheel_setup') }}</h2>
             <div id="players-list">
                 <div class="wg-player-row" data-idx="0">
-                    <input type="text" class="form-control p-name" value="玩家 1" maxlength="12">
+                    <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="12">
                 </div>
                 <div class="wg-player-row" data-idx="1">
-                    <input type="text" class="form-control p-name" value="玩家 2" maxlength="12">
+                    <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="12">
                 </div>
             </div>
-            <button class="btn btn-sm btn-outline wg-add-player" id="add-player-btn" onclick="addPlayer()">+ 新增玩家</button>
-            <button class="btn btn-gold btn-full" onclick="startGame()">開始遊戲</button>
+            <button class="btn btn-sm btn-outline wg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+            <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
         </div>
     </div>
 
@@ -159,9 +159,9 @@
         <div id="task-panel" class="wg-task-panel"></div>
 
         <div class="wg-action-btns">
-            <button class="btn btn-gold btn-xl" id="spin-btn" onclick="spinWheel()">🎯 轉動轉盤</button>
-            <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">下一位</button>
-            <button class="btn btn-outline" onclick="resetGame()">重新開始</button>
+            <button class="btn btn-gold btn-xl" id="spin-btn" onclick="spinWheel()">{{ __('minigame.wheel_spin_btn') }}</button>
+            <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
+            <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
     </div>
 </div>
@@ -185,9 +185,9 @@
     var currentTier='mild';
 
     var TIER_META={
-        mild:   {name:'輕鬆互動',icon:'🌸',desc:'適合暖場，輕鬆可愛的互動指令',badge:'wg-badge-mild'},
-        medium: {name:'親密升溫',icon:'🔥',desc:'更近一步的親密接觸，感情加溫',badge:'wg-badge-medium'},
-        intense:{name:'大膽挑戰',icon:'💋',desc:'極致浪漫的大膽指令，僅限 Premium',badge:'wg-badge-intense'}
+        mild:   {name:@json(__('minigame.wheel_mild_name')),icon:'🌸',desc:@json(__('minigame.wheel_mild_desc')),badge:'wg-badge-mild'},
+        medium: {name:@json(__('minigame.wheel_medium_name')),icon:'🔥',desc:@json(__('minigame.wheel_medium_desc')),badge:'wg-badge-medium'},
+        intense:{name:@json(__('minigame.wheel_intense_name')),icon:'💋',desc:@json(__('minigame.wheel_intense_desc')),badge:'wg-badge-intense'}
     };
 
     var COLORS=[
@@ -260,7 +260,8 @@
             html+='<div class="wg-wheel-card'+(locked?' locked':'')+'" onclick="selectWheel(\''+tier+'\')">';
             html+='<div class="wg-card-icon wg-card-icon-'+tier+'"><canvas class="wg-mini-wheel" data-tier="'+tier+'" width="72" height="72"></canvas></div>';
             html+='<div class="wg-card-body">';
-            html+='<div class="wg-card-header"><span class="wg-card-name">'+meta.name+'</span><span class="wg-card-badge '+meta.badge+'">'+pool.length+' 個任務</span></div>';
+            var taskCountLabel = @json(__('minigame.wheel_task_count', ['n' => '__N__'])).replace('__N__', pool.length);
+            html+='<div class="wg-card-header"><span class="wg-card-name">'+escHtml(meta.name)+'</span><span class="wg-card-badge '+meta.badge+'">'+escHtml(taskCountLabel)+'</span></div>';
             html+='<div class="wg-card-desc">'+meta.desc+'</div>';
 
             if(preview.length){
@@ -284,11 +285,11 @@
 
     window.selectWheel=function(tier){
         if(tier==='intense'&&!IS_PREMIUM){
-            showToast('大膽轉盤需要 Premium 會員才能使用');
+            showToast(@json(__('minigame.wheel_intense_premium')));
             return;
         }
         var pool=SEGMENTS[tier];
-        if(!pool||!pool.length){showToast('此轉盤目前沒有任務');return;}
+        if(!pool||!pool.length){showToast(@json(__('minigame.wheel_no_tasks')));return;}
         currentTier=tier;
         renderSelectedBar();
         showPhase('setup-phase');
@@ -298,10 +299,11 @@
         var meta=TIER_META[currentTier];
         var pool=SEGMENTS[currentTier]||[];
         var bar=document.getElementById('selected-wheel-bar');
+        var countText = @json(__('minigame.wheel_random_per_round', ['n' => '__N__'])).replace('__N__', pool.length);
         bar.innerHTML=
             '<span class="wg-selected-icon">'+meta.icon+'</span>'+
-            '<div class="wg-selected-info"><div class="wg-selected-name">'+meta.name+'</div><div class="wg-selected-count">'+pool.length+' 個任務，每輪隨機抽 8 個</div></div>'+
-            '<button class="wg-change-btn" onclick="backToLobby()">換轉盤</button>';
+            '<div class="wg-selected-info"><div class="wg-selected-name">'+escHtml(meta.name)+'</div><div class="wg-selected-count">'+escHtml(countText)+'</div></div>'+
+            '<button class="wg-change-btn" onclick="backToLobby()">'+escHtml(@json(__('minigame.wheel_change')))+'</button>';
     }
 
     window.backToLobby=function(){
@@ -317,7 +319,8 @@
         playerCount++;
         var row=document.createElement('div');
         row.className='wg-player-row';
-        row.innerHTML='<input type="text" class="form-control p-name" value="玩家 '+playerCount+'" maxlength="12">'+
+        var defaultName = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', playerCount);
+        row.innerHTML='<input type="text" class="form-control p-name" value="'+escHtml(defaultName)+'" maxlength="12">'+
             '<button class="wg-player-remove" onclick="removePlayer(this)">✕</button>';
         document.getElementById('players-list').appendChild(row);
         if(playerCount>=6) document.getElementById('add-player-btn').style.display='none';
@@ -331,10 +334,11 @@
     window.startGame=function(){
         var rows=document.querySelectorAll('.wg-player-row');
         players=[];
+        var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){
-            players.push(r.querySelector('.p-name').value.trim()||'玩家');
+            players.push(r.querySelector('.p-name').value.trim()||fallbackName);
         });
-        if(players.length<2){showToast('至少需要 2 位玩家');return;}
+        if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         turn=0;round=1;
         showTurn();
     };
@@ -345,8 +349,10 @@
     function showTurn(){
         showPhase('game-phase');
         var meta=TIER_META[currentTier];
-        document.getElementById('turn-badge').innerHTML='第 '+round+' 回合 <span class="wg-card-badge '+meta.badge+'">'+meta.name+'</span>';
-        document.getElementById('current-player').textContent='🎯 '+players[turn]+' 的回合';
+        var roundLabel = @json(__('minigame.wheel_round_n', ['n' => '__N__'])).replace('__N__', round);
+        document.getElementById('turn-badge').innerHTML=escHtml(roundLabel)+' <span class="wg-card-badge '+meta.badge+'">'+escHtml(meta.name)+'</span>';
+        var turnLabel = @json(__('minigame.wheel_player_turn', ['name' => '__NAME__'])).replace('__NAME__', players[turn]);
+        document.getElementById('current-player').textContent=turnLabel;
         document.getElementById('spin-btn').style.display='inline-flex';
         document.getElementById('next-btn').style.display='none';
         document.getElementById('result-display').style.display='none';
@@ -427,7 +433,7 @@
         var panel=document.getElementById('task-panel');
         if(!currentSegments.length){panel.innerHTML='';return;}
         var meta=TIER_META[currentTier];
-        var html='<div class="wg-task-header"><span class="wg-task-header-title">本輪任務</span><span class="wg-task-header-badge '+meta.badge+'">'+meta.name+'</span></div>';
+        var html='<div class="wg-task-header"><span class="wg-task-header-title">'+escHtml(@json(__('minigame.wheel_round_tasks')))+'</span><span class="wg-task-header-badge '+meta.badge+'">'+escHtml(meta.name)+'</span></div>';
         html+='<ul class="wg-task-list">';
         for(var i=0;i<currentSegments.length;i++){
             html+='<li class="wg-task-item"><span class="wg-task-num" style="background:'+COLORS[i%COLORS.length][0]+'">'+(i+1)+'</span><span class="wg-task-text">'+escHtml(currentSegments[i])+'</span></li>';
@@ -506,8 +512,8 @@
         if(turn>=players.length){turn=0;round++;}
         if(round>6&&!IS_PREMIUM){
             document.getElementById('result-display').innerHTML=
-                '<p style="color:var(--gold);margin:16px 0">免費版最多 6 回合，升級 Premium 解鎖無限回合與更刺激的任務！</p>'+
-                '<a href="{{ route('premium.index') }}" class="btn btn-outline-gold">升級 Premium</a>';
+                '<p style="color:var(--gold);margin:16px 0">'+escHtml(@json(__('minigame.wheel_premium_gate')))+'</p>'+
+                '<a href="{{ route('premium.index') }}" class="btn btn-outline-gold">'+escHtml(@json(__('minigame.go_premium')))+'</a>';
             document.getElementById('next-btn').style.display='none';
             return;
         }

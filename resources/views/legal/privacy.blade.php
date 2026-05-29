@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title','隱私權政策 — 情侶飛行棋')
-@section('meta_description','情侶飛行棋隱私權政策，說明我們如何收集、使用與保護您的個人資料。')
+@section('title', __('legal.privacy_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('legal.privacy_meta_description'))
 @section('canonical', route('legal.privacy'))
 @section('content')
 <div class="container" style="max-width:800px;padding:40px 16px">

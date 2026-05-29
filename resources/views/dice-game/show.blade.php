@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', '骰子挑戰 — 情侶骰子遊戲 — 情侶飛行棋')
-@section('meta_description', '情侶骰子挑戰！擲出動作＋部位＋時間的隨機組合，輕鬆→中等→激烈三階段升溫，2-6 人同機暢玩。')
+@section('title', __('minigame.dice_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('minigame.dice_meta'))
 @section('canonical', route('dice-game.show'))
 
 @section('styles')
@@ -53,22 +53,22 @@
 
 @section('content')
 <div class="dg-page">
-    <h1 class="dg-title">骰子挑戰</h1>
-    <p class="dg-subtitle">擲出動作＋部位＋時間的隨機組合，輪流挑戰！</p>
+    <h1 class="dg-title">{{ __('minigame.dice_title') }}</h1>
+    <p class="dg-subtitle">{{ __('minigame.dice_subtitle') }}</p>
 
     {{-- Setup Phase --}}
     <div id="setup-phase" class="dg-setup">
-        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">設定玩家 (2-6人)</h2>
+        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">{{ __('minigame.players_setup') }}</h2>
         <div id="players-list">
             <div class="dg-player-row" data-idx="0">
-                <input type="text" class="form-control p-name" value="玩家 1" maxlength="12">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="12">
             </div>
             <div class="dg-player-row" data-idx="1">
-                <input type="text" class="form-control p-name" value="玩家 2" maxlength="12">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="12">
             </div>
         </div>
-        <button class="btn btn-sm btn-outline dg-add-player" id="add-player-btn" onclick="addPlayer()">+ 新增玩家</button>
-        <button class="btn btn-gold btn-full" onclick="startGame()">開始遊戲</button>
+        <button class="btn btn-sm btn-outline dg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
     {{-- Game Phase --}}
@@ -78,9 +78,9 @@
         <div class="dg-dice-area" id="dice-area"></div>
         <div id="result-display" class="dg-result" style="display:none"></div>
         <div class="dg-action-btns">
-            <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">🎲 擲骰子</button>
-            <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">下一位</button>
-            <button class="btn btn-outline" onclick="resetGame()">重新開始</button>
+            <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
+            <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
+            <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
     </div>
 </div>
@@ -115,11 +115,14 @@
         if(round<=6) return 'medium';
         return (POOLS.intense ? 'intense' : 'medium');
     }
+    var TIER_LABELS={
+        mild: @json(__('minigame.tier_mild')),
+        medium: @json(__('minigame.tier_medium')),
+        intense: @json(__('minigame.tier_intense')),
+    };
     function intensityTag(){
         var t=getTier();
-        if(t==='mild') return '<span class="dg-intensity-tag dg-intensity-mild">輕鬆</span>';
-        if(t==='medium') return '<span class="dg-intensity-tag dg-intensity-medium">中等</span>';
-        return '<span class="dg-intensity-tag dg-intensity-intense">激烈</span>';
+        return '<span class="dg-intensity-tag dg-intensity-'+t+'">'+escHtml(TIER_LABELS[t])+'</span>';
     }
     function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 
@@ -130,7 +133,8 @@
         playerCount++;
         var row=document.createElement('div');
         row.className='dg-player-row';
-        row.innerHTML='<input type="text" class="form-control p-name" value="玩家 '+playerCount+'" maxlength="12">'+
+        var defaultName = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', playerCount);
+        row.innerHTML='<input type="text" class="form-control p-name" value="'+escHtml(defaultName)+'" maxlength="12">'+
             '<button class="dg-player-remove" onclick="removePlayer(this)">✕</button>';
         document.getElementById('players-list').appendChild(row);
         if(playerCount>=6) document.getElementById('add-player-btn').style.display='none';
@@ -144,10 +148,11 @@
     window.startGame=function(){
         var rows=document.querySelectorAll('.dg-player-row');
         players=[];
+        var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){
-            players.push(r.querySelector('.p-name').value.trim()||'玩家');
+            players.push(r.querySelector('.p-name').value.trim()||fallbackName);
         });
-        if(players.length<2){showToast('至少需要 2 位玩家');return;}
+        if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         turn=0;round=1;
         showTurn();
     };
@@ -155,8 +160,10 @@
     function showTurn(){
         document.getElementById('setup-phase').style.display='none';
         document.getElementById('game-phase').style.display='block';
-        document.getElementById('turn-badge').innerHTML='第 '+round+' 回合 '+intensityTag();
-        document.getElementById('current-player').textContent='輪到：'+players[turn];
+        var roundLabel = @json(__('minigame.round_n', ['n' => '__N__'])).replace('__N__', round);
+        document.getElementById('turn-badge').innerHTML=escHtml(roundLabel)+' '+intensityTag();
+        var turnLabel = @json(__('minigame.turn_player', ['name' => '__NAME__'])).replace('__NAME__', players[turn]);
+        document.getElementById('current-player').textContent=turnLabel;
         document.getElementById('roll-btn').style.display='inline-flex';
         document.getElementById('next-btn').style.display='none';
         document.getElementById('result-display').style.display='none';
@@ -167,9 +174,9 @@
         var area=document.getElementById('dice-area');
         area.innerHTML='';
         var diceData=[
-            {label:'動作',values:pool.actions},
-            {label:'部位',values:pool.parts},
-            {label:'時間',values:pool.durations}
+            {label:@json(__('minigame.dice_label_action')),values:pool.actions},
+            {label:@json(__('minigame.dice_label_part')),values:pool.parts},
+            {label:@json(__('minigame.dice_label_time')),values:pool.durations}
         ];
         diceData.forEach(function(dd,di){
             var w=document.createElement('div');
@@ -270,8 +277,8 @@
         if(turn>=players.length){turn=0;round++;}
         if(round>6&&!IS_PREMIUM){
             document.getElementById('result-display').innerHTML=
-                '<p style="color:var(--gold);margin:16px 0">免費版最多 6 回合，升級 Premium 解鎖無限回合與更刺激的骰子！</p>'+
-                '<a href="{{ route('premium.index') }}" class="btn btn-outline-gold">升級 Premium</a>';
+                '<p style="color:var(--gold);margin:16px 0">'+escHtml(@json(__('minigame.dice_premium_gate')))+'</p>'+
+                '<a href="{{ route('premium.index') }}" class="btn btn-outline-gold">'+escHtml(@json(__('minigame.go_premium')))+'</a>';
             document.getElementById('next-btn').style.display='none';
             return;
         }

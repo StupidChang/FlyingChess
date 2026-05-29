@@ -802,3 +802,463 @@ ul{list-style:none}
   .admin-search{width:100%}
   .admin-search-input{flex:1;min-width:0}
 }
+
+/* =====================================================
+   Premium polish — refinements layered on top of the
+   base design without disturbing existing rules.
+   Only additive; no overrides outside selectors below.
+   ===================================================== */
+
+:root, [data-theme="pink"] {
+  --grad-gold:        linear-gradient(135deg,#f0c040 0%,#d4a017 45%,#b8860b 100%);
+  --grad-gold-soft:   linear-gradient(135deg,rgba(240,192,64,.18),rgba(212,160,23,.06));
+  --grad-rose:        linear-gradient(135deg,#e8527a 0%,#c0395a 100%);
+  --grad-line:        linear-gradient(90deg,transparent 0%,rgba(212,160,23,.45) 35%,rgba(232,82,122,.55) 65%,transparent 100%);
+  --shadow-soft:      0 1px 2px rgba(0,0,0,.25),0 4px 12px rgba(0,0,0,.18);
+  --shadow-rise:      0 8px 24px rgba(0,0,0,.34),0 2px 6px rgba(0,0,0,.18);
+  --shadow-premium:   0 18px 40px -16px rgba(212,160,23,.35),0 6px 16px rgba(0,0,0,.4);
+  --ring-gold:        0 0 0 1px rgba(212,160,23,.45),0 0 0 4px rgba(212,160,23,.08);
+  --bezel:            inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(0,0,0,.18);
+  --noise-opacity:    .025;
+}
+[data-theme="dark"] {
+  --grad-gold:        linear-gradient(135deg,#a78bfa 0%,#8b5cf6 45%,#6d28d9 100%);
+  --grad-gold-soft:   linear-gradient(135deg,rgba(167,139,250,.2),rgba(139,92,246,.08));
+  --grad-rose:        linear-gradient(135deg,#818cf8 0%,#6366f1 100%);
+  --grad-line:        linear-gradient(90deg,transparent 0%,rgba(139,92,246,.5) 35%,rgba(99,102,241,.55) 65%,transparent 100%);
+  --shadow-premium:   0 18px 40px -16px rgba(139,92,246,.35),0 6px 16px rgba(0,0,0,.5);
+  --ring-gold:        0 0 0 1px rgba(139,92,246,.45),0 0 0 4px rgba(139,92,246,.08);
+}
+
+/* Faint film grain — adds depth, free of motion */
+/* Faint film grain layer. Fixed-positioned with low z-index so the sticky
+ * header (z-index:100) stays clean and above the grain; pointer-events:none
+ * ensures it never intercepts clicks. */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/></svg>");
+  opacity:var(--noise-opacity);
+  mix-blend-mode:overlay;
+}
+
+/* ── Refined hero typography ── */
+.hero-section{padding-top:108px;padding-bottom:104px}
+.hero-eyebrow{
+  position:relative;
+  background:var(--grad-gold-soft);
+  border-color:transparent;
+  box-shadow:inset 0 0 0 1px rgba(212,160,23,.35),0 1px 0 rgba(255,255,255,.04);
+}
+[data-theme="dark"] .hero-eyebrow{box-shadow:inset 0 0 0 1px rgba(139,92,246,.45),0 1px 0 rgba(255,255,255,.04)}
+.hero-title{
+  font-size:clamp(2.2rem,4.4vw,3.4rem);
+  letter-spacing:-0.6px;
+  line-height:1.08;
+}
+.hero-title span{
+  background:var(--grad-gold);
+  -webkit-background-clip:text;
+          background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:inline-block;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.25));
+}
+.hero-sub{font-size:1.08rem;letter-spacing:.1px;max-width:560px}
+
+/* ── Buttons: depth + micro-interaction ── */
+.btn{
+  transition:transform .15s cubic-bezier(.2,.8,.2,1),
+             box-shadow .25s ease,
+             background .2s ease,
+             opacity .15s ease;
+  letter-spacing:.2px;
+}
+.btn-gold{
+  background:var(--grad-gold);
+  color:#1a0a0a;
+  box-shadow:var(--shadow-soft),var(--bezel);
+}
+.btn-gold:hover{
+  background:var(--grad-gold);
+  filter:brightness(1.05);
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-rise),var(--bezel),0 0 0 1px rgba(255,255,255,.05);
+}
+.btn-gold:active{transform:translateY(0);filter:brightness(.97)}
+.btn-outline-gold{
+  background:transparent;
+  position:relative;
+  box-shadow:inset 0 0 0 1px rgba(212,160,23,.6);
+  border:none;
+  color:var(--gold2);
+}
+[data-theme="dark"] .btn-outline-gold{box-shadow:inset 0 0 0 1px rgba(139,92,246,.65)}
+.btn-outline-gold:hover{
+  background:var(--grad-gold-soft);
+  color:var(--text);
+}
+.btn-xl{padding:14px 30px;font-size:1.02rem}
+.btn:focus-visible{outline:none;box-shadow:var(--ring-gold)}
+
+/* ── Game cards: gradient ring on hover, multi-layer shadow ── */
+.game-card{
+  background:linear-gradient(180deg,var(--surface) 0%,var(--surface2) 100%);
+  box-shadow:var(--shadow-soft);
+  border-radius:14px;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),
+             box-shadow .3s ease,
+             border-color .2s ease;
+}
+.game-card::before{
+  content:'';
+  position:absolute;inset:0;
+  border-radius:inherit;
+  padding:1px;
+  background:var(--grad-gold);
+  -webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+          mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+  -webkit-mask-composite:xor;
+          mask-composite:exclude;
+  opacity:0;
+  transition:opacity .25s ease;
+  pointer-events:none;
+}
+.game-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow-premium);
+  border-color:transparent;
+}
+.game-card:hover::before{opacity:1}
+.game-card h3{font-weight:800;letter-spacing:-.15px}
+.game-card-tag{
+  box-shadow:inset 0 0 0 1px currentColor;
+  background:transparent;
+  opacity:.85;
+}
+
+/* ── Section divider: gradient hairline ── */
+hr.section-divider{
+  background:var(--grad-line);
+  height:1px;
+  opacity:.7;
+}
+
+/* ── Section title: subtle weight contrast ── */
+.section-label{font-weight:800;letter-spacing:3px}
+.section-title{
+  font-size:clamp(1.65rem,2.6vw,2.05rem);
+  font-weight:800;
+  letter-spacing:-.4px;
+}
+
+/* ── Header: deeper glass + gradient hairline border ── */
+.site-header{
+  background:linear-gradient(180deg,rgba(26,10,15,.94) 0%,rgba(26,10,15,.78) 100%);
+  border-bottom:1px solid transparent;
+  background-clip:padding-box;
+  box-shadow:0 1px 0 rgba(212,160,23,.18),0 8px 24px -16px rgba(0,0,0,.45);
+}
+[data-theme="dark"] .site-header{
+  background:linear-gradient(180deg,rgba(15,15,20,.94) 0%,rgba(15,15,20,.78) 100%);
+  box-shadow:0 1px 0 rgba(139,92,246,.18),0 8px 24px -16px rgba(0,0,0,.5);
+}
+
+/* ── Logo: gradient text ── */
+.logo{
+  background:var(--grad-gold);
+  -webkit-background-clip:text;
+          background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:.6px;
+}
+
+/* ── Form card: lifted, glassy ── */
+.form-card{
+  background:linear-gradient(180deg,var(--surface) 0%,var(--surface2) 100%);
+  box-shadow:var(--shadow-rise),var(--bezel);
+  border-radius:14px;
+}
+.form-control{
+  background:var(--bg);
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.form-control:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(212,160,23,.16);
+}
+[data-theme="dark"] .form-control:focus{box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+
+/* ── Lang switcher: refined dropdown ── */
+.lang-switcher-toggle{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text-dim);
+  padding:6px 12px;
+  border-radius:999px;
+  font-weight:600;
+  letter-spacing:.2px;
+  transition:background .15s,color .15s,border-color .15s,box-shadow .15s;
+}
+.lang-switcher-toggle:hover{
+  color:var(--text);
+  background:var(--border);
+  border-color:var(--gold);
+}
+.lang-switcher.open .lang-switcher-toggle{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(212,160,23,.12);
+}
+.lang-switcher-menu{
+  background:linear-gradient(180deg,var(--surface) 0%,var(--surface2) 100%);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:6px;
+  min-width:170px;
+  box-shadow:var(--shadow-rise);
+  animation:langMenuIn .18s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes langMenuIn{
+  from{opacity:0;transform:translateY(-6px) scale(.98)}
+  to{opacity:1;transform:none}
+}
+.lang-switcher-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;
+  border-radius:8px;
+  font-size:.88rem;
+  color:var(--text-dim);
+  transition:background .15s,color .15s;
+}
+.lang-switcher-item:hover{
+  background:var(--surface2);
+  color:var(--text);
+}
+.lang-switcher-item.is-active{
+  background:var(--grad-gold-soft);
+  color:var(--text);
+  font-weight:700;
+}
+.lang-switcher-item.is-active::after{
+  content:'✓';
+  margin-left:10px;
+  color:var(--gold);
+  font-weight:700;
+}
+
+/* ── Toast: refined ── */
+.toast{
+  border-radius:10px;
+  box-shadow:var(--shadow-rise);
+  padding:11px 22px;
+  font-weight:600;
+  letter-spacing:.1px;
+}
+
+/* ── Footer hairline ── */
+.site-footer{
+  position:relative;
+  border-top:1px solid var(--border);
+}
+.site-footer::before{
+  content:'';
+  position:absolute;
+  top:-1px;left:0;right:0;
+  height:1px;
+  background:var(--grad-line);
+  opacity:.6;
+}
+
+/* ── Reduce-motion respect ── */
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
+
+/* ── Small screen tweaks ── */
+@media (max-width: 640px) {
+  .hero-section{padding-top:80px;padding-bottom:72px}
+  .hero-title{letter-spacing:-.4px}
+  body::after{opacity:0}
+}
+
+/* =====================================================
+   Premium polish — V2: deeper components
+   ===================================================== */
+
+/* Board card: same depth treatment as game-card */
+.board-card{
+  background:linear-gradient(180deg,var(--surface) 0%,var(--surface2) 100%);
+  box-shadow:var(--shadow-soft);
+  border-radius:14px;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease,border-color .2s ease;
+  position:relative;
+  overflow:hidden;
+}
+.board-card::before{
+  content:'';
+  position:absolute;inset:0;
+  border-radius:inherit;
+  padding:1px;
+  background:var(--grad-gold);
+  -webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+          mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+  -webkit-mask-composite:xor;
+          mask-composite:exclude;
+  opacity:0;
+  transition:opacity .25s ease;
+  pointer-events:none;
+}
+.board-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow-premium);
+  border-color:transparent;
+}
+.board-card:hover::before{opacity:1}
+.board-card-foot{
+  background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.16) 100%);
+  border-top:1px solid rgba(255,255,255,.04);
+}
+
+/* Premium template badge: subtle shimmer */
+.badge-premium{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(135deg,#e8527a 0%,#c0395a 100%);
+  letter-spacing:.4px;
+}
+[data-theme="dark"] .badge-premium{
+  background:linear-gradient(135deg,#a78bfa 0%,#6366f1 100%);
+}
+.badge-premium::after{
+  content:'';
+  position:absolute;
+  top:0;left:-50%;
+  width:50%;height:100%;
+  background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.4) 50%,transparent 100%);
+  animation:badgeShimmer 2.6s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes badgeShimmer{
+  0%,40%{transform:translateX(0)}
+  60%,100%{transform:translateX(400%)}
+}
+
+/* Premium-card on /premium index: rich gradient + bezel */
+.premium-card{
+  background:linear-gradient(165deg,var(--surface) 0%,var(--surface2) 60%,#3a1830 100%);
+  border:1px solid transparent;
+  border-radius:18px;
+  box-shadow:var(--shadow-premium),var(--bezel);
+  position:relative;
+  overflow:hidden;
+}
+[data-theme="dark"] .premium-card{
+  background:linear-gradient(165deg,var(--surface) 0%,var(--surface2) 60%,#1a1442 100%);
+}
+.premium-card::before{
+  content:'';
+  position:absolute;
+  top:-80px;right:-80px;
+  width:240px;height:240px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(212,160,23,.16) 0%,transparent 70%);
+  pointer-events:none;
+}
+[data-theme="dark"] .premium-card::before{
+  background:radial-gradient(circle,rgba(139,92,246,.18) 0%,transparent 70%);
+}
+.premium-price{
+  background:var(--grad-gold);
+  -webkit-background-clip:text;
+          background-clip:text;
+  -webkit-text-fill-color:transparent;
+  font-weight:900;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.25));
+}
+
+/* Form-page: glow halo behind card */
+.form-page{position:relative}
+.form-page::before{
+  content:'';
+  position:absolute;
+  top:-40px;left:50%;transform:translateX(-50%);
+  width:420px;height:280px;
+  background:radial-gradient(ellipse at center,rgba(212,160,23,.1) 0%,transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+[data-theme="dark"] .form-page::before{
+  background:radial-gradient(ellipse at center,rgba(139,92,246,.12) 0%,transparent 70%);
+}
+.form-page > *{position:relative;z-index:1}
+
+/* Game-card icon: gentle gradient color */
+.game-card-icon{
+  background:var(--grad-gold-soft);
+  width:60px;height:60px;
+  border-radius:14px;
+  margin-left:auto;margin-right:auto;
+  align-items:center;
+}
+.game-card-icon svg{
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.3));
+}
+
+/* Toast: gradient line accent */
+.toast-ok{
+  background:linear-gradient(135deg,#0a2a1a 0%,#082218 100%);
+  border-left:3px solid #5fd080;
+  border-top-color:#2a8a4a;
+}
+.toast-err{
+  background:linear-gradient(135deg,#2a0a0f 0%,#22080d 100%);
+  border-left:3px solid var(--rose);
+  border-top-color:var(--rose);
+}
+
+/* Section title: gradient accent under text */
+.section-title{position:relative}
+.section-head h2{position:relative}
+
+/* "Hairline" between rows: cleaner than 1px solid */
+.players-list li,
+.game-log li{
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+
+/* Refined modal */
+.modal-box{
+  background:linear-gradient(180deg,var(--surface) 0%,var(--surface2) 100%);
+  box-shadow:var(--shadow-premium),var(--bezel);
+  border-radius:16px;
+}
+
+/* Smooth scrollbar (webkit) */
+@media (hover: hover) {
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{
+    background:var(--surface2);
+    border:2px solid var(--bg);
+    border-radius:8px;
+  }
+  ::-webkit-scrollbar-thumb:hover{background:var(--border)}
+}
+
+/* Hero CTA cluster: subtle stagger entrance on first paint */
+@keyframes heroFadeUp{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:none}
+}
+.hero-eyebrow{animation:heroFadeUp .55s ease-out both}
+.hero-title{animation:heroFadeUp .65s .08s ease-out both}
+.hero-sub{animation:heroFadeUp .65s .16s ease-out both}
+.hero-btns{animation:heroFadeUp .65s .24s ease-out both}
+.hero-trust{animation:heroFadeUp .65s .32s ease-out both}
+

@@ -2,28 +2,53 @@
 
 namespace App\Models;
 
+use App\Support\LocaleHelper;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use RuntimeException;
+use Spatie\Translatable\HasTranslations;
 
 class Board extends Model
 {
+    use HasTranslations;
+
     protected $fillable = [
-        'name', 'description', 'is_default',
+        'name', 'name_translations', 'description', 'is_default',
         'is_template', 'is_premium_template',
         'canvas_rows', 'canvas_cols', 'path_data',
-        'user_id', 'share_code',
+        'user_id', 'share_code', 'machine_translated_at',
     ];
 
     protected $casts = [
-        'is_default'           => 'boolean',
-        'is_template'          => 'boolean',
-        'is_premium_template'  => 'boolean',
-        'path_data'            => 'array',
-        'canvas_rows'          => 'integer',
-        'canvas_cols'          => 'integer',
+        'is_default'            => 'boolean',
+        'is_template'           => 'boolean',
+        'is_premium_template'   => 'boolean',
+        'path_data'             => 'array',
+        'canvas_rows'           => 'integer',
+        'canvas_cols'           => 'integer',
+        'machine_translated_at' => 'datetime',
     ];
+
+    public array $translatable = ['name_translations'];
+
+    /**
+     * Master locale reads $value directly; non-master uses translations JSON
+     * with fallback to $value. See LocaleHelper::pickTranslation().
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => LocaleHelper::pickTranslation(
+                $this->getRawOriginal('name_translations'),
+                $value,
+            ),
+            set: fn ($value) => $value,
+        );
+    }
 
     protected static function boot(): void
     {
@@ -31,10 +56,19 @@ class Board extends Model
 
         static::creating(function (Board $board) {
             if (empty($board->share_code)) {
-                do {
+                $maxAttempts = 10;
+                for ($i = 0; $i < $maxAttempts; $i++) {
                     $code = strtoupper(Str::random(8));
-                } while (static::where('share_code', $code)->exists());
-                $board->share_code = $code;
+                    if (!static::where('share_code', $code)->exists()) {
+                        $board->share_code = $code;
+                        return;
+                    }
+                }
+                Log::alert('share_code generation exhausted retries', [
+                    'attempts' => $maxAttempts,
+                    'board_user_id' => $board->user_id,
+                ]);
+                throw new RuntimeException('Unable to generate unique share_code after ' . $maxAttempts . ' attempts');
             }
         });
     }

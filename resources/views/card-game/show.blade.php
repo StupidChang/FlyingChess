@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', '情侶撲克牌 — 線下派對遊戲 — 情侶飛行棋')
-@section('meta_description', '2-6 人同機暢玩情侶撲克牌！抽牌比大小配對，每回合指定親密任務，輕鬆→中等→激烈三階段升溫。')
+@section('title', __('minigame.card_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('minigame.card_meta'))
 @section('canonical', route('card-game.show'))
 
 @section('styles')
@@ -138,30 +138,30 @@
 
 @section('content')
 <div class="cg-page">
-    <h1 class="cg-title">情侶撲克牌</h1>
-    <p class="cg-subtitle">同一台裝置，發牌後同時翻開比大小，男女配對執行親密任務（需至少一男一女）</p>
+    <h1 class="cg-title">{{ __('minigame.card_title') }}</h1>
+    <p class="cg-subtitle">{{ __('minigame.card_subtitle_long') }}</p>
 
     {{-- Setup Phase --}}
     <div id="setup-phase" class="cg-setup">
-        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">設定玩家 (2-6人，需至少一男一女)</h2>
+        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">{{ __('minigame.card_setup') }}</h2>
         <div id="players-list">
             <div class="cg-player-row" data-idx="0">
-                <input type="text" class="form-control p-name" value="玩家 1" maxlength="12">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="12">
                 <select class="form-control p-gender">
-                    <option value="male">男</option>
-                    <option value="female">女</option>
+                    <option value="male">{{ __('minigame.card_male') }}</option>
+                    <option value="female">{{ __('minigame.card_female') }}</option>
                 </select>
             </div>
             <div class="cg-player-row" data-idx="1">
-                <input type="text" class="form-control p-name" value="玩家 2" maxlength="12">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="12">
                 <select class="form-control p-gender">
-                    <option value="male">男</option>
-                    <option value="female" selected>女</option>
+                    <option value="male">{{ __('minigame.card_male') }}</option>
+                    <option value="female" selected>{{ __('minigame.card_female') }}</option>
                 </select>
             </div>
         </div>
-        <button class="btn btn-sm btn-outline cg-add-player" id="add-player-btn" onclick="addPlayer()">+ 新增玩家</button>
-        <button class="btn btn-gold btn-full" onclick="startGame()">開始遊戲</button>
+        <button class="btn btn-sm btn-outline cg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
     {{-- Drawing Phase --}}
@@ -170,14 +170,14 @@
         <div class="cg-deal-area" id="deal-area"></div>
         <div id="inline-results"></div>
         <div class="cg-action-btns" id="action-btns">
-            <button class="btn btn-gold btn-xl" id="deal-btn" onclick="dealCards()">🃏 發牌</button>
-            <button class="btn btn-gold btn-xl" id="flip-btn" style="display:none" onclick="flipAllCards()">翻牌！</button>
-            <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">下一回合</button>
-            <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">重新開始</button>
+            <button class="btn btn-gold btn-xl" id="deal-btn" onclick="dealCards()">{{ __('minigame.card_deal') }}</button>
+            <button class="btn btn-gold btn-xl" id="flip-btn" style="display:none" onclick="flipAllCards()">{{ __('minigame.card_flip') }}</button>
+            <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">{{ __('minigame.card_next_round') }}</button>
+            <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
         <div id="upgrade-notice" style="display:none;text-align:center;margin-top:12px">
-            <p style="color:var(--gold);margin-bottom:8px">免費版最多 6 回合，升級 Premium 解鎖無限回合與更刺激的任務！</p>
-            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">升級 Premium</a>
+            <p style="color:var(--gold);margin-bottom:8px">{{ __('minigame.card_premium_gate') }}</p>
+            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">{{ __('minigame.go_premium') }}</a>
         </div>
     </div>
 </div>
@@ -230,9 +230,14 @@
         return pool[Math.floor(Math.random()*pool.length)];
     }
     function intensityTag(){
-        if(round<=3) return '<span class="cg-intensity-tag cg-intensity-mild">輕鬆</span>';
-        if(round<=6) return '<span class="cg-intensity-tag cg-intensity-medium">中等</span>';
-        return '<span class="cg-intensity-tag cg-intensity-intense">激烈</span>';
+        var TIERS = {
+            mild: @json(__('minigame.tier_mild')),
+            medium: @json(__('minigame.tier_medium')),
+            intense: @json(__('minigame.tier_intense')),
+        };
+        if(round<=3) return '<span class="cg-intensity-tag cg-intensity-mild">'+TIERS.mild+'</span>';
+        if(round<=6) return '<span class="cg-intensity-tag cg-intensity-medium">'+TIERS.medium+'</span>';
+        return '<span class="cg-intensity-tag cg-intensity-intense">'+TIERS.intense+'</span>';
     }
 
     /* Setup */
@@ -243,8 +248,11 @@
         var row=document.createElement('div');
         row.className='cg-player-row';
         row.setAttribute('data-idx',playerCount-1);
-        row.innerHTML='<input type="text" class="form-control p-name" value="玩家 '+playerCount+'" maxlength="12">'+
-            '<select class="form-control p-gender"><option value="male">男</option><option value="female">女</option></select>'+
+        var defaultName = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', playerCount);
+        var optMale = @json(__('minigame.card_male'));
+        var optFemale = @json(__('minigame.card_female'));
+        row.innerHTML='<input type="text" class="form-control p-name" value="'+escHtml(defaultName)+'" maxlength="12">'+
+            '<select class="form-control p-gender"><option value="male">'+optMale+'</option><option value="female">'+optFemale+'</option></select>'+
             '<button class="cg-player-remove" onclick="removePlayer(this)">✕</button>';
         document.getElementById('players-list').appendChild(row);
         if(playerCount>=6) document.getElementById('add-player-btn').style.display='none';
@@ -258,15 +266,16 @@
     window.startGame=function(){
         var rows=document.querySelectorAll('.cg-player-row');
         players=[];
+        var fallbackName=@json(__('minigame.player_default_short'));
         rows.forEach(function(r){
-            var name=r.querySelector('.p-name').value.trim()||'玩家';
+            var name=r.querySelector('.p-name').value.trim()||fallbackName;
             var gender=r.querySelector('.p-gender').value;
             players.push({name:name,gender:gender,card:null});
         });
-        if(players.length<2){alert('至少需要 2 位玩家');return;}
+        if(players.length<2){alert(@json(__('minigame.min_players_2')));return;}
         var hasMale=players.some(function(p){return p.gender==='male'});
         var hasFemale=players.some(function(p){return p.gender==='female'});
-        if(!hasMale||!hasFemale){alert('需要至少一位男生和一位女生');return;}
+        if(!hasMale||!hasFemale){alert(@json(__('minigame.card_need_male_female')));return;}
         round=1;usedCards=[];
         startDrawingPhase();
     };
@@ -275,7 +284,8 @@
         document.getElementById('setup-phase').style.display='none';
         document.getElementById('drawing-phase').style.display='block';
         cardsDealt=false;
-        document.getElementById('round-badge').innerHTML='第 '+round+' 回合 '+intensityTag();
+        var roundLabel = @json(__('minigame.card_round_n', ['n' => '__N__'])).replace('__N__', round);
+        document.getElementById('round-badge').innerHTML=escHtml(roundLabel)+' '+intensityTag();
         document.getElementById('deal-btn').style.display='inline-flex';
         document.getElementById('flip-btn').style.display='none';
         document.getElementById('next-round-btn').style.display='none';
@@ -287,14 +297,15 @@
         area.innerHTML='';
         players.forEach(function(p,i){
             var gClass=p.gender==='male'?'male':'female';
-            var gLabel=p.gender==='male'?'男':'女';
+            var gLabel=p.gender==='male'?@json(__('minigame.card_male')):@json(__('minigame.card_female'));
+            var waiting=@json(__('minigame.card_waiting_deal'));
             var slot=document.createElement('div');
             slot.className='cg-card-slot';
             slot.id='card-slot-'+i;
             slot.innerHTML=
                 '<div class="slot-name">'+escHtml(p.name)+'</div>'+
-                '<span class="slot-gender '+gClass+'">'+gLabel+'</span>'+
-                '<div class="cg-card-placeholder">等待發牌</div>';
+                '<span class="slot-gender '+gClass+'">'+escHtml(gLabel)+'</span>'+
+                '<div class="cg-card-placeholder">'+escHtml(waiting)+'</div>';
             area.appendChild(slot);
         });
     }
@@ -402,7 +413,9 @@
         var unpairedF=females.slice(0,Math.max(0,females.length-pairCount));
         var allUnpaired=unpairedM.concat(unpairedF);
         if(allUnpaired.length){
-            html+='<div class="cg-activity-item"><div style="color:var(--text-dim);font-size:.9rem">'+allUnpaired.map(function(x){return escHtml(x.name)}).join('、')+' 本回合休息</div></div>';
+            var restTpl = @json(__('minigame.card_resting', ['names' => '__NAMES__']));
+            var nameList = allUnpaired.map(function(x){return escHtml(x.name)}).join('、');
+            html+='<div class="cg-activity-item"><div style="color:var(--text-dim);font-size:.9rem">'+restTpl.replace('__NAMES__', nameList)+'</div></div>';
         }
 
         html+='</div></div>';

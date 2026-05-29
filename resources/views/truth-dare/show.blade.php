@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', '真心話大冒險 — 房間 ' . $game->code)
+@section('title', __('games.truth_dare') . ' — ' . __('games.td_room_title', ['code' => $game->code]))
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
@@ -49,18 +49,18 @@
 <div class="td-game-area">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px">
         <h1 style="font-size:1.3rem;color:var(--gold)">
-            真心話大冒險
+            {{ __('games.truth_dare') }}
         </h1>
         <div style="display:flex;gap:8px;align-items:center">
             @if($isAdult)
-                <span style="font-size:.7rem;padding:2px 8px;border-radius:8px;background:#dc2626;color:#fff;font-weight:700">🔞 18禁</span>
+                <span style="font-size:.7rem;padding:2px 8px;border-radius:8px;background:#dc2626;color:#fff;font-weight:700">{{ __('games.td_adult_badge') }}</span>
             @elseif($hostIsPremium)
-                <span class="badge-premium">Premium 題庫已啟用</span>
+                <span class="badge-premium">{{ __('games.td_premium_active') }}</span>
             @endif
             <form action="{{ route('truth-dare.leave', $game->code) }}" method="POST" style="display:inline" id="td-leave-form">
                 @csrf
                 <input type="hidden" name="tab_id" id="td-leave-tab-id">
-                <button type="submit" class="btn btn-sm btn-outline">返回</button>
+                <button type="submit" class="btn btn-sm btn-outline">{{ __('games.td_back') }}</button>
             </form>
             <script>
             (function(){
@@ -93,36 +93,36 @@
                 @if($isAdult)
                 <button class="td-cat-btn" onclick="drawCard('truth')">
                     <div style="font-size:1.5rem;margin-bottom:4px">🔥</div>
-                    私密真心話
+                    {{ __('games.td_cat_truth_adult') }}
                 </button>
                 <button class="td-cat-btn" onclick="drawCard('dare')">
                     <div style="font-size:1.5rem;margin-bottom:4px">😈</div>
-                    大膽挑戰
+                    {{ __('games.td_cat_dare_adult') }}
                 </button>
                 <button class="td-cat-btn" onclick="drawCard('couple')">
                     <div style="font-size:1.5rem;margin-bottom:4px">💋</div>
-                    情趣互動
+                    {{ __('games.td_cat_couple_adult') }}
                 </button>
                 <button class="td-cat-btn" onclick="drawCard('party')">
                     <div style="font-size:1.5rem;margin-bottom:4px">🍷</div>
-                    限制級派對
+                    {{ __('games.td_cat_party_adult') }}
                 </button>
                 @else
                 <button class="td-cat-btn" onclick="drawCard('truth')">
                     <div style="font-size:1.5rem;margin-bottom:4px">💬</div>
-                    真心話
+                    {{ __('games.td_cat_truth') }}
                 </button>
                 <button class="td-cat-btn" onclick="drawCard('dare')">
                     <div style="font-size:1.5rem;margin-bottom:4px">🎯</div>
-                    大冒險
+                    {{ __('games.td_cat_dare') }}
                 </button>
                 <button class="td-cat-btn" onclick="drawCard('couple')">
                     <div style="font-size:1.5rem;margin-bottom:4px">💕</div>
-                    情侶題
+                    {{ __('games.td_cat_couple') }}
                 </button>
                 <button class="td-cat-btn" onclick="drawCard('party')">
                     <div style="font-size:1.5rem;margin-bottom:4px">🎉</div>
-                    派對題
+                    {{ __('games.td_cat_party') }}
                 </button>
                 @endif
             </div>
@@ -136,14 +136,14 @@
                 <div class="td-card-tier" id="card-tier"></div>
             </div>
             <div style="text-align:center">
-                <button class="btn btn-gold btn-xl" onclick="nextPlayer()">下一位</button>
+                <button class="btn btn-gold btn-xl" onclick="nextPlayer()">{{ __('games.td_next_player') }}</button>
             </div>
         </div>
 
         {{-- No card message --}}
         <div id="no-card-area" style="display:none;text-align:center;padding:20px">
             <p style="color:var(--rose);margin-bottom:16px" id="no-card-message"></p>
-            <button class="btn btn-outline-gold" onclick="showCategories()">重新選擇類別</button>
+            <button class="btn btn-outline-gold" onclick="showCategories()">{{ __('games.td_pick_again') }}</button>
         </div>
     </div>
 </div>
@@ -189,10 +189,15 @@ function drawCard(category) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            var catNames = {truth:'真心話', dare:'大冒險', couple:'情侶題', party:'派對題'};
+            var catNames = {
+                truth:  @json(__('games.td_cat_truth')),
+                dare:   @json(__('games.td_cat_dare')),
+                couple: @json(__('games.td_cat_couple')),
+                party:  @json(__('games.td_cat_party'))
+            };
             document.getElementById('card-category').textContent = catNames[data.card.category] || data.card.category;
             document.getElementById('card-content').textContent = data.card.content;
-            document.getElementById('card-tier').textContent = data.card.tier === 'premium' ? '{{ $isAdult ? "🔞 18禁題目" : "🌟 Premium 題目" }}' : '';
+            document.getElementById('card-tier').textContent = data.card.tier === 'premium' ? @json($isAdult ? __('games.td_card_adult_label') : __('games.td_card_premium_label')) : '';
             document.getElementById('category-area').style.display = 'none';
             document.getElementById('card-area').style.display = 'block';
             @if(env('GOOGLE_GA4_ID'))
@@ -239,9 +244,9 @@ function pollState() {
         if (cp && data.status === 'playing') {
             var turnText = document.getElementById('current-turn-text');
             if (cp.session_id === MY_SESSION) {
-                turnText.textContent = '輪到你了！選一個類別';
+                turnText.textContent = @json(__('games.td_your_turn_pick'));
             } else {
-                turnText.textContent = '輪到 ' + cp.player_name;
+                turnText.textContent = @json(__('games.td_player_turn', ['name' => '__NAME__'])).replace('__NAME__', cp.player_name);
             }
         }
 

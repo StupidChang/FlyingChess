@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', '真心話大冒險 — 線上派對遊戲')
-@section('meta_description', '真心話大冒險線上版，輸入暱稱即刻開始！情侶升溫、朋友聚會必玩，免費暢玩。')
+@section('title', __('seo.truth_dare_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('seo.truth_dare_description'))
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
@@ -31,46 +31,46 @@
 @section('content')
 <div class="td-start-page">
     <div class="td-start-hero">
-        <h1>💬 真心話大冒險</h1>
-        <p>選擇版本，立即開始！</p>
+        <h1>💬 {{ __('games.truth_dare') }}</h1>
+        <p>{{ __('games.td_start_intro') }}</p>
     </div>
 
     <div class="td-start-form">
         <div class="td-categories-preview">
             <div class="td-cat-preview">
                 <div class="icon">💬</div>
-                <div class="label">真心話</div>
+                <div class="label">{{ __('games.td_cat_truth') }}</div>
             </div>
             <div class="td-cat-preview">
                 <div class="icon">🎯</div>
-                <div class="label">大冒險</div>
+                <div class="label">{{ __('games.td_cat_dare') }}</div>
             </div>
             <div class="td-cat-preview">
                 <div class="icon">💕</div>
-                <div class="label">情侶題</div>
+                <div class="label">{{ __('games.td_cat_couple') }}</div>
             </div>
             <div class="td-cat-preview">
                 <div class="icon">🎉</div>
-                <div class="label">派對題</div>
+                <div class="label">{{ __('games.td_cat_party') }}</div>
             </div>
         </div>
 
         <form action="{{ route('truth-dare.create') }}" method="POST" id="td-create-form">
             @csrf
             <input type="hidden" name="tab_id" id="td-create-tab-id">
-            <input type="hidden" name="player_name" value="玩家">
+            <input type="hidden" name="player_name" value="{{ __('games.td_player_default') }}">
 
             {{-- 18+ Mode Toggle --}}
             <div class="td-mode-toggle">
                 <input type="radio" name="is_adult" id="mode-normal" value="0" checked>
-                <label for="mode-normal">🌸 一般版</label>
+                <label for="mode-normal">{{ __('games.td_mode_normal') }}</label>
                 <input type="radio" name="is_adult" id="mode-adult" value="1"
                        {{ old('is_adult') == '1' ? 'checked' : '' }}>
-                <label for="mode-adult">🔞 18禁版</label>
+                <label for="mode-adult">{{ __('games.td_mode_adult') }}</label>
             </div>
-            <p class="td-mode-desc" id="mode-desc">適合朋友聚會的輕鬆題目</p>
+            <p class="td-mode-desc" id="mode-desc">{{ __('games.td_mode_normal_desc') }}</p>
 
-            <button type="submit" class="btn btn-gold btn-submit">🎲 開始遊戲</button>
+            <button type="submit" class="btn btn-gold btn-submit">{{ __('games.td_start_button') }}</button>
         </form>
 
         @if($errors->any())
@@ -93,31 +93,42 @@
     var el = document.getElementById('td-create-tab-id');
     if (el) el.value = sessionStorage.getItem('tab_id');
 })();
+var TD_LABELS = {
+    normal: {
+        desc: @json(__('games.td_mode_normal_desc')),
+        labels: [
+            @json(__('games.td_cat_truth')),
+            @json(__('games.td_cat_dare')),
+            @json(__('games.td_cat_couple')),
+            @json(__('games.td_cat_party')),
+        ],
+    },
+    adult: {
+        desc: @json(__('games.td_mode_adult_desc')),
+        labels: [
+            @json(__('games.td_cat_truth_adult')),
+            @json(__('games.td_cat_dare_adult')),
+            @json(__('games.td_cat_couple_adult')),
+            @json(__('games.td_cat_party_adult')),
+        ],
+    },
+};
 document.querySelectorAll('input[name="is_adult"]').forEach(function(radio) {
     radio.addEventListener('change', function() {
         var desc = document.getElementById('mode-desc');
         var isAdult = this.value === '1';
-        desc.textContent = isAdult
-            ? '包含情趣挑戰、親密互動題目，僅限 18 歲以上玩家'
-            : '適合朋友聚會的輕鬆題目';
+        var pack = isAdult ? TD_LABELS.adult : TD_LABELS.normal;
+        desc.textContent = pack.desc;
         desc.classList.toggle('adult-desc', isAdult);
-        // Update category previews
         var labels = document.querySelectorAll('.td-cat-preview .label');
         var icons = document.querySelectorAll('.td-cat-preview .icon');
+        labels.forEach(function(el, i) { el.textContent = pack.labels[i]; });
         if (isAdult) {
-            labels[0].textContent = '私密真心話';
-            labels[1].textContent = '大膽挑戰';
-            labels[2].textContent = '情趣互動';
-            labels[3].textContent = '限制級派對';
             icons[0].textContent = '🔥';
             icons[1].textContent = '😈';
             icons[2].textContent = '💋';
             icons[3].textContent = '🍷';
         } else {
-            labels[0].textContent = '真心話';
-            labels[1].textContent = '大冒險';
-            labels[2].textContent = '情侶題';
-            labels[3].textContent = '派對題';
             icons[0].textContent = '💬';
             icons[1].textContent = '🎯';
             icons[2].textContent = '💕';
