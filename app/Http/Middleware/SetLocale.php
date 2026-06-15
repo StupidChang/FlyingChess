@@ -41,6 +41,13 @@ class SetLocale
             URL::defaults(['locale' => $prefix]);
         }
 
+        // Drop the {locale} parameter so it is not injected into controller
+        // method signatures. Without this, routes like /tw/play/{board} would
+        // pass 'tw' as the first argument (e.g. $board), causing 404/500.
+        if ($request->route() && $request->route()->hasParameter('locale')) {
+            $request->route()->forgetParameter('locale');
+        }
+
         $response = $next($request);
 
         if ($request->cookie('locale') !== $locale) {

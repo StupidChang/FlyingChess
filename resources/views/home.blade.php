@@ -11,6 +11,22 @@
      Hero
      ====================================================== --}}
 <section class="hero-section">
+    {{-- Floating decorative shapes (hidden on mobile via CSS) --}}
+    <svg class="hero-deco hero-deco-dice" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="42" height="42" rx="9" stroke="currentColor" stroke-width="3" fill="none"/>
+        <circle cx="15" cy="15" r="3.5" fill="currentColor"/>
+        <circle cx="33" cy="15" r="3.5" fill="currentColor"/>
+        <circle cx="24" cy="24" r="3.5" fill="currentColor"/>
+        <circle cx="15" cy="33" r="3.5" fill="currentColor"/>
+        <circle cx="33" cy="33" r="3.5" fill="currentColor"/>
+    </svg>
+    <svg class="hero-deco hero-deco-heart" aria-hidden="true" viewBox="0 0 48 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 42s-18-10.8-18-23.4C6 11 11.4 6 17.4 6c3.6 0 6.6 1.8 8.4 4.2.6.9 1.8.9 2.4 0C30 7.8 33 6 36.6 6 42.6 6 48 11 48 18.6 48 31.2 24 42 24 42z"/>
+    </svg>
+    <svg class="hero-deco hero-deco-diamond" aria-hidden="true" viewBox="0 0 40 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2L38 18 20 46 2 18z"/>
+    </svg>
+
     <div class="hero-inner">
         <span class="hero-eyebrow">{{ __('home.hero_eyebrow') }}</span>
         <h1 class="hero-title">{{ __('home.hero_title_pre') }}<span>{{ __('home.hero_title_high') }}</span></h1>
@@ -26,6 +42,30 @@
         </div>
     </div>
 </section>
+
+{{-- ======================================================
+     Stats Band
+     ====================================================== --}}
+<div class="stats-band" aria-hidden="true">
+    <div class="stats-band-inner">
+        <div class="stats-item">
+            <span class="stats-num">{{ __('home.stats_modes_num') }}</span>
+            <span class="stats-label">{{ __('home.stats_modes_label') }}</span>
+        </div>
+        <div class="stats-item">
+            <span class="stats-num">{{ __('home.stats_install_num') }}</span>
+            <span class="stats-label">{{ __('home.stats_install_label') }}</span>
+        </div>
+        <div class="stats-item">
+            <span class="stats-num">{{ __('home.stats_share_num') }}</span>
+            <span class="stats-label">{{ __('home.stats_share_label') }}</span>
+        </div>
+        <div class="stats-item">
+            <span class="stats-num">{{ __('home.stats_free_num') }}</span>
+            <span class="stats-label">{{ __('home.stats_free_label') }}</span>
+        </div>
+    </div>
+</div>
 
 @include('partials.ad-unit', ['zone' => 'home_banner'])
 
@@ -110,6 +150,54 @@
         </div>
     </div>
 </section>
+
+{{-- ======================================================
+     How it works
+     ====================================================== --}}
+<section class="how-section">
+    <div class="container">
+        <div class="text-center" style="margin-bottom:48px">
+            <span class="section-label">{{ __('home.steps_label') }}</span>
+            <h2 class="section-title">{{ __('home.steps_title') }}</h2>
+            <p class="section-desc" style="max-width:440px;margin-left:auto;margin-right:auto">{{ __('home.steps_desc') }}</p>
+        </div>
+        <div class="how-grid">
+            <div class="how-step">
+                <div class="how-step-num">1</div>
+                <div class="how-step-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:32px;height:32px">
+                        <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h2.25a3 3 0 013 3v2.25a3 3 0 01-3 3H6a3 3 0 01-3-3V6Zm9.75 0a3 3 0 013-3H18a3 3 0 013 3v2.25a3 3 0 01-3 3h-2.25a3 3 0 01-3-3V6ZM3 15.75a3 3 0 013-3h2.25a3 3 0 013 3V18a3 3 0 01-3 3H6a3 3 0 01-3-3v-2.25Zm9.75 0a3 3 0 013-3H18a3 3 0 013 3V18a3 3 0 01-3 3h-2.25a3 3 0 01-3-3v-2.25Z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3>{{ __('home.steps_1_title') }}</h3>
+                <p>{{ __('home.steps_1_desc') }}</p>
+            </div>
+            <div class="how-step">
+                <div class="how-step-num">2</div>
+                <div class="how-step-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:32px;height:32px">
+                        <path d="M7.5 4.5a3 3 0 113 3h-3m-3 3a3 3 0 100 6h.75m.75-3a3 3 0 113 3v-3m3 0a3 3 0 100-6h-.75m-.75 3V12m-3-3h3m-3 0V6m0 3H6"/>
+                        <path fill-rule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h15A1.5 1.5 0 0121 4.5v15a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 19.5v-15Zm16.5 0h-15v15h15v-15Z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3>{{ __('home.steps_2_title') }}</h3>
+                <p>{{ __('home.steps_2_desc') }}</p>
+            </div>
+            <div class="how-step">
+                <div class="how-step-num">3</div>
+                <div class="how-step-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:32px;height:32px">
+                        <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001Z"/>
+                    </svg>
+                </div>
+                <h3>{{ __('home.steps_3_title') }}</h3>
+                <p>{{ __('home.steps_3_desc') }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="section-divider">
 
 @include('partials.ad-unit', ['zone' => 'home_mid'])
 
@@ -283,6 +371,22 @@
                 <summary class="faq-question">{{ __('home.faq_q4') }}</summary>
                 <div class="faq-answer"><p>{{ __('home.faq_a4') }}</p></div>
             </details>
+        </div>
+    </div>
+</section>
+
+{{-- ======================================================
+     Closing CTA
+     ====================================================== --}}
+<section class="closing-cta-section">
+    <div class="closing-cta-inner">
+        <h2>{{ __('home.cta_close_title_pre') }}<span>{{ __('home.cta_close_title_high') }}</span>{{ __('home.cta_close_title_post') }}</h2>
+        <p>{{ __('home.cta_close_sub') }}</p>
+        <div class="closing-cta-btns">
+            <a href="{{ route('games.lobby') }}" class="btn btn-gold btn-xl">{{ __('home.cta_close_btn_play') }}</a>
+            @guest
+            <a href="{{ route('register') }}" class="btn btn-outline-gold btn-xl">{{ __('home.cta_close_btn_register') }}</a>
+            @endguest
         </div>
     </div>
 </section>

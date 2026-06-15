@@ -1,7 +1,8 @@
 @extends('layouts.app')
 @section('title', __('seo.premium_title') . ' — ' . __('ui.site_name'))
-@section('meta_description', __('seo.premium_description', ['price' => config('premium.price', 99)]))
-@section('robots', 'noindex,nofollow')
+@section('meta_description', __('seo.premium_description', ['price' => $price ?? config('premium.price', 99)]))
+@section('og_title', __('seo.premium_title') . ' — ' . __('ui.site_name'))
+@section('og_description', __('seo.premium_description', ['price' => $price ?? config('premium.price', 99)]))
 @section('content')
 
 <div class="premium-section">

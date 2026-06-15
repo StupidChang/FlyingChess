@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', $list->title . ' — 情侶共同清單')
-@section('meta_description', '一起整理想做的事。')
+@section('title', $list->title . ' — ' . __('games.bl_h1'))
+@section('meta_description', __('games.bl_room_meta'))
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
@@ -64,18 +64,18 @@
     <div class="bl-header">
         <h1>📋 {{ $list->title }}</h1>
         <span class="bl-role {{ $role }}">
-            @if($role === 'owner') 你是清單創建者
-            @elseif($role === 'partner') 你是夥伴
-            @else 訪客模式（無編輯權）
+            @if($role === 'owner') {{ __('games.bl_role_owner') }}
+            @elseif($role === 'partner') {{ __('games.role_partner') }}
+            @else {{ __('games.bl_role_viewer') }}
             @endif
         </span>
     </div>
 
     @if(in_array($role, ['owner', 'partner']))
         <div class="bl-share">
-            <div class="label">📎 分享連結（傳給另一半）</div>
+            <div class="label">📎 {{ __('games.share_link_label') }}</div>
             <div class="url" id="share-url">{{ url(route('bucket-list.show', ['shareCode' => $list->share_code])) }}</div>
-            <button type="button" id="copy-btn">複製連結</button>
+            <button type="button" id="copy-btn">{{ __('games.copy_link') }}</button>
         </div>
     @endif
 
@@ -85,18 +85,18 @@
     @endphp
 
     <div class="bl-progress">
-        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['total'] }}</div><div class="bl-progress-lbl">總數</div></div>
-        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['agreed'] }}</div><div class="bl-progress-lbl">兩人同意</div></div>
-        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['pending'] }}</div><div class="bl-progress-lbl">待投票</div></div>
-        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['rejected'] }}</div><div class="bl-progress-lbl">不同意</div></div>
+        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['total'] }}</div><div class="bl-progress-lbl">{{ __('games.bl_stat_total') }}</div></div>
+        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['agreed'] }}</div><div class="bl-progress-lbl">{{ __('games.bl_stat_agreed') }}</div></div>
+        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['pending'] }}</div><div class="bl-progress-lbl">{{ __('games.bl_stat_pending') }}</div></div>
+        <div class="bl-progress-cell"><div class="bl-progress-num">{{ $stats['rejected'] }}</div><div class="bl-progress-lbl">{{ __('games.bl_stat_rejected') }}</div></div>
     </div>
 
     @if(in_array($role, ['owner', 'partner']))
         <div class="bl-add">
             <form method="POST" action="{{ route('bucket-list.items.add', ['shareCode' => $list->share_code]) }}">
                 @csrf
-                <input type="text" name="content" placeholder="想做的事..." maxlength="200" required>
-                <button type="submit">新增</button>
+                <input type="text" name="content" aria-label="{{ __('games.bl_add_btn') }}" placeholder="{{ __('games.bl_item_placeholder') }}" maxlength="200" required>
+                <button type="submit">{{ __('games.bl_add_btn') }}</button>
             </form>
             @error('content') <div style="color:#ef4444;font-size:.8rem;margin-top:6px">{{ $message }}</div> @enderror
         </div>
@@ -105,7 +105,7 @@
     @if($items->isEmpty())
         <div class="bl-empty">
             <div class="icon">✨</div>
-            <div>還沒有任何項目，新增第一件想做的事吧</div>
+            <div>{{ __('games.bl_empty') }}</div>
         </div>
     @else
         <div class="bl-list">
@@ -115,17 +115,17 @@
                     <div class="bl-item-content">{{ $item->content }}</div>
                     <div class="bl-item-meta">
                         <span class="bl-item-status {{ $status }}">
-                            @if($status === 'agreed') ✅ 兩人同意
-                            @elseif($status === 'rejected') ❌ 有人不同意
-                            @elseif($status === 'maybe') 💭 再看看
-                            @else ⏳ 待投票
+                            @if($status === 'agreed') ✅ {{ __('games.bl_status_agreed') }}
+                            @elseif($status === 'rejected') ❌ {{ __('games.bl_status_rejected') }}
+                            @elseif($status === 'maybe') 💭 {{ __('games.bl_status_maybe') }}
+                            @else ⏳ {{ __('games.bl_status_pending') }}
                             @endif
                         </span>
-                        <span>由「{{ $item->proposer === 'owner' ? '創建者' : '夥伴' }}」提出</span>
+                        <span>{{ __('games.bl_proposed_by', ['name' => $item->proposer === 'owner' ? __('games.role_owner_short') : __('games.role_partner_short')]) }}</span>
                         @if(in_array($role, ['owner', 'partner']) && $item->proposer === $role)
-                            <form method="POST" action="{{ route('bucket-list.items.delete', ['shareCode' => $list->share_code, 'itemId' => $item->id]) }}" style="display:inline;margin-left:auto" onsubmit="return confirm('確定刪除？')">
+                            <form method="POST" action="{{ route('bucket-list.items.delete', ['shareCode' => $list->share_code, 'itemId' => $item->id]) }}" style="display:inline;margin-left:auto" onsubmit="return confirm(@json(__('games.confirm_delete_item')))">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="bl-delete">刪除</button>
+                                <button type="submit" class="bl-delete">{{ __('games.delete_btn') }}</button>
                             </form>
                         @endif
                     </div>
@@ -134,9 +134,9 @@
                         <form method="POST" action="{{ route('bucket-list.items.vote', ['shareCode' => $list->share_code, 'itemId' => $item->id]) }}">
                             @csrf
                             <div class="bl-vote-row">
-                                <button type="submit" name="vote" value="yes"   class="bl-vote-btn @if($myVote==='yes')voted-yes @endif">👍 想做</button>
-                                <button type="submit" name="vote" value="maybe" class="bl-vote-btn @if($myVote==='maybe')voted-maybe @endif">💭 再看看</button>
-                                <button type="submit" name="vote" value="no"    class="bl-vote-btn @if($myVote==='no')voted-no @endif">👎 不要</button>
+                                <button type="submit" name="vote" value="yes"   class="bl-vote-btn @if($myVote==='yes')voted-yes @endif">👍 {{ __('games.bl_vote_yes') }}</button>
+                                <button type="submit" name="vote" value="maybe" class="bl-vote-btn @if($myVote==='maybe')voted-maybe @endif">💭 {{ __('games.bl_vote_maybe') }}</button>
+                                <button type="submit" name="vote" value="no"    class="bl-vote-btn @if($myVote==='no')voted-no @endif">👎 {{ __('games.bl_vote_no') }}</button>
                             </div>
                         </form>
                     @endif
@@ -154,8 +154,8 @@
         var url = document.getElementById('share-url').textContent.trim();
         if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(function () {
-                btn.textContent = '已複製 ✓';
-                setTimeout(function () { btn.textContent = '複製連結'; }, 2000);
+                btn.textContent = @json(__('games.copied'));
+                setTimeout(function () { btn.textContent = @json(__('games.copy_link')); }, 2000);
             });
         }
     });

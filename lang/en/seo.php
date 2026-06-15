@@ -23,4 +23,8 @@ return [
     'premium_description'   => 'Upgrade to Premium — ad-free, advanced decks, private rooms. NT$:price/month.',
     'play_meta_title'       => 'Custom board play — :board',
     'play_meta_description' => 'Play together on the ":board" custom board — supports truth, dare, and many square types for two-player on-device play.',
+
+    'templates_title'       => 'Board Templates',
+    'templates_description' => 'Curated Couple Flying Chess board templates — free and Premium-exclusive. Apply one and start playing.',
+    'boards_description'    => 'Manage your custom boards — edit square content and path settings.',
 ];

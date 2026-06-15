@@ -60,4 +60,7 @@ return [
     'verify_email_sent'        => '驗證信已寄送至您的電子信箱，請點擊信中的連結完成驗證。',
     'verify_email_spam'        => '若未收到，請檢查垃圾郵件資料夾，或點擊下方按鈕重新寄送。',
     'verify_email_play_first'  => '先去玩，稍後再驗證',
+
+    'login_meta_description'    => '登入情侶飛行棋帳號，管理你的自訂棋盤與會員內容。',
+    'register_meta_description' => '免費註冊情侶飛行棋帳號，建立專屬自訂棋盤，解鎖更多雙人互動遊戲。',
 ];

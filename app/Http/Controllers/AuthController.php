@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -17,23 +16,35 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $key = 'login:' . $request->ip();
+        $key = 'login:'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
+
             return back()->withErrors([
                 'email' => "登入嘗試次數過多，請 {$seconds} 秒後再試。",
             ])->onlyInput('email');
         }
 
         $credentials = $request->validate([
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            if (Auth::user()->isBanned()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => '此帳號已被停用',
+                ])->onlyInput('email');
+            }
+
             RateLimiter::clear($key);
             $request->session()->regenerate();
+
             return redirect()->intended(route('home'));
         }
 
@@ -51,10 +62,11 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $key = 'register:' . $request->ip();
+        $key = 'register:'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
+
             return back()->withErrors([
                 'email' => "註冊請求過於頻繁，請 {$seconds} 秒後再試。",
             ])->onlyInput('name', 'email');
@@ -63,14 +75,14 @@ class AuthController extends Controller
         RateLimiter::hit($key, 60);
 
         $data = $request->validate([
-            'name'     => 'required|string|max:50',
-            'email'    => 'required|email|unique:users',
+            'name' => 'required|string|max:50',
+            'email' => 'required|email|unique:users',
             'password' => 'required|min:8|confirmed',
         ]);
 
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
+            'name' => $data['name'],
+            'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
 
@@ -84,6 +96,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('home');
     }
 }

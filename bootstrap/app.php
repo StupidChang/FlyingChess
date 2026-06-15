@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Middleware\AgeVerification;
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureNotBanned;
+use App\Http\Middleware\EnsurePremium;
+use App\Http\Middleware\RedirectUnprefixedUrl;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,11 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'age.verify' => \App\Http\Middleware\AgeVerification::class,
-            'premium' => \App\Http\Middleware\EnsurePremium::class,
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
-            'set.locale' => \App\Http\Middleware\SetLocale::class,
-            'redirect.unprefixed' => \App\Http\Middleware\RedirectUnprefixedUrl::class,
+            'age.verify' => AgeVerification::class,
+            'premium' => EnsurePremium::class,
+            'admin' => EnsureAdmin::class,
+            'not.banned' => EnsureNotBanned::class,
+            'set.locale' => SetLocale::class,
+            'redirect.unprefixed' => RedirectUnprefixedUrl::class,
         ]);
 
         // The locale cookie is a UI preference (not sensitive); skip encryption
@@ -26,8 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Order matters: RedirectUnprefixedUrl 301s legacy non-prefixed URLs
         // before AgeVerification renders the age gate, avoiding wasted renders.
-        $middleware->prepend(\App\Http\Middleware\RedirectUnprefixedUrl::class);
-        $middleware->append(\App\Http\Middleware\AgeVerification::class);
+        $middleware->prepend(RedirectUnprefixedUrl::class);
+        $middleware->append(AgeVerification::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

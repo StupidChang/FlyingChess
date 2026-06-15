@@ -2,6 +2,7 @@
 @section('title', __('auth.forgot_heading') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('auth.forgot_meta_description'))
 @section('og_description', __('auth.forgot_meta_description'))
+@section('robots', 'noindex,follow')
 @section('content')
 <div class="form-page">
     <div class="form-card">
@@ -27,7 +28,7 @@
             <div class="form-group">
                 <label>{{ __('auth.email_label') }}</label>
                 <input type="email" name="email" class="form-control"
-                       value="{{ old('email') }}" required autocomplete="email"
+                       value="{{ old('email') }}" required maxlength="255" autocomplete="email"
                        placeholder="{{ __('auth.forgot_email_placeholder') }}">
             </div>
             <div class="form-actions">

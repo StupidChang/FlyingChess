@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', __('games.truth_dare') . ' — ' . __('games.td_room_title', ['code' => $game->code]))
+@section('meta_description', __('games.td_room_meta', ['code' => $game->code]))
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
@@ -155,6 +156,9 @@
 @section('scripts')
 <script>
 var GAME_CODE = '{{ $game->code }}';
+var DRAW_URL  = @json(route('truth-dare.draw', $game->code));
+var NEXT_URL  = @json(route('truth-dare.next', $game->code));
+var STATE_URL = @json(route('truth-dare.state', $game->code));
 var IS_PLAYING = {{ $game->isPlaying() ? 'true' : 'false' }};
 if (!sessionStorage.getItem('tab_id')) {
     sessionStorage.setItem('tab_id', Math.random().toString(36).slice(2, 11));
@@ -175,8 +179,16 @@ function showCategories() {
     document.getElementById('no-card-area').style.display = 'none';
 }
 
+var drawing = false;
+function setCatButtonsDisabled(disabled) {
+    document.querySelectorAll('.td-cat-btn').forEach(function (b) { b.disabled = disabled; });
+}
+
 function drawCard(category) {
-    fetch('/truth-dare/' + GAME_CODE + '/draw', {
+    if (drawing) return;
+    drawing = true;
+    setCatButtonsDisabled(true);
+    fetch(DRAW_URL, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -208,11 +220,15 @@ function drawCard(category) {
             document.getElementById('category-area').style.display = 'none';
             document.getElementById('no-card-area').style.display = 'block';
         }
+    })
+    .finally(function () {
+        drawing = false;
+        setCatButtonsDisabled(false);
     });
 }
 
 function nextPlayer() {
-    fetch('/truth-dare/' + GAME_CODE + '/next' + (TAB_ID ? '?tab_id=' + TAB_ID : ''), {
+    fetch(NEXT_URL + (TAB_ID ? '?tab_id=' + TAB_ID : ''), {
         method: 'POST',
         headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json', 'X-Tab-Id': TAB_ID || ''}
     })
@@ -226,7 +242,7 @@ function nextPlayer() {
 }
 
 function pollState() {
-    fetch('/truth-dare/' + GAME_CODE + '/state' + (TAB_ID ? '?tab_id=' + TAB_ID : ''), {headers: {'X-Tab-Id': TAB_ID || ''}})
+    fetch(STATE_URL + (TAB_ID ? '?tab_id=' + TAB_ID : ''), {headers: {'X-Tab-Id': TAB_ID || ''}})
     .then(r => r.json())
     .then(data => {
         // Update players

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', __('auth.verify_email_heading') . ' — ' . __('ui.site_name'))
+@section('robots', 'noindex,nofollow')
 @section('content')
 <div class="form-page">
     <div class="form-card">
@@ -28,12 +29,12 @@
             <a href="{{ route('home') }}" class="btn btn-outline btn-full" style="margin-bottom:8px">{{ __('auth.verify_email_play_first') }}</a>
         </div>
 
-        <p style="text-align:center;margin-top:12px;font-size:.88rem;color:var(--text-dim)">
+        <div style="text-align:center;margin-top:12px;font-size:.88rem;color:var(--text-dim)">
             <form action="{{ route('logout') }}" method="POST" style="display:inline">
                 @csrf
                 <button type="submit" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:.88rem">{{ __('auth.logout') }}</button>
             </form>
-        </p>
+        </div>
     </div>
 </div>
 @endsection

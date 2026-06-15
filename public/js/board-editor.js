@@ -83,12 +83,12 @@ function buildLayoutBoard() {
         cell.innerHTML = `
           <div class="sq-num">${posId}</div>
           <div class="sq-text">${escHtml(sq.text)}</div>
-          <button class="layout-del-btn" title="刪除此格子"
+          <button class="layout-del-btn" title="${escHtml(tp('deleteSqTitle'))}"
                   onclick="layoutDeleteSquare(event,${posId})">✕</button>
         `;
       } else {
         cell.className = 'layout-empty-cell';
-        cell.title     = `加入格子 (${r},${c})`;
+        cell.title     = tp('addSqTitle', { '__R__': r, '__C__': c });
         cell.innerHTML = '<span class="layout-add-icon">＋</span>';
         cell.addEventListener('click', () => layoutAddSquare(r, c));
       }
@@ -109,30 +109,30 @@ function findPosAtCell(row, col) {
 /** Add a new square at a cell */
 async function layoutAddSquare(row, col) {
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}/squares`, {
+    const res = await fetch(window.BOARD_ROUTES.squares, {
       method : 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.CSRF_TOKEN },
       body   : JSON.stringify({ grid_row: row, grid_col: col }),
     });
     const json = await res.json();
-    if (!json.success) { alert(json.message || '新增失敗'); return; }
+    if (!json.success) { alert(json.message || tp('addFailed')); return; }
     if (!window.SQUARES_DATA) window.SQUARES_DATA = {};
     window.SQUARES_DATA[json.position] = json.square;
     buildLayoutBoard();
-  } catch (e) { console.error(e); alert('新增失敗，請重試'); }
+  } catch (e) { console.error(e); alert(tp('addFailed')); }
 }
 
 /** Delete a square from canvas */
 async function layoutDeleteSquare(evt, posId) {
   evt.stopPropagation();
-  if (!confirm(`確定刪除格子 #${posId}？此操作無法復原。`)) return;
+  if (!confirm(tp('confirmDeleteSq', { '__N__': posId }))) return;
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}/squares/${posId}`, {
+    const res = await fetch(`${window.BOARD_ROUTES.squares}/${posId}`, {
       method : 'DELETE',
       headers: { 'X-CSRF-TOKEN': window.CSRF_TOKEN },
     });
     const json = await res.json();
-    if (!json.success) { alert(json.message||'刪除失敗'); return; }
+    if (!json.success) { alert(json.message||tp('deleteFailed')); return; }
     delete window.SQUARES_DATA[posId];
     // Sync path_data
     ['all','male','female'].forEach(g => {
@@ -143,7 +143,7 @@ async function layoutDeleteSquare(evt, posId) {
     });
     window.PATH_DATA = edState.pathData;
     buildLayoutBoard();
-  } catch (e) { console.error(e); alert('刪除失敗，請重試'); }
+  } catch (e) { console.error(e); alert(tp('deleteFailed')); }
 }
 
 /** Apply canvas size change */
@@ -151,34 +151,34 @@ async function applyCanvasSize() {
   const rows = parseInt(document.getElementById('canvas-rows-input').value, 10);
   const cols = parseInt(document.getElementById('canvas-cols-input').value, 10);
   if (isNaN(rows)||rows<3||rows>30||isNaN(cols)||cols<3||cols>30) {
-    alert('畫布大小需在 3–30 之間'); return;
+    alert(tp('canvasSizeRange')); return;
   }
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}/canvas`, {
+    const res = await fetch(window.BOARD_ROUTES.canvas, {
       method : 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.CSRF_TOKEN },
       body   : JSON.stringify({ canvas_rows: rows, canvas_cols: cols }),
     });
     const json = await res.json();
-    if (!json.success) { alert('儲存失敗'); return; }
+    if (!json.success) { alert(tp('saveFailed')); return; }
     edState.canvasRows = rows; edState.canvasCols = cols;
     window.CANVAS_ROWS = rows; window.CANVAS_COLS = cols;
     buildLayoutBoard();
-  } catch (e) { console.error(e); alert('儲存失敗'); }
+  } catch (e) { console.error(e); alert(tp('saveFailed')); }
 }
 
 /** Apply a preset (clears existing squares and creates preset) */
 async function applyPreset(preset) {
-  const names = { cross: '十字形', square: '方形環狀' };
-  if (!confirm(`套用「${names[preset]}」預設將清除此棋盤所有格子與路徑！\n確定繼續？`)) return;
+  const names = { cross: tp('presetCross'), square: tp('presetSquare') };
+  if (!confirm(tp('confirmPreset', { '__NAME__': names[preset] || preset }))) return;
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}/preset`, {
+    const res = await fetch(window.BOARD_ROUTES.preset, {
       method : 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.CSRF_TOKEN },
       body   : JSON.stringify({ preset }),
     });
     const json = await res.json();
-    if (!json.success) { alert('套用失敗'); return; }
+    if (!json.success) { alert(tp('applyFailed')); return; }
     window.SQUARES_DATA = json.squares;
     window.PATH_DATA    = json.path_data;
     window.CANVAS_ROWS  = edState.canvasRows = json.canvas_rows;
@@ -187,7 +187,7 @@ async function applyPreset(preset) {
     document.getElementById('canvas-rows-input').value = json.canvas_rows;
     document.getElementById('canvas-cols-input').value = json.canvas_cols;
     buildLayoutBoard();
-  } catch (e) { console.error(e); alert('套用失敗'); }
+  } catch (e) { console.error(e); alert(tp('applyFailed')); }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -288,7 +288,7 @@ function renderPathList() {
   const sqData = window.SQUARES_DATA || {};
 
   if (path.length === 0) {
-    ul.innerHTML = '<li class="path-empty-hint">點擊棋盤上的格子加入路徑</li>';
+    ul.innerHTML = `<li class="path-empty-hint">${escHtml(tp('pathEmptyHint'))}</li>`;
     return;
   }
 
@@ -302,14 +302,14 @@ function renderPathList() {
 
     const isFirst = idx === 0;
     const isLast  = idx === path.length - 1;
-    const stepLabel = isFirst ? '🚀 起點' : isLast ? '🏁 終點' : `步 ${idx + 1}`;
+    const stepLabel = isFirst ? tp('pathStart') : isLast ? tp('pathEnd') : tp('stepLabel', { '__N__': idx + 1 });
 
     li.innerHTML = `
-      <span class="drag-handle" title="拖曳排序">☰</span>
-      <span class="step-label ${isFirst?'step-start':isLast?'step-end':''}">${stepLabel}</span>
+      <span class="drag-handle" title="${escHtml(tp('dragSort'))}">☰</span>
+      <span class="step-label ${isFirst?'step-start':isLast?'step-end':''}">${escHtml(stepLabel)}</span>
       <span class="pos-chip color-${sq.color||'normal'}" title="#${pos}">#${pos}</span>
       <span class="path-item-text">${escHtml((sq.text||'').split('\n')[0].substring(0,18))}</span>
-      <button class="path-remove-btn" onclick="removeFromPath(${idx})" title="從路徑移除">×</button>
+      <button class="path-remove-btn" onclick="removeFromPath(${idx})" title="${escHtml(tp('removeFromPath'))}">×</button>
     `;
 
     li.addEventListener('dragstart', e => {
@@ -366,10 +366,10 @@ function selectPathGroup(group) {
   const hint = document.getElementById('path-group-hint');
   if (hint) {
     hint.textContent = group === 'all'
-      ? '主路徑：所有玩家默認使用此路徑'
+      ? tp('pathMainHint')
       : group === 'male'
-        ? '♂ 男生路徑：若設定，男性玩家優先使用此路徑（空白 = 使用主路徑）'
-        : '♀ 女生路徑：若設定，女性玩家優先使用此路徑（空白 = 使用主路徑）';
+        ? tp('pathMaleHint')
+        : tp('pathFemaleHint');
   }
 
   buildPathBoard();
@@ -378,7 +378,7 @@ function selectPathGroup(group) {
 
 /** Clear current path */
 function clearCurrentPath() {
-  if (!confirm('確定清除當前路徑？')) return;
+  if (!confirm(tp('confirmClearPath'))) return;
   const group = edState.pathGroup;
   if (!edState.pathData) edState.pathData = {};
   edState.pathData[group] = group === 'all' ? [] : null;
@@ -388,7 +388,7 @@ function clearCurrentPath() {
 
 /** Reset all path to default (sorted positions) */
 function resetPathToDefault() {
-  if (!confirm('將路徑重設為格子編號順序？')) return;
+  if (!confirm(tp('confirmResetPath'))) return;
   const positions = Object.keys(window.SQUARES_DATA || {}).map(Number).sort((a,b)=>a-b);
   edState.pathData = { all: positions, male: null, female: null };
   buildPathBoard();
@@ -399,21 +399,21 @@ function resetPathToDefault() {
 async function savePaths() {
   const pd     = edState.pathData || {};
   const status = document.getElementById('path-save-status');
-  if (!pd.all || pd.all.length < 2) { alert('主路徑至少需要 2 個格子'); return; }
-  if (status) { status.style.color='#5fd080'; status.textContent='儲存中…'; }
+  if (!pd.all || pd.all.length < 2) { alert(tp('pathMin')); return; }
+  if (status) { status.style.color='#5fd080'; status.textContent=tp('saving'); }
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}/path`, {
+    const res = await fetch(window.BOARD_ROUTES.path, {
       method : 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.CSRF_TOKEN },
       body   : JSON.stringify(pd),
     });
     const json = await res.json();
-    if (!json.success) throw new Error(json.message||'失敗');
+    if (!json.success) throw new Error(json.message||'error');
     window.PATH_DATA = pd;
-    if (status) { status.textContent='✅ 路徑已儲存'; setTimeout(()=>{ if(status) status.textContent=''; }, 2500); }
+    if (status) { status.textContent=tp('pathSaved'); setTimeout(()=>{ if(status) status.textContent=''; }, 2500); }
   } catch (e) {
     console.error(e);
-    if (status) { status.style.color='#f06080'; status.textContent='❌ 儲存失敗'; }
+    if (status) { status.style.color='#f06080'; status.textContent=tp('saveFailed'); }
   }
 }
 

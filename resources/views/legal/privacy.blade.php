@@ -2,50 +2,122 @@
 @section('title', __('legal.privacy_title') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('legal.privacy_meta_description'))
 @section('canonical', route('legal.privacy'))
-@section('content')
-<div class="container" style="max-width:800px;padding:40px 16px">
-    <h1 style="color:var(--gold);margin-bottom:8px">隱私權政策</h1>
-    <p style="color:var(--text-dim);font-size:.9rem;margin-bottom:32px">最後更新：{{ date('Y') }} 年</p>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">一、資料收集</h2>
-        <p>本站（情侶飛行棋）在您使用服務時，可能收集以下資料：</p>
-        <ul style="margin:12px 0 0 20px;line-height:1.8">
-            <li>帳號資訊：電子信箱、使用者名稱（僅在您主動註冊時）</li>
-            <li>遊戲資料：遊戲進度、自訂棋盤設定</li>
-            <li>技術日誌：IP 位址、瀏覽器類型、存取時間（用於安全防護與系統維護）</li>
-            <li>Cookie：用於維持登入狀態與功能偏好設定</li>
+@section('styles')
+<style>
+.legal-page{max-width:800px;margin:0 auto;padding:40px 16px}
+.legal-page h1{color:var(--gold);margin-bottom:8px}
+.legal-updated{color:var(--text-dim);font-size:.9rem;margin-bottom:24px}
+.legal-intro{margin-bottom:28px;line-height:1.8}
+.legal-toc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:36px}
+.legal-toc-title{font-size:1rem;color:var(--gold);margin-bottom:10px;font-weight:700}
+.legal-toc ol{margin:0;padding-left:0;counter-reset:toc;list-style:none}
+.legal-toc li{margin:4px 0}
+.legal-toc a{color:var(--text);font-size:.95rem;transition:color .15s}
+.legal-toc a:hover{color:var(--accent)}
+.legal-section{margin-bottom:36px;scroll-margin-top:80px}
+.legal-section h2{font-size:1.2rem;margin-bottom:12px;color:var(--text);border-left:3px solid var(--accent);padding-left:10px}
+.legal-section p{line-height:1.8}
+.legal-section p + p{margin-top:8px}
+.legal-list{margin:12px 0 0 20px;line-height:1.8;list-style:disc}
+.legal-list li{margin-bottom:6px}
+.legal-note{margin-top:12px;color:var(--text-dim);font-size:.95rem}
+.legal-email{margin-top:8px;color:var(--text-dim)}
+.legal-email a{color:var(--accent)}
+.legal-footnote{font-size:.85rem;color:var(--text-dim);border-top:1px solid var(--border);padding-top:16px;line-height:1.7}
+</style>
+@endsection
+
+@section('content')
+@php
+    $toc = [
+        'collect'     => __('legal.privacy.collect_title'),
+        'cookies'     => __('legal.privacy.cookies_title'),
+        'third-party' => __('legal.privacy.third_title'),
+        'retention'   => __('legal.privacy.retention_title'),
+        'rights'      => __('legal.privacy.rights_title'),
+        'adult'       => __('legal.privacy.adult_title'),
+        'security'    => __('legal.privacy.security_title'),
+        'changes'     => __('legal.privacy.changes_title'),
+        'contact'     => __('legal.privacy.contact_title'),
+    ];
+@endphp
+<div class="legal-page">
+    <h1>{{ __('legal.privacy_title') }}</h1>
+    <p class="legal-updated">{{ __('legal.last_updated') }}</p>
+
+    <p class="legal-intro">{{ __('legal.privacy.intro') }}</p>
+
+    <nav class="legal-toc" aria-label="{{ __('legal.toc_title') }}">
+        <p class="legal-toc-title">{{ __('legal.toc_title') }}</p>
+        <ol>
+            @foreach($toc as $anchor => $label)
+                <li><a href="#{{ $anchor }}">{{ $label }}</a></li>
+            @endforeach
+        </ol>
+    </nav>
+
+    <section id="collect" class="legal-section">
+        <h2>{{ __('legal.privacy.collect_title') }}</h2>
+        <p>{{ __('legal.privacy.collect_intro') }}</p>
+        <ul class="legal-list">
+            @foreach(__('legal.privacy.collect_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
         </ul>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">二、Cookie 使用</h2>
-        <p>本站使用 Cookie 維持您的登入階段與遊戲狀態。關閉 Cookie 可能導致部分功能無法正常運作。本站不使用追蹤型 Cookie 進行跨站行為分析。</p>
+    <section id="cookies" class="legal-section">
+        <h2>{{ __('legal.privacy.cookies_title') }}</h2>
+        <p>{{ __('legal.privacy.cookies_body') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">三、第三方廣告</h2>
-        <p>本站可能顯示由第三方廣告服務商（如 Google AdSense）提供的廣告。這些服務商可能使用 Cookie 或網頁信標收集資料，以提供個人化廣告。您可透過廣告商的隱私設定頁面選擇退出個人化廣告。</p>
+    <section id="third-party" class="legal-section">
+        <h2>{{ __('legal.privacy.third_title') }}</h2>
+        <p>{{ __('legal.privacy.third_intro') }}</p>
+        <ul class="legal-list">
+            @foreach(__('legal.privacy.third_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
+        </ul>
+        <p class="legal-note">{{ __('legal.privacy.third_note') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">四、成人內容聲明</h2>
-        <p>本站包含成人向趣味內容，僅供已年滿 18 歲之成年人使用。本站不主動收集未成年人之任何個人資料。若您發現有未成年人使用本站，請透過下方聯絡方式通報。</p>
+    <section id="retention" class="legal-section">
+        <h2>{{ __('legal.privacy.retention_title') }}</h2>
+        <p>{{ __('legal.privacy.retention_body') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">五、資料安全</h2>
-        <p>本站採用適當的技術措施保護您的個人資料，包含傳輸加密（HTTPS）及密碼雜湊儲存。然而，網際網路傳輸並無絕對安全的保障，請勿在本站儲存高度敏感的個人資訊。</p>
+    <section id="rights" class="legal-section">
+        <h2>{{ __('legal.privacy.rights_title') }}</h2>
+        <p>{{ __('legal.privacy.rights_intro') }}</p>
+        <ul class="legal-list">
+            @foreach(__('legal.privacy.rights_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
+        </ul>
+        <p class="legal-note">{{ __('legal.privacy.rights_note') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">六、聯絡方式</h2>
-        <p>如對本隱私權政策有任何疑問，或欲行使您的資料查詢、更正、刪除權利，請透過以下方式聯絡我們：</p>
-        <p style="margin-top:8px;color:var(--text-dim)">電子信箱：contact@flyingchessonline.com</p>
+    <section id="adult" class="legal-section">
+        <h2>{{ __('legal.privacy.adult_title') }}</h2>
+        <p>{{ __('legal.privacy.adult_body') }}</p>
     </section>
 
-    <p style="font-size:.85rem;color:var(--text-dim);border-top:1px solid var(--border);padding-top:16px">
-        本政策內容若有修改，將公告於本頁，並更新最後修改日期。繼續使用本站即表示您接受修改後之政策。
-    </p>
+    <section id="security" class="legal-section">
+        <h2>{{ __('legal.privacy.security_title') }}</h2>
+        <p>{{ __('legal.privacy.security_body') }}</p>
+    </section>
+
+    <section id="changes" class="legal-section">
+        <h2>{{ __('legal.privacy.changes_title') }}</h2>
+        <p>{{ __('legal.privacy.changes_body') }}</p>
+    </section>
+
+    <section id="contact" class="legal-section">
+        <h2>{{ __('legal.privacy.contact_title') }}</h2>
+        <p>{{ __('legal.privacy.contact_body') }}</p>
+        <p class="legal-email"><a href="mailto:{{ __('legal.contact_email') }}">{{ __('legal.contact_email') }}</a></p>
+    </section>
 </div>
 @endsection

@@ -30,39 +30,39 @@
 @section('content')
 <div class="tc-page">
     <div class="tc-hero">
-        <h1>📦 情侶時間膠囊</h1>
-        <p>今天的我們，寫一封信給未來的我們</p>
+        <h1>📦 {{ __('games.tc_h1') }}</h1>
+        <p>{{ __('games.tc_hero_sub') }}</p>
     </div>
 
     <div class="tc-features">
-        <div class="tc-feature"><div class="icon">📝</div><div class="label">回答 10 個問題</div></div>
-        <div class="tc-feature"><div class="icon">🔒</div><div class="label">封存到開封日</div></div>
-        <div class="tc-feature"><div class="icon">💌</div><div class="label">一起開封回顧</div></div>
+        <div class="tc-feature"><div class="icon">📝</div><div class="label">{{ __('games.tc_feature_1') }}</div></div>
+        <div class="tc-feature"><div class="icon">🔒</div><div class="label">{{ __('games.tc_feature_2') }}</div></div>
+        <div class="tc-feature"><div class="icon">💌</div><div class="label">{{ __('games.tc_feature_3') }}</div></div>
     </div>
 
     <div class="tc-form">
-        <h2>建立新膠囊</h2>
+        <h2>{{ __('games.tc_create_h2') }}</h2>
         <form method="POST" action="{{ route('time-capsule.create') }}">
             @csrf
             <div class="form-group">
-                <label>膠囊標題</label>
-                <input type="text" name="title" placeholder="例：給一年後的我們" maxlength="100" required value="{{ old('title') }}">
+                <label for="tc-title">{{ __('games.tc_title_label') }}</label>
+                <input type="text" id="tc-title" name="title" placeholder="{{ __('games.tc_title_placeholder') }}" maxlength="100" required value="{{ old('title') }}">
                 @error('title') <div class="tc-error">{{ $message }}</div> @enderror
             </div>
             <div class="form-group">
-                <label>開封日期（必須是明天以後，建議 1 年後的同一天）</label>
-                <input type="date" name="open_at" required value="{{ old('open_at', \Carbon\Carbon::today()->addYear()->toDateString()) }}" min="{{ \Carbon\Carbon::tomorrow()->toDateString() }}">
+                <label for="tc-open-at">{{ __('games.tc_date_label') }}</label>
+                <input type="date" id="tc-open-at" name="open_at" required value="{{ old('open_at', \Carbon\Carbon::today()->addYear()->toDateString()) }}" min="{{ \Carbon\Carbon::tomorrow()->toDateString() }}">
                 @error('open_at') <div class="tc-error">{{ $message }}</div> @enderror
             </div>
             <div class="form-group">
-                <label>提醒 Email（選填，開封日當天會寄信提醒）</label>
-                <input type="email" name="notify_email" placeholder="your@email.com" maxlength="100" value="{{ old('notify_email') }}">
+                <label for="tc-notify-email">{{ __('games.tc_email_label') }}</label>
+                <input type="email" id="tc-notify-email" name="notify_email" placeholder="your@email.com" maxlength="100" value="{{ old('notify_email') }}">
                 @error('notify_email') <div class="tc-error">{{ $message }}</div> @enderror
             </div>
-            <button type="submit" class="btn btn-gold btn-submit">建立膠囊</button>
+            <button type="submit" class="btn btn-gold btn-submit">{{ __('games.tc_create_btn') }}</button>
         </form>
         <div class="tc-tip">
-            建立後產生分享連結，傳給另一半就能一起寫；填好後創建者按「封存」即鎖定，到開封日才能查看
+            {{ __('games.tc_create_tip') }}
         </div>
     </div>
 </div>

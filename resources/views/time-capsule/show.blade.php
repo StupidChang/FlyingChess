@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', $capsule->title . ' — 情侶時間膠囊')
-@section('meta_description', '情侶時間膠囊')
+@section('title', $capsule->title . ' — ' . __('games.tc_h1'))
+@section('meta_description', __('games.tc_room_meta'))
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
@@ -53,11 +53,11 @@
 <div class="tc-show">
     <div class="tc-header">
         <h1>📦 {{ $capsule->title }}</h1>
-        <div class="tc-meta">開封日：{{ $capsule->open_at->format('Y-m-d') }}</div>
+        <div class="tc-meta">{{ __('games.tc_open_date', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
         <span class="tc-role {{ $role }}">
-            @if($role === 'owner') 你是膠囊創建者
-            @elseif($role === 'partner') 你是夥伴
-            @else 訪客模式
+            @if($role === 'owner') {{ __('games.tc_role_owner') }}
+            @elseif($role === 'partner') {{ __('games.role_partner') }}
+            @else {{ __('games.tc_role_viewer') }}
             @endif
         </span>
     </div>
@@ -72,30 +72,30 @@
     {{-- State banner --}}
     @if(!$capsule->isSealed())
         <div class="tc-state">
-            <div class="big">📝 編輯中</div>
-            <div>填寫回答後請創建者按「封存」鎖定。封存後直到 {{ $capsule->open_at->format('Y-m-d') }} 才能再次查看</div>
+            <div class="big">📝 {{ __('games.tc_state_editing') }}</div>
+            <div>{{ __('games.tc_state_editing_desc', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @elseif(!$capsule->isOpenable())
         @php
             $days = (int) abs(\Carbon\Carbon::today()->diffInDays($capsule->open_at, false));
         @endphp
         <div class="tc-state locked">
-            <div class="big">🔒 已封存，倒數 {{ $days }} 天</div>
-            <div>於 {{ $capsule->open_at->format('Y-m-d') }} 開封</div>
+            <div class="big">🔒 {{ __('games.tc_state_sealed', ['days' => $days]) }}</div>
+            <div>{{ __('games.tc_state_sealed_desc', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @else
         <div class="tc-state open">
-            <div class="big">🎉 已開封</div>
-            <div>{{ $capsule->opened_at?->format('Y-m-d') ?? $capsule->open_at->format('Y-m-d') }} 已開啟</div>
+            <div class="big">🎉 {{ __('games.tc_state_open') }}</div>
+            <div>{{ __('games.tc_state_open_desc', ['date' => $capsule->opened_at?->format('Y-m-d') ?? $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @endif
 
     {{-- Share link (only before seal, for owner/partner) --}}
     @if(!$capsule->isSealed() && in_array($role, ['owner', 'partner']))
         <div class="tc-share">
-            <div class="label">📎 分享連結（傳給另一半）</div>
+            <div class="label">📎 {{ __('games.share_link_label') }}</div>
             <div class="url" id="share-url">{{ url(route('time-capsule.show', ['shareCode' => $capsule->share_code])) }}</div>
-            <button type="button" id="copy-btn">複製連結</button>
+            <button type="button" id="copy-btn">{{ __('games.copy_link') }}</button>
         </div>
     @endif
 
@@ -104,14 +104,14 @@
         {{-- Sealed but not yet openable: hide content --}}
         <div class="tc-locked-msg">
             <div class="icon">🔐</div>
-            <div>膠囊已封存，內容隱藏中</div>
+            <div>{{ __('games.tc_locked_hidden') }}</div>
             <div class="countdown">
                 @php
                     $days = (int) abs(\Carbon\Carbon::today()->diffInDays($capsule->open_at, false));
                 @endphp
-                還有 {{ $days }} 天
+                {{ __('games.tc_days_left', ['days' => $days]) }}
             </div>
-            <div>到 {{ $capsule->open_at->format('Y-m-d') }} 才會解鎖</div>
+            <div>{{ __('games.tc_unlock_on', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @else
         {{-- Editable form (before seal) OR opened display (after open_at) --}}
@@ -129,21 +129,21 @@
                             <span class="tc-q-text">{{ $q->question }}</span>
                         </div>
                         <div class="tc-answer">
-                            <textarea name="answers[{{ $q->id }}]" placeholder="寫下你的回答..." maxlength="1000">{{ old('answers.' . $q->id, $myAnswer ?? '') }}</textarea>
+                            <textarea name="answers[{{ $q->id }}]" aria-label="{{ $q->question }}" placeholder="{{ __('games.tc_answer_placeholder') }}" maxlength="1000">{{ old('answers.' . $q->id, $myAnswer ?? '') }}</textarea>
                         </div>
                     </div>
                 @endforeach
 
                 <div class="tc-actions">
-                    <button type="submit" class="btn btn-gold">💾 儲存回答</button>
+                    <button type="submit" class="btn btn-gold">💾 {{ __('games.tc_save_btn') }}</button>
                 </div>
             </form>
 
             {{-- Seal button (owner only, separate form) --}}
             @if($role === 'owner')
-                <form method="POST" action="{{ route('time-capsule.seal', ['shareCode' => $capsule->share_code]) }}" style="margin-top:12px" onsubmit="return confirm('封存後不能再修改，直到 {{ $capsule->open_at->format('Y-m-d') }} 才能查看內容。確定要封存嗎？')">
+                <form method="POST" action="{{ route('time-capsule.seal', ['shareCode' => $capsule->share_code]) }}" style="margin-top:12px" onsubmit="return confirm(@json(__('games.tc_seal_confirm', ['date' => $capsule->open_at->format('Y-m-d')])))">
                     @csrf
-                    <button type="submit" class="btn btn-outline" style="width:100%;padding:12px;border:1px solid #7c3aed;color:#a855f7;background:transparent">🔒 封存膠囊</button>
+                    <button type="submit" class="btn btn-outline" style="width:100%;padding:12px;border:1px solid #7c3aed;color:#a855f7;background:transparent">🔒 {{ __('games.tc_seal_btn') }}</button>
                 </form>
             @endif
         @else
@@ -156,18 +156,18 @@
                     </div>
                     @if(($answerMap[$q->id]['owner'] ?? null))
                         <div class="tc-answered">
-                            <span class="who">創建者</span>
+                            <span class="who">{{ __('games.role_owner_short') }}</span>
                             {{ $answerMap[$q->id]['owner'] }}
                         </div>
                     @endif
                     @if(($answerMap[$q->id]['partner'] ?? null))
                         <div class="tc-answered partner">
-                            <span class="who">夥伴</span>
+                            <span class="who">{{ __('games.role_partner_short') }}</span>
                             {{ $answerMap[$q->id]['partner'] }}
                         </div>
                     @endif
                     @if(!($answerMap[$q->id]['owner'] ?? null) && !($answerMap[$q->id]['partner'] ?? null))
-                        <div class="tc-q-meta">（兩人都未作答）</div>
+                        <div class="tc-q-meta">{{ __('games.tc_no_answers') }}</div>
                     @endif
                 </div>
             @endforeach
@@ -183,8 +183,8 @@
         var url = document.getElementById('share-url').textContent.trim();
         if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(function () {
-                btn.textContent = '已複製 ✓';
-                setTimeout(function () { btn.textContent = '複製連結'; }, 2000);
+                btn.textContent = @json(__('games.copied'));
+                setTimeout(function () { btn.textContent = @json(__('games.copy_link')); }, 2000);
             });
         }
     });

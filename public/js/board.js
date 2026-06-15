@@ -10,6 +10,17 @@ const COLOR_HEX = {
   start:'#f57c00',end:'#d32f2f',male:'#1565c0',female:'#c2185b',
 };
 
+/* ── i18n + locale-aware endpoints (injected by the Blade views) ──
+   PLAY_I18N: UI strings; BOARD_ROUTES: route()-generated URLs that carry
+   the /tw|cn|jp|en prefix (edit pages only). Placeholders use the
+   __N__/__NAME__ convention and are replaced via String.replace. */
+const PI18N = window.PLAY_I18N || {};
+function tp(key, repl) {
+  let s = (PI18N[key] != null) ? PI18N[key] : key;
+  if (repl) for (const k in repl) s = s.replace(k, repl[k]);
+  return s;
+}
+
 /* ── Game state ── */
 const state = {
   players: [],   // { name, stepIndex, skip, gender }
@@ -121,32 +132,51 @@ function roll3dDice() {
   return new Promise(function(resolve) {
     const overlay = document.getElementById('dice-overlay');
     const cube = document.getElementById('dice-cube');
+    const result = Math.floor(Math.random() * 6) + 1;
     if (!overlay || !cube) {
-      resolve(Math.floor(Math.random() * 6) + 1);
+      resolve(result);
       return;
     }
-
-    const result = Math.floor(Math.random() * 6) + 1;
+    const scene = overlay.querySelector('.dice-scene');
+    const reduced = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Show overlay
     overlay.classList.add('active');
 
-    // Start spin
+    if (reduced) {
+      // Reduced motion: show the result face directly, briefly
+      cube.className = 'dice-cube';
+      cube.style.transform = FACE_ROTATIONS[result];
+      setTimeout(function() {
+        overlay.classList.remove('active');
+        resolve(result);
+      }, 650);
+      return;
+    }
+
+    // Stage 1: fast tumble → decelerating settle (CSS keyframe, .9s)
     cube.className = 'dice-cube rolling';
     cube.style.transform = '';
 
-    // After spin animation ends, land on result face
+    // Stage 2: land on result face (overshoot bezier transition)
     setTimeout(function() {
       cube.className = 'dice-cube landing';
       cube.style.transform = FACE_ROTATIONS[result];
-    }, 1000);
+    }, 900);
+
+    // Stage 3: squash & stretch bounce on touchdown
+    setTimeout(function() {
+      if (scene) scene.classList.add('dice-landed');
+    }, 1450);
 
     // Hide overlay after landing
     setTimeout(function() {
       overlay.classList.remove('active');
       cube.className = 'dice-cube';
+      if (scene) scene.classList.remove('dice-landed');
       resolve(result);
-    }, 1700);
+    }, 1950);
   });
 }
 
@@ -236,16 +266,16 @@ function buildBoard() {
     center.style.gridRow    = '6';
     center.style.gridColumn = '2 / 13';
     center.innerHTML = `
-      <div class="center-title">✈ 情侶飛行棋 V2.0</div>
-      <div class="center-rules-inline">♂格僅男執行 · ♀格僅女執行 · 雙方同格後到者退回起點</div>
+      <div class="center-title">${escHtml(tp('centerTitle'))}</div>
+      <div class="center-rules-inline">${escHtml(tp('centerRules'))}</div>
     `;
     board.appendChild(center);
 
     const cornerData = [
-      {row:'1/5',col:'1/5',  icon:'🎲',sub:'準備好酒水\n啤酒或調酒'},
-      {row:'1/5',col:'8/14', icon:'💕',sub:'起點→終點\n先到者獲勝'},
-      {row:'8/12',col:'1/5', icon:'🍺',sub:'不喝酒可改\n對方口交30秒'},
-      {row:'8/12',col:'8/14',icon:'🏆',sub:'完成所有挑戰\n為愛鼓掌！'},
+      {row:'1/5',col:'1/5',  icon:'🎲',sub:tp('corner1')},
+      {row:'1/5',col:'8/14', icon:'💕',sub:tp('corner2')},
+      {row:'8/12',col:'1/5', icon:'🍺',sub:tp('corner3')},
+      {row:'8/12',col:'8/14',icon:'🏆',sub:tp('corner4')},
     ];
     cornerData.forEach(c => {
       const el = document.createElement('div');
@@ -315,9 +345,9 @@ async function saveSquare() {
   const flyVal = document.getElementById('sq-fly-to')?.value.trim();
   const fly_to = flyVal !== '' ? parseInt(flyVal,10) : null;
   const status = document.getElementById('sq-save-status');
-  status.style.color='#5fd080'; status.textContent='儲存中…';
+  status.style.color='#5fd080'; status.textContent=tp('saving');
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}/squares/${editPos}`, {
+    const res = await fetch(`${window.BOARD_ROUTES.squares}/${editPos}`, {
       method:'PATCH',
       headers:{'Content-Type':'application/json','X-CSRF-TOKEN':window.CSRF_TOKEN},
       body:JSON.stringify({text,color,fly_to}),
@@ -337,10 +367,10 @@ async function saveSquare() {
         flyBadge.textContent = `✈→${fly_to}`;
       } else if (flyBadge) flyBadge.remove();
     }
-    status.textContent='✅ 已儲存';
+    status.textContent=tp('saved');
     setTimeout(closeSqModal, 900);
   } catch(err) {
-    status.style.color='#f06080'; status.textContent='❌ 儲存失敗，請重試';
+    status.style.color='#f06080'; status.textContent=tp('saveFailed');
     console.error('saveSquare:',err);
   }
 }
@@ -356,7 +386,7 @@ async function saveMeta() {
   const desc = document.getElementById('meta-desc').value.trim();
   if (!name) return;
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}`, {
+    const res = await fetch(window.BOARD_ROUTES.update, {
       method:'PATCH',
       headers:{'Content-Type':'application/json','X-CSRF-TOKEN':window.CSRF_TOKEN},
       body:JSON.stringify({name,description:desc}),
@@ -366,30 +396,30 @@ async function saveMeta() {
     const d = document.getElementById('board-name-display');
     if (d) d.textContent = name;
     closeMetaModal();
-  } catch { alert('儲存失敗，請重試'); }
+  } catch { alert(tp('saveFailed')); }
 }
 
 /* ═══════════════════════════════════════════════════
    PLAY MODE — Setup
    ═══════════════════════════════════════════════════ */
 function startSetup() {
-  const p1Name   = document.getElementById('setup-p1')?.value.trim()  || '玩家 1';
+  const p1Name   = document.getElementById('setup-p1')?.value.trim()  || tp('player1');
   const p1Gender = document.querySelector('input[name="p1-gender"]:checked')?.value || 'male';
   state.players  = [{ name:p1Name, stepIndex:0, skip:false, gender:p1Gender }];
   state.current  = 0; state.rolling=false; state.gameOver=false;
 
   if (window.PLAYER_COUNT >= 2) {
-    const p2Name   = document.getElementById('setup-p2')?.value.trim()  || '玩家 2';
+    const p2Name   = document.getElementById('setup-p2')?.value.trim()  || tp('player2');
     const p2Gender = document.querySelector('input[name="p2-gender"]:checked')?.value || 'female';
     state.players.push({ name:p2Name, stepIndex:0, skip:false, gender:p2Gender });
   }
 
   const gIcon = g => g==='male'?' ♂':' ♀';
   document.getElementById('p1-name').textContent = state.players[0].name + gIcon(p1Gender);
-  document.getElementById('p1-pos').textContent  = '起點';
+  document.getElementById('p1-pos').textContent  = tp('startPoint');
   if (state.players[1]) {
     document.getElementById('p2-name').textContent = state.players[1].name + gIcon(state.players[1].gender);
-    document.getElementById('p2-pos').textContent  = '起點';
+    document.getElementById('p2-pos').textContent  = tp('startPoint');
   }
 
   closeModal('setup-modal');
@@ -409,7 +439,7 @@ function rollDice() {
     player.skip = false;
     document.getElementById('action-dice').textContent = '-';
     updateActionDiceFace(0);
-    document.getElementById('action-text').textContent = `${player.name} 本回合跳過！`;
+    document.getElementById('action-text').textContent = tp('skipTurnName', { '__NAME__': player.name });
     document.getElementById('action-color-bar').style.background = '#9e9e9e';
     document.getElementById('skip-notice').classList.remove('hidden');
     document.getElementById('gender-notice').classList.add('hidden');
@@ -585,13 +615,13 @@ function showActionModal(roll, pos) {
     (sq.color==='female' && player.gender!=='female');
 
   if (genderMismatch) {
-    const label = sq.color==='male'?'♂ 男生':'♀ 女生';
+    const label = sq.color==='male' ? tp('male') : tp('female');
     textEl.textContent = sq.text || '';
-    genderEl.textContent = `此格為 ${label} 專屬，${player.name} 跳過本次懲罰`;
+    genderEl.textContent = tp('genderSkip', { '__LABEL__': label, '__NAME__': player.name });
     genderEl.classList.remove('hidden');
     showFlyButtons(false, null);
   } else {
-    textEl.textContent = sq.text || '普通格子，繼續！';
+    textEl.textContent = sq.text || tp('normalSquare');
     const hasFly = sq.fly_to != null;
     showFlyButtons(hasFly, hasFly ? sq.fly_to : null);
   }
@@ -661,8 +691,8 @@ function flashSquare(pos) {
 
 function showWin(name) {
   state.gameOver = true;
-  document.getElementById('win-title').textContent = `🏆 ${name} 獲勝！`;
-  document.getElementById('win-text').textContent  = `恭喜 ${name} 率先抵達終點！遊戲結束，為愛鼓掌！🎉`;
+  document.getElementById('win-title').textContent = tp('winTitle', { '__NAME__': name });
+  document.getElementById('win-text').textContent  = tp('winText', { '__NAME__': name });
   openModal('win-modal');
 }
 
@@ -681,7 +711,7 @@ function updateTurnUI() {
   const p = state.players[state.current];
   if (!p) return;
   const label = document.getElementById('turn-label');
-  if (label) label.textContent = `${p.name} 的回合`;
+  if (label) label.textContent = tp('turnOf', { ':name': p.name });
   document.getElementById('p1-panel')?.classList.toggle('active', state.current===0);
   document.getElementById('p2-panel')?.classList.toggle('active', state.current===1);
 }
@@ -693,9 +723,9 @@ function updatePosDisplay() {
     const path   = getEffectivePath(p.gender);
     const endIdx = path.length - 1;
     el.textContent =
-      p.stepIndex === 0        ? '起點'
-      : p.stepIndex >= endIdx  ? '終點 🏁'
-      : `第 ${p.stepIndex} 步`;
+      p.stepIndex === 0        ? tp('startPoint')
+      : p.stepIndex >= endIdx  ? tp('endPoint')
+      : tp('stepN', { '__N__': p.stepIndex });
   });
 }
 

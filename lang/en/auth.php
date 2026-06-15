@@ -58,4 +58,7 @@ return [
     'verify_email_sent'        => "We've sent a verification email to your inbox — click the link to finish verification.",
     'verify_email_spam'        => "Didn't get it? Check your spam folder, or use the button below to resend.",
     'verify_email_play_first'  => 'Skip for now — verify later',
+
+    'login_meta_description'    => 'Sign in to your Couple Flying Chess account to manage your custom boards and membership.',
+    'register_meta_description' => 'Create a free Couple Flying Chess account to build custom boards and unlock more two-player games.',
 ];

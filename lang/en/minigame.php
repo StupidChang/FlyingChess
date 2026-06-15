@@ -10,6 +10,7 @@ return [
     'next_turn'        => 'Next player',
     'min_players_2'    => 'Need at least 2 players',
     'go_premium'       => 'Go Premium',
+    'name_separator'   => ', ',
 
     'round_n'          => 'Round :n',
     'turn_player'      => "It's :name's turn",

@@ -1,7 +1,9 @@
 @extends('layouts.app')
 @section('title', __('seo.truth_dare_title') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('seo.truth_dare_description'))
-@section('robots', 'noindex,nofollow')
+@section('og_title', __('seo.truth_dare_title') . ' — ' . __('ui.site_name'))
+@section('og_description', __('seo.truth_dare_description'))
+@section('canonical', route('truth-dare.lobby'))
 
 @section('styles')
 <style>

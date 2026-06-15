@@ -89,6 +89,35 @@ return [
     'faq_a4'            => 'Sign up free, open the board editor, and design each square — text, category, color. You can also clone a template and tweak it. Share your board via the share code.',
     'faq_a4_short'      => 'Sign up free, open the editor, design each square, and share via code.',
 
+    // Stats band
+    'stats_modes_num'   => '5+',
+    'stats_modes_label' => 'game modes',
+    'stats_install_num' => 'Zero',
+    'stats_install_label'=> 'install required',
+    'stats_share_num'   => '1 tap',
+    'stats_share_label' => 'to share with your partner',
+    'stats_free_num'    => 'Free',
+    'stats_free_label'  => 'core games, always',
+
+    // How it works — 3 steps
+    'steps_label'       => 'Get started in 3 steps',
+    'steps_title'       => 'Up and playing in under a minute',
+    'steps_desc'        => 'No download, no setup — just open your browser and go.',
+    'steps_1_title'     => 'Pick a game',
+    'steps_1_desc'      => 'Flying chess, truth or dare, card game, or custom board — choose whatever fits your mood.',
+    'steps_2_title'     => 'Share the room code',
+    'steps_2_desc'      => 'Create a room and send the code to your partner. You are connected in seconds.',
+    'steps_3_title'     => 'Play together',
+    'steps_3_desc'      => 'Roll the dice, draw a card, and let the evening unfold — no planning needed.',
+
+    // Closing CTA
+    'cta_close_title_pre'  => 'Tonight, make it ',
+    'cta_close_title_high' => 'memorable',
+    'cta_close_title_post' => '',
+    'cta_close_sub'        => 'No plans needed. Open a browser, roll the dice, and let your story begin right here.',
+    'cta_close_btn_play'   => 'Start playing now',
+    'cta_close_btn_register' => 'Create a free account',
+
     // Schema.org JSON-LD
     'schema_site_desc'  => 'Online couple games platform: flying chess matches, truth or dare, custom boards.',
 ];

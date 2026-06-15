@@ -89,6 +89,35 @@ return [
     'faq_a4'            => '免費註冊帳號後，進入棋盤編輯器自由設計每個格子的文字內容、類型與顏色。也可以從棋盤模板一鍵複製開始修改。編輯完成後透過分享碼與對方共用。',
     'faq_a4_short'      => '免費註冊帳號後，進入棋盤編輯器自由設計每個格子的文字內容、類型與顏色。也可以從棋盤模板一鍵複製開始修改。',
 
+    // Stats band
+    'stats_modes_num'   => '5+',
+    'stats_modes_label' => '種遊戲模式',
+    'stats_install_num' => '0',
+    'stats_install_label'=> '需要安裝',
+    'stats_share_num'   => '1 秒',
+    'stats_share_label' => '分享房號給另一半',
+    'stats_free_num'    => '完全免費',
+    'stats_free_label'  => '基本功能零收費',
+
+    // How it works — 3 steps
+    'steps_label'       => '三步驟開始',
+    'steps_title'       => '開始只需一分鐘',
+    'steps_desc'        => '不用下載、不用準備，打開瀏覽器就能玩',
+    'steps_1_title'     => '選遊戲',
+    'steps_1_desc'      => '飛行棋、真心話大冒險、撲克牌、自訂棋盤，選你們喜歡的玩法',
+    'steps_2_title'     => '分享房號',
+    'steps_2_desc'      => '建立房間後複製一串房號，傳給另一半，兩秒鐘就能同步連線',
+    'steps_3_title'     => '一起開始玩',
+    'steps_3_desc'      => '骰子一丟，互動任務開始，讓每次相處都留下記憶',
+
+    // Closing CTA
+    'cta_close_title_pre'  => '今晚，',
+    'cta_close_title_high' => '換個方式相處',
+    'cta_close_title_post' => '',
+    'cta_close_sub'        => '不用計畫、不用準備——打開瀏覽器，骰子一丟，你們的故事就從這裡開始',
+    'cta_close_btn_play'   => '立即開始遊戲',
+    'cta_close_btn_register' => '免費註冊帳號',
+
     // Schema.org JSON-LD
     'schema_site_desc'  => '情侶專屬線上遊戲平台，飛行棋對戰、真心話大冒險、自訂棋盤，情侶升溫、派對助興',
 ];

@@ -1,6 +1,8 @@
 @extends('layouts.app')
 @section('title', __('auth.login_title') . ' — ' . __('ui.site_name'))
-@section('robots', 'noindex,nofollow')
+@section('meta_description', __('auth.login_meta_description'))
+@section('og_description', __('auth.login_meta_description'))
+@section('robots', 'noindex,follow')
 @section('canonical', route('login'))
 @section('content')
 <div class="form-page">
@@ -18,7 +20,7 @@
             <div class="form-group">
                 <label>{{ __('auth.email_label') }}</label>
                 <input type="email" name="email" class="form-control"
-                       value="{{ old('email') }}" required autocomplete="email">
+                       value="{{ old('email') }}" required maxlength="255" autocomplete="email">
             </div>
             <div class="form-group">
                 <label>{{ __('auth.password_label') }}</label>

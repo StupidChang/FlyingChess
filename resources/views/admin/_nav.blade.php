@@ -9,6 +9,8 @@
         <a href="{{ route('admin.wheel-segments') }}"
            class="admin-nav-link {{ request()->routeIs('admin.wheel-segments*') ? 'active' : '' }}">轉盤</a>
         <a href="{{ route('admin.users') }}"
-           class="admin-nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">會員</a>
+           class="admin-nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">會員</a>
+        <a href="{{ route('admin.games') }}"
+           class="admin-nav-link {{ request()->routeIs('admin.games*') ? 'active' : '' }}">遊戲</a>
     </div>
 </nav>

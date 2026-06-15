@@ -2,6 +2,7 @@
 @section('title', __('auth.reset_heading') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('auth.reset_meta_description'))
 @section('og_description', __('auth.reset_meta_description'))
+@section('robots', 'noindex,nofollow')
 @section('content')
 <div class="form-page">
     <div class="form-card">
@@ -23,7 +24,7 @@
             <div class="form-group">
                 <label>{{ __('auth.email_label') }}</label>
                 <input type="email" name="email" class="form-control"
-                       value="{{ old('email', $email) }}" required autocomplete="email">
+                       value="{{ old('email', $email) }}" required maxlength="255" autocomplete="email">
             </div>
             <div class="form-group">
                 <label>{{ __('auth.new_password') }}（{{ __('auth.password_min') }}）</label>

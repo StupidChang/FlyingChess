@@ -46,21 +46,59 @@
 #turn-dot.green  { background: var(--green); }
 #turn-dot.red    { background: var(--red); }
 
-/* Dice */
-.dice-display { text-align: center; margin-bottom: 12px; }
+/* Dice — true 3D CSS cube (DOM built by game.js inside #dice) */
+.dice-display { text-align: center; margin-bottom: 12px; position: relative; }
 .dice {
     width: 64px; height: 64px; background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
     font-size: 2rem; font-weight: 800; margin-bottom: 8px;
-    transition: transform .2s;
+    perspective: 300px;
 }
-.dice.rolling { animation: rollAnim .5s ease; }
-@keyframes rollAnim {
-    0%   { transform: rotate(0) scale(1); }
-    25%  { transform: rotate(20deg) scale(1.15); }
-    50%  { transform: rotate(-20deg) scale(1.05); }
-    75%  { transform: rotate(10deg) scale(1.1); }
-    100% { transform: rotate(0) scale(1); }
+.dice-cube3d {
+    width: 42px; height: 42px; position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+.dice-face3d {
+    position: absolute; inset: 0;
+    display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    padding: 5px; box-sizing: border-box;
+    background: linear-gradient(150deg, #ffffff 0%, #f2f2f5 55%, #d9d9e0 100%);
+    border: 1px solid #c4c4cc; border-radius: 7px;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,.95), inset 0 -2px 4px rgba(0,0,0,.14);
+    backface-visibility: hidden;
+}
+.dice-face3d .dot {
+    background: radial-gradient(circle at 35% 30%, #4a4a55, #14141c 75%);
+    border-radius: 50%; width: 80%; height: 80%; margin: auto;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.55);
+}
+/* Cube face placement: 1 front, 6 back, 3 left, 4 right, 2 top, 5 bottom */
+.dice-face3d.df1 { transform: rotateY(0deg)   translateZ(21px); }
+.dice-face3d.df6 { transform: rotateY(180deg) translateZ(21px); }
+.dice-face3d.df3 { transform: rotateY(-90deg) translateZ(21px); }
+.dice-face3d.df4 { transform: rotateY(90deg)  translateZ(21px); }
+.dice-face3d.df2 { transform: rotateX(90deg)  translateZ(21px); }
+.dice-face3d.df5 { transform: rotateX(-90deg) translateZ(21px); }
+/* Idle (no value yet) — slightly dimmed, tilted by JS */
+.dice.dice-idle .dice-cube3d { opacity: .75; }
+/* While tumbling, the outer box hovers slightly */
+.dice.rolling3d { animation: diceHover3d .5s ease-in-out infinite alternate; }
+@keyframes diceHover3d {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-5px); }
+}
+/* Landing squash & stretch bounce */
+.dice.dice-land { animation: diceLand3d .5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes diceLand3d {
+    0%   { transform: translateY(-8px) scale(1.05); }
+    40%  { transform: translateY(0)    scale(1.15, .82); }
+    70%  { transform: translateY(-3px) scale(.92, 1.1); }
+    100% { transform: translateY(0)    scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dice.rolling3d, .dice.dice-land { animation: none; }
+    .dice-cube3d { transition: none !important; }
 }
 
 /* My pieces sidebar display */

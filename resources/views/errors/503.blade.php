@@ -1,0 +1,6 @@
+@extends('errors.layout')
+@include('errors._locale')
+@section('code', '503')
+@section('title', __('errors.503_title'))
+@section('message', __('errors.503_message'))
+@section('hide_lobby', '1')

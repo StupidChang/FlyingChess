@@ -48,4 +48,5 @@ return [
     'custom_wheel'     => 'Custom wheel',
     'custom_dare'      => 'Custom dares',
     'coming_soon'      => 'Coming soon',
+    'ad_label'         => 'Advertisement',
 ];

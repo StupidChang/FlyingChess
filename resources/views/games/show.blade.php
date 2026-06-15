@@ -198,6 +198,48 @@
     window.IS_SOLO      = {{ !empty($game->game_state['bots'] ?? []) ? 'true' : 'false' }};
     window.BOARD_DATA   = @json($boardData);
     window.CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]').content;
+    // Locale-aware API endpoints (route() carries the /tw|cn|jp|en prefix)
+    window.GAME_ROUTES  = {
+        roll:  @json(route('games.roll',  $game->code)),
+        move:  @json(route('games.move',  $game->code)),
+        start: @json(route('games.start', $game->code)),
+        state: @json(route('games.state', $game->code)),
+        lobby: @json(route('games.lobby')),
+        home:  @json(route('home')),
+    };
+    // UI strings for game.js (placeholders use __N__ / __NAME__ convention)
+    window.GAME_I18N = {
+        colors: {
+            yellow: @json(__('games.color_yellow')),
+            blue:   @json(__('games.color_blue')),
+            green:  @json(__('games.color_green')),
+            red:    @json(__('games.color_red')),
+        },
+        botThinking:      @json(__('games.js_bot_thinking')),
+        botThinkingColor: @json(__('games.js_bot_thinking_color')),
+        turnOf:           @json(__('games.js_turn_of')),
+        pieceLabel:       @json(__('games.js_piece_label')),
+        atBase:           @json(__('games.js_at_base')),
+        finished:         @json(__('games.js_finished')),
+        safeLane:         @json(__('games.js_safe_lane')),
+        mainTrack:        @json(__('games.js_main_track')),
+        badgeHost:        @json(__('games.badge_host')),
+        badgeMe:          @json(__('games.badge_me')),
+        botThreeSixes:    @json(__('games.js_bot_three_sixes')),
+        botNoMoves:       @json(__('games.js_bot_no_moves')),
+        botMoved:         @json(__('games.js_bot_moved')),
+        threeSixes:       @json(__('games.js_three_sixes')),
+        rolled:           @json(__('games.js_rolled')),
+        noMoves:          @json(__('games.js_no_moves')),
+        moveFailed:       @json(__('games.js_move_failed')),
+        moved:            @json(__('games.js_moved')),
+        cannotStart:      @json(__('games.js_cannot_start')),
+        gameOver:         @json(__('games.game_over_h2')),
+        backHome:         @json(__('games.back_home_short')),
+        winner:           @json(__('games.js_winner')),
+        diceValue:        @json(__('games.js_dice_value')),
+        copied:           @json(__('games.copied')),
+    };
 </script>
 <script src="{{ asset('js/game.js') }}"></script>
 @endsection

@@ -11,6 +11,7 @@ return [
     'next_turn'        => '下一位',
     'min_players_2'    => '至少需要 2 位玩家',
     'go_premium'       => '升級 Premium',
+    'name_separator'   => '、',
 
     // Round / turn UI
     'round_n'          => '第 :n 回合',

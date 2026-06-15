@@ -25,14 +25,14 @@
 @endphp
 
 @if($showAds && $hasTJ)
-<div class="ad-unit ad-unit--banner" aria-label="廣告" data-zone="{{ $zone }}">
+<div class="ad-unit ad-unit--banner" aria-label="{{ __('ui.ad_label') }}" data-zone="{{ $zone }}">
     <script type="text/javascript">
         var _TJWIDGET = { site_id: "{{ $siteId }}", spot_id: "{{ $spotId }}" };
     </script>
     <script async src="//ads.trafficjunky.net/ads/player.js"></script>
 </div>
 @elseif($showAds && $hasAS)
-<div class="ad-unit ad-unit--banner" aria-label="廣告" data-zone="{{ $zone }}">
+<div class="ad-unit ad-unit--banner" aria-label="{{ __('ui.ad_label') }}" data-zone="{{ $zone }}">
     <ins class="adsbygoogle"
          style="display:block"
          data-ad-client="{{ $pubId }}"

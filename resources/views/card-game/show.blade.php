@@ -414,7 +414,7 @@
         var allUnpaired=unpairedM.concat(unpairedF);
         if(allUnpaired.length){
             var restTpl = @json(__('minigame.card_resting', ['names' => '__NAMES__']));
-            var nameList = allUnpaired.map(function(x){return escHtml(x.name)}).join('、');
+            var nameList = allUnpaired.map(function(x){return escHtml(x.name)}).join(@json(__('minigame.name_separator')));
             html+='<div class="cg-activity-item"><div style="color:var(--text-dim);font-size:.9rem">'+restTpl.replace('__NAMES__', nameList)+'</div></div>';
         }
 

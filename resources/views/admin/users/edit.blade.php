@@ -10,6 +10,9 @@
     <div class="container" style="max-width:640px">
         <h1 style="margin-bottom:24px">編輯會員：{{ $user->name }}</h1>
 
+        @if(session('success'))
+        <div class="toast toast-ok" style="margin-bottom:16px">{{ session('success') }}</div>
+        @endif
         @if($errors->any())
         <div class="toast toast-err" style="margin-bottom:16px">
             @foreach($errors->all() as $e) <div>{{ $e }}</div> @endforeach
@@ -20,7 +23,38 @@
             <p><strong>Email：</strong>{{ $user->email }}</p>
             <p><strong>註冊時間：</strong>{{ $user->created_at->format('Y-m-d H:i') }}</p>
             <p><strong>棋盤數：</strong>{{ $user->boards()->count() }}</p>
+            <p><strong>帳號狀態：</strong>
+                @if($user->isBanned())
+                    <span class="badge-admin" style="background:#dc2626">已封鎖</span>
+                    <span style="font-size:.85rem;color:var(--text-dim)">（{{ $user->banned_at?->format('Y-m-d H:i') }}）</span>
+                @else
+                    正常
+                @endif
+            </p>
         </div>
+
+        @unless($user->isAdmin() || $user->id === auth()->id())
+        <div style="display:flex;gap:12px;margin-bottom:24px">
+            @if($user->isBanned())
+            <form action="{{ route('admin.users.unban', $user) }}" method="POST"
+                  onsubmit="return confirm('確定要解除封鎖「{{ $user->name }}」嗎？')">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline">解除封鎖</button>
+            </form>
+            @else
+            <form action="{{ route('admin.users.ban', $user) }}" method="POST"
+                  onsubmit="return confirm('確定要封鎖「{{ $user->name }}」嗎？被封鎖後將無法登入。')">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline">封鎖帳號</button>
+            </form>
+            @endif
+            <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+                  onsubmit="return confirm('確定要刪除「{{ $user->name }}」嗎？此操作會連帶刪除其建立的棋盤，且無法復原。')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline" style="color:#dc2626;border-color:#dc2626">刪除帳號</button>
+            </form>
+        </div>
+        @endunless
 
         <form action="{{ route('admin.users.update', $user) }}" method="POST" class="admin-form">
             @csrf @method('PATCH')

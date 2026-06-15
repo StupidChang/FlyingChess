@@ -23,4 +23,8 @@ return [
     'premium_description'   => '升級 Premium 會員，免廣告、解鎖進階題庫、建立私人房間，月繳 NT$:price。',
     'play_meta_title'       => '自訂棋盤遊玩 — :board',
     'play_meta_description' => '使用「:board」自訂棋盤進行情侶遊戲，支援真心話、挑戰等各種格子類型，雙人同機互動。',
+
+    'templates_title'       => '棋盤模板',
+    'templates_description' => '精選情侶飛行棋棋盤模板，免費模板與 Premium 專屬模板，一鍵套用開始玩。',
+    'boards_description'    => '管理你建立的自訂棋盤，編輯格子內容與路徑設定。',
 ];

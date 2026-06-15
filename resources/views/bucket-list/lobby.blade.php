@@ -29,28 +29,28 @@
 @section('content')
 <div class="bl-page">
     <div class="bl-hero">
-        <h1>📋 情侶共同清單</h1>
-        <p>一起整理「我們兩個都想做」的事<br>你提，我投，找出共同願望</p>
+        <h1>📋 {{ __('games.bl_h1') }}</h1>
+        <p>{{ __('games.bl_hero_line1') }}<br>{{ __('games.bl_hero_line2') }}</p>
     </div>
 
     <div class="bl-features">
-        <div class="bl-feature"><div class="icon">✍️</div><div class="label">輪流提想做的事</div></div>
-        <div class="bl-feature"><div class="icon">👍</div><div class="label">兩人都投票</div></div>
-        <div class="bl-feature"><div class="icon">💚</div><div class="label">兩人都同意 = 達成</div></div>
+        <div class="bl-feature"><div class="icon">✍️</div><div class="label">{{ __('games.bl_feature_1') }}</div></div>
+        <div class="bl-feature"><div class="icon">👍</div><div class="label">{{ __('games.bl_feature_2') }}</div></div>
+        <div class="bl-feature"><div class="icon">💚</div><div class="label">{{ __('games.bl_feature_3') }}</div></div>
     </div>
 
     <div class="bl-form">
-        <h2>建立新清單</h2>
+        <h2>{{ __('games.bl_create_h2') }}</h2>
         <form method="POST" action="{{ route('bucket-list.create') }}">
             @csrf
             <div class="form-group">
-                <input type="text" name="title" placeholder="清單名稱（例：今年想一起做的 30 件事）" maxlength="100" required value="{{ old('title') }}">
+                <input type="text" name="title" aria-label="{{ __('games.bl_create_h2') }}" placeholder="{{ __('games.bl_title_placeholder') }}" maxlength="100" required value="{{ old('title') }}">
             </div>
             @error('title') <div style="color:#ef4444;font-size:.85rem;margin-bottom:12px">{{ $message }}</div> @enderror
-            <button type="submit" class="btn btn-gold btn-submit">開始建立</button>
+            <button type="submit" class="btn btn-gold btn-submit">{{ __('games.bl_create_btn') }}</button>
         </form>
         <div class="bl-tip">
-            建立後會產生分享連結，把連結傳給另一半就能一起編輯
+            {{ __('games.bl_create_tip') }}
         </div>
     </div>
 </div>

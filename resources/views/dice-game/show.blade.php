@@ -37,6 +37,17 @@
 .dg-dice-wrapper:nth-child(2) .dg-dice-face{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
 .dg-dice-wrapper:nth-child(3) .dg-dice-face{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
 
+/* Result glow — one-shot pulse on the settled dice */
+.dg-dice-scene.dg-glow{animation:dgGlowPulse .8s ease-out 1}
+@keyframes dgGlowPulse{
+  0%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+  35%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3)) drop-shadow(0 0 16px rgba(255,205,90,.9))}
+  100%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+}
+@media (prefers-reduced-motion: reduce){
+  .dg-dice-scene.dg-glow{animation:none}
+}
+
 /* Result */
 .dg-result{text-align:center;padding:20px;animation:fadeIn .3s ease-out}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -236,6 +247,55 @@
 
         function easeOutExpo(t){return t===1?1:1-Math.pow(2,-10*t)}
 
+        // Result text appears the moment the dice settle (start of spring bounce)
+        function showResult(){
+            var rd=document.getElementById('result-display');
+            rd.style.display='block';
+            rd.innerHTML='<div class="dg-result-text">'+escHtml(action)+' '+escHtml(part)+' '+escHtml(duration)+'</div>';
+            document.getElementById('next-btn').style.display='inline-flex';
+            for(var g=0;g<diceParams.length;g++){
+                (function(scene){
+                    scene.classList.remove('dg-glow');
+                    void scene.offsetWidth; // restart one-shot glow animation
+                    scene.classList.add('dg-glow');
+                    setTimeout(function(){scene.classList.remove('dg-glow')},850);
+                })(diceParams[g].el.parentElement);
+            }
+        }
+
+        // Spring settle: settled face overshoots a few degrees, then bounces back to 0
+        function springSettle(){
+            var SPR=450, st=null;
+            function sTick(now){
+                if(st===null) st=now;
+                var t=Math.min((now-st)/SPR,1);
+                var delta=9*Math.sin(t*Math.PI*2)*(1-t);
+                for(var k=0;k<diceParams.length;k++){
+                    var d=diceParams[k];
+                    d.el.style.transform='rotateX('+(d.fRx+delta).toFixed(1)+'deg) rotateY('+(d.fRy+delta*0.6).toFixed(1)+'deg)';
+                }
+                if(t<1){
+                    rollAnimId=requestAnimationFrame(sTick);
+                } else {
+                    rollAnimId=null;
+                    for(var m=0;m<diceParams.length;m++){
+                        diceParams[m].el.style.transform='rotateX('+diceParams[m].fRx+'deg) rotateY('+diceParams[m].fRy+'deg)';
+                    }
+                }
+            }
+            rollAnimId=requestAnimationFrame(sTick);
+        }
+
+        // Reduced motion: skip animation, show the result faces directly
+        var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(REDUCED){
+            for(var q=0;q<diceParams.length;q++){
+                diceParams[q].el.style.transform='rotateX('+diceParams[q].fRx+'deg) rotateY('+diceParams[q].fRy+'deg)';
+            }
+            showResult();
+            return;
+        }
+
         function tick(now){
             if(!startTime) startTime=now;
             var allDone=true;
@@ -263,10 +323,8 @@
                     diceParams[k].el.parentElement.style.filter='drop-shadow(0 2px 4px rgba(0,0,0,.3))';
                 }
                 if(navigator.vibrate) navigator.vibrate(30);
-                var rd=document.getElementById('result-display');
-                rd.style.display='block';
-                rd.innerHTML='<div class="dg-result-text">'+escHtml(action)+' '+escHtml(part)+' '+escHtml(duration)+'</div>';
-                document.getElementById('next-btn').style.display='inline-flex';
+                showResult();    // result text synced with dice touchdown
+                springSettle();  // overshoot a few degrees, bounce back to rest
             }
         }
         rollAnimId=requestAnimationFrame(tick);

@@ -48,4 +48,5 @@ return [
     'custom_wheel'     => '自訂轉盤',
     'custom_dare'      => '自訂大冒險',
     'coming_soon'      => '即將推出',
+    'ad_label'         => '廣告',
 ];
