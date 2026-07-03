@@ -68,7 +68,14 @@
 }
 .cg-sparkle.animate{animation:sparkleOut .7s ease-out forwards}
 
-.cg-card-placeholder{width:100px;height:140px;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.8rem}
+.cg-card-placeholder{width:100px;height:140px;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.8rem;animation:cgPlaceholderFloat 2.6s ease-in-out infinite}
+@keyframes cgPlaceholderFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.cg-card-slot{animation:cgSlotIn .4s cubic-bezier(.16,1,.3,1) both}
+@keyframes cgSlotIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion: reduce){
+    .cg-card-placeholder{animation:none}
+    .cg-card-slot{animation:none}
+}
 @media(min-width:600px){.cg-card-placeholder{width:110px;height:154px}}
 @media(max-width:420px){
     .cg-card-scene{width:80px;height:112px}
@@ -266,6 +273,7 @@
             var slot=document.createElement('div');
             slot.className='cg-card-slot';
             slot.id='card-slot-'+i;
+            slot.style.animationDelay=(i*60)+'ms';
             slot.innerHTML=
                 '<div class="slot-name">'+escHtml(p.name)+'</div>'+
                 '<span class="mg-gender-tag '+gClass+'">'+escHtml(gLabel)+'</span>'+

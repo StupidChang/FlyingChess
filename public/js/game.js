@@ -75,6 +75,48 @@ let isBotThinking = false;
 let boardEl, rollBtn, startBtn, diceEl, turnDotEl, turnNameEl,
     myPiecesEl, logEl, playersListEl, playerCountEl, botStatusEl;
 
+/* ---- Viewport-fit board sizing ----
+ * The board must fit entirely within the viewport under the sticky site
+ * header on common laptop heights (720-900px) without any page scroll —
+ * once the page scrolls, the sticky header covers the board. CSS alone can't
+ * know the header's real height or (on stacked/narrow layouts) the sidebar's
+ * actual rendered height, so we measure both here and expose the result as
+ * CSS custom properties that .game-page / .board-container read (see
+ * game.css). This only touches sizing — no game logic. */
+function updateBoardBudget() {
+    const header    = document.querySelector('.site-header');
+    const gamePage  = document.querySelector('.game-page');
+    const gameMain  = document.querySelector('.game-main');
+    const boardStage = document.querySelector('.board-stage');
+    const sidebar   = document.querySelector('.game-sidebar');
+    if (!gamePage || !gameMain || !boardStage) return;
+
+    const root = document.documentElement;
+    const headerH = header ? Math.ceil(header.getBoundingClientRect().height) : 61;
+    root.style.setProperty('--header-h', headerH + 'px');
+
+    // Stacked layout (<=900px, .game-page becomes a column) puts the sidebar
+    // above the board, so its rendered height also eats into the budget.
+    const stacked  = getComputedStyle(gamePage).flexDirection === 'column';
+    const sidebarH = (stacked && sidebar) ? sidebar.getBoundingClientRect().height : 0;
+
+    const mainCS  = getComputedStyle(gameMain);
+    const stageCS = getComputedStyle(boardStage);
+    const mainPadV  = parseFloat(mainCS.paddingTop)  + parseFloat(mainCS.paddingBottom);
+    const stagePadV = parseFloat(stageCS.paddingTop) + parseFloat(stageCS.paddingBottom);
+
+    const SAFETY = 8; // small cushion so sub-pixel rounding never re-triggers a scrollbar
+    const available = window.innerHeight - headerH - sidebarH - mainPadV - stagePadV - SAFETY;
+
+    root.style.setProperty('--board-max', Math.max(160, Math.floor(available)) + 'px');
+}
+
+let boardBudgetRaf = null;
+function scheduleBoardBudgetUpdate() {
+    if (boardBudgetRaf) cancelAnimationFrame(boardBudgetRaf);
+    boardBudgetRaf = requestAnimationFrame(() => { boardBudgetRaf = null; updateBoardBudget(); });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     boardEl       = document.getElementById('game-board');
     rollBtn       = document.getElementById('roll-btn');
@@ -86,6 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
     logEl         = document.getElementById('game-log');
     playersListEl = document.getElementById('players-list');
     playerCountEl = document.getElementById('player-count');
+
+    // The room page is a self-contained tool screen, not scrollable content —
+    // drop the global site footer so the viewport-fit board sizing above
+    // isn't fighting a footer's height at the bottom of the document too.
+    const footer = document.querySelector('.site-footer');
+    if (footer) footer.style.display = 'none';
+
+    updateBoardBudget();
+    window.addEventListener('resize', scheduleBoardBudgetUpdate);
+    window.addEventListener('orientationchange', scheduleBoardBudgetUpdate);
 
     buildDiceCube();
 
@@ -734,6 +786,9 @@ async function fetchState() {
         updatePlayersList(res.players || []);
         if (playerCountEl) playerCountEl.textContent = res.players_count;
         if (startBtn) startBtn.disabled = (res.players_count < 2);
+        // Sidebar height can change as players join / the log grows, which on
+        // stacked (<=900px) layouts changes how much vertical room the board has.
+        scheduleBoardBudgetUpdate();
 
         if (res.status === 'playing' || res.status === 'finished') {
             if (prevStatus === 'waiting' && res.status === 'playing') {

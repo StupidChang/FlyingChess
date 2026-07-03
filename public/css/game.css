@@ -2,8 +2,24 @@
    FlyingChessOnline - Game Board Styles
    ============================================= */
 
-/* ---- Game Layout ---- */
-.game-page { display: flex; gap: 0; min-height: calc(100vh - 60px); font-family: 'Noto Sans TC', sans-serif; font-weight: 700; }
+/* ---- Game Layout ----
+   .game-page is given a *definite* height (viewport minus the sticky header),
+   not just min-height — that's what lets .game-sidebar's overflow-y:auto and
+   the board's responsive sizing below actually work. With only min-height,
+   the flex row's cross-size is derived from its tallest child's natural
+   content size, so a tall sidebar or an oversized board silently grows the
+   whole document instead of scrolling internally, and the sticky header ends
+   up covering the board once the document scrolls. --header-h is measured in
+   game.js (falls back to 61px = the 60px header content box + 1px border, in
+   case JS hasn't run yet or the header markup changes). */
+.game-page {
+    display: flex; gap: 0;
+    min-height: calc(100vh - 61px);
+    height: calc(100vh - var(--header-h, 61px));
+    height: calc(100dvh - var(--header-h, 61px));
+    overflow: hidden;
+    font-family: 'Noto Sans TC', sans-serif; font-weight: 700;
+}
 
 /* ---- Sidebar ---- */
 .game-sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
@@ -12,6 +28,18 @@
 .waiting-box, .turn-info-box, .dice-box, .pieces-box, .log-box {
     background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px;
 }
+
+/* Sidebar priority — while playing, "whose turn" + the dice/roll button are
+   the boxes a player needs constantly and immediately, so they're bumped to
+   the top of the (flex-column) sidebar via `order` rather than DOM order —
+   this keeps them inside the fold on laptop-height viewports even though the
+   sidebar's full stack (room code, player list, my pieces, log) is taller
+   than the viewport and has to scroll. Room code / player list matter most
+   during the waiting-lobby phase (rendered without these two boxes, so the
+   reorder has no effect there); "my pieces" and the log are supplementary
+   and fine to reach via the sidebar's own scroll. */
+.turn-info-box { order: -2; }
+.dice-box       { order: -1; }
 .room-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 8px; }
 .room-code-display { font-size: 2rem; font-weight: 900; font-family: 'Noto Sans TC', monospace; letter-spacing: 4px; color: var(--accent); margin-bottom: 8px; }
 .copy-btn { width: 100%; }
@@ -123,7 +151,7 @@
 .log-entry:last-child { border-bottom: none; }
 
 /* ---- Main Board Area ---- */
-.game-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; position: relative; background: var(--bg); }
+.game-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; position: relative; background: var(--bg); overflow: hidden; min-height: 0; }
 
 /* Overlays */
 .waiting-overlay, .winner-overlay {
@@ -174,8 +202,23 @@
    height (common on laptop-height viewports, ~768-900px). The gutter is
    reserved unconditionally (even when the pill is hidden) so the board never
    shifts position when a bot's turn starts. */
-.board-stage { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 48px; }
-.board-container { width: min(90vmin, 660px); aspect-ratio: 1; }
+.board-stage { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 48px; min-height: 0; }
+/* --board-max is set by game.js to (viewport height − header − sidebar-if-stacked
+   − .game-main padding − .board-stage padding), so the board always fits the
+   current viewport height on laptop-height screens (720–900px) without any
+   page scroll, while never exceeding its natural 660px size on tall screens.
+   min-height:0 stops the flex item's automatic content-based minimum height
+   (driven by the grid's text/icon content) from overriding aspect-ratio at
+   small sizes — without it the board silently stops being square once the
+   board shrinks below ~450px (e.g. narrow phones). container-type lets the
+   cell/piece font-size clamp()s below scale with the board's real pixel size
+   instead of a fixed rem value that can outgrow tiny boards. */
+.board-container {
+    width: min(90vmin, 660px, var(--board-max, 660px));
+    aspect-ratio: 1;
+    min-height: 0;
+    container-type: inline-size;
+}
 
 .game-board {
     display: grid;
@@ -206,7 +249,12 @@
 .board-cell {
     border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    position: relative; font-size: .5rem;
+    position: relative;
+    /* Fallback fixed size, then scale with the board's actual pixel width via
+       container query units (cqw) so text/icons never force the grid taller
+       than aspect-ratio intends on small boards — see .board-container. */
+    font-size: .5rem;
+    font-size: clamp(5px, 1.15cqw, 8px);
     transition: background .15s;
 }
 
@@ -251,7 +299,9 @@
 /* Center cell */
 .cell-center {
     background: conic-gradient(var(--yellow) 0 25%, var(--blue) 25% 50%, var(--green) 50% 75%, var(--red) 75%);
-    font-size: 1.2rem; z-index: 2;
+    font-size: 1.2rem;
+    font-size: clamp(10px, 2.7cqw, 19px);
+    z-index: 2;
     box-shadow: inset 0 0 0 2px rgba(255,255,255,.15);
 }
 
@@ -274,7 +324,9 @@
 .piece {
     width: 70%; height: 70%;
     position: relative; display: flex; align-items: center; justify-content: center;
-    font-size: .55rem; font-weight: 900; color: #fff;
+    font-size: .55rem;
+    font-size: clamp(5px, 1.3cqw, 9px);
+    font-weight: 900; color: #fff;
     cursor: default; z-index: 1;
     transition: transform .3s ease;
     pointer-events: none;
@@ -373,14 +425,14 @@
        spilling onto the board below on any browser. */
     .game-sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; overflow-x: auto; overflow-y: auto; padding: 12px; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
     .game-sidebar > * { flex: 0 0 auto; max-width: 200px; }
-    .board-container { width: min(98vmin, 500px); }
+    .board-container { width: min(98vmin, 500px, var(--board-max, 500px)); }
     .game-main { padding: 16px; }
     .board-stage { padding-top: 40px; }
     .bot-status { top: 2px; font-size: .8rem; padding: 5px 12px; }
 }
 
 @media (max-width: 480px) {
-    .board-container { width: min(98vw, 420px); }
+    .board-container { width: min(98vw, 420px, var(--board-max, 420px)); }
     .room-code-display { font-size: 1.5rem; letter-spacing: 2px; }
     .dice { width: 52px; height: 52px; }
     .dice-cube3d { width: 34px; height: 34px; }

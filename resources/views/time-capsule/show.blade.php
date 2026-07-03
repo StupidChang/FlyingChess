@@ -30,6 +30,36 @@
 .tc-locked-msg{padding:40px 20px;text-align:center;color:var(--text-dim)}
 .tc-locked-msg svg{width:48px;height:48px;margin:0 auto 12px;display:block;color:var(--gold)}
 .tc-locked-msg .countdown{font-size:1.6rem;color:var(--gold);margin:8px 0}
+
+/* Flip-card style countdown digits — decorative companion to the
+   translated "N days left" text above it (kept for i18n/a11y) */
+.tc-flip-row{display:flex;gap:4px;justify-content:center;margin:10px 0}
+.tc-flip-digit{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:42px;background:var(--bg,#0d0f16);border:1px solid var(--border,#2a2f42);
+    border-radius:6px;font-size:1.3rem;font-weight:700;color:var(--gold,#d9a441);
+    transform-origin:50% 50%;perspective:100px;
+    animation:tcFlipIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes tcFlipIn{from{opacity:0;transform:rotateX(-90deg)}to{opacity:1;transform:rotateX(0)}}
+
+/* Lock overlay shown briefly while sealing */
+.tc-lock-overlay{
+    position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:14px;background:rgba(8,9,14,.82);backdrop-filter:blur(2px);
+    opacity:0;animation:tcOverlayIn .2s ease-out forwards;
+}
+@keyframes tcOverlayIn{to{opacity:1}}
+.tc-lock-icon{width:56px;height:56px;color:#a855f7}
+.tc-lock-shackle{transform-origin:12px 8px;animation:tcShackleClose .55s .1s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes tcShackleClose{from{transform:translateY(-3px) rotate(-14deg)}to{transform:translateY(0) rotate(0deg)}}
+.tc-lock-text{color:#c4b5fd;font-size:.9rem;font-weight:600}
+
+@media (prefers-reduced-motion: reduce){
+    .tc-flip-digit{animation:none}
+    .tc-lock-overlay{animation:none;opacity:1}
+    .tc-lock-shackle{animation:none}
+}
 </style>
 @endsection
 
@@ -110,6 +140,11 @@
                 @endphp
                 {{ __('games.tc_days_left', ['days' => $days]) }}
             </div>
+            <div class="tc-flip-row" aria-hidden="true">
+                @foreach(str_split((string) $days) as $i => $digit)
+                    <span class="tc-flip-digit" style="animation-delay:{{ $i * 80 }}ms">{{ $digit }}</span>
+                @endforeach
+            </div>
             <div>{{ __('games.tc_unlock_on', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @else
@@ -143,7 +178,7 @@
 
             {{-- Seal button (owner only, separate form) --}}
             @if($role === 'owner')
-                <form method="POST" action="{{ route('time-capsule.seal', ['shareCode' => $capsule->share_code]) }}" style="margin-top:12px" onsubmit="return confirm(@json(__('games.tc_seal_confirm', ['date' => $capsule->open_at->format('Y-m-d')])))">
+                <form method="POST" action="{{ route('time-capsule.seal', ['shareCode' => $capsule->share_code]) }}" style="margin-top:12px" id="tc-seal-form" data-confirm="{{ __('games.tc_seal_confirm', ['date' => $capsule->open_at->format('Y-m-d')]) }}" data-sealing-text="{{ __('ui.loading') }}">
                     @csrf
                     <button type="submit" class="btn btn-outline" style="width:100%;padding:12px;border:1px solid #7c3aed;color:#a855f7;background:transparent">
                         <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
@@ -192,6 +227,41 @@
                 setTimeout(function () { btn.textContent = @json(__('games.copy_link')); }, 2000);
             });
         }
+    });
+})();
+
+(function () {
+    // Seal button: keep the existing confirm() gate, but once confirmed,
+    // play a brief "locking" overlay before the form actually navigates away.
+    var form = document.getElementById('tc-seal-form');
+    if (!form) return;
+    var confirmed = false;
+    form.addEventListener('submit', function (e) {
+        if (confirmed) return;
+        e.preventDefault();
+        if (!window.confirm(form.getAttribute('data-confirm'))) return;
+
+        var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced) {
+            confirmed = true;
+            form.submit();
+            return;
+        }
+
+        var overlay = document.createElement('div');
+        overlay.className = 'tc-lock-overlay';
+        overlay.innerHTML =
+            '<svg class="tc-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+            '<path class="tc-lock-shackle" stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75" />' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 10.5h10.5A2.25 2.25 0 0 1 18 12.75v6.75A2.25 2.25 0 0 1 15.75 21.75H5.25A2.25 2.25 0 0 1 3 19.5v-6.75A2.25 2.25 0 0 1 5.25 10.5Z" />' +
+            '</svg>' +
+            '<div class="tc-lock-text">' + (form.getAttribute('data-sealing-text') || '') + '</div>';
+        document.body.appendChild(overlay);
+
+        setTimeout(function () {
+            confirmed = true;
+            form.submit();
+        }, 700);
     });
 })();
 </script>

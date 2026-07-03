@@ -40,6 +40,23 @@
 /* Buttons visually disabled while dice are rolling (roll-btn is fully
    hidden already; this covers the still-visible reset button) */
 .mg-action-btns.dg-rolling .btn-outline{opacity:.45;pointer-events:none;filter:grayscale(.4)}
+
+/* Roll history — small chip trail, newest on top */
+.dg-history{display:flex;flex-direction:column;gap:6px;margin-top:18px;max-width:420px;margin-left:auto;margin-right:auto}
+.dg-history-item{
+    display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:.78rem;
+    background:var(--surface,#151823);border:1px solid var(--border,#2a2f42);border-radius:8px;
+    color:var(--text-dim,#9aa1b5);animation:dgHistoryIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.dg-history-round{
+    flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--gold,#d9a441);color:#241a04;
+    font-weight:700;font-size:.68rem;display:flex;align-items:center;justify-content:center;
+}
+.dg-history-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes dgHistoryIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@media (prefers-reduced-motion: reduce){
+    .dg-history-item{animation:none}
+}
 </style>
 @endsection
 
@@ -69,6 +86,7 @@
         <div class="mg-current-player" id="current-player"></div>
         <div class="dg-dice-area" id="dice-area"></div>
         <div id="result-display" class="dg-result" style="display:none"></div>
+        <div class="dg-history" id="roll-history"></div>
         <div class="mg-action-btns">
             <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
             <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
@@ -89,6 +107,24 @@
     var turn = 0;
     var round = 0;
     var rollAnimId = null;
+    var HISTORY_MAX = 5;
+
+    function addHistory(text){
+        var list = document.getElementById('roll-history');
+        if(!list) return;
+        var item = document.createElement('div');
+        item.className = 'dg-history-item';
+        item.innerHTML = '<span class="dg-history-round">'+round+'</span><span class="dg-history-text"></span>';
+        item.querySelector('.dg-history-text').textContent = text;
+        list.insertBefore(item, list.firstChild);
+        while(list.children.length > HISTORY_MAX){
+            list.removeChild(list.lastChild);
+        }
+    }
+    function clearHistory(){
+        var list = document.getElementById('roll-history');
+        if(list) list.innerHTML = '';
+    }
 
     function escHtml(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
 
@@ -146,6 +182,7 @@
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         turn=0;round=1;
+        clearHistory();
         showTurn();
     };
 
@@ -241,6 +278,7 @@
             rd.style.display='block';
             rd.innerHTML='<div class="mg-result-text">'+escHtml(action)+' '+escHtml(part)+' '+escHtml(duration)+'</div>';
             document.getElementById('next-btn').style.display='inline-flex';
+            addHistory(action+' '+part+' '+duration);
             for(var g=0;g<diceParams.length;g++){
                 (function(scene){
                     scene.classList.remove('dg-glow');
@@ -341,6 +379,7 @@
         document.getElementById('game-phase').style.display='none';
         document.getElementById('setup-phase').style.display='block';
         turn=0;round=0;
+        clearHistory();
     };
 })();
 </script>

@@ -31,9 +31,12 @@
     content:'';position:absolute;top:-4px;bottom:-4px;left:-100%;width:60%;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
     border-radius:inherit;filter:blur(6px);
-    animation:tdShimmer 2.5s 1s ease-in-out infinite;
+    animation:tdShimmer .9s .3s ease-in-out 1;
 }
 @keyframes tdShimmer{0%{left:-100%}100%{left:200%}}
+@media (prefers-reduced-motion: reduce){
+    .mg-content-card-text::after{animation:none}
+}
 </style>
 @endsection
 
@@ -140,6 +143,10 @@ if (!sessionStorage.getItem('tab_id')) {
 var TAB_ID = sessionStorage.getItem('tab_id');
 var MY_SESSION = '{{ session()->getId() }}' + (TAB_ID ? '|' + TAB_ID : '');
 var pollTimer;
+var knownSessions = Array.prototype.map.call(
+    document.querySelectorAll('#players-area .mg-player-chip'),
+    function (el) { return el.getAttribute('data-session'); }
+);
 
 @if($myPlayer && env('GOOGLE_GA4_ID'))
 if (typeof gtag !== 'undefined') {
@@ -222,12 +229,19 @@ function pollState() {
         // Update players
         var pa = document.getElementById('players-area');
         pa.innerHTML = '';
+        var stillKnown = [];
         data.players.forEach(function(p, i) {
+            var isNew = knownSessions.indexOf(p.session_id) === -1;
             var div = document.createElement('div');
-            div.className = 'mg-player-chip' + (data.game_state.current_player_index === i ? ' is-active' : '');
+            div.className = 'mg-player-chip'
+                + (data.game_state.current_player_index === i ? ' is-active' : '')
+                + (isNew ? ' is-entering' : '');
+            div.setAttribute('data-session', p.session_id);
             div.textContent = p.player_name;
             pa.appendChild(div);
+            stillKnown.push(p.session_id);
         });
+        knownSessions = stillKnown;
 
         // Update turn text
         var cp = data.current_player;

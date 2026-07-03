@@ -39,6 +39,28 @@
 .bl-progress-cell{text-align:center}
 .bl-progress-num{font-size:1.4rem;color:var(--gold);font-weight:700}
 .bl-progress-lbl{font-size:.75rem;color:var(--text-dim);margin-top:2px}
+
+/* New item entrance — staggered via inline --i custom property */
+@keyframes blItemIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.bl-item{animation:blItemIn .4s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--i,0) * 60ms)}
+
+/* Vote button click feedback — quick pop before the form navigates away */
+@keyframes blVotePop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+.bl-vote-btn.bl-pop{animation:blVotePop .3s ease-out}
+
+/* Both-sides-agreed celebration — plays once per item per browser */
+@keyframes blCelebrate{
+    0%{box-shadow:0 0 0 0 rgba(74,222,128,.5);transform:scale(1)}
+    40%{box-shadow:0 0 0 8px rgba(74,222,128,0);transform:scale(1.015)}
+    100%{box-shadow:0 0 0 0 rgba(74,222,128,0);transform:scale(1)}
+}
+.bl-item.bl-celebrate{animation:blCelebrate .9s ease-out}
+
+@media (prefers-reduced-motion: reduce){
+    .bl-item{animation:none}
+    .bl-vote-btn.bl-pop{animation:none}
+    .bl-item.bl-celebrate{animation:none}
+}
 </style>
 @endsection
 
@@ -100,7 +122,7 @@
         <div class="bl-list">
             @foreach($items as $item)
                 @php $status = $item->status(); @endphp
-                <div class="bl-item {{ $status }}">
+                <div class="bl-item {{ $status }}" data-item-id="{{ $item->id }}" data-status="{{ $status }}" style="--i:{{ $loop->index }}">
                     <div class="bl-item-content">{{ $item->content }}</div>
                     <div class="bl-item-meta">
                         <span class="bl-item-status {{ $status }}">
@@ -148,6 +170,35 @@
             });
         }
     });
+})();
+
+(function () {
+    // Quick pop feedback on vote click — the form still submits/reloads normally,
+    // this just gives an instant tactile response while the request is in flight.
+    document.querySelectorAll('.bl-vote-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+            b.classList.add('bl-pop');
+        });
+    });
+
+    // Celebrate "both agreed" items — but only the first time this browser
+    // sees each item reach that state, tracked via localStorage so a later
+    // reload of an already-agreed item doesn't replay the highlight forever.
+    try {
+        var KEY = 'bl_celebrated_ids';
+        var seen = JSON.parse(localStorage.getItem(KEY) || '[]');
+        var agreedEls = document.querySelectorAll('.bl-item[data-status="agreed"]');
+        var changed = false;
+        agreedEls.forEach(function (el) {
+            var id = el.getAttribute('data-item-id');
+            if (seen.indexOf(id) === -1) {
+                el.classList.add('bl-celebrate');
+                seen.push(id);
+                changed = true;
+            }
+        });
+        if (changed) localStorage.setItem(KEY, JSON.stringify(seen));
+    } catch (e) { /* localStorage unavailable — skip celebration, no functional impact */ }
 })();
 </script>
 @endsection

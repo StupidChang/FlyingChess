@@ -62,7 +62,7 @@
     padding:10px 24px;border-radius:var(--radius,10px);
     background:var(--surface2,#1d2130);border:1px solid var(--red,#f87171);color:var(--red,#f87171);
     font-weight:600;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.35);
-    animation:mg-toast-in .3s ease-out,mg-toast-out .4s 2.5s ease-in forwards;pointer-events:none;
+    animation:mg-toast-in .35s cubic-bezier(.34,1.56,.64,1),mg-toast-out .4s 2.5s ease-in forwards;pointer-events:none;
 }
 @keyframes mg-toast-in{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes mg-toast-out{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
@@ -201,6 +201,63 @@
 .mg-flash{background:#1e3a8a;color:#bfdbfe;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:.9rem}
 .mg-flash.success{background:rgba(74,222,128,.12);color:var(--green,#4ade80)}
 .mg-flash.error{background:rgba(248,113,113,.12);color:var(--red,#f87171)}
+
+/* =====================================================================
+   Cross-page motion touches (entrance, press feedback, micro-hovers)
+   Kept deliberately restrained — see @media(prefers-reduced-motion) below
+   which turns all of it off in one place.
+   ===================================================================== */
+
+/* ── Entrance: setup / hero / form cards fade+rise on first paint ───── */
+@keyframes mg-fade-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.mg-setup,.mg-tool-form,.mg-tool-hero,.mg-show-header,.mg-cat-grid{
+    animation:mg-fade-rise .45s cubic-bezier(.16,1,.3,1) both;
+}
+.mg-tool-features{animation:mg-fade-rise .45s .08s cubic-bezier(.16,1,.3,1) both}
+
+/* ── Result reveal: shared text atom pops in wherever it's used
+   (dice result, card-game pairing lines, etc.) ──────────────────────── */
+@keyframes mg-text-pop{
+    0%{opacity:0;transform:scale(.85) translateY(6px)}
+    70%{transform:scale(1.03) translateY(0)}
+    100%{opacity:1;transform:scale(1) translateY(0)}
+}
+.mg-result-text{animation:mg-text-pop .4s cubic-bezier(.34,1.56,.64,1) both}
+
+/* ── Button press: subtle squash on any control across these pages ──── */
+.mg-page .btn:active,.mg-tool-page .btn:active,.mg-show-page .btn:active,
+.mg-cat-btn:active,.bl-vote-btn:active,.wg-change-btn:active,.mg-player-remove:active{
+    transform:scale(.95);transition:transform .1s ease;
+}
+
+/* ── Category button icon hover micro-motion ─────────────────────────── */
+.mg-cat-icon{transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.mg-cat-btn:hover .mg-cat-icon{transform:scale(1.12) rotate(-4deg)}
+
+/* ── Intensity tag hover micro-brighten ───────────────────────────────── */
+.mg-tag{transition:filter .15s ease}
+.mg-tag:hover{filter:brightness(1.3)}
+
+/* ── Player chip join animation (truth-dare roster) ──────────────────── */
+@keyframes mg-chip-in{from{opacity:0;transform:translateX(-10px) scale(.9)}to{opacity:1;transform:translateX(0) scale(1)}}
+.mg-player-chip.is-entering{animation:mg-chip-in .35s cubic-bezier(.34,1.56,.64,1) both}
+
+/* ── Input focus glow (setup / tool / show forms) ─────────────────────── */
+.mg-tool-form input:focus,.mg-tool-form textarea:focus,
+.mg-show-page input:focus,.mg-show-page textarea:focus,
+.mg-setup input:focus{
+    outline:none;border-color:var(--gold,#d9a441);
+    box-shadow:0 0 0 3px rgba(217,164,65,.18);
+    transition:box-shadow .2s ease,border-color .2s ease;
+}
+
+@media (prefers-reduced-motion: reduce){
+    .mg-setup,.mg-tool-form,.mg-tool-hero,.mg-show-header,.mg-cat-grid,.mg-tool-features,
+    .mg-result-text,.mg-player-chip.is-entering,.mg-toast{animation:none !important}
+    .mg-cat-btn:hover .mg-cat-icon{transform:none}
+    .mg-page .btn:active,.mg-tool-page .btn:active,.mg-show-page .btn:active,
+    .mg-cat-btn:active,.bl-vote-btn:active,.wg-change-btn:active,.mg-player-remove:active{transform:none}
+}
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media(max-width:600px){

@@ -85,6 +85,23 @@
 .wg-particle{position:absolute;width:4px;height:4px;border-radius:50%;opacity:0}
 .wg-wheel-wrapper.spinning .wg-particle{animation:wg-particle-float 1.5s ease-out infinite}
 @keyframes wg-particle-float{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)}}
+
+/* Idle breathing — pointer + ring gently pulse while waiting for a spin */
+.wg-wheel-wrapper:not(.spinning) .wg-wheel-pointer{animation:wg-pointer-breathe 3s ease-in-out infinite}
+@keyframes wg-pointer-breathe{0%,100%{filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}50%{filter:drop-shadow(0 2px 6px rgba(0,0,0,.5)) drop-shadow(0 0 8px rgba(217,164,65,.7))}}
+.wg-wheel-wrapper:not(.spinning) .wg-wheel-ring{animation:wg-ring-breathe 3s ease-in-out infinite}
+@keyframes wg-ring-breathe{0%,100%{opacity:1}50%{opacity:.75}}
+
+/* Checkmark flourish next to the spin result */
+.wg-check{width:22px;height:22px;display:inline-block;vertical-align:-4px;margin-right:6px}
+.wg-check path{fill:none;stroke:var(--green,#4ade80);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;animation:wg-check-draw .4s .35s ease-out forwards}
+@keyframes wg-check-draw{to{stroke-dashoffset:0}}
+
+@media (prefers-reduced-motion: reduce){
+    .wg-wheel-wrapper:not(.spinning) .wg-wheel-pointer,
+    .wg-wheel-wrapper:not(.spinning) .wg-wheel-ring{animation:none}
+    .wg-check path{animation:none;stroke-dashoffset:0}
+}
 </style>
 @endsection
 
@@ -483,7 +500,7 @@
             var result=currentSegments[winIdx];
             var rd=document.getElementById('result-display');
             rd.style.display='block';
-            rd.innerHTML='<div class="wg-result-text">'+escHtml(result)+'</div>';
+            rd.innerHTML='<div class="wg-result-text"><svg class="wg-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>'+escHtml(result)+'</div>';
             document.getElementById('next-btn').style.display='inline-flex';
             fireConfetti();
         },5300);
