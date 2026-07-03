@@ -1011,18 +1011,21 @@ ul{list-style:none}
   margin:0 auto;
   position:relative;
 }
-/* Connector line between steps (desktop only) */
-.how-grid::before{
+/* Connector dashes between steps (desktop only): drawn per-card in the grid
+   gap only — a single full-width line crosses the card surfaces/borders and
+   looks broken. Width = grid gap (24px), aligned to the number circles. */
+.how-step:not(:first-child)::before{
   content:'';
   position:absolute;
   top:47px;
-  left:calc(33.33% - 12px);
-  right:calc(33.33% - 12px);
+  left:-24px;
+  width:24px;
   height:1px;
   background:var(--border);
   pointer-events:none;
 }
 .how-step{
+  position:relative;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:12px;
@@ -1061,7 +1064,7 @@ ul{list-style:none}
     grid-template-columns:1fr;
     gap:16px;
   }
-  .how-grid::before{display:none}
+  .how-step:not(:first-child)::before{display:none}
 }
 
 /* ── Closing CTA section ── */
