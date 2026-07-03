@@ -1017,7 +1017,8 @@ ul{list-style:none}
 .how-step:not(:first-child)::before{
   content:'';
   position:absolute;
-  top:47px;
+  top:50%;
+  transform:translateY(-50%);
   left:-24px;
   width:24px;
   height:1px;
