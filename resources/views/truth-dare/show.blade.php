@@ -39,7 +39,7 @@
 
 @section('content')
 
-<div class="mg-page mg-page--lg">
+<div class="mg-page mg-page--lg mg-page--center">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px">
         <h1 class="mg-title mg-title--inline">
             {{ __('games.truth_dare') }}

@@ -159,8 +159,6 @@
         });
         if(players.length<3){showToast(@json(__('minigame.king_min_players')));return;}
         round=1;
-        var root=document.getElementById('mg-page-root');
-        if(root) root.classList.remove('mg-page--center');
         dealRound();
     };
 
@@ -258,8 +256,6 @@
         document.getElementById('deal-phase').style.display='none';
         round=0;
         document.getElementById('setup-phase').style.display='block';
-        var root=document.getElementById('mg-page-root');
-        if(root) root.classList.add('mg-page--center');
     };
 })();
 </script>

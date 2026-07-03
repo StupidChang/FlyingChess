@@ -241,8 +241,6 @@
         var hasFemale=players.some(function(p){return p.gender==='female'});
         if(!hasMale||!hasFemale){alert(@json(__('minigame.card_need_male_female')));return;}
         round=1;usedCards=[];
-        var root=document.getElementById('mg-page-root');
-        if(root) root.classList.remove('mg-page--center');
         startDrawingPhase();
     };
 
@@ -405,8 +403,6 @@
         document.getElementById('drawing-phase').style.display='none';
         round=0;usedCards=[];
         document.getElementById('setup-phase').style.display='block';
-        var root=document.getElementById('mg-page-root');
-        if(root) root.classList.add('mg-page--center');
     };
 })();
 </script>

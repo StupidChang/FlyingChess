@@ -206,13 +206,8 @@
         });
         document.getElementById(phase).style.display='block';
         // Lobby + setup are "entry" screens (pick a wheel / add players) and
-        // stay viewport-centered; once actual play starts, drop centering so
-        // the wheel + task list flow naturally down the page.
-        var root=document.getElementById('mg-page-root');
-        if(root){
-            if(phase==='game-phase') root.classList.remove('mg-page--center');
-            else root.classList.add('mg-page--center');
-        }
+        // Every phase stays viewport-centered; .mg-page--center uses
+        // min-height, so taller in-game content still flows and scrolls.
     }
 
     /* ═══════════════════════════════════════════

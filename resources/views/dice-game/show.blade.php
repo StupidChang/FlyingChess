@@ -146,8 +146,6 @@
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         turn=0;round=1;
-        var root=document.getElementById('mg-page-root');
-        if(root) root.classList.remove('mg-page--center');
         showTurn();
     };
 
@@ -343,8 +341,6 @@
         document.getElementById('game-phase').style.display='none';
         document.getElementById('setup-phase').style.display='block';
         turn=0;round=0;
-        var root=document.getElementById('mg-page-root');
-        if(root) root.classList.add('mg-page--center');
     };
 })();
 </script>
