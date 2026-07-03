@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'home_title'         => '情侶飛行棋 — 線上情侶遊戲平台',
-    'home_description'   => '免費線上情侶飛行棋，自訂棋盤，真心話大冒險，輪盤遊戲，雙人對戰',
+    'home_title'         => '枕邊遊戲 PillowPlay — 線上情侶情趣遊戲平台',
+    'home_description'   => '枕邊遊戲 PillowPlay — 免費線上情侶情趣遊戲：飛行棋、真心話大冒險、轉盤、抽卡，免註冊雙人即玩。',
     'play_title'         => '開始遊戲 — :board',
-    'play_description'   => ':board — 線上情侶飛行棋',
+    'play_description'   => ':board — 枕邊遊戲自訂棋盤，線上雙人即玩',
     'rules_title'        => '飛行棋玩法規則',
     'rules_description'  => '完整飛行棋規則：擲骰、起飛、安全格、回家、捕捉',
     'lobby_title'        => '遊戲大廳',
@@ -25,7 +25,7 @@ return [
     'play_meta_description' => '使用「:board」自訂棋盤進行情侶遊戲，支援真心話、挑戰等各種格子類型，雙人同機互動。',
 
     'templates_title'       => '棋盤模板',
-    'templates_description' => '精選情侶飛行棋棋盤模板，免費模板與 Premium 專屬模板，一鍵套用開始玩。',
+    'templates_description' => '精選枕邊遊戲棋盤模板，免費模板與 Premium 專屬模板，一鍵套用開始玩。',
     'boards_description'    => '管理你建立的自訂棋盤，編輯格子內容與路徑設定。',
 
     'community_title'       => '社群棋盤 — 玩家自製情趣棋盤免費玩',

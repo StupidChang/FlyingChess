@@ -1,5 +1,5 @@
 # =====================================================
-#  情侶飛行棋 — Production Docker Image
+#  枕邊遊戲 PillowPlay — Production Docker Image
 #  PHP 8.2-FPM + Nginx + Supervisor (Alpine, ~120 MB)
 # =====================================================
 FROM php:8.2-fpm-alpine

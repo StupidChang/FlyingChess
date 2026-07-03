@@ -20,7 +20,7 @@ return [
     'previous'         => 'Previous',
     'submit'           => 'Submit',
     'loading'          => 'Loading…',
-    'site_name'        => 'Couple Flying Chess',
+    'site_name'        => 'PillowPlay',
     'tagline'          => 'Online couple games platform',
     'switch_language'  => 'Switch language',
     'copy'             => 'Copy',

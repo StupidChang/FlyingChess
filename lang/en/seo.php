@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'home_title'         => 'Couple Flying Chess — Online couple games',
+    'home_title'         => 'PillowPlay — Online couple games',
     'home_description'   => 'Free online couple flying chess: custom boards, truth or dare, wheel of fortune, two-player matches.',
     'play_title'         => 'Play — :board',
     'play_description'   => ':board — Couple flying chess online',
@@ -25,7 +25,7 @@ return [
     'play_meta_description' => 'Play together on the ":board" custom board — supports truth, dare, and many square types for two-player on-device play.',
 
     'templates_title'       => 'Board Templates',
-    'templates_description' => 'Curated Couple Flying Chess board templates — free and Premium-exclusive. Apply one and start playing.',
+    'templates_description' => 'Curated PillowPlay board templates — free and Premium-exclusive. Apply one and start playing.',
     'boards_description'    => 'Manage your custom boards — edit square content and path settings.',
 
     'community_title'       => 'Community Boards — Play Player-Made Couple Game Boards Free',

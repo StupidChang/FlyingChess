@@ -20,7 +20,7 @@ return [
     'previous'         => '上一步',
     'submit'           => '提交',
     'loading'          => '加载中…',
-    'site_name'        => '情侣飞行棋',
+    'site_name'        => '枕边游戏',
     'tagline'          => '在线情侣游戏平台',
     'switch_language'  => '切换语言',
     'copy'             => '复制',

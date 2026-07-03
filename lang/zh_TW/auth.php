@@ -41,13 +41,13 @@ return [
     'verify_email_body'  => '我們已寄送驗證信至您的信箱，請點擊信中連結完成驗證。',
     'verify_email_resend'=> '重新寄送驗證信',
 
-    'forgot_meta_description' => '重設情侶飛行棋帳號密碼，輸入電子信箱，我們將寄送重設連結給您。',
+    'forgot_meta_description' => '重設枕邊遊戲帳號密碼，輸入電子信箱，我們將寄送重設連結給您。',
     'forgot_intro_long'       => '輸入您的電子信箱，我們將寄送密碼重設連結',
     'forgot_email_placeholder'=> '輸入註冊時使用的信箱',
     'forgot_back'             => '想起密碼了？',
     'forgot_back_link'        => '返回登入',
 
-    'reset_meta_description'  => '重設您的情侶飛行棋帳號密碼。',
+    'reset_meta_description'  => '重設您的枕邊遊戲帳號密碼。',
     'reset_intro'             => '請輸入新密碼，下次登入即可使用。',
     'new_password'            => '新密碼',
     'new_password_confirm'    => '再次輸入新密碼',
@@ -61,8 +61,8 @@ return [
     'verify_email_spam'        => '若未收到，請檢查垃圾郵件資料夾，或點擊下方按鈕重新寄送。',
     'verify_email_play_first'  => '先去玩，稍後再驗證',
 
-    'login_meta_description'    => '登入情侶飛行棋帳號，管理你的自訂棋盤與會員內容。',
-    'register_meta_description' => '免費註冊情侶飛行棋帳號，建立專屬自訂棋盤，解鎖更多雙人互動遊戲。',
+    'login_meta_description'    => '登入枕邊遊戲帳號，管理你的自訂棋盤與會員內容。',
+    'register_meta_description' => '免費註冊枕邊遊戲帳號，建立專屬自訂棋盤，解鎖更多雙人互動遊戲。',
 
     // Server flash / error messages (AuthController / PasswordResetController)
     'account_disabled'    => '此帳號已被停用',

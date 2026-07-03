@@ -2,9 +2,9 @@
 
 return [
     'privacy_title'           => 'Privacy Policy',
-    'privacy_meta_description'=> 'Couple Flying Chess privacy policy — how we collect, use, and protect your personal data.',
+    'privacy_meta_description'=> 'PillowPlay privacy policy — how we collect, use, and protect your personal data.',
     'terms_title'             => 'Terms of Service',
-    'terms_meta_description'  => 'Couple Flying Chess terms of service — by using this site you agree to the following.',
+    'terms_meta_description'  => 'PillowPlay terms of service — by using this site you agree to the following.',
     'age_gate_title'   => 'Age Verification',
     'age_gate_text'    => 'This site contains adult content and is restricted to users 18 years or older.',
     'age_gate_consent' => 'By continuing you confirm that you are at least 18 years old and agree to our Terms.',
@@ -19,7 +19,7 @@ return [
 
     // ── Privacy Policy ──
     'privacy' => [
-        'intro' => 'Couple Flying Chess ("the Site", "we") respects your privacy. This policy explains how we collect, use, store, and protect your personal data when you use our services, and the rights you can exercise.',
+        'intro' => 'PillowPlay ("the Site", "we") respects your privacy. This policy explains how we collect, use, store, and protect your personal data when you use our services, and the rights you can exercise.',
 
         'collect_title' => '1. Data We Collect',
         'collect_intro' => 'When you use the Site, we may collect the following categories of data:',
@@ -70,7 +70,7 @@ return [
 
     // ── Terms of Service ──
     'terms' => [
-        'intro' => 'Welcome to Couple Flying Chess ("the Site"). By using the Site you confirm that you have read, understood, and agree to all of these terms. If you do not agree, please stop using the Site.',
+        'intro' => 'Welcome to PillowPlay ("the Site"). By using the Site you confirm that you have read, understood, and agree to all of these terms. If you do not agree, please stop using the Site.',
 
         'service_title' => '1. Description of Service',
         'service_body'  => 'The Site provides online couple party games — including Flying Chess, Truth or Dare, card games, and dice games — together with a custom board editor. The Site contains adult-oriented entertainment content. Some features require a registered account, and a paid Premium plan unlocks advanced features.',

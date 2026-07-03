@@ -38,7 +38,7 @@ class SendCapsuleReminders extends Command
                 ], false));
                 $body = "你的時間膠囊「{$capsule->title}」今天可以開封了。\n\n"
                       . "點開連結回去看看：\n{$url}\n\n"
-                      . "— 情侶飛行棋";
+                      . "— 枕邊遊戲 PillowPlay";
 
                 Mail::raw($body, function ($message) use ($capsule) {
                     $message->to($capsule->notify_email)

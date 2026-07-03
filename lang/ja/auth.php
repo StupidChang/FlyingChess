@@ -40,13 +40,13 @@ return [
     'verify_email_body'  => '確認メールをお送りしました。メール内のリンクをクリックして確認を完了してください。',
     'verify_email_resend'=> '確認メールを再送する',
 
-    'forgot_meta_description' => 'カップルフライングチェスのパスワード再設定。メールアドレスを入力すると再設定リンクをお送りします。',
+    'forgot_meta_description' => 'ピロープレイのパスワード再設定。メールアドレスを入力すると再設定リンクをお送りします。',
     'forgot_intro_long'       => 'メールアドレスを入力してください。パスワード再設定リンクをお送りします',
     'forgot_email_placeholder'=> '登録時に使用したメールアドレス',
     'forgot_back'             => 'パスワードを思い出しましたか？',
     'forgot_back_link'        => 'ログインに戻る',
 
-    'reset_meta_description'  => 'カップルフライングチェスのアカウントパスワードを再設定します。',
+    'reset_meta_description'  => 'ピロープレイのアカウントパスワードを再設定します。',
     'reset_intro'             => '新しいパスワードを入力してください。次回のログインから有効になります。',
     'new_password'            => '新しいパスワード',
     'new_password_confirm'    => '新しいパスワード（確認）',
@@ -60,8 +60,8 @@ return [
     'verify_email_spam'        => '届かない場合は迷惑メールフォルダをご確認いただくか、下のボタンから再送してください。',
     'verify_email_play_first'  => '先に遊んで、あとで確認する',
 
-    'login_meta_description'    => 'カップルフライングチェスにログインして、カスタムボードや会員コンテンツを管理しましょう。',
-    'register_meta_description' => 'カップルフライングチェスに無料登録して、オリジナルのカスタムボードを作り、ふたりで楽しめるゲームをもっと解放しましょう。',
+    'login_meta_description'    => 'ピロープレイにログインして、カスタムボードや会員コンテンツを管理しましょう。',
+    'register_meta_description' => 'ピロープレイに無料登録して、オリジナルのカスタムボードを作り、ふたりで楽しめるゲームをもっと解放しましょう。',
 
     // Server flash / error messages (AuthController / PasswordResetController)
     'account_disabled'    => 'このアカウントは停止されています',

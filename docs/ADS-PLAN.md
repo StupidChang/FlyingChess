@@ -1,4 +1,4 @@
-# 廣告變現計劃（情侶飛行棋）
+# 廣告變現計劃（枕邊遊戲 PillowPlay）
 
 > 最後更新：2026-07-03
 > 現況：站內已內建 adapter 式廣告版位（`partials/ad-unit.blade.php`），支援

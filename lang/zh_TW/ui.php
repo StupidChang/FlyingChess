@@ -20,7 +20,7 @@ return [
     'previous'         => '上一步',
     'submit'           => '送出',
     'loading'          => '載入中…',
-    'site_name'        => '情侶飛行棋',
+    'site_name'        => '枕邊遊戲',
     'tagline'          => '線上情侶遊戲平台',
     'switch_language'  => '切換語言',
     'copy'             => '複製',

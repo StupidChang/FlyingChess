@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'home_title'         => '情侣飞行棋 — 在线情侣游戏平台',
-    'home_description'   => '免费在线情侣飞行棋，自定义棋盘，真心话大冒险，转盘游戏，双人对战',
+    'home_title'         => '枕边游戏 PillowPlay — 在线情侣情趣游戏平台',
+    'home_description'   => '枕边游戏 PillowPlay — 免费在线情侣情趣游戏：飞行棋、真心话大冒险、转盘、抽卡，免注册双人即玩。',
     'play_title'         => '开始游戏 — :board',
-    'play_description'   => ':board — 在线情侣飞行棋',
+    'play_description'   => ':board — 枕边游戏自定义棋盘，在线双人即玩',
     'rules_title'        => '飞行棋玩法规则',
     'rules_description'  => '完整飞行棋规则：掷骰、起飞、安全格、回家、捕捉',
     'lobby_title'        => '游戏大厅',
@@ -25,7 +25,7 @@ return [
     'play_meta_description' => '使用「:board」自定义棋盘进行情侣游戏，支持真心话、挑战等各种格子类型，双人同机互动。',
 
     'templates_title'       => '棋盘模板',
-    'templates_description' => '精选情侣飞行棋棋盘模板，免费模板与 Premium 专属模板，一键应用开始玩。',
+    'templates_description' => '精选枕边游戏棋盘模板，免费模板与 Premium 专属模板，一键应用开始玩。',
     'boards_description'    => '管理你创建的自定义棋盘，编辑格子内容与路径设置。',
 
     'community_title'       => '社区棋盘 — 玩家自制情趣棋盘免费玩',

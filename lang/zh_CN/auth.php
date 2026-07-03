@@ -40,13 +40,13 @@ return [
     'verify_email_body'  => '我们已发送验证邮件至您的邮箱，请点击邮件中的链接完成验证。',
     'verify_email_resend'=> '重新发送验证邮件',
 
-    'forgot_meta_description' => '重置情侣飞行棋账号密码，输入电子邮箱，我们将发送重置链接给您。',
+    'forgot_meta_description' => '重置枕边游戏账号密码，输入电子邮箱，我们将发送重置链接给您。',
     'forgot_intro_long'       => '输入您的电子邮箱，我们将发送密码重置链接',
     'forgot_email_placeholder'=> '输入注册时使用的邮箱',
     'forgot_back'             => '想起密码了？',
     'forgot_back_link'        => '返回登录',
 
-    'reset_meta_description'  => '重置您的情侣飞行棋账号密码。',
+    'reset_meta_description'  => '重置您的枕边游戏账号密码。',
     'reset_intro'             => '请输入新密码，下次登录即可使用。',
     'new_password'            => '新密码',
     'new_password_confirm'    => '再次输入新密码',
@@ -60,8 +60,8 @@ return [
     'verify_email_spam'        => '若未收到，请检查垃圾邮件文件夹，或点击下方按钮重新发送。',
     'verify_email_play_first'  => '先去玩，稍后再验证',
 
-    'login_meta_description'    => '登录情侣飞行棋账号，管理你的自定义棋盘与会员内容。',
-    'register_meta_description' => '免费注册情侣飞行棋账号，创建专属自定义棋盘，解锁更多双人互动游戏。',
+    'login_meta_description'    => '登录枕边游戏账号，管理你的自定义棋盘与会员内容。',
+    'register_meta_description' => '免费注册枕边游戏账号，创建专属自定义棋盘，解锁更多双人互动游戏。',
 
     // Server flash / error messages (AuthController / PasswordResetController)
     'account_disabled'    => '该账号已被停用',

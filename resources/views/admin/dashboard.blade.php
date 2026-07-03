@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '後台管理 — 情侶飛行棋')
+@section('title', '後台管理 — 枕邊遊戲')
 @section('robots', 'noindex,nofollow')
 
 @section('content')

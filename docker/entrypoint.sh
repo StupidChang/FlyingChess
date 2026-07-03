@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "==> 情侶飛行棋 — Starting up..."
+echo "==> 枕邊遊戲 PillowPlay — Starting up..."
 
 # ── Sync migrations from image into volume ──────────
 # The db_data volume masks /var/www/html/database/ at runtime, including the

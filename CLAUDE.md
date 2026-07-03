@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**情侶飛行棋 (Couple Flying Chess Online)** — A Laravel 12 web application for playing a customizable board game online. It has two distinct game systems:
+**枕邊遊戲 PillowPlay**（原「情侶飛行棋」，2026-07 改名） — A Laravel 12 web application for playing a customizable board game online. It has two distinct game systems:
 
 1. **Flying Chess** (`/games/*`) — A classic Ludo/Parcheesi-style game with 4 colored pieces per player, dice rolling, capture mechanics, and bot AI. Session-based multiplayer (no auth required).
 2. **Custom Board Play** (`/play/*`) — A turn-based board game using custom boards with editable squares (text, color categories, fly-to shortcuts). Supports 1–2 players via browser.

@@ -2,7 +2,7 @@
 
 return [
     // SEO
-    'meta_title'        => 'Couple Flying Chess — Free online couple games',
+    'meta_title'        => 'PillowPlay — Free online couple games',
     'meta_description'  => 'A free online platform for couples: flying chess matches, truth or dare, custom boards, and more. Heat things up tonight.',
     'og_description'    => 'Free online couple games: flying chess, truth or dare, custom boards. Bring you and your partner closer with a few rolls of the dice.',
 
@@ -80,8 +80,8 @@ return [
     // FAQ
     'faq_label'         => 'FAQ',
     'faq_title'         => 'You might be wondering',
-    'faq_q1'            => 'What is Couple Flying Chess?',
-    'faq_a1'            => 'Couple Flying Chess is an online board-game platform built for couples. It includes classic flying chess, truth or dare, and custom boards with editable per-square tasks. Core games are free; advanced decks are unlocked with Premium.',
+    'faq_q1'            => 'What is PillowPlay?',
+    'faq_a1'            => 'PillowPlay is an online board-game platform built for couples. It includes classic flying chess, truth or dare, and custom boards with editable per-square tasks. Core games are free; advanced decks are unlocked with Premium.',
     'faq_q2'            => 'Do I need to pay?',
     'faq_a2'            => 'No. Flying chess matches, the basic truth-or-dare deck, custom board play, and the board editor are all free. Premium membership (NT$:price/month) gives you ad-free play, advanced decks, and private rooms.',
     'faq_a2_short'      => 'No. Flying chess matches, basic truth-or-dare deck, custom board play, and the editor are all free. Premium adds ad-free play and advanced decks.',

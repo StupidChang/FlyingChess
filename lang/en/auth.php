@@ -39,13 +39,13 @@ return [
     'verify_email_body'  => 'We have sent a verification link to your email. Please click it to finish verification.',
     'verify_email_resend'=> 'Resend verification email',
 
-    'forgot_meta_description' => 'Reset your Couple Flying Chess account password — enter your email and we will send you a reset link.',
+    'forgot_meta_description' => 'Reset your PillowPlay account password — enter your email and we will send you a reset link.',
     'forgot_intro_long'       => 'Enter your email and we will send a password reset link.',
     'forgot_email_placeholder'=> 'Enter the email you registered with',
     'forgot_back'             => 'Remembered your password?',
     'forgot_back_link'        => 'Back to sign in',
 
-    'reset_meta_description'  => 'Reset your Couple Flying Chess account password.',
+    'reset_meta_description'  => 'Reset your PillowPlay account password.',
     'reset_intro'             => 'Enter your new password — it will be active on your next sign-in.',
     'new_password'            => 'New password',
     'new_password_confirm'    => 'Confirm new password',
@@ -59,8 +59,8 @@ return [
     'verify_email_spam'        => "Didn't get it? Check your spam folder, or use the button below to resend.",
     'verify_email_play_first'  => 'Skip for now — verify later',
 
-    'login_meta_description'    => 'Sign in to your Couple Flying Chess account to manage your custom boards and membership.',
-    'register_meta_description' => 'Create a free Couple Flying Chess account to build custom boards and unlock more two-player games.',
+    'login_meta_description'    => 'Sign in to your PillowPlay account to manage your custom boards and membership.',
+    'register_meta_description' => 'Create a free PillowPlay account to build custom boards and unlock more two-player games.',
 
     // Server flash / error messages (AuthController / PasswordResetController)
     'account_disabled'    => 'This account has been disabled',

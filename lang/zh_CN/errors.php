@@ -14,5 +14,5 @@ return [
     'go_home'     => '回到首页',
     'go_lobby'    => '前往游戏大厅',
     'go_back'     => '返回上一页重试',
-    'site_name'   => '情侣飞行棋',
+    'site_name'   => '枕边游戏',
 ];

@@ -20,7 +20,7 @@ return [
     'previous'         => '前へ',
     'submit'           => '送信',
     'loading'          => '読み込み中…',
-    'site_name'        => 'カップルフライングチェス',
+    'site_name'        => 'ピロープレイ',
     'tagline'          => 'オンラインカップルゲームプラットフォーム',
     'switch_language'  => '言語を切り替える',
     'copy'             => 'コピー',

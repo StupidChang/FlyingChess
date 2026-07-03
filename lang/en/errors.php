@@ -14,5 +14,5 @@ return [
     'go_home'     => 'Go home',
     'go_lobby'    => 'Game lobby',
     'go_back'     => 'Go back and retry',
-    'site_name'   => 'Couple Flying Chess',
+    'site_name'   => 'PillowPlay',
 ];
