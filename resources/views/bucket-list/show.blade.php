@@ -4,53 +4,36 @@
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
 <style>
-.bl-show{max-width:680px;margin:0 auto;padding:24px 16px 48px}
-.bl-header{margin-bottom:24px;text-align:center}
-.bl-header h1{font-size:1.4rem;color:var(--gold);margin-bottom:8px;word-break:break-all}
-.bl-role{display:inline-block;padding:4px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-top:4px}
-.bl-role.owner{background:#1e40af;color:#fff}
-.bl-role.partner{background:#7c3aed;color:#fff}
-.bl-role.viewer{background:#525252;color:#fff}
-
-.bl-share{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;font-size:.85rem}
-.bl-share .label{color:var(--text-dim);margin-bottom:6px}
-.bl-share .url{color:var(--gold);font-family:monospace;word-break:break-all;font-size:.8rem;line-height:1.5}
-.bl-share button{margin-top:8px;padding:6px 12px;font-size:.8rem;background:var(--gold);color:var(--bg);border:none;border-radius:6px;cursor:pointer;font-weight:600}
-
 .bl-add{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px}
 .bl-add form{display:flex;gap:8px}
-.bl-add input{flex:1;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.95rem}
-.bl-add input:focus{outline:none;border-color:var(--gold)}
-.bl-add button{padding:10px 18px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;cursor:pointer;font-weight:600;white-space:nowrap}
-
-.bl-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg)}
-.bl-tab{flex:1;padding:10px;text-align:center;cursor:pointer;font-size:.85rem;color:var(--text-dim);background:transparent;border:none;transition:all .2s}
-.bl-tab.active{background:var(--gold);color:var(--bg);font-weight:600}
+.bl-add button{padding:10px 18px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;cursor:pointer;font-weight:600;white-space:nowrap;transition:opacity .15s}
+.bl-add button:hover{opacity:.85}
 
 .bl-list{display:flex;flex-direction:column;gap:10px}
 .bl-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
-.bl-item.agreed{border-color:#22c55e;background:rgba(34,197,94,.08)}
-.bl-item.rejected{border-color:#ef4444;background:rgba(239,68,68,.06);opacity:.7}
-.bl-item.maybe{border-color:#f59e0b;background:rgba(245,158,11,.06)}
+.bl-item.agreed{border-color:var(--green,#4ade80);background:rgba(74,222,128,.08)}
+.bl-item.rejected{border-color:var(--red,#f87171);background:rgba(248,113,113,.06);opacity:.7}
+.bl-item.maybe{border-color:var(--yellow,#facc15);background:rgba(250,204,21,.06)}
 .bl-item-content{font-size:.95rem;line-height:1.5;margin-bottom:8px;word-break:break-all}
 .bl-item-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--text-dim)}
 .bl-item-status{padding:2px 8px;border-radius:10px;font-weight:600}
-.bl-item-status.pending{background:#374151;color:#d1d5db}
-.bl-item-status.agreed{background:#16a34a;color:#fff}
-.bl-item-status.rejected{background:#dc2626;color:#fff}
-.bl-item-status.maybe{background:#d97706;color:#fff}
+.bl-item-status.pending{background:var(--surface2,#1d2130);color:var(--text-dim)}
+.bl-item-status.agreed{background:var(--green,#4ade80);color:#062b12}
+.bl-item-status.rejected{background:var(--red,#f87171);color:#2a0a0a}
+.bl-item-status.maybe{background:var(--yellow,#facc15);color:#422006}
 .bl-vote-row{display:flex;gap:6px;margin-top:10px}
 .bl-vote-btn{flex:1;padding:6px 4px;font-size:.8rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);cursor:pointer;transition:all .15s}
 .bl-vote-btn:hover{border-color:var(--gold)}
-.bl-vote-btn.voted-yes{background:#16a34a;color:#fff;border-color:#16a34a}
-.bl-vote-btn.voted-no{background:#dc2626;color:#fff;border-color:#dc2626}
-.bl-vote-btn.voted-maybe{background:#d97706;color:#fff;border-color:#d97706}
+.bl-vote-btn.voted-yes{background:var(--green,#4ade80);color:#062b12;border-color:var(--green,#4ade80)}
+.bl-vote-btn.voted-no{background:var(--red,#f87171);color:#2a0a0a;border-color:var(--red,#f87171)}
+.bl-vote-btn.voted-maybe{background:var(--yellow,#facc15);color:#422006;border-color:var(--yellow,#facc15)}
 .bl-vote-btn:disabled{cursor:not-allowed;opacity:.5}
-.bl-delete{background:none;border:none;color:#ef4444;cursor:pointer;font-size:.78rem;text-decoration:underline}
+.bl-delete{background:none;border:none;color:var(--red,#f87171);cursor:pointer;font-size:.78rem;text-decoration:underline}
 
 .bl-empty{text-align:center;padding:40px 20px;color:var(--text-dim)}
-.bl-empty .icon{font-size:2.5rem;margin-bottom:8px}
+.bl-empty svg{width:40px;height:40px;margin:0 auto 8px;display:block;color:var(--gold)}
 
 .bl-progress{display:flex;justify-content:space-around;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:18px}
 .bl-progress-cell{text-align:center}
@@ -60,10 +43,13 @@
 @endsection
 
 @section('content')
-<div class="bl-show">
-    <div class="bl-header">
-        <h1>📋 {{ $list->title }}</h1>
-        <span class="bl-role {{ $role }}">
+<div class="mg-show-page">
+    <div class="mg-show-header">
+        <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
+            {{ $list->title }}
+        </h1>
+        <span class="mg-role-badge {{ $role }}">
             @if($role === 'owner') {{ __('games.bl_role_owner') }}
             @elseif($role === 'partner') {{ __('games.role_partner') }}
             @else {{ __('games.bl_role_viewer') }}
@@ -72,9 +58,12 @@
     </div>
 
     @if(in_array($role, ['owner', 'partner']))
-        <div class="bl-share">
-            <div class="label">📎 {{ __('games.share_link_label') }}</div>
-            <div class="url" id="share-url">{{ url(route('bucket-list.show', ['shareCode' => $list->share_code])) }}</div>
+        <div class="mg-share-box">
+            <div class="mg-share-label">
+                <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
+                {{ __('games.share_link_label') }}
+            </div>
+            <div class="mg-share-url" id="share-url">{{ url(route('bucket-list.show', ['shareCode' => $list->share_code])) }}</div>
             <button type="button" id="copy-btn">{{ __('games.copy_link') }}</button>
         </div>
     @endif
@@ -95,16 +84,16 @@
         <div class="bl-add">
             <form method="POST" action="{{ route('bucket-list.items.add', ['shareCode' => $list->share_code]) }}">
                 @csrf
-                <input type="text" name="content" aria-label="{{ __('games.bl_add_btn') }}" placeholder="{{ __('games.bl_item_placeholder') }}" maxlength="200" required>
+                <input type="text" class="form-control" name="content" aria-label="{{ __('games.bl_add_btn') }}" placeholder="{{ __('games.bl_item_placeholder') }}" maxlength="200" required>
                 <button type="submit">{{ __('games.bl_add_btn') }}</button>
             </form>
-            @error('content') <div style="color:#ef4444;font-size:.8rem;margin-top:6px">{{ $message }}</div> @enderror
+            @error('content') <div class="mg-error" style="margin-top:6px;margin-bottom:0">{{ $message }}</div> @enderror
         </div>
     @endif
 
     @if($items->isEmpty())
         <div class="bl-empty">
-            <div class="icon">✨</div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.456-2.456L14.25 6l1.035-.259a3.375 3.375 0 0 0 2.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" /></svg>
             <div>{{ __('games.bl_empty') }}</div>
         </div>
     @else

@@ -49,4 +49,9 @@ return [
     'custom_dare'      => 'Custom dares',
     'coming_soon'      => 'Coming soon',
     'ad_label'         => 'Advertisement',
+
+    'play_history'      => 'Play history',
+    'no_play_history'   => 'No games played yet — go play one!',
+    'history_as_host'   => 'Host',
+    'community_boards'  => 'Community Boards',
 ];

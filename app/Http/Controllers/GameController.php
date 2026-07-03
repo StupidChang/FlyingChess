@@ -53,7 +53,8 @@ class GameController extends Controller
             $data['player_name'],
             (int) ($data['max_players'] ?? 4),
             $this->playerSessionId($request),
-            $solo
+            $solo,
+            $request->user()?->id
         );
 
         $request->session()->put('player_name', $data['player_name']);
@@ -97,7 +98,8 @@ class GameController extends Controller
         $result = $this->gameService->joinGame(
             $game,
             $data['player_name'],
-            $this->playerSessionId($request)
+            $this->playerSessionId($request),
+            $request->user()?->id
         );
 
         if (!$result['success']) {

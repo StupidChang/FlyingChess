@@ -37,7 +37,7 @@ return [
         'third_title' => '3. Third-Party Services',
         'third_intro' => 'The Site uses the following third-party services, which may collect and process data under their own privacy policies:',
         'third_items' => [
-            'Google AdSense: used to display advertising. Google may use cookies or web beacons to serve personalized ads; you can opt out of ad personalization in Google\'s Ads Settings.',
+            'Advertising networks (ExoClick, TrafficJunky, etc.): used to display advertising. Ad providers may use cookies or web beacons to serve ads and measure performance; their data handling is governed by their own privacy policies.',
             'Google Analytics 4 (GA4): used for anonymized traffic statistics and usage analysis to help us improve the service.',
             'ECPay: used to process payments for paid plans. Your card and payment details are handled directly by ECPay under its security standards; we never see or store full card numbers.',
         ],

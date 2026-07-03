@@ -27,4 +27,7 @@ return [
     'templates_title'       => '棋盘模板',
     'templates_description' => '精选情侣飞行棋棋盘模板，免费模板与 Premium 专属模板，一键应用开始玩。',
     'boards_description'    => '管理你创建的自定义棋盘，编辑格子内容与路径设置。',
+
+    'community_title'       => '社区棋盘 — 玩家自制情趣棋盘免费玩',
+    'community_description' => '浏览玩家自制并公开分享的情侣棋盘，免注册直接游玩。你也可以登录发布自己的棋盘，分享给大家。',
 ];

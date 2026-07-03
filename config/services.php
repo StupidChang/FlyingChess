@@ -35,20 +35,12 @@ return [
         ],
     ],
 
-    // Google AdSense — 在 .env 填入後即啟用廣告
-    'adsense' => [
-        'publisher_id'  => env('ADSENSE_PUBLISHER_ID'),
-        'slot_home_top' => env('ADSENSE_SLOT_HOME_TOP'),
-        'slot_home_mid' => env('ADSENSE_SLOT_HOME_MID'),
-        'slot_play'     => env('ADSENSE_SLOT_PLAY'),
-    ],
+    // 廣告聯播網設定一律在 config/ads.php — 這裡不要重複定義。
 
-    // TrafficJunky — 成人廣告網路（優先於 AdSense）
-    'trafficjunky' => [
-        'site_id'        => env('TRAFFICJUNKY_SITE_ID'),
-        'spot_home_top'  => env('TRAFFICJUNKY_SPOT_HOME_TOP'),
-        'spot_home_mid'  => env('TRAFFICJUNKY_SPOT_HOME_MID'),
-        'spot_play'      => env('TRAFFICJUNKY_SPOT_PLAY'),
+    // Google Analytics 4 — views 透過 config() 讀取（env() 在 config:cache 後
+    // 於 view 內不可靠）
+    'ga4' => [
+        'id' => env('GOOGLE_GA4_ID'),
     ],
 
 ];

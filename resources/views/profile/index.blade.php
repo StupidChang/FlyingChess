@@ -97,41 +97,35 @@
         </div>
     </section>
 
-    {{-- 自訂遊戲（即將推出） --}}
+    {{-- 遊玩紀錄 --}}
     <section>
         <div class="section-head">
-            <h2>{{ __('ui.custom_games') }}</h2>
+            <h2>{{ __('ui.play_history') }}</h2>
         </div>
-        <div class="game-cards-grid">
-            <div class="game-card" style="opacity:.55;pointer-events:none">
-                <div class="game-card-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path d="M11.584 2.376a.75.75 0 0 1 .832 0l9 6a.75.75 0 1 1-.832 1.248L12 3.901 3.416 9.624a.75.75 0 0 1-.832-1.248l9-6Z"/>
-                        <path fill-rule="evenodd" d="M20.25 10.332v9.918H21a.75.75 0 0 1 0 1.5H3a.75.75 0 0 1 0-1.5h.75v-9.918a.75.75 0 0 1 .634-.74A49.109 49.109 0 0 1 12 9c2.59 0 5.134.202 7.616.592a.75.75 0 0 1 .634.74Zm-7.5 2.418a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 1.5 0v-6.75Zm3-.75a.75.75 0 0 1 .75.75v6.75a.75.75 0 0 1-1.5 0v-6.75a.75.75 0 0 1 .75-.75ZM9 12.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 1.5 0v-6.75Z" clip-rule="evenodd"/>
-                    </svg>
+        @if($playHistory->isEmpty())
+        <div class="empty-notice">{{ __('ui.no_play_history') }}</div>
+        @else
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+            @foreach($playHistory as $entry)
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;flex-wrap:wrap;{{ $loop->last ? '' : 'border-bottom:1px solid var(--border);' }}">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <strong>{{ $entry->game->game_type === 'truth_or_dare' ? __('games.truth_dare') : __('games.flying_chess') }}</strong>
+                    <span style="font-size:.82rem;color:var(--text-dim)">#{{ $entry->game->code }}</span>
+                    @if($entry->is_host)
+                    <span class="badge-squares">{{ __('ui.history_as_host') }}</span>
+                    @endif
                 </div>
-                <h3>{{ __('ui.custom_dice') }}</h3>
-                <p>{{ __('ui.coming_soon') }}</p>
-            </div>
-            <div class="game-card" style="opacity:.55;pointer-events:none">
-                <div class="game-card-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clip-rule="evenodd"/>
-                    </svg>
+                <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-size:.82rem;color:var(--text-dim)">{{ $entry->created_at->format('Y/m/d H:i') }}</span>
+                    @if($entry->game->status !== 'finished')
+                    <a href="{{ $entry->game->game_type === 'truth_or_dare' ? route('truth-dare.show', $entry->game->code) : route('games.show', $entry->game->code) }}"
+                       class="btn btn-sm btn-outline">{{ __('ui.play') }}</a>
+                    @endif
                 </div>
-                <h3>{{ __('ui.custom_wheel') }}</h3>
-                <p>{{ __('ui.coming_soon') }}</p>
             </div>
-            <div class="game-card" style="opacity:.55;pointer-events:none">
-                <div class="game-card-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-                <h3>{{ __('ui.custom_dare') }}</h3>
-                <p>{{ __('ui.coming_soon') }}</p>
-            </div>
+            @endforeach
         </div>
+        @endif
     </section>
 
 </div>

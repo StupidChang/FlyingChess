@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AgeVerification
 {
     private const COOKIE_NAME = 'age_verified';
+
     private const COOKIE_DAYS = 30;
 
     private const WHITELISTED_PATHS = [
@@ -18,6 +19,7 @@ class AgeVerification
         'terms',
         'sitemap.xml',
         'robots.txt',
+        'ads.txt',
         'premium/callback',
         'premium/result',
         'up',
@@ -109,6 +111,7 @@ class AgeVerification
         // so $rawPath is the only safe match here.
         if ($request->isMethod('POST') && $rawPath === 'age-verify') {
             $cookie = cookie(self::COOKIE_NAME, '1', self::COOKIE_DAYS * 24 * 60);
+
             return redirect()->back()->withCookie($cookie);
         }
 

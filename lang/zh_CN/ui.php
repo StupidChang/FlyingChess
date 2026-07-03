@@ -49,4 +49,9 @@ return [
     'custom_dare'      => '自定义大冒险',
     'coming_soon'      => '即将推出',
     'ad_label'         => '广告',
+
+    'play_history'      => '游玩记录',
+    'no_play_history'   => '还没有游玩记录，去玩一场吧！',
+    'history_as_host'   => '房主',
+    'community_boards'  => '社区棋盘',
 ];

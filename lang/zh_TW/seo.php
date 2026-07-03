@@ -27,4 +27,7 @@ return [
     'templates_title'       => '棋盤模板',
     'templates_description' => '精選情侶飛行棋棋盤模板，免費模板與 Premium 專屬模板，一鍵套用開始玩。',
     'boards_description'    => '管理你建立的自訂棋盤，編輯格子內容與路徑設定。',
+
+    'community_title'       => '社群棋盤 — 玩家自製情趣棋盤免費玩',
+    'community_description' => '瀏覽玩家自製並公開分享的情侶棋盤，免註冊直接遊玩。你也可以登入發佈自己的棋盤，分享給大家。',
 ];

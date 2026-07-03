@@ -4,18 +4,8 @@
 @section('canonical', route('king-game.show'))
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
 <style>
-.kg-page{max-width:600px;margin:0 auto;padding:20px 16px;min-height:calc(100vh - 56px);position:relative;isolation:isolate}
-.kg-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(var(--glow-rgb,180,60,100),.1) 0%,transparent 70%);animation:hero-glow 6s ease-in-out infinite;pointer-events:none;z-index:-1}
-.kg-page>*{position:relative}
-.kg-title{text-align:center;color:var(--gold);font-size:1.4rem;margin-bottom:4px}
-.kg-subtitle{text-align:center;color:var(--text-dim);font-size:.85rem;margin-bottom:20px}
-.kg-setup{background:var(--card-bg,rgba(255,255,255,.06));border:1px solid var(--border);border-radius:12px;padding:20px}
-.kg-player-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
-.kg-player-row input[type=text]{flex:1;min-width:100px}
-.kg-player-remove{background:none;border:none;color:#e53935;font-size:1.2rem;cursor:pointer;padding:0 4px}
-.kg-add-player{margin-bottom:16px}
-
 /* Cards — poker style, bigger */
 .kg-card-area{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;padding:20px 0}
 .kg-card-slot{text-align:center}
@@ -73,47 +63,40 @@
   .kg-card-center .center-label{font-size:.9rem}
 }
 
-.kg-round-badge{text-align:center;color:var(--gold);font-size:1.1rem;margin-bottom:16px}
-.kg-action-btns{text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 @keyframes cardDealIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 .kg-card-scene.dealing{animation:cardDealIn .3s cubic-bezier(.34,1.56,.64,1) both}
-
-/* Inline toast */
-.kg-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 24px;border-radius:8px;background:#2a0a0f;border:1px solid var(--rose,#e53935);color:#f06080;font-weight:600;font-size:.9rem;animation:kg-toast-in .3s ease-out,kg-toast-out .4s 2.5s ease-in forwards;pointer-events:none}
-@keyframes kg-toast-in{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes kg-toast-out{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
 </style>
 @endsection
 
 @section('content')
-<div class="kg-page">
-    <h1 class="kg-title">{{ __('minigame.king_title') }}</h1>
-    <p class="kg-subtitle">{{ __('minigame.king_subtitle_long') }}</p>
+<div class="mg-page mg-page--md">
+    <h1 class="mg-title">{{ __('minigame.king_title') }}</h1>
+    <p class="mg-subtitle">{{ __('minigame.king_subtitle_long') }}</p>
 
     {{-- Setup Phase --}}
-    <div id="setup-phase" class="kg-setup">
-        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">{{ __('minigame.king_setup') }}</h2>
+    <div id="setup-phase" class="mg-setup">
+        <h2 class="mg-setup-heading">{{ __('minigame.king_setup') }}</h2>
         <div id="players-list">
-            <div class="kg-player-row" data-idx="0">
+            <div class="mg-player-row" data-idx="0">
                 <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="12">
             </div>
-            <div class="kg-player-row" data-idx="1">
+            <div class="mg-player-row" data-idx="1">
                 <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="12">
             </div>
-            <div class="kg-player-row" data-idx="2">
+            <div class="mg-player-row" data-idx="2">
                 <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 3]) }}" maxlength="12">
             </div>
         </div>
-        <button class="btn btn-sm btn-outline kg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        <button class="btn btn-sm btn-outline mg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
         <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
     {{-- Deal Phase --}}
     <div id="deal-phase" style="display:none">
-        <div class="kg-round-badge" id="round-badge"></div>
+        <div class="mg-round-badge" id="round-badge"></div>
         <p style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:12px">{{ __('minigame.king_peek_tip') }}</p>
         <div class="kg-card-area" id="card-area"></div>
-        <div class="kg-action-btns">
+        <div class="mg-action-btns">
             <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">{{ __('minigame.next_turn') }}</button>
             <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
@@ -139,10 +122,10 @@
     function escHtml(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
     function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
     function showToast(msg){
-        var old=document.querySelector('.kg-toast');
+        var old=document.querySelector('.mg-toast');
         if(old) old.remove();
         var t=document.createElement('div');
-        t.className='kg-toast';
+        t.className='mg-toast';
         t.textContent=msg;
         document.body.appendChild(t);
         setTimeout(function(){t.remove()},3200);
@@ -154,21 +137,21 @@
         if(playerCount>=6) return;
         playerCount++;
         var row=document.createElement('div');
-        row.className='kg-player-row';
+        row.className='mg-player-row';
         var defaultName = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', playerCount);
         row.innerHTML='<input type="text" class="form-control p-name" value="'+escHtml(defaultName)+'" maxlength="12">'+
-            '<button class="kg-player-remove" onclick="removePlayer(this)">✕</button>';
+            '<button class="mg-player-remove" onclick="removePlayer(this)">✕</button>';
         document.getElementById('players-list').appendChild(row);
         if(playerCount>=6) document.getElementById('add-player-btn').style.display='none';
     };
     window.removePlayer=function(btn){
-        btn.closest('.kg-player-row').remove();
+        btn.closest('.mg-player-row').remove();
         playerCount--;
         document.getElementById('add-player-btn').style.display='inline-block';
     };
 
     window.startGame=function(){
-        var rows=document.querySelectorAll('.kg-player-row');
+        var rows=document.querySelectorAll('.mg-player-row');
         players=[];
         var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){

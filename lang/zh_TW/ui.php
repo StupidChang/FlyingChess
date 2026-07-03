@@ -49,4 +49,9 @@ return [
     'custom_dare'      => '自訂大冒險',
     'coming_soon'      => '即將推出',
     'ad_label'         => '廣告',
+
+    'play_history'      => '遊玩紀錄',
+    'no_play_history'   => '還沒有遊玩紀錄，去玩一場吧！',
+    'history_as_host'   => '房主',
+    'community_boards'  => '社群棋盤',
 ];

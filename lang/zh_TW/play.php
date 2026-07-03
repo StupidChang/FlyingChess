@@ -138,4 +138,22 @@ return [
     'js_confirm_reset_path' => '將路徑重設為格子編號順序？',
     'js_path_min'           => '主路徑至少需要 2 個格子',
     'js_path_saved'         => '✅ 路徑已儲存',
+
+    // Community publishing
+    'publish'                 => '發佈到社群',
+    'unpublish'               => '取消發佈',
+    'publish_confirm'         => '發佈後將公開給所有訪客遊玩（需先通過審核），確定要發佈嗎？',
+    'publish_submitted'       => '已送出審核，通過後就會出現在社群棋盤！',
+    'publish_withdrawn'       => '已取消發佈。',
+    'publish_incomplete'      => '棋盤還沒完成：至少需要 2 個棋格並設定路徑。',
+    'publish_already'         => '此棋盤已在審核中或已發佈。',
+    'publish_status_pending'  => '審核中',
+    'publish_status_approved' => '已發佈',
+    'publish_status_rejected' => '已退回',
+    'publish_note_label'      => '退回原因',
+    'publish_hint'            => '通過審核後會出現在「社群棋盤」公開列表。',
+    'community'               => '社群棋盤',
+    'community_intro'         => '玩家自製、公開分享的棋盤，挑一個喜歡的直接開玩！',
+    'community_by'            => '由 :name 製作',
+    'community_empty'         => '目前還沒有公開棋盤，登入後發佈你的第一個棋盤吧！',
 ];

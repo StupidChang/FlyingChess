@@ -5,14 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\CapsuleAnswer;
 use App\Models\CapsuleQuestion;
 use App\Models\TimeCapsule;
+use App\Rules\NoBlockedWords;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class TimeCapsuleController extends Controller
 {
     private const ROLE_COOKIE_PREFIX = 'capsule_role_';
+
     private const ROLE_COOKIE_DAYS = 365;
 
     /**
@@ -40,32 +43,32 @@ class TimeCapsuleController extends Controller
     public function create(Request $request)
     {
         $data = $request->validate([
-            'title'        => ['required', 'string', 'min:1', 'max:100'],
-            'open_at'      => ['required', 'date', 'after:today'],
+            'title' => ['required', 'string', 'min:1', 'max:100', new NoBlockedWords],
+            'open_at' => ['required', 'date', 'after:today'],
             'notify_email' => ['nullable', 'email', 'max:100'],
         ], [
-            'title.required'       => '請輸入膠囊標題',
-            'open_at.required'     => '請選擇開封日期',
-            'open_at.after'        => '開封日期必須是明天以後',
-            'notify_email.email'   => 'Email 格式錯誤',
+            'title.required' => '請輸入膠囊標題',
+            'open_at.required' => '請選擇開封日期',
+            'open_at.after' => '開封日期必須是明天以後',
+            'notify_email.email' => 'Email 格式錯誤',
         ]);
 
         $ownerToken = Str::random(48);
 
         $capsule = DB::transaction(function () use ($data, $ownerToken) {
             $capsule = TimeCapsule::create([
-                'title'        => $data['title'],
-                'open_at'      => $data['open_at'],
+                'title' => $data['title'],
+                'open_at' => $data['open_at'],
                 'notify_email' => $data['notify_email'] ?? null,
-                'owner_token'  => $ownerToken,
+                'owner_token' => $ownerToken,
             ]);
 
             // Seed default questions
             foreach (self::DEFAULT_QUESTIONS as $i => $q) {
                 CapsuleQuestion::create([
                     'capsule_id' => $capsule->id,
-                    'question'   => $q,
-                    'position'   => $i,
+                    'question' => $q,
+                    'position' => $i,
                 ]);
             }
 
@@ -75,7 +78,7 @@ class TimeCapsuleController extends Controller
         return redirect()
             ->route('time-capsule.show', ['shareCode' => $capsule->share_code])
             ->withCookie(cookie(
-                self::ROLE_COOKIE_PREFIX . $capsule->share_code,
+                self::ROLE_COOKIE_PREFIX.$capsule->share_code,
                 $ownerToken,
                 self::ROLE_COOKIE_DAYS * 24 * 60
             ));
@@ -91,7 +94,7 @@ class TimeCapsuleController extends Controller
             $partnerToken = Str::random(48);
             $capsule->update(['partner_token' => $partnerToken]);
             $cookieJar = cookie(
-                self::ROLE_COOKIE_PREFIX . $capsule->share_code,
+                self::ROLE_COOKIE_PREFIX.$capsule->share_code,
                 $partnerToken,
                 self::ROLE_COOKIE_DAYS * 24 * 60
             );
@@ -99,7 +102,7 @@ class TimeCapsuleController extends Controller
         }
 
         // First successful open after open_at
-        if ($capsule->isSealed() && Carbon::today()->greaterThanOrEqualTo($capsule->open_at) && !$capsule->opened_at) {
+        if ($capsule->isSealed() && Carbon::today()->greaterThanOrEqualTo($capsule->open_at) && ! $capsule->opened_at) {
             $capsule->update(['opened_at' => now()]);
         }
 
@@ -115,8 +118,8 @@ class TimeCapsuleController extends Controller
         }
 
         $response = response()->view('time-capsule.show', [
-            'capsule'   => $capsule,
-            'role'      => $role,
+            'capsule' => $capsule,
+            'role' => $role,
             'questions' => $questions,
             'answerMap' => $answerMap,
         ]);
@@ -129,7 +132,7 @@ class TimeCapsuleController extends Controller
         $capsule = TimeCapsule::where('share_code', $shareCode)->firstOrFail();
         $role = $this->resolveRole($request, $capsule);
 
-        if (!in_array($role, ['owner', 'partner'])) {
+        if (! in_array($role, ['owner', 'partner'])) {
             return back()->withErrors(['answers' => '無編輯權']);
         }
 
@@ -138,14 +141,27 @@ class TimeCapsuleController extends Controller
         }
 
         $answers = $request->input('answers', []);
+
+        $validator = Validator::make(
+            ['answers' => $answers],
+            ['answers.*' => ['nullable', 'string', new NoBlockedWords]]
+        );
+        if ($validator->fails()) {
+            return back()->withErrors(['answers' => $validator->errors()->first()]);
+        }
+
         $questionIds = $capsule->questions()->pluck('id')->all();
 
         DB::transaction(function () use ($answers, $questionIds, $role) {
             foreach ($answers as $qid => $text) {
                 $qid = (int) $qid;
-                if (!in_array($qid, $questionIds, true)) continue;
+                if (! in_array($qid, $questionIds, true)) {
+                    continue;
+                }
                 $text = trim((string) $text);
-                if ($text === '') continue;
+                if ($text === '') {
+                    continue;
+                }
                 if (mb_strlen($text) > 1000) {
                     $text = mb_substr($text, 0, 1000);
                 }
@@ -179,13 +195,13 @@ class TimeCapsuleController extends Controller
             $capsule->questions()->pluck('id')
         )->exists();
 
-        if (!$hasAnyAnswer) {
+        if (! $hasAnyAnswer) {
             return back()->withErrors(['seal' => '至少要回答一題才能封存']);
         }
 
         $capsule->update(['sealed_at' => now()]);
 
-        return back()->with('success', '膠囊已封存！將在 ' . $capsule->open_at->format('Y-m-d') . ' 開封');
+        return back()->with('success', '膠囊已封存！將在 '.$capsule->open_at->format('Y-m-d').' 開封');
     }
 
     /**
@@ -193,7 +209,7 @@ class TimeCapsuleController extends Controller
      */
     private function resolveRole(Request $request, TimeCapsule $capsule): string
     {
-        $cookie = $request->cookie(self::ROLE_COOKIE_PREFIX . $capsule->share_code);
+        $cookie = $request->cookie(self::ROLE_COOKIE_PREFIX.$capsule->share_code);
 
         if ($cookie && hash_equals($capsule->owner_token, $cookie)) {
             return 'owner';
@@ -204,6 +220,7 @@ class TimeCapsuleController extends Controller
         if (is_null($capsule->partner_token)) {
             return 'partner-new';
         }
+
         return 'viewer';
     }
 }

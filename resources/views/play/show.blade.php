@@ -28,7 +28,16 @@
         <div class="turn-center">
             <div id="turn-label" class="turn-label">{{ __('play.turn_of', ['name' => __('play.player_1')]) }}</div>
             <div id="dice-display" class="dice-display">
-                <div id="dice" class="dice">🎲</div>
+                <div id="dice" class="dice" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3.75" y="3.75" width="16.5" height="16.5" rx="4"/>
+                        <circle cx="8.25" cy="8.25" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="15.75" cy="8.25" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="8.25" cy="15.75" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="15.75" cy="15.75" r="1.15" fill="currentColor" stroke="none"/>
+                    </svg>
+                </div>
             </div>
             <button id="roll-btn" class="btn btn-gold btn-roll" onclick="rollDice()">{{ __('play.roll_dice') }}</button>
         </div>
@@ -106,7 +115,7 @@
     <div class="modal-overlay"></div>
     <div class="modal-box win-box">
         <div class="win-trophy">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#FFD700">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:var(--gold, #d9a441)">
             <path fill-rule="evenodd" d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 0 0-.584.859 6.753 6.753 0 0 0 6.138 5.6 6.73 6.73 0 0 0 2.743 1.35A6.98 6.98 0 0 1 9.25 15v.25H9a.75.75 0 0 0 0 1.5h1.5v2.128a2.251 2.251 0 0 1-1.679 2.17l-.196.047a.75.75 0 0 0 .353 1.46l.196-.047a3.75 3.75 0 0 0 2.826-3.63V16.75h1.5a.75.75 0 0 0 0-1.5h-.25V15a6.98 6.98 0 0 1-.293-1.342 6.73 6.73 0 0 0 2.743-1.35 6.753 6.753 0 0 0 6.139-5.6.75.75 0 0 0-.585-.858 47.077 47.077 0 0 0-3.07-.543V2.62a.75.75 0 0 0-.658-.744 49.798 49.798 0 0 0-6.093-.377c-2.063 0-4.096.128-6.093.377a.75.75 0 0 0-.657.744Zm0 2.629c0 1.196.312 2.32.857 3.294A5.266 5.266 0 0 1 3.16 5.337a45.6 45.6 0 0 1 2.006-.343v.256Zm13.5 0v-.256c.674.1 1.343.214 2.006.343a5.265 5.265 0 0 1-2.863 3.207 6.72 6.72 0 0 0 .857-3.294Z" clip-rule="evenodd"/>
         </svg>
     </div>
@@ -179,6 +188,35 @@
 </div>
 @endsection
 
+@php
+    // Runtime strings consumed by board.js's tp() helper (camelCase keys
+    // matching the JS side, mapped to the existing play.* translations).
+    $playI18n = [
+        'centerTitle'  => __('play.js_center_title'),
+        'centerRules'  => __('play.js_center_rules'),
+        'corner1'      => __('play.js_corner_1'),
+        'corner2'      => __('play.js_corner_2'),
+        'corner3'      => __('play.js_corner_3'),
+        'corner4'      => __('play.js_corner_4'),
+        'saving'       => __('play.js_saving'),
+        'saved'        => __('play.js_saved'),
+        'saveFailed'   => __('play.js_save_failed'),
+        'player1'      => __('play.player_1'),
+        'player2'      => __('play.player_2'),
+        'startPoint'   => __('play.start_point'),
+        'endPoint'     => __('play.js_end_point'),
+        'stepN'        => __('play.js_step_n'),
+        'turnOf'       => __('play.turn_of'),
+        'skipTurnName' => __('play.js_skip_turn_name'),
+        'male'         => __('play.male'),
+        'female'       => __('play.female'),
+        'genderSkip'   => __('play.js_gender_skip'),
+        'normalSquare' => __('play.js_normal_square'),
+        'winTitle'     => __('play.js_win_title'),
+        'winText'      => __('play.js_win_text'),
+    ];
+@endphp
+
 @section('scripts')
 <script>
 window.BOARD_ID     = {{ $board->id }};
@@ -188,6 +226,7 @@ window.CANVAS_ROWS  = {{ $board->canvas_rows ?? 11 }};
 window.CANVAS_COLS  = {{ $board->canvas_cols ?? 13 }};
 window.PLAYER_COUNT = {{ $playerCount }};
 window.EDIT_MODE    = false;
+window.PLAY_I18N    = @json($playI18n);
 </script>
 <script src="{{ asset('js/board.js') }}"></script>
 @endsection

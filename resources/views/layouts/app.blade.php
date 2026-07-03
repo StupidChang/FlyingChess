@@ -39,14 +39,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- GA4: only load for non-premium users --}}
-    @if(env('GOOGLE_GA4_ID'))
+    @if(config('services.ga4.id'))
         @if(!auth()->check() || !auth()->user()->isPremium())
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ env('GOOGLE_GA4_ID') }}"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.ga4.id') }}"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '{{ env('GOOGLE_GA4_ID') }}');
+            gtag('config', '{{ config('services.ga4.id') }}');
         </script>
         @endif
     @endif
@@ -85,12 +85,13 @@
                     <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
                     <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
                     <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
+                    <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 </div>
             </div>
             @auth
                 <a href="{{ route('profile.index') }}" class="nav-link">{{ __('ui.profile') }}</a>
                 @if(Auth::user()->isAdmin())
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">{{ __('ui.admin') }}</a>
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--accent)">{{ __('ui.admin') }}</a>
                 @endif
                 <span class="nav-user">
                     {{ Auth::user()->name }}
@@ -108,7 +109,7 @@
             @endauth
             @include('partials.lang-switcher')
             <button class="theme-toggle" onclick="toggleTheme()" title="{{ __('ui.switch_language') }}">
-                <span id="theme-label">粉色</span>
+                <span id="theme-label">玫瑰</span>
             </button>
         </nav>
 
@@ -134,6 +135,7 @@
             <a href="{{ route('dice-game.show') }}" class="nav-link">{{ __('games.dice_game') }}</a>
             <a href="{{ route('king-game.show') }}" class="nav-link">{{ __('games.king_game') }}</a>
             <a href="{{ route('wheel-game.show') }}" class="nav-link">{{ __('games.wheel_game') }}</a>
+            <a href="{{ route('boards.community') }}" class="nav-link">{{ __('ui.community_boards') }}</a>
         </div>
         @auth
             <a href="{{ route('profile.index') }}" class="nav-link">{{ __('ui.profile') }}</a>
@@ -156,7 +158,7 @@
         @endauth
         @include('partials.lang-switcher', ['mobile' => true])
         <button class="theme-toggle" onclick="toggleTheme()">
-            <span id="theme-label-m">粉色</span> 切換配色
+            <span id="theme-label-m">玫瑰</span> 切換配色
         </button>
     </nav>
 </header>
@@ -187,6 +189,7 @@
                 <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
                 <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
                 <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
+                <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 <a href="{{ route('play') }}">{{ __('play.create_board') }}</a>
                 @auth
                 <a href="{{ route('profile.index') }}">{{ __('ui.profile') }}</a>
@@ -218,7 +221,7 @@ function toggleTheme() {
     updateThemeLabels(next);
 }
 function updateThemeLabels(t) {
-    var label = t === 'dark' ? '暗色' : '粉色';
+    var label = t === 'dark' ? '靛藍' : '玫瑰';
     var el1 = document.getElementById('theme-label');
     var el2 = document.getElementById('theme-label-m');
     if (el1) el1.textContent = label;

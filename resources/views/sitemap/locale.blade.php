@@ -14,6 +14,7 @@ $paths = [
     ['path' => 'king-game',       'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'wheel-game',      'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
+    ['path' => 'community',       'priority' => '0.7', 'changefreq' => 'daily'],
     ['path' => 'premium',         'priority' => '0.5', 'changefreq' => 'monthly'],
     ['path' => 'privacy',         'priority' => '0.3', 'changefreq' => 'yearly'],
     ['path' => 'terms',           'priority' => '0.3', 'changefreq' => 'yearly'],

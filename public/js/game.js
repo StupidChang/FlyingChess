@@ -128,7 +128,7 @@ function buildBoard() {
                     cell.classList.add('cell-center');
                     cell.textContent = '✈';
                 } else {
-                    cell.style.background = '#1a2030';
+                    cell.style.background = 'var(--surface2)';
                 }
                 boardEl.appendChild(cell); continue;
             }
@@ -174,90 +174,197 @@ function buildBoard() {
                     }
                 });
             } else {
-                cell.style.background = '#0d1117';
+                cell.style.background = 'var(--bg)';
                 cell.style.border = 'none';
             }
 
             boardEl.appendChild(cell);
         }
     }
+
+    setupPieceLayer();
 }
 
-/* ---- Piece Rendering ---- */
-function renderPieces(state) {
-    if (!boardEl || !state) return;
-    boardEl.querySelectorAll('.piece').forEach(p => p.remove());
+/* ---- Piece Rendering ----
+ * Pieces are persistent DOM nodes (created once in setupPieceLayer) placed inside
+ * an absolutely-positioned overlay (.pieces-layer) that sits on top of the static
+ * board grid. Re-rendering only updates each piece's `left`/`top` (in % of the
+ * 15x15 board), so the CSS transition on .piece-slot animates the move instead of
+ * the old remove+recreate approach which made transitions impossible to trigger.
+ *
+ * Multi-square moves are stepped one square at a time (~120ms/hop) so the piece
+ * visibly hops along the path rather than jumping straight to the destination.
+ * Trade-off: the rare "bounce back" overshoot (progress ends up <= previous
+ * progress after reflecting off the finish) is rendered as a single smooth glide
+ * rather than retracing every intermediate square — a full bounce replay wasn't
+ * worth the added complexity for a corner case that ends on the same square.
+ */
+const CELL_PCT = 100 / 15;
+const STEP_MS  = 120; // per-square hop duration when animating a multi-square move
 
-    const piecesOnCell = {};
+let piecesLayerEl  = null;
+let pieceEls       = {}; // pieceEls[color][idx] = { slot, piece }
+let pieceProgress  = {}; // pieceProgress[color][idx] = last rendered progress (undefined = not yet rendered)
 
-    for (const color of COLORS) {
-        if (!state.pieces[color]) continue;
-        state.pieces[color].forEach((progress, idx) => {
-            if (progress === 0) return;
-            if (progress === 58) {
-                const cell = document.getElementById(`cell-${CENTER[0]}-${CENTER[1]}`);
-                if (cell) addPieceToCell(cell, color, idx, piecesOnCell, `${CENTER[0]},${CENTER[1]}`);
-                return;
-            }
-            const coords = progressToCoords(color, progress);
-            if (!coords) return;
-            const [r, c] = coords;
-            const cell = document.getElementById(`cell-${r}-${c}`);
-            if (cell) addPieceToCell(cell, color, idx, piecesOnCell, `${r},${c}`);
-        });
-    }
-}
-
-function addPieceToCell(cell, color, idx, tracker, key) {
-    if (!tracker[key]) tracker[key] = [];
-    const pieceEl = document.createElement('div');
-    pieceEl.className = `piece ${color}`;
-    pieceEl.dataset.color = color;
-    pieceEl.dataset.idx   = idx;
-    pieceEl.textContent   = idx + 1;
-
-    const count = tracker[key].length;
-    if (count > 0) pieceEl.classList.add(`piece-offset-${count}`);
-
-    if (color === myColor && validMoves.includes(idx)) {
-        pieceEl.classList.add('selectable');
-        pieceEl.style.pointerEvents = 'auto';
-        pieceEl.addEventListener('click', () => movePiece(idx));
-    }
-
-    cell.style.position = 'relative';
-    cell.appendChild(pieceEl);
-    tracker[key].push(pieceEl);
-}
-
-function progressToCoords(color, progress) {
-    if (progress <= 0) return null;
+function cellForProgress(color, idx, progress) {
+    if (progress === 0)  return HOME_POS[color][idx] || null;
     if (progress === 58) return CENTER;
-    if (progress >= 53) return SAFE_LANES[color][progress - 53] || null;
+    if (progress >= 53)  return SAFE_LANES[color][progress - 53] || null;
     const absIdx = (START_OFFSETS[color] + progress - 1) % 52;
     return TRACK[absIdx] || null;
 }
 
-function renderHomePieces(state) {
-    document.querySelectorAll('.home-piece-fill').forEach(e => e.remove());
-    for (const color of COLORS) {
-        if (!state.pieces[color]) continue;
-        let homeIdx = 0;
-        state.pieces[color].forEach((progress) => {
-            if (progress === 0 && homeIdx < HOME_POS[color].length) {
-                const [r,c] = HOME_POS[color][homeIdx];
-                const cell = document.getElementById(`cell-${r}-${c}`);
-                if (cell) {
-                    cell.innerHTML = '';
-                    const p = document.createElement('div');
-                    p.className = `piece ${color} home-piece-fill`;
-                    p.style.pointerEvents = 'none';
-                    cell.appendChild(p);
-                }
-                homeIdx++;
+/** Set a slot's grid position (in % of the board). animate=false snaps instantly. */
+function positionSlot(slot, coords, animate) {
+    if (!slot || !coords) return;
+    const [r, c] = coords;
+    if (!animate) {
+        slot.style.transition = 'none';
+        slot.style.left = (c * CELL_PCT) + '%';
+        slot.style.top  = (r * CELL_PCT) + '%';
+        void slot.offsetHeight; // force reflow so the next animated move isn't skipped
+        slot.style.transition = '';
+    } else {
+        slot.style.left = (c * CELL_PCT) + '%';
+        slot.style.top  = (r * CELL_PCT) + '%';
+    }
+}
+
+/** Build the persistent piece overlay once, after the static board grid exists. */
+function setupPieceLayer() {
+    if (!boardEl) return;
+    piecesLayerEl = document.createElement('div');
+    piecesLayerEl.className = 'pieces-layer';
+    boardEl.appendChild(piecesLayerEl);
+
+    pieceEls = {};
+    pieceProgress = {};
+    COLORS.forEach(color => {
+        pieceEls[color] = [];
+        pieceProgress[color] = [];
+        const count = (HOME_POS[color] || []).length;
+        for (let idx = 0; idx < count; idx++) {
+            const slot = document.createElement('div');
+            slot.className = 'piece-slot';
+
+            const piece = document.createElement('div');
+            piece.className = `piece ${color}`;
+            piece.dataset.color = color;
+            piece.dataset.idx   = String(idx);
+            piece.textContent   = idx + 1;
+            piece.addEventListener('click', () => {
+                if (color === myColor && !isBotThinking && validMoves.includes(idx)) movePiece(idx);
+            });
+
+            slot.appendChild(piece);
+            piecesLayerEl.appendChild(slot);
+            pieceEls[color][idx] = { slot, piece };
+            pieceProgress[color][idx] = undefined;
+            positionSlot(slot, HOME_POS[color][idx], false);
+        }
+    });
+}
+
+/** Animate one piece's slot from its previously rendered progress to the new one. */
+function animatePieceTo(ref, color, idx, fromProgress, toProgress) {
+    const slot = ref.slot;
+    if (slot._stepTimer) { clearTimeout(slot._stepTimer); slot._stepTimer = null; }
+
+    // First paint — snap in place, nothing to animate from.
+    if (fromProgress === undefined) {
+        positionSlot(slot, cellForProgress(color, idx, toProgress), false);
+        return;
+    }
+    if (fromProgress === toProgress) return;
+
+    // Respect the OS-level reduced-motion setting — jump straight to the result.
+    if (prefersReducedMotion()) {
+        positionSlot(slot, cellForProgress(color, idx, toProgress), false);
+        return;
+    }
+
+    // Captured — sent straight back to base. Shrink+fade, relocate, then pop back in.
+    if (toProgress === 0 && fromProgress > 0) {
+        ref.piece.classList.add('piece-captured');
+        slot._stepTimer = setTimeout(() => {
+            ref.piece.classList.remove('piece-captured');
+            positionSlot(slot, HOME_POS[color][idx], false);
+            ref.piece.classList.add('piece-popin');
+            setTimeout(() => ref.piece.classList.remove('piece-popin'), 300);
+            slot._stepTimer = null;
+        }, 240);
+        return;
+    }
+
+    const delta = toProgress - fromProgress;
+
+    // Backward bounce or a big catch-up jump (e.g. missed a poll cycle) — one smooth glide.
+    if (delta <= 0 || delta > 8) {
+        positionSlot(slot, cellForProgress(color, idx, toProgress), true);
+        return;
+    }
+
+    // Forward move of 1-8 squares — hop one square at a time.
+    let step = fromProgress;
+    const hop = () => {
+        step += 1;
+        positionSlot(slot, cellForProgress(color, idx, step), true);
+        if (step < toProgress) {
+            slot._stepTimer = setTimeout(hop, STEP_MS);
+        } else {
+            slot._stepTimer = null;
+        }
+    };
+    hop();
+}
+
+function renderPieces(state) {
+    if (!boardEl || !state || !piecesLayerEl) return;
+
+    // Group pieces landing on the same cell so overlapping ones can be nudged apart.
+    const groups  = {};
+    const targets = {};
+    COLORS.forEach(color => {
+        const arr = state.pieces[color];
+        if (!arr) return;
+        targets[color] = [];
+        arr.forEach((progress, idx) => {
+            const coords = cellForProgress(color, idx, progress);
+            targets[color][idx] = coords;
+            if (coords) {
+                const key = coords[0] + ',' + coords[1];
+                (groups[key] = groups[key] || []).push(`${color}:${idx}`);
             }
         });
-    }
+    });
+
+    COLORS.forEach(color => {
+        const arr = state.pieces[color];
+        if (!arr || !pieceEls[color]) return;
+        arr.forEach((progress, idx) => {
+            const ref = pieceEls[color][idx];
+            if (!ref) return;
+            const prevProgress = pieceProgress[color][idx];
+            pieceProgress[color][idx] = progress;
+
+            animatePieceTo(ref, color, idx, prevProgress, progress);
+
+            const coords = targets[color][idx];
+            const key    = coords ? `${coords[0]},${coords[1]}` : null;
+            const group  = key ? groups[key] : null;
+            ref.piece.classList.remove('piece-offset-1', 'piece-offset-2', 'piece-offset-3');
+            if (group && group.length > 1) {
+                const order = group.indexOf(`${color}:${idx}`);
+                if (order > 0 && order <= 3) ref.piece.classList.add(`piece-offset-${order}`);
+            }
+
+            ref.piece.classList.toggle('piece-finished', progress === 58);
+
+            const isSelectable = color === myColor && validMoves.includes(idx) && !isBotThinking;
+            ref.piece.classList.toggle('selectable', isSelectable);
+            ref.slot.style.zIndex = isSelectable ? 12 : (progress === 0 ? 6 : 10);
+        });
+    });
 }
 
 /* ---- Sidebar UI updates ---- */
@@ -537,7 +644,6 @@ window.rollDice = async function() {
         if (res.state) {
             gameState = res.state;
             renderPieces(gameState);
-            renderHomePieces(gameState);
             updateTurn(gameState);
             updateMyPieces(gameState);
             updateDice(gameState.dice_value);
@@ -569,7 +675,6 @@ window.movePiece = async function(pieceIdx) {
 
         gameState = res.state;
         renderPieces(gameState);
-        renderHomePieces(gameState);
         updateTurn(gameState);
         updateMyPieces(gameState);
         updateDice(gameState.dice_value);
@@ -634,7 +739,6 @@ async function fetchState() {
             if (res.game_state) {
                 gameState = res.game_state;
                 renderPieces(gameState);
-                renderHomePieces(gameState);
                 updateTurn(gameState);
                 updateDice(gameState.dice_value);
                 if (validMoves.length === 0) updateMyPieces(gameState);
@@ -674,6 +778,27 @@ function showWinner(winnerColor, players) {
     const name = winnerPlayer?.player_name || COLOR_LABELS[winnerColor];
     const wt = document.getElementById('winner-text');
     if (wt) wt.textContent = t('winner', { '__NAME__': name, '__COLOR__': COLOR_LABELS[winnerColor] });
+    spawnConfetti(overlay);
+}
+
+/** A small celebratory confetti burst behind the winner card. Runs once per overlay. */
+function spawnConfetti(overlay) {
+    if (!overlay || overlay.querySelector('.confetti-layer') || prefersReducedMotion()) return;
+    const colors = ['#facc15', '#38bdf8', '#4ade80', '#f87171', '#d9a441', '#ffffff'];
+    const layer = document.createElement('div');
+    layer.className = 'confetti-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i < 28; i++) {
+        const piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        piece.style.left = (Math.random() * 100).toFixed(1) + '%';
+        piece.style.background = colors[i % colors.length];
+        piece.style.setProperty('--drift', ((Math.random() * 80) - 40).toFixed(0) + 'px');
+        piece.style.animationDelay = (Math.random() * .6).toFixed(2) + 's';
+        piece.style.animationDuration = (2.2 + Math.random() * 1.4).toFixed(2) + 's';
+        layer.appendChild(piece);
+    }
+    overlay.appendChild(layer);
 }
 
 /* ---- HTTP helpers ---- */

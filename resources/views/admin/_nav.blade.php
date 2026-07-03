@@ -3,7 +3,9 @@
         <a href="{{ route('admin.dashboard') }}"
            class="admin-nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">總覽</a>
         <a href="{{ route('admin.boards') }}"
-           class="admin-nav-link {{ request()->routeIs('admin.boards*') ? 'active' : '' }}">棋盤</a>
+           class="admin-nav-link {{ request()->routeIs('admin.boards') || request()->routeIs('admin.boards.edit') || request()->routeIs('admin.boards.update') ? 'active' : '' }}">棋盤</a>
+        <a href="{{ route('admin.boards.reviews') }}"
+           class="admin-nav-link {{ request()->routeIs('admin.boards.reviews') ? 'active' : '' }}">發佈審核</a>
         <a href="{{ route('admin.cards') }}"
            class="admin-nav-link {{ request()->routeIs('admin.cards*') ? 'active' : '' }}">卡片</a>
         <a href="{{ route('admin.wheel-segments') }}"

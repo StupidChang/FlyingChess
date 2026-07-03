@@ -138,4 +138,22 @@ return [
     'js_confirm_reset_path' => 'Reset the path to square-number order?',
     'js_path_min'           => 'The main path needs at least 2 squares',
     'js_path_saved'         => '✅ Path saved',
+
+    // Community publishing
+    'publish'                 => 'Publish to community',
+    'unpublish'               => 'Unpublish',
+    'publish_confirm'         => 'Publishing makes this board playable by everyone (after review). Continue?',
+    'publish_submitted'       => 'Submitted for review — once approved it will appear in Community Boards!',
+    'publish_withdrawn'       => 'Board unpublished.',
+    'publish_incomplete'      => 'Board is incomplete: it needs at least 2 squares and a path.',
+    'publish_already'         => 'This board is already under review or published.',
+    'publish_status_pending'  => 'In review',
+    'publish_status_approved' => 'Published',
+    'publish_status_rejected' => 'Rejected',
+    'publish_note_label'      => 'Rejection reason',
+    'publish_hint'            => 'Once approved it will appear in the public Community Boards list.',
+    'community'               => 'Community Boards',
+    'community_intro'         => 'Boards created and shared by players — pick one and start playing!',
+    'community_by'            => 'by :name',
+    'community_empty'         => 'No public boards yet. Log in and be the first to publish one!',
 ];

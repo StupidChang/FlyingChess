@@ -31,6 +31,8 @@ class AdminController extends Controller
             'games_7d' => Game::where('created_at', '>=', $weekStart)->count(),
             'users_today' => User::whereDate('created_at', now()->toDateString())->count(),
             'games_today' => Game::whereDate('created_at', now()->toDateString())->count(),
+            'pending_reviews' => Board::where('publish_status', Board::PUBLISH_PENDING)->count(),
+            'published_boards' => Board::where('publish_status', Board::PUBLISH_APPROVED)->count(),
         ];
 
         // 近 7 天每日序列（含 0 的日子），給迷你長條圖用
@@ -70,6 +72,8 @@ class AdminController extends Controller
             'template' => $query->where('is_template', true),
             'default' => $query->where('is_default', true),
             'user' => $query->where('is_template', false)->whereNotNull('user_id'),
+            'pending' => $query->where('publish_status', Board::PUBLISH_PENDING),
+            'published' => $query->where('publish_status', Board::PUBLISH_APPROVED),
             default => null,
         };
 
@@ -113,6 +117,53 @@ class AdminController extends Controller
         ]);
 
         return redirect()->route('admin.boards')->with('success', '棋盤已更新');
+    }
+
+    // ── Community publish review ──
+
+    public function boardReviews()
+    {
+        $boards = Board::with('user:id,name,email')
+            ->withCount('squares')
+            ->where('publish_status', Board::PUBLISH_PENDING)
+            ->oldest('updated_at')
+            ->paginate(20);
+
+        return view('admin.boards.reviews', compact('boards'));
+    }
+
+    public function approveBoard(Board $board)
+    {
+        if ($board->publish_status !== Board::PUBLISH_PENDING) {
+            return back()->with('error', '此棋盤不在待審狀態');
+        }
+
+        $board->update([
+            'publish_status' => Board::PUBLISH_APPROVED,
+            'published_at' => $board->published_at ?? now(),
+            'publish_note' => null,
+        ]);
+
+        return back()->with('success', "「{$board->name}」已核准上架");
+    }
+
+    public function rejectBoard(Request $request, Board $board)
+    {
+        $data = $request->validate([
+            'publish_note' => ['nullable', 'string', 'max:200'],
+        ]);
+
+        if ($board->publish_status !== Board::PUBLISH_PENDING) {
+            return back()->with('error', '此棋盤不在待審狀態');
+        }
+
+        $board->update([
+            'publish_status' => Board::PUBLISH_REJECTED,
+            'published_at' => null,
+            'publish_note' => $data['publish_note'] ?? null,
+        ]);
+
+        return back()->with('success', "「{$board->name}」已退回");
     }
 
     // ── Cards (Truth or Dare) ──

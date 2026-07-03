@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GamePlayer extends Model
 {
-    protected $fillable = ['game_id', 'session_id', 'player_name', 'color', 'is_host'];
+    protected $fillable = ['game_id', 'session_id', 'player_name', 'color', 'is_host', 'user_id'];
 
     protected $casts = [
         'is_host' => 'boolean',

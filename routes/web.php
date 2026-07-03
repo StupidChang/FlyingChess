@@ -47,6 +47,17 @@ Route::get('/sitemap-{prefix}.xml', [SitemapController::class, 'locale'])
     ->where('prefix', 'tw|cn|jp|en')
     ->name('sitemap.locale');
 
+// ads.txt — required by ad networks (ExoClick / TrafficJunky / AdSense) to
+// verify the site is authorized to sell its inventory. Content is env-driven:
+// ADS_TXT_LINES="exoclick.com, 123456, DIRECT|..." ( | = newline).
+Route::get('/ads.txt', function () {
+    $lines = trim(str_replace('|', "\n", (string) config('ads.txt_lines')));
+
+    abort_if($lines === '', 404);
+
+    return response($lines."\n", 200, ['Content-Type' => 'text/plain']);
+})->name('ads.txt');
+
 Route::get('/robots.txt', function () {
     return response(
         "User-agent: *\nDisallow: /admin/\nSitemap: ".url('/sitemap.xml')."\n",
@@ -201,7 +212,13 @@ Route::prefix('{locale}')
             Route::patch('/{board}/canvas', [BoardController::class, 'updateCanvas'])->name('canvas.update');
             Route::patch('/{board}/path', [BoardController::class, 'updatePath'])->name('path.update');
             Route::post('/{board}/preset', [BoardController::class, 'applyPreset'])->name('preset');
+
+            Route::post('/{board}/publish', [BoardController::class, 'publish'])->name('publish');
+            Route::post('/{board}/unpublish', [BoardController::class, 'unpublish'])->name('unpublish');
         });
+
+        // Community boards (public discovery of user-published boards)
+        Route::get('/community', [BoardController::class, 'community'])->name('boards.community');
 
         // Templates
         Route::get('/templates', [BoardController::class, 'templates'])->name('boards.templates');
@@ -220,6 +237,9 @@ Route::prefix('{locale}')
         Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
             Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
             Route::get('/boards', [AdminController::class, 'boards'])->name('boards');
+            Route::get('/board-reviews', [AdminController::class, 'boardReviews'])->name('boards.reviews');
+            Route::post('/boards/{board}/approve', [AdminController::class, 'approveBoard'])->name('boards.approve');
+            Route::post('/boards/{board}/reject', [AdminController::class, 'rejectBoard'])->name('boards.reject');
             Route::get('/boards/{board}/edit', [AdminController::class, 'editBoard'])->name('boards.edit');
             Route::patch('/boards/{board}', [AdminController::class, 'updateBoard'])->name('boards.update');
             Route::get('/cards', [AdminController::class, 'cards'])->name('cards');

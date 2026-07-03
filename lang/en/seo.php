@@ -27,4 +27,7 @@ return [
     'templates_title'       => 'Board Templates',
     'templates_description' => 'Curated Couple Flying Chess board templates — free and Premium-exclusive. Apply one and start playing.',
     'boards_description'    => 'Manage your custom boards — edit square content and path settings.',
+
+    'community_title'       => 'Community Boards — Play Player-Made Couple Game Boards Free',
+    'community_description' => 'Browse couple game boards created and shared by players — play instantly, no signup. Log in to publish your own board for everyone.',
 ];

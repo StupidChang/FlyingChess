@@ -11,7 +11,10 @@ echo "==> 情侶飛行棋 — Starting up..."
 # preventing drift where a deleted migration keeps re-running on every boot.
 # The volume is intended for the SQLite DB only; the migrations/ directory is
 # treated as image-owned, not user-data.
-if [ -d /var/migrations-image ]; then
+# Guard: skip the sync when /var/www/html is a bind-mounted source checkout
+# (.git present) — the replace-sync would delete newer migrations that exist
+# only in the working tree and overwrite them with the image's stale copy.
+if [ -d /var/migrations-image ] && [ ! -d /var/www/html/.git ]; then
     mkdir -p /var/www/html/database/migrations
     rm -f /var/www/html/database/migrations/*.php
     cp /var/migrations-image/*.php /var/www/html/database/migrations/ 2>/dev/null || true

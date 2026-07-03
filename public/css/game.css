@@ -13,7 +13,7 @@
     background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
 }
 .room-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 8px; }
-.room-code-display { font-size: 2rem; font-weight: 900; font-family: 'Noto Sans TC', monospace; letter-spacing: 4px; color: var(--yellow); margin-bottom: 8px; }
+.room-code-display { font-size: 2rem; font-weight: 900; font-family: 'Noto Sans TC', monospace; letter-spacing: 4px; color: var(--accent); margin-bottom: 8px; }
 .copy-btn { width: 100%; }
 
 .players-box h3, .join-box h3, .dice-box h3, .pieces-box h3, .log-box h3, .turn-info-box h3 {
@@ -27,7 +27,7 @@
 .player-dot.green  { background: radial-gradient(ellipse at 35% 30%, #66dd8a, var(--green) 60%, #1b7a2a); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .player-dot.red    { background: radial-gradient(ellipse at 35% 30%, #ef8a8a, var(--red) 60%, #8b1a1a); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .player-name { flex: 1; font-size: .92rem; }
-.host-badge { font-size: .7rem; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--yellow); border: 1px solid var(--yellow); }
+.host-badge { font-size: .7rem; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--accent); border: 1px solid var(--accent); }
 .me-badge  { font-size: .7rem; background: var(--primary); padding: 2px 6px; border-radius: 4px; color: #fff; }
 .bot-badge { font-size: .7rem; background: #2d1f47; padding: 2px 6px; border-radius: 4px; color: #c084fc; border: 1px solid #7e22ce; }
 .player-item.player-yellow { border-left: 3px solid var(--yellow); }
@@ -135,6 +135,23 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
     padding: 40px; text-align: center; max-width: 360px;
     animation: cardSlideIn .5s ease-out;
+    position: relative; z-index: 2;
+}
+
+/* Winner confetti — a handful of falling rectangles behind the card, JS-spawned in showWinner() */
+.confetti-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.confetti-piece {
+    position: absolute; top: -12px; width: 8px; height: 14px; opacity: 0;
+    border-radius: 2px;
+    animation-name: confettiFall; animation-timing-function: cubic-bezier(.25,.46,.45,.94);
+    animation-fill-mode: forwards;
+}
+@keyframes confettiFall {
+    0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--drift, 0), 640px) rotate(560deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .confetti-layer { display: none; }
 }
 @keyframes overlayFadeIn {
     from { opacity: 0; }
@@ -147,7 +164,7 @@
 .waiting-icon, .trophy-icon { font-size: 3rem; margin-bottom: 16px; }
 .waiting-card h2, .winner-card h2 { margin-bottom: 12px; font-size: 1.6rem; }
 .waiting-card p { color: var(--text-dim); margin-bottom: 8px; }
-.code-highlight { color: var(--yellow); font-family: monospace; font-size: 1.2rem; letter-spacing: 3px; }
+.code-highlight { color: var(--accent); font-family: monospace; font-size: 1.2rem; letter-spacing: 3px; }
 
 /* ---- Chess Board ---- */
 .board-container { width: min(90vmin, 660px); aspect-ratio: 1; }
@@ -160,69 +177,104 @@
     border: 2px solid var(--border);
     border-radius: 4px;
     overflow: hidden;
-    background: #1a2030;
+    background: var(--bg);
     position: relative;
+    /* Soft per-color halo behind each home quadrant — shows through the
+       semi-transparent .cell-home-* tints, sits below the opaque path/lane
+       cells so it never bleeds into the rest of the board. */
+    isolation: isolate;
+}
+.game-board::before {
+    content: '';
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+        radial-gradient(circle at 13% 13%, rgba(250,204,21,.28), transparent 42%),
+        radial-gradient(circle at 87% 13%, rgba(56,189,248,.28), transparent 42%),
+        radial-gradient(circle at 87% 87%, rgba(74,222,128,.28), transparent 42%),
+        radial-gradient(circle at 13% 87%, rgba(248,113,113,.28), transparent 42%);
 }
 
 /* Board cells */
 .board-cell {
-    border: 1px solid rgba(255,255,255,.06);
+    border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
     position: relative; font-size: .5rem;
     transition: background .15s;
 }
 
 /* Home base areas */
-.cell-home-yellow { background: rgba(245,197,24,.18); }
-.cell-home-blue   { background: rgba(41,121,255,.18); }
-.cell-home-green  { background: rgba(0,200,83,.18); }
-.cell-home-red    { background: rgba(244,67,54,.18); }
+.cell-home-yellow { background: rgba(250,204,21,.16); }
+.cell-home-blue   { background: rgba(56,189,248,.16); }
+.cell-home-green  { background: rgba(74,222,128,.16); }
+.cell-home-red    { background: rgba(248,113,113,.16); }
 
 /* Home piece circles */
 .cell-home-circle { background: rgba(255,255,255,.05); border-radius: 50%; width: 80%; height: 80%; border: 2px solid rgba(255,255,255,.15); }
-.cell-home-circle.yellow { border-color: var(--yellow); background: rgba(245,197,24,.15); }
-.cell-home-circle.blue   { border-color: var(--blue); background: rgba(41,121,255,.15); }
-.cell-home-circle.green  { border-color: var(--green); background: rgba(0,200,83,.15); }
-.cell-home-circle.red    { border-color: var(--red); background: rgba(244,67,54,.15); }
+.cell-home-circle.yellow { border-color: var(--yellow); background: rgba(250,204,21,.15); }
+.cell-home-circle.blue   { border-color: var(--blue); background: rgba(56,189,248,.15); }
+.cell-home-circle.green  { border-color: var(--green); background: rgba(74,222,128,.15); }
+.cell-home-circle.red    { border-color: var(--red); background: rgba(248,113,113,.15); }
 
 /* Path cells */
-.cell-path { background: #1e2a3a; }
-.cell-path:hover { background: #253040; }
+.cell-path { background: var(--surface2); }
+.cell-path:hover { background: #262c40; }
 
 /* Safe squares (starred) */
-.cell-safe { background: #1e2a3a; }
-.cell-safe::after { content: '★'; position: absolute; font-size: .7em; color: rgba(255,255,255,.3); }
+.cell-safe {
+    background: radial-gradient(circle, rgba(var(--glow-rgb),.22), var(--surface2) 72%);
+}
+.cell-safe::after {
+    content: '★'; position: absolute; font-size: .75em; color: var(--accent);
+    text-shadow: 0 0 6px rgba(var(--glow-rgb),.65);
+}
 
 /* Safe lane cells */
-.cell-lane-yellow { background: rgba(245,197,24,.25); }
-.cell-lane-blue   { background: rgba(41,121,255,.25); }
-.cell-lane-green  { background: rgba(0,200,83,.25); }
-.cell-lane-red    { background: rgba(244,67,54,.25); }
+.cell-lane-yellow { background: rgba(250,204,21,.25); }
+.cell-lane-blue   { background: rgba(56,189,248,.25); }
+.cell-lane-green  { background: rgba(74,222,128,.25); }
+.cell-lane-red    { background: rgba(248,113,113,.25); }
 
 /* Start squares */
-.cell-start-yellow { background: rgba(245,197,24,.35); }
-.cell-start-blue   { background: rgba(41,121,255,.35); }
-.cell-start-green  { background: rgba(0,200,83,.35); }
-.cell-start-red    { background: rgba(244,67,54,.35); }
+.cell-start-yellow { background: rgba(250,204,21,.35); }
+.cell-start-blue   { background: rgba(56,189,248,.35); }
+.cell-start-green  { background: rgba(74,222,128,.35); }
+.cell-start-red    { background: rgba(248,113,113,.35); }
 
 /* Center cell */
 .cell-center {
     background: conic-gradient(var(--yellow) 0 25%, var(--blue) 25% 50%, var(--green) 50% 75%, var(--red) 75%);
     font-size: 1.2rem; z-index: 2;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.15);
+}
+
+/* Piece overlay — an absolutely-positioned layer above the static board grid.
+   Each piece keeps one persistent DOM node inside a .piece-slot; moving a piece
+   only changes the slot's left/top, which is what lets the transition below
+   actually animate (see game.js renderPieces / animatePieceTo). */
+.pieces-layer {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+}
+.piece-slot {
+    position: absolute;
+    width: 6.6667%; height: 6.6667%;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    transition: left .16s cubic-bezier(.4,0,.2,1), top .16s cubic-bezier(.4,0,.2,1);
 }
 
 /* Pieces on board — 3D chess pawn style */
 .piece {
     width: 70%; height: 70%;
-    position: absolute; display: flex; align-items: center; justify-content: center;
+    position: relative; display: flex; align-items: center; justify-content: center;
     font-size: .55rem; font-weight: 900; color: #fff;
-    cursor: default; z-index: 10;
+    cursor: default; z-index: 1;
     transition: transform .3s ease;
     pointer-events: none;
     border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
     border: none;
     font-family: 'Noto Sans TC', sans-serif;
 }
+.piece.piece-finished { transform: scale(.72); }
 .piece::before {
     content: '';
     position: absolute;
@@ -266,6 +318,27 @@
 .piece-offset-1 { transform: translate(20%, -20%); }
 .piece-offset-2 { transform: translate(-20%, 20%); }
 .piece-offset-3 { transform: translate(20%, 20%); }
+/* Finished pieces shrink to fit several on the center square; keep the offset nudge too */
+.piece.piece-finished.piece-offset-1 { transform: scale(.72) translate(20%, -20%); }
+.piece.piece-finished.piece-offset-2 { transform: scale(.72) translate(-20%, 20%); }
+.piece.piece-finished.piece-offset-3 { transform: scale(.72) translate(20%, 20%); }
+
+/* Captured — shrink & fade at the old square before popping back in at home */
+.piece.piece-captured { animation: pieceCaptured .24s ease-in forwards; }
+@keyframes pieceCaptured {
+    0%   { transform: scale(1);   opacity: 1; }
+    100% { transform: scale(.15) rotate(20deg); opacity: 0; }
+}
+.piece.piece-popin { animation: piecePopIn .32s cubic-bezier(.34,1.56,.64,1); }
+@keyframes piecePopIn {
+    0%   { transform: scale(.2); opacity: 0; }
+    70%  { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .piece-slot { transition: none; }
+    .piece.piece-captured, .piece.piece-popin { animation: none; }
+}
 
 /* Bot thinking indicator */
 .bot-status {
@@ -287,4 +360,20 @@
     .game-sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; overflow-x: auto; padding: 12px; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
     .game-sidebar > * { flex: 0 0 auto; max-width: 200px; }
     .board-container { width: min(98vmin, 500px); }
+    .game-main { padding: 12px; }
+}
+
+@media (max-width: 480px) {
+    .board-container { width: min(98vw, 420px); }
+    .room-code-display { font-size: 1.5rem; letter-spacing: 2px; }
+    .dice { width: 52px; height: 52px; }
+    .dice-cube3d { width: 34px; height: 34px; }
+    /* Shrink the cube's translateZ to match the smaller face size above */
+    .dice-face3d.df1 { transform: rotateY(0deg)   translateZ(17px); }
+    .dice-face3d.df6 { transform: rotateY(180deg) translateZ(17px); }
+    .dice-face3d.df3 { transform: rotateY(-90deg) translateZ(17px); }
+    .dice-face3d.df4 { transform: rotateY(90deg)  translateZ(17px); }
+    .dice-face3d.df2 { transform: rotateX(90deg)  translateZ(17px); }
+    .dice-face3d.df5 { transform: rotateX(-90deg) translateZ(17px); }
+    .my-piece-btn { width: 34px; height: 34px; }
 }

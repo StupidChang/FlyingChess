@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Game;
-use App\Models\GamePlayer;
 use App\Models\TruthDareCard;
 use Illuminate\Support\Str;
 
@@ -32,12 +31,13 @@ class TruthDareService
             'player_name' => $playerName,
             'color' => 'none',
             'is_host' => true,
+            'user_id' => $hostUserId,
         ]);
 
         return ['success' => true, 'game' => $game];
     }
 
-    public function joinGame(Game $game, string $playerName, string $sessionId): array
+    public function joinGame(Game $game, string $playerName, string $sessionId, ?int $userId = null): array
     {
         // Allow same-session re-entry (idempotent) regardless of game status
         if ($game->players()->where('session_id', $sessionId)->exists()) {
@@ -45,7 +45,7 @@ class TruthDareService
         }
 
         // New players can only join during waiting phase
-        if (!$game->isWaiting()) {
+        if (! $game->isWaiting()) {
             return ['success' => false, 'message' => '此房間已開始或已結束，無法加入。'];
         }
 
@@ -58,6 +58,7 @@ class TruthDareService
             'player_name' => $playerName,
             'color' => 'none',
             'is_host' => false,
+            'user_id' => $userId,
         ]);
 
         return ['success' => true];
@@ -99,13 +100,13 @@ class TruthDareService
         $query = TruthDareCard::where('category', $category)
             ->whereIn('tier', $tiers);
 
-        if (!empty($usedIds)) {
+        if (! empty($usedIds)) {
             $query->whereNotIn('id', $usedIds);
         }
 
         $card = $query->inRandomOrder()->first();
 
-        if (!$card) {
+        if (! $card) {
             return ['success' => false, 'message' => '此類別已無更多題目'];
         }
 
@@ -147,7 +148,7 @@ class TruthDareService
     public function leaveGame(Game $game, string $sessionId): array
     {
         $player = $game->players()->where('session_id', $sessionId)->first();
-        if (!$player) {
+        if (! $player) {
             return ['success' => false, 'message' => '你不在此房間中。'];
         }
 
@@ -161,6 +162,7 @@ class TruthDareService
 
         if ($remainingCount === 0) {
             $game->update(['status' => 'finished']);
+
             return ['success' => true, 'message' => '房間已關閉。'];
         }
 

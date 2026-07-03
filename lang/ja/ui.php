@@ -49,4 +49,9 @@ return [
     'custom_dare'      => 'カスタム挑戦',
     'coming_soon'      => '近日公開',
     'ad_label'         => '広告',
+
+    'play_history'      => 'プレイ履歴',
+    'no_play_history'   => 'まだプレイ履歴がありません。遊びに行きましょう！',
+    'history_as_host'   => 'ホスト',
+    'community_boards'  => 'コミュニティボード',
 ];

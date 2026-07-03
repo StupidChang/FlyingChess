@@ -18,6 +18,7 @@ class RedirectUnprefixedUrl
         'age-verify',
         'sitemap.xml',
         'robots.txt',
+        'ads.txt',
         'up',
         'premium/callback',
         'premium/result',

@@ -97,15 +97,29 @@ docker run --rm flying-chess-online php artisan key:generate --show
 - `HomeController` — Landing page.
 
 ### Routing Structure
-- `/` — Home
-- `/login`, `/register` — Guest-only auth
-- `/games/*` — Flying Chess (no auth required; session-based player identity)
-- `/play`, `/play/{board}`, `/play/share/{code}` — Custom board play (public)
-- `/boards/*` — Board CRUD (auth required)
+All public/auth routes live under a `{locale}` prefix (`tw|cn|jp|en`, SetLocale middleware).
+Locale-exempt: `/sitemap.xml`, `/robots.txt`, `/ads.txt`, `/age-verify`, `/premium/callback`, `/premium/result`, `/up`.
+- `/{locale}` — Home; `/{locale}/game-hall` — game directory
+- `/login`, `/register` — Guest-only auth (email verification required for boards)
+- `/games/*` — Flying Chess (guests can play; session-based identity, `user_id` recorded when logged in)
+- `/truth-dare/*`, `/card-game`, `/dice-game`, `/king-game`, `/wheel-game`, `/bucket-list/*`, `/time-capsule/*` — party games/tools, all guest-playable
+- `/play`, `/play/{board}`, `/play/share/{code}` — Custom board play. `/play/{board}` by numeric ID only works for default/template/community-approved boards (or owner/admin); private boards are share-code-only (anti-enumeration)
+- `/community` — public list of user-published boards (publish → admin review → approved)
+- `/boards/*` — Board CRUD + publish/unpublish (auth + verified)
+- `/admin/*` — dashboard, boards, board-reviews (publish queue), cards, wheel-segments, users (ban/premium), games
 
-### Frontend JS
-- `resources/js/app.js` — Entry point (bootstraps Axios, sets CSRF header)
-- Game and board editor logic is inline in the respective Blade views (`resources/views/games/show.blade.php`, `resources/views/boards/edit.blade.php`)
+### Permission model
+- **Guests**: play everything, no history. **Logged-in**: create/edit boards, publish to community (admin-reviewed, `boards.publish_status`), play history via `game_players.user_id` (shown on `/profile`). **Admin** (`users.is_admin`): full management + publish review queue.
+- User-generated text fields are validated with `App\Rules\NoBlockedWords` (`config/moderation.php`). Editing an approved board sends it back to `pending`.
+
+### Frontend truth (IMPORTANT)
+- The Tailwind/Vite setup is **dead config** — no blade uses `@vite`. Real styling is hand-written CSS in `public/css/` (`app.css` = design system + tokens, `game.css` = flying chess, `board.css` = custom board play/editor, `minigames.css` = shared `mg-*` minigame components) plus page-specific inline `<style>` blocks.
+- Design tokens (in `public/css/app.css`): neutral dark base + rose accent (`--bg/--surface/--surface2/--border/--accent/--gold/--text/--text-dim`), game piece colors (`--yellow/--blue/--green/--red`). Two themes via `[data-theme]`. `--gold` is reserved for premium/monetary UI.
+- `public/js/app.js`, `game.js`, `board.js`, `board-editor.js` are hand-maintained (no build step). `board.css`/`board.js` are shared between play view and board editor.
+
+### Ads (config/ads.php)
+- Adapter-based ad slots: `@include('partials.ad-unit', ['zone' => 'home_banner'])`; zones: home_banner, home_mid, lobby_side, game_end (reserved), share.
+- Adapters: `exoclick` (default; adult-friendly) / `trafficjunky` / `adsense` (**never enable AdSense here — adult content violates its policy**). `/ads.txt` served from `ADS_TXT_LINES` env. Premium users see no ads. See `docs/ADS-PLAN.md`.
 
 ### Docker Setup
 Single-container image: PHP-FPM + Nginx + Supervisor on Alpine. The entrypoint runs migrations and seeds on start. SQLite database and storage are persisted via named Docker volumes.

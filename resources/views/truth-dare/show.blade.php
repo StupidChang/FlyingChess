@@ -4,6 +4,7 @@
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
 <style>
 /* Card reveal animation */
 @keyframes tdCardReveal{
@@ -11,50 +12,41 @@
     60%{opacity:1;transform:scale(1.03) translateY(-4px);filter:blur(0)}
     100%{opacity:1;transform:scale(1) translateY(0);filter:blur(0)}
 }
-.td-card{animation:tdCardReveal .5s cubic-bezier(.34,1.56,.64,1) both;position:relative}
+.mg-content-card{animation:tdCardReveal .5s cubic-bezier(.34,1.56,.64,1) both}
 
 /* Glow ring behind card */
-.td-card::before{
+.mg-content-card::before{
     content:'';position:absolute;inset:-8px;border-radius:16px;z-index:-1;
-    background:conic-gradient(from 0deg,rgba(212,160,23,.3),rgba(239,68,68,.2),rgba(168,85,247,.3),rgba(59,130,246,.2),rgba(212,160,23,.3));
+    background:conic-gradient(from 0deg,rgba(217,164,65,.3),rgba(244,63,94,.2),rgba(168,85,247,.3),rgba(56,189,248,.2),rgba(217,164,65,.3));
     filter:blur(12px);opacity:0;animation:tdGlowIn .8s .2s ease-out forwards;
 }
 @keyframes tdGlowIn{to{opacity:1}}
 
 /* Card content text shimmer */
-.td-card-content{
-    position:relative;overflow:hidden;
+.mg-content-card-text{
+    position:relative;overflow:hidden;display:block;
     padding:12px 16px;border-radius:10px;
 }
-.td-card-content::after{
+.mg-content-card-text::after{
     content:'';position:absolute;top:-4px;bottom:-4px;left:-100%;width:60%;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
     border-radius:inherit;filter:blur(6px);
     animation:tdShimmer 2.5s 1s ease-in-out infinite;
 }
 @keyframes tdShimmer{0%{left:-100%}100%{left:200%}}
-
-/* Category button hover pulse */
-.td-cat-btn{position:relative;overflow:hidden}
-.td-cat-btn::after{
-    content:'';position:absolute;inset:0;border-radius:inherit;
-    background:radial-gradient(circle at 50% 50%,rgba(212,160,23,.15),transparent 70%);
-    opacity:0;transition:opacity .3s;
-}
-.td-cat-btn:hover::after{opacity:1}
 </style>
 @endsection
 
 @section('content')
 
-<div class="td-game-area">
+<div class="mg-page mg-page--lg">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px">
-        <h1 style="font-size:1.3rem;color:var(--gold)">
+        <h1 class="mg-title mg-title--inline">
             {{ __('games.truth_dare') }}
         </h1>
         <div style="display:flex;gap:8px;align-items:center">
             @if($isAdult)
-                <span style="font-size:.7rem;padding:2px 8px;border-radius:8px;background:#dc2626;color:#fff;font-weight:700">{{ __('games.td_adult_badge') }}</span>
+                <span class="mg-badge mg-badge-adult">{{ __('games.td_adult_badge') }}</span>
             @elseif($hostIsPremium)
                 <span class="badge-premium">{{ __('games.td_premium_active') }}</span>
             @endif
@@ -76,9 +68,9 @@
     </div>
 
     {{-- Players --}}
-    <div id="players-area" class="td-players">
+    <div id="players-area" class="mg-players">
         @foreach($game->players()->orderBy('id')->get() as $i => $p)
-        <div class="td-player" data-session="{{ $p->session_id }}">
+        <div class="mg-player-chip" data-session="{{ $p->session_id }}">
             {{ $p->player_name }}
         </div>
         @endforeach
@@ -89,52 +81,34 @@
 
         {{-- Category selection (shown during play) --}}
         <div id="category-area" style="display:none">
-            <p id="current-turn-text" style="text-align:center;margin-bottom:16px;color:var(--gold);font-size:1.1rem"></p>
-            <div class="td-categories">
-                @if($isAdult)
-                <button class="td-cat-btn" onclick="drawCard('truth')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">🔥</div>
-                    {{ __('games.td_cat_truth_adult') }}
+            <p id="current-turn-text" class="mg-round-badge"></p>
+            <div class="mg-cat-grid">
+                @php $catAdult = $isAdult ? ' is-adult' : ''; @endphp
+                <button class="mg-cat-btn{{ $catAdult }}" onclick="drawCard('truth')">
+                    <svg class="mg-cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.024 2.76 3.234.577.075 1.157.14 1.74.194V21l4.155-4.155" /></svg>
+                    {{ $isAdult ? __('games.td_cat_truth_adult') : __('games.td_cat_truth') }}
                 </button>
-                <button class="td-cat-btn" onclick="drawCard('dare')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">😈</div>
-                    {{ __('games.td_cat_dare_adult') }}
+                <button class="mg-cat-btn{{ $catAdult }}" onclick="drawCard('dare')">
+                    <svg class="mg-cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.467 5.99 5.99 0 0 0-1.925 3.546 5.974 5.974 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" /></svg>
+                    {{ $isAdult ? __('games.td_cat_dare_adult') : __('games.td_cat_dare') }}
                 </button>
-                <button class="td-cat-btn" onclick="drawCard('couple')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">💋</div>
-                    {{ __('games.td_cat_couple_adult') }}
+                <button class="mg-cat-btn{{ $catAdult }}" onclick="drawCard('couple')">
+                    <svg class="mg-cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+                    {{ $isAdult ? __('games.td_cat_couple_adult') : __('games.td_cat_couple') }}
                 </button>
-                <button class="td-cat-btn" onclick="drawCard('party')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">🍷</div>
-                    {{ __('games.td_cat_party_adult') }}
+                <button class="mg-cat-btn{{ $catAdult }}" onclick="drawCard('party')">
+                    <svg class="mg-cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.456-2.456L14.25 6l1.035-.259a3.375 3.375 0 0 0 2.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" /></svg>
+                    {{ $isAdult ? __('games.td_cat_party_adult') : __('games.td_cat_party') }}
                 </button>
-                @else
-                <button class="td-cat-btn" onclick="drawCard('truth')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">💬</div>
-                    {{ __('games.td_cat_truth') }}
-                </button>
-                <button class="td-cat-btn" onclick="drawCard('dare')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">🎯</div>
-                    {{ __('games.td_cat_dare') }}
-                </button>
-                <button class="td-cat-btn" onclick="drawCard('couple')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">💕</div>
-                    {{ __('games.td_cat_couple') }}
-                </button>
-                <button class="td-cat-btn" onclick="drawCard('party')">
-                    <div style="font-size:1.5rem;margin-bottom:4px">🎉</div>
-                    {{ __('games.td_cat_party') }}
-                </button>
-                @endif
             </div>
         </div>
 
         {{-- Card display --}}
         <div id="card-area" style="display:none">
-            <div class="td-card">
-                <div class="td-card-category" id="card-category"></div>
-                <div class="td-card-content" id="card-content"></div>
-                <div class="td-card-tier" id="card-tier"></div>
+            <div class="mg-content-card">
+                <div class="mg-content-card-category" id="card-category"></div>
+                <div class="mg-content-card-text" id="card-content"></div>
+                <div class="mg-content-card-tier" id="card-tier"></div>
             </div>
             <div style="text-align:center">
                 <button class="btn btn-gold btn-xl" onclick="nextPlayer()">{{ __('games.td_next_player') }}</button>
@@ -181,7 +155,7 @@ function showCategories() {
 
 var drawing = false;
 function setCatButtonsDisabled(disabled) {
-    document.querySelectorAll('.td-cat-btn').forEach(function (b) { b.disabled = disabled; });
+    document.querySelectorAll('.mg-cat-btn').forEach(function (b) { b.disabled = disabled; });
 }
 
 function drawCard(category) {
@@ -250,7 +224,7 @@ function pollState() {
         pa.innerHTML = '';
         data.players.forEach(function(p, i) {
             var div = document.createElement('div');
-            div.className = 'td-player' + (data.game_state.current_player_index === i ? ' active' : '');
+            div.className = 'mg-player-chip' + (data.game_state.current_player_index === i ? ' is-active' : '');
             div.textContent = p.player_name;
             pa.appendChild(div);
         });

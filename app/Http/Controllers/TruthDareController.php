@@ -97,7 +97,8 @@ class TruthDareController extends Controller
         $result = $this->service->joinGame(
             $game,
             $data['player_name'],
-            $this->playerSessionId($request)
+            $this->playerSessionId($request),
+            $request->user()?->id
         );
 
         if (!$result['success']) {

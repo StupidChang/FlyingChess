@@ -11,22 +11,6 @@
      Hero
      ====================================================== --}}
 <section class="hero-section">
-    {{-- Floating decorative shapes (hidden on mobile via CSS) --}}
-    <svg class="hero-deco hero-deco-dice" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="3" y="3" width="42" height="42" rx="9" stroke="currentColor" stroke-width="3" fill="none"/>
-        <circle cx="15" cy="15" r="3.5" fill="currentColor"/>
-        <circle cx="33" cy="15" r="3.5" fill="currentColor"/>
-        <circle cx="24" cy="24" r="3.5" fill="currentColor"/>
-        <circle cx="15" cy="33" r="3.5" fill="currentColor"/>
-        <circle cx="33" cy="33" r="3.5" fill="currentColor"/>
-    </svg>
-    <svg class="hero-deco hero-deco-heart" aria-hidden="true" viewBox="0 0 48 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M24 42s-18-10.8-18-23.4C6 11 11.4 6 17.4 6c3.6 0 6.6 1.8 8.4 4.2.6.9 1.8.9 2.4 0C30 7.8 33 6 36.6 6 42.6 6 48 11 48 18.6 48 31.2 24 42 24 42z"/>
-    </svg>
-    <svg class="hero-deco hero-deco-diamond" aria-hidden="true" viewBox="0 0 40 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 2L38 18 20 46 2 18z"/>
-    </svg>
-
     <div class="hero-inner">
         <span class="hero-eyebrow">{{ __('home.hero_eyebrow') }}</span>
         <h1 class="hero-title">{{ __('home.hero_title_pre') }}<span>{{ __('home.hero_title_high') }}</span></h1>

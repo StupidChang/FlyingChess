@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureNotBanned;
 use App\Http\Middleware\EnsurePremium;
 use App\Http\Middleware\RedirectUnprefixedUrl;
 use App\Http\Middleware\SetLocale;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -35,6 +36,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // before AgeVerification renders the age gate, avoiding wasted renders.
         $middleware->prepend(RedirectUnprefixedUrl::class);
         $middleware->append(AgeVerification::class);
+
+        // SetLocale must run before Authenticate / EnsureEmailIsVerified:
+        // their guest/unverified redirects call route('login') /
+        // route('verification.notice'), which need URL::defaults(['locale'])
+        // already pinned or they throw UrlGenerationException (500 instead
+        // of a redirect for logged-out visitors on auth-only pages).
+        $middleware->prependToPriorityList(
+            AuthenticatesRequests::class,
+            SetLocale::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

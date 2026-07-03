@@ -4,26 +4,14 @@
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
 <style>
-.tc-show{max-width:680px;margin:0 auto;padding:24px 16px 48px}
-.tc-header{margin-bottom:20px;text-align:center}
-.tc-header h1{font-size:1.4rem;color:var(--gold);margin-bottom:8px;word-break:break-all}
-.tc-meta{color:var(--text-dim);font-size:.85rem;margin-top:6px}
-.tc-role{display:inline-block;padding:4px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-top:6px}
-.tc-role.owner{background:#1e40af;color:#fff}
-.tc-role.partner{background:#7c3aed;color:#fff}
-.tc-role.viewer{background:#525252;color:#fff}
-
 .tc-state{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;text-align:center;font-size:.9rem}
 .tc-state.sealed{border-color:#7c3aed;background:rgba(124,58,237,.08)}
-.tc-state.locked{border-color:#f59e0b;background:rgba(245,158,11,.08)}
-.tc-state.open{border-color:#22c55e;background:rgba(34,197,94,.08)}
-.tc-state .big{font-size:1.1rem;color:var(--gold);font-weight:700;margin-bottom:4px}
-
-.tc-share{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;font-size:.85rem}
-.tc-share .label{color:var(--text-dim);margin-bottom:6px}
-.tc-share .url{color:var(--gold);font-family:monospace;word-break:break-all;font-size:.78rem;line-height:1.5}
-.tc-share button{margin-top:8px;padding:6px 12px;font-size:.8rem;background:var(--gold);color:var(--bg);border:none;border-radius:6px;cursor:pointer;font-weight:600}
+.tc-state.locked{border-color:var(--yellow,#facc15);background:rgba(250,204,21,.08)}
+.tc-state.open{border-color:var(--green,#4ade80);background:rgba(74,222,128,.08)}
+.tc-state .big{font-size:1.1rem;color:var(--gold);font-weight:700;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px}
+.tc-state .big svg{width:20px;height:20px;flex-shrink:0}
 
 .tc-question{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px}
 .tc-q-num{display:inline-block;background:var(--gold);color:var(--bg);width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;font-weight:700;font-size:.85rem;margin-right:8px}
@@ -39,22 +27,21 @@
 .tc-actions{position:sticky;bottom:0;background:var(--bg);padding:16px 0;border-top:1px solid var(--border);margin-top:20px;display:flex;gap:10px}
 .tc-actions button{flex:1;padding:12px;font-size:.95rem}
 
-.tc-flash{background:#1e3a8a;color:#bfdbfe;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:.9rem}
-.tc-flash.success{background:#14532d;color:#bbf7d0}
-.tc-flash.error{background:#7f1d1d;color:#fecaca}
-
 .tc-locked-msg{padding:40px 20px;text-align:center;color:var(--text-dim)}
-.tc-locked-msg .icon{font-size:3rem;margin-bottom:12px}
+.tc-locked-msg svg{width:48px;height:48px;margin:0 auto 12px;display:block;color:var(--gold)}
 .tc-locked-msg .countdown{font-size:1.6rem;color:var(--gold);margin:8px 0}
 </style>
 @endsection
 
 @section('content')
-<div class="tc-show">
-    <div class="tc-header">
-        <h1>📦 {{ $capsule->title }}</h1>
-        <div class="tc-meta">{{ __('games.tc_open_date', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
-        <span class="tc-role {{ $role }}">
+<div class="mg-show-page">
+    <div class="mg-show-header">
+        <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+            {{ $capsule->title }}
+        </h1>
+        <div class="mg-show-meta">{{ __('games.tc_open_date', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
+        <span class="mg-role-badge {{ $role }}">
             @if($role === 'owner') {{ __('games.tc_role_owner') }}
             @elseif($role === 'partner') {{ __('games.role_partner') }}
             @else {{ __('games.tc_role_viewer') }}
@@ -63,16 +50,19 @@
     </div>
 
     @if(session('success'))
-        <div class="tc-flash success">✓ {{ session('success') }}</div>
+        <div class="mg-flash success">{{ session('success') }}</div>
     @endif
     @if($errors->any())
-        <div class="tc-flash error">⚠ {{ $errors->first() }}</div>
+        <div class="mg-flash error">{{ $errors->first() }}</div>
     @endif
 
     {{-- State banner --}}
     @if(!$capsule->isSealed())
         <div class="tc-state">
-            <div class="big">📝 {{ __('games.tc_state_editing') }}</div>
+            <div class="big">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                {{ __('games.tc_state_editing') }}
+            </div>
             <div>{{ __('games.tc_state_editing_desc', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @elseif(!$capsule->isOpenable())
@@ -80,21 +70,30 @@
             $days = (int) abs(\Carbon\Carbon::today()->diffInDays($capsule->open_at, false));
         @endphp
         <div class="tc-state locked">
-            <div class="big">🔒 {{ __('games.tc_state_sealed', ['days' => $days]) }}</div>
+            <div class="big">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                {{ __('games.tc_state_sealed', ['days' => $days]) }}
+            </div>
             <div>{{ __('games.tc_state_sealed_desc', ['date' => $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @else
         <div class="tc-state open">
-            <div class="big">🎉 {{ __('games.tc_state_open') }}</div>
+            <div class="big">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.456-2.456L14.25 6l1.035-.259a3.375 3.375 0 0 0 2.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" /></svg>
+                {{ __('games.tc_state_open') }}
+            </div>
             <div>{{ __('games.tc_state_open_desc', ['date' => $capsule->opened_at?->format('Y-m-d') ?? $capsule->open_at->format('Y-m-d')]) }}</div>
         </div>
     @endif
 
     {{-- Share link (only before seal, for owner/partner) --}}
     @if(!$capsule->isSealed() && in_array($role, ['owner', 'partner']))
-        <div class="tc-share">
-            <div class="label">📎 {{ __('games.share_link_label') }}</div>
-            <div class="url" id="share-url">{{ url(route('time-capsule.show', ['shareCode' => $capsule->share_code])) }}</div>
+        <div class="mg-share-box">
+            <div class="mg-share-label">
+                <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
+                {{ __('games.share_link_label') }}
+            </div>
+            <div class="mg-share-url" id="share-url">{{ url(route('time-capsule.show', ['shareCode' => $capsule->share_code])) }}</div>
             <button type="button" id="copy-btn">{{ __('games.copy_link') }}</button>
         </div>
     @endif
@@ -103,7 +102,7 @@
     @if($capsule->isSealed() && !$capsule->isOpenable())
         {{-- Sealed but not yet openable: hide content --}}
         <div class="tc-locked-msg">
-            <div class="icon">🔐</div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
             <div>{{ __('games.tc_locked_hidden') }}</div>
             <div class="countdown">
                 @php
@@ -135,7 +134,10 @@
                 @endforeach
 
                 <div class="tc-actions">
-                    <button type="submit" class="btn btn-gold">💾 {{ __('games.tc_save_btn') }}</button>
+                    <button type="submit" class="btn btn-gold">
+                        <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                        {{ __('games.tc_save_btn') }}
+                    </button>
                 </div>
             </form>
 
@@ -143,7 +145,10 @@
             @if($role === 'owner')
                 <form method="POST" action="{{ route('time-capsule.seal', ['shareCode' => $capsule->share_code]) }}" style="margin-top:12px" onsubmit="return confirm(@json(__('games.tc_seal_confirm', ['date' => $capsule->open_at->format('Y-m-d')])))">
                     @csrf
-                    <button type="submit" class="btn btn-outline" style="width:100%;padding:12px;border:1px solid #7c3aed;color:#a855f7;background:transparent">🔒 {{ __('games.tc_seal_btn') }}</button>
+                    <button type="submit" class="btn btn-outline" style="width:100%;padding:12px;border:1px solid #7c3aed;color:#a855f7;background:transparent">
+                        <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                        {{ __('games.tc_seal_btn') }}
+                    </button>
                 </form>
             @endif
         @else

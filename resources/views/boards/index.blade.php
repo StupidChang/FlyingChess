@@ -20,6 +20,14 @@
                 <h3>{{ $board->name }}</h3>
                 @if($board->description)<p>{{ $board->description }}</p>@endif
                 <span class="badge-squares">{{ __('ui.square_count', ['n' => $board->squares_count]) }}</span>
+                @if($board->publish_status)
+                <span class="publish-badge publish-badge--{{ $board->publish_status }}">
+                    {{ __('play.publish_status_' . $board->publish_status) }}
+                </span>
+                @if($board->publish_status === \App\Models\Board::PUBLISH_REJECTED && $board->publish_note)
+                <p class="publish-note">{{ __('play.publish_note_label') }}：{{ $board->publish_note }}</p>
+                @endif
+                @endif
                 @if($board->share_code)
                 <span class="share-code-badge" title="{{ __('ui.share_code_tip') }}"
                       data-code="{{ $board->share_code }}"
@@ -41,6 +49,17 @@
                     </svg>
                     {{ __('ui.edit') }}
                 </a>
+                @if(in_array($board->publish_status, [\App\Models\Board::PUBLISH_PENDING, \App\Models\Board::PUBLISH_APPROVED], true))
+                <form action="{{ route('boards.unpublish', $board) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-sm btn-outline">{{ __('play.unpublish') }}</button>
+                </form>
+                @else
+                <form action="{{ route('boards.publish', $board) }}" method="POST" onsubmit="return confirm(@js(__('play.publish_confirm')))">
+                    @csrf
+                    <button class="btn btn-sm btn-outline" title="{{ __('play.publish_hint') }}">{{ __('play.publish') }}</button>
+                </form>
+                @endif
                 <form action="{{ route('boards.destroy', $board) }}" method="POST" onsubmit="return confirm(@js(__('ui.confirm_delete')))">
                     @csrf @method('DELETE')
                     <button class="btn btn-sm btn-danger">

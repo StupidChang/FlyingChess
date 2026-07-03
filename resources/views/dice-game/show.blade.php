@@ -4,23 +4,8 @@
 @section('canonical', route('dice-game.show'))
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
 <style>
-.dg-page{max-width:600px;margin:0 auto;padding:20px 16px;min-height:calc(100vh - 56px);position:relative;isolation:isolate}
-.dg-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(var(--glow-rgb,180,60,100),.1) 0%,transparent 70%);animation:hero-glow 6s ease-in-out infinite;pointer-events:none;z-index:-1}
-.dg-page>*{position:relative}
-.dg-title{text-align:center;color:var(--gold);font-size:1.4rem;margin-bottom:4px}
-.dg-subtitle{text-align:center;color:var(--text-dim);font-size:.85rem;margin-bottom:20px}
-.dg-setup{background:var(--card-bg,rgba(255,255,255,.06));border:1px solid var(--border);border-radius:12px;padding:20px}
-.dg-player-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
-.dg-player-row input[type=text]{flex:1;min-width:100px}
-.dg-player-remove{background:none;border:none;color:#e53935;font-size:1.2rem;cursor:pointer;padding:0 4px}
-.dg-add-player{margin-bottom:16px}
-
-/* Inline toast */
-.dg-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 24px;border-radius:8px;background:#2a0a0f;border:1px solid var(--rose,#e53935);color:#f06080;font-weight:600;font-size:.9rem;animation:dg-toast-in .3s ease-out,dg-toast-out .4s 2.5s ease-in forwards;pointer-events:none}
-@keyframes dg-toast-in{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes dg-toast-out{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
-
 /* 3D Dice */
 .dg-dice-area{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;padding:30px 0}
 .dg-dice-wrapper{text-align:center}
@@ -51,44 +36,36 @@
 /* Result */
 .dg-result{text-align:center;padding:20px;animation:fadeIn .3s ease-out}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.dg-result-text{font-size:1.3rem;font-weight:700;color:var(--text-main,#fff);margin:16px 0;padding:12px 20px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;display:inline-block}
-.dg-turn-badge{text-align:center;color:var(--gold);font-size:1.1rem;margin-bottom:16px}
-.dg-current-player{font-size:1.2rem;color:var(--gold);font-weight:700;text-align:center;margin-bottom:12px}
-.dg-intensity-tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:4px;font-weight:600;margin-left:8px}
-.dg-intensity-mild{background:#66bb6a;color:#fff}
-.dg-intensity-medium{background:#ffa726;color:#fff}
-.dg-intensity-intense{background:#ef5350;color:#fff}
-.dg-action-btns{text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 </style>
 @endsection
 
 @section('content')
-<div class="dg-page">
-    <h1 class="dg-title">{{ __('minigame.dice_title') }}</h1>
-    <p class="dg-subtitle">{{ __('minigame.dice_subtitle') }}</p>
+<div class="mg-page mg-page--md">
+    <h1 class="mg-title">{{ __('minigame.dice_title') }}</h1>
+    <p class="mg-subtitle">{{ __('minigame.dice_subtitle') }}</p>
 
     {{-- Setup Phase --}}
-    <div id="setup-phase" class="dg-setup">
-        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">{{ __('minigame.players_setup') }}</h2>
+    <div id="setup-phase" class="mg-setup">
+        <h2 class="mg-setup-heading">{{ __('minigame.players_setup') }}</h2>
         <div id="players-list">
-            <div class="dg-player-row" data-idx="0">
+            <div class="mg-player-row" data-idx="0">
                 <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="12">
             </div>
-            <div class="dg-player-row" data-idx="1">
+            <div class="mg-player-row" data-idx="1">
                 <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="12">
             </div>
         </div>
-        <button class="btn btn-sm btn-outline dg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        <button class="btn btn-sm btn-outline mg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
         <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
     {{-- Game Phase --}}
     <div id="game-phase" style="display:none">
-        <div class="dg-turn-badge" id="turn-badge"></div>
-        <div class="dg-current-player" id="current-player"></div>
+        <div class="mg-round-badge" id="turn-badge"></div>
+        <div class="mg-current-player" id="current-player"></div>
         <div class="dg-dice-area" id="dice-area"></div>
         <div id="result-display" class="dg-result" style="display:none"></div>
-        <div class="dg-action-btns">
+        <div class="mg-action-btns">
             <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
             <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
             <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
@@ -112,10 +89,10 @@
     function escHtml(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
 
     function showToast(msg){
-        var old=document.querySelector('.dg-toast');
+        var old=document.querySelector('.mg-toast');
         if(old) old.remove();
         var t=document.createElement('div');
-        t.className='dg-toast';
+        t.className='mg-toast';
         t.textContent=msg;
         document.body.appendChild(t);
         setTimeout(function(){t.remove()},3200);
@@ -133,7 +110,7 @@
     };
     function intensityTag(){
         var t=getTier();
-        return '<span class="dg-intensity-tag dg-intensity-'+t+'">'+escHtml(TIER_LABELS[t])+'</span>';
+        return '<span class="mg-tag mg-tag-'+t+'">'+escHtml(TIER_LABELS[t])+'</span>';
     }
     function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 
@@ -143,21 +120,21 @@
         if(playerCount>=6) return;
         playerCount++;
         var row=document.createElement('div');
-        row.className='dg-player-row';
+        row.className='mg-player-row';
         var defaultName = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', playerCount);
         row.innerHTML='<input type="text" class="form-control p-name" value="'+escHtml(defaultName)+'" maxlength="12">'+
-            '<button class="dg-player-remove" onclick="removePlayer(this)">✕</button>';
+            '<button class="mg-player-remove" onclick="removePlayer(this)">✕</button>';
         document.getElementById('players-list').appendChild(row);
         if(playerCount>=6) document.getElementById('add-player-btn').style.display='none';
     };
     window.removePlayer=function(btn){
-        btn.closest('.dg-player-row').remove();
+        btn.closest('.mg-player-row').remove();
         playerCount--;
         document.getElementById('add-player-btn').style.display='inline-block';
     };
 
     window.startGame=function(){
-        var rows=document.querySelectorAll('.dg-player-row');
+        var rows=document.querySelectorAll('.mg-player-row');
         players=[];
         var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){
@@ -251,7 +228,7 @@
         function showResult(){
             var rd=document.getElementById('result-display');
             rd.style.display='block';
-            rd.innerHTML='<div class="dg-result-text">'+escHtml(action)+' '+escHtml(part)+' '+escHtml(duration)+'</div>';
+            rd.innerHTML='<div class="mg-result-text">'+escHtml(action)+' '+escHtml(part)+' '+escHtml(duration)+'</div>';
             document.getElementById('next-btn').style.display='inline-flex';
             for(var g=0;g<diceParams.length;g++){
                 (function(scene){
