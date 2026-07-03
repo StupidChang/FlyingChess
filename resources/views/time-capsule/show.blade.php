@@ -4,7 +4,7 @@
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
 .tc-state{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;text-align:center;font-size:.9rem}
 .tc-state.sealed{border-color:#7c3aed;background:rgba(124,58,237,.08)}

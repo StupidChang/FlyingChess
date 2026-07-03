@@ -3,7 +3,7 @@
 @section('meta_description', __('seo.boards_description'))
 @section('robots', 'noindex,follow')
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/board.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/board.css') }}">
 @endsection
 
 @section('content')
@@ -197,6 +197,6 @@ window.CANVAS_COLS   = {{ $board->canvas_cols }};
 window.CSRF_TOKEN    = document.querySelector('meta[name="csrf-token"]').content;
 window.EDIT_MODE     = true;
 </script>
-<script src="{{ asset('js/board.js') }}"></script>
-<script src="{{ asset('js/board-editor.js') }}"></script>
+<script src="{{ asset_v('js/board.js') }}"></script>
+<script src="{{ asset_v('js/board-editor.js') }}"></script>
 @endsection

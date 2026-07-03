@@ -4,7 +4,7 @@
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
 .bl-add{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px}
 .bl-add form{display:flex;gap:8px}

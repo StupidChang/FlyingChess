@@ -4,7 +4,7 @@
 @section('canonical', route('card-game.show'))
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
 /* Simultaneous Card Reveal */
 .cg-deal-area{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;padding:20px 0}

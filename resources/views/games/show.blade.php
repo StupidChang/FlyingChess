@@ -5,7 +5,7 @@
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/game.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/game.css') }}">
 @endsection
 
 @section('content')
@@ -246,5 +246,5 @@
         copied:           @json(__('games.copied')),
     };
 </script>
-<script src="{{ asset('js/game.js') }}"></script>
+<script src="{{ asset_v('js/game.js') }}"></script>
 @endsection

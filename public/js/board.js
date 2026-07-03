@@ -196,7 +196,52 @@ function roll3dDice() {
 /* ═══════════════════════════════════════════════════
    BOARD RENDERING  (content + play modes)
    ═══════════════════════════════════════════════════ */
+let lastGrid = null;
+
+/* Measure the header and pin --header-h so .play-page's height budget
+   matches the real chrome instead of a hardcoded guess. */
+function updateHeaderVar() {
+  const header = document.querySelector('.site-header');
+  if (header) {
+    document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+  }
+  // Self-contained play screen: hide the footer so the page never scrolls
+  // (a scrolled sticky header would sit on top of the board).
+  const footer = document.querySelector('.site-footer');
+  if (footer && document.querySelector('.play-page')) footer.style.display = 'none';
+}
+
+/* Size the board to the wrap's actual free space (padding excluded),
+   preserving the grid's aspect ratio. */
+function sizeGameBoard(board, cols, rows) {
+  const wrap = board.closest('.board-wrap');
+  const ar = cols / rows;
+  let maxW = Math.min(window.innerWidth * 0.96, 960);
+  let maxH = window.innerHeight - 205; // fallback if wrap not measurable yet
+  if (wrap) {
+    const cs = getComputedStyle(wrap);
+    maxW = Math.min(maxW, wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    maxH = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  }
+  let bw = maxW, bh = bw / ar;
+  if (bh > maxH) { bh = maxH; bw = bh * ar; }
+  board.style.width  = Math.floor(bw) + 'px';
+  board.style.height = Math.floor(bh) + 'px';
+}
+
+/* Re-fit on resize/rotation; piece positions are derived from square rects,
+   so re-render them after the board changes size. */
+window.addEventListener('resize', () => {
+  if (window.EDIT_MODE || !lastGrid) return;
+  updateHeaderVar();
+  const board = document.getElementById('game-board');
+  if (!board) return;
+  sizeGameBoard(board, lastGrid.cols, lastGrid.rows);
+  if (typeof renderPieces === 'function') renderPieces();
+});
+
 function buildBoard() {
+  updateHeaderVar();
   const board = document.getElementById('game-board');
   if (!board) return;
   board.innerHTML = '';
@@ -228,15 +273,13 @@ function buildBoard() {
   board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   board.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
 
-  // Calculate board dimensions to fit within viewport
+  // Calculate board dimensions to fit within the wrap's real free space —
+  // guessing "viewport - 140" undersized the reserved space (header 61 +
+  // player bar 120 + padding) and the board's top row ended up hidden
+  // under the player bar.
   if (!isEditMode) {
-    const ar = cols / rows;
-    const maxW = Math.min(window.innerWidth * 0.96, 960);
-    const maxH = window.innerHeight - 140; // header + player bar
-    let bw = maxW, bh = bw / ar;
-    if (bh > maxH) { bh = maxH; bw = bh * ar; }
-    board.style.width  = bw + 'px';
-    board.style.height = bh + 'px';
+    sizeGameBoard(board, cols, rows);
+    lastGrid = { cols: cols, rows: rows };
   } else {
     board.style.aspectRatio = `${cols} / ${rows}`;
   }

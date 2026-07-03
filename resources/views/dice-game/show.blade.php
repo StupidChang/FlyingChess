@@ -4,7 +4,7 @@
 @section('canonical', route('dice-game.show'))
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
 /* 3D Dice */
 .dg-dice-area{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;padding:30px 0}

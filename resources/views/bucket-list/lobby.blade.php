@@ -6,7 +6,7 @@
 @section('canonical', route('bucket-list.lobby'))
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 @endsection
 
 @section('content')

@@ -4,7 +4,7 @@
 @section('robots', 'noindex,nofollow')
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
 /* Card reveal animation */
 @keyframes tdCardReveal{

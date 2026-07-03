@@ -34,7 +34,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset_v('css/app.css') }}">
     @yield('styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -210,7 +210,7 @@
     </div>
 </footer>
 
-<script src="{{ asset('js/app.js') }}"></script>
+<script src="{{ asset_v('js/app.js') }}"></script>
 <script>
 // Theme toggle
 function toggleTheme() {

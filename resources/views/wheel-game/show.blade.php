@@ -4,7 +4,7 @@
 @section('canonical', route('wheel-game.show'))
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/minigames.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
 /* ── Phase 1: Lobby — wheel picker ── */
 .wg-lobby-grid{display:grid;gap:16px}

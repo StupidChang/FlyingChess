@@ -6,7 +6,7 @@
 @section('canonical', url()->current())
 @section('robots', $board->is_default ? 'index,follow' : 'noindex,follow')
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/board.css') }}">
+<link rel="stylesheet" href="{{ asset_v('css/board.css') }}">
 @endsection
 
 @section('content')
@@ -228,5 +228,5 @@ window.PLAYER_COUNT = {{ $playerCount }};
 window.EDIT_MODE    = false;
 window.PLAY_I18N    = @json($playI18n);
 </script>
-<script src="{{ asset('js/board.js') }}"></script>
+<script src="{{ asset_v('js/board.js') }}"></script>
 @endsection

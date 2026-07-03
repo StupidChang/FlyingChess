@@ -73,13 +73,16 @@
 .board-wrap {
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  /* No align/justify centering here: with overflow:auto, flexbox centering
+     makes overflowing content unreachable at the top (it hides under the
+     player bar with no way to scroll to it). margin:auto on the child
+     centers identically but stays scroll-safe. */
   padding: 12px;
   background: transparent;
   overflow: auto;
   position: relative;
 }
+.board-wrap > .game-board { margin: auto; }
 .board-wrap::before {
   content: '';
   position: absolute;
@@ -324,7 +327,10 @@
 .play-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px);
+  /* --header-h is measured at runtime by board.js (site header is 61px tall
+     since the redesign; hardcoding 56px made the page overflow and scroll,
+     letting the sticky header/player bar cover the board's top row). */
+  height: calc(100dvh - var(--header-h, 61px));
   overflow: hidden;
 }
 
