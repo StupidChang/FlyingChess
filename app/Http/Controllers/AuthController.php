@@ -22,7 +22,7 @@ class AuthController extends Controller
             $seconds = RateLimiter::availableIn($key);
 
             return back()->withErrors([
-                'email' => "登入嘗試次數過多，請 {$seconds} 秒後再試。",
+                'email' => __('auth.throttle', ['seconds' => $seconds]),
             ])->onlyInput('email');
         }
 
@@ -38,7 +38,7 @@ class AuthController extends Controller
                 $request->session()->regenerateToken();
 
                 return back()->withErrors([
-                    'email' => '此帳號已被停用',
+                    'email' => __('auth.account_disabled'),
                 ])->onlyInput('email');
             }
 
@@ -51,7 +51,7 @@ class AuthController extends Controller
         RateLimiter::hit($key, 60);
 
         return back()->withErrors([
-            'email' => '電子信箱或密碼不正確',
+            'email' => __('auth.failed'),
         ])->onlyInput('email');
     }
 
@@ -68,7 +68,7 @@ class AuthController extends Controller
             $seconds = RateLimiter::availableIn($key);
 
             return back()->withErrors([
-                'email' => "註冊請求過於頻繁，請 {$seconds} 秒後再試。",
+                'email' => __('auth.register_throttle', ['seconds' => $seconds]),
             ])->onlyInput('name', 'email');
         }
 
@@ -88,7 +88,7 @@ class AuthController extends Controller
 
         $user->sendEmailVerificationNotification();
 
-        return redirect()->route('verification.notice')->with('success', '註冊成功！請查收驗證信。');
+        return redirect()->route('verification.notice')->with('success', __('auth.register_success'));
     }
 
     public function logout(Request $request)

@@ -25,6 +25,16 @@
 .mg-page--lg{max-width:700px}
 .mg-page--xl{max-width:900px}
 
+/* Vertical+horizontal centering for "entry" screens (setup/lobby before play
+   starts) — mirrors truth-dare's .td-start-page. min-height (not height) is
+   used so justify-content:center only kicks in when content is shorter than
+   the viewport; on mobile, taller content simply overflows and scrolls
+   normally from the top instead of being clipped or pushed off-screen. Toggle
+   this class off via JS once gameplay begins so in-game screens keep their
+   natural top-down flow. */
+.mg-page--center{display:flex;flex-direction:column;justify-content:center}
+.mg-page--center>*{width:100%}
+
 .mg-title{text-align:center;color:var(--gold,#d9a441);font-size:1.4rem;margin-bottom:4px;letter-spacing:.2px}
 .mg-title--inline{text-align:left;margin-bottom:0;font-size:1.3rem}
 .mg-subtitle{text-align:center;color:var(--text-dim,#9aa1b5);font-size:.85rem;margin-bottom:20px;line-height:1.6}

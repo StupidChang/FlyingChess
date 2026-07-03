@@ -63,4 +63,16 @@ return [
 
     'login_meta_description'    => '登入情侶飛行棋帳號，管理你的自訂棋盤與會員內容。',
     'register_meta_description' => '免費註冊情侶飛行棋帳號，建立專屬自訂棋盤，解鎖更多雙人互動遊戲。',
+
+    // Server flash / error messages (AuthController / PasswordResetController)
+    'account_disabled'    => '此帳號已被停用',
+    'register_throttle'   => '註冊請求過於頻繁，請 :seconds 秒後再試。',
+    'register_success'    => '註冊成功！請查收驗證信。',
+    'email_required'      => '請輸入電子信箱',
+    'reset_throttle'      => '重設請求過於頻繁，請 :seconds 秒後再試。',
+    'reset_link_sent'     => '若該電子信箱已註冊，重設連結已寄出，請查收信箱。',
+    'reset_token_invalid' => '重設 token 無效',
+    'password_required'   => '請輸入新密碼',
+    'password_mismatch'   => '兩次輸入的密碼不一致',
+    'reset_success'       => '密碼已重設成功，請重新登入。',
 ];

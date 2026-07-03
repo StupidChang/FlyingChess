@@ -95,7 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     botStatusEl.className = 'bot-status hidden';
     botStatusEl.innerHTML = '<span class="bot-spinner"></span> <span id="bot-status-text"></span>';
     botStatusEl.querySelector('#bot-status-text').textContent = t('botThinking');
-    document.querySelector('.game-main')?.prepend(botStatusEl);
+    // Mounted inside .board-stage (not .game-main) — .board-stage reserves a fixed
+    // top gutter sized exactly for this pill, so it floats above the board instead
+    // of overlapping its top rows (see .board-stage / .bot-status in game.css).
+    document.querySelector('.board-stage')?.prepend(botStatusEl);
 
     buildBoard();
 

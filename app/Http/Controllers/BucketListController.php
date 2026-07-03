@@ -24,8 +24,8 @@ class BucketListController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'min:1', 'max:100', new NoBlockedWords],
         ], [
-            'title.required' => '請輸入清單名稱',
-            'title.max' => '清單名稱不可超過 100 字',
+            'title.required' => __('minigame.bucket_title_required'),
+            'title.max' => __('minigame.bucket_title_max'),
         ]);
 
         $ownerToken = Str::random(48);
@@ -79,14 +79,14 @@ class BucketListController extends Controller
         $role = $this->resolveRole($request, $list);
 
         if (! in_array($role, ['owner', 'partner'])) {
-            return back()->withErrors(['content' => '只有清單擁有者或夥伴可以新增項目']);
+            return back()->withErrors(['content' => __('minigame.bucket_only_members_add')]);
         }
 
         $data = $request->validate([
             'content' => ['required', 'string', 'min:1', 'max:200', new NoBlockedWords],
         ], [
-            'content.required' => '請輸入想做的事',
-            'content.max' => '單筆內容不可超過 200 字',
+            'content.required' => __('minigame.bucket_content_required'),
+            'content.max' => __('minigame.bucket_content_max'),
         ]);
 
         BucketItem::create([
@@ -106,7 +106,7 @@ class BucketListController extends Controller
         $role = $this->resolveRole($request, $list);
 
         if (! in_array($role, ['owner', 'partner'])) {
-            return back()->withErrors(['vote' => '無投票權']);
+            return back()->withErrors(['vote' => __('minigame.bucket_no_vote_permission')]);
         }
 
         $data = $request->validate([
@@ -133,7 +133,7 @@ class BucketListController extends Controller
 
         // Only proposer can delete their own item
         if ($item->proposer !== $role) {
-            return back()->withErrors(['delete' => '只能刪除自己提的項目']);
+            return back()->withErrors(['delete' => __('minigame.bucket_delete_own_only')]);
         }
 
         $item->delete();

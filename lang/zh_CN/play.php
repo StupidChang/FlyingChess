@@ -155,4 +155,17 @@ return [
     'js_confirm_reset_path' => '将路径重置为格子编号顺序？',
     'js_path_min'           => '主路径至少需要 2 个格子',
     'js_path_saved'         => '✅ 路径已保存',
+
+    // Server flash / error messages (BoardController / PlayController)
+    'err_board_forbidden'        => '没有权限操作此棋盘',
+    'flash_board_created'        => '棋盘已创建，开始编辑吧！',
+    'err_default_board_delete'   => '默认棋盘无法删除',
+    'flash_board_deleted'        => '棋盘已删除',
+    'err_position_missing'       => '位置 :pos 不存在',
+    'err_cell_occupied'          => '该格已有格子',
+    'err_square_missing'         => '格子不存在',
+    'err_premium_template_play'  => '这是 Premium 专属模板，请升级后使用。',
+    'err_premium_template_clone' => '该模板仅限付费会员使用，请先升级。',
+    'clone_name'                 => ':name（副本）',
+    'flash_template_cloned'      => '模板已复制到你的棋盘！',
 ];

@@ -61,4 +61,16 @@ return [
 
     'login_meta_description'    => 'Sign in to your Couple Flying Chess account to manage your custom boards and membership.',
     'register_meta_description' => 'Create a free Couple Flying Chess account to build custom boards and unlock more two-player games.',
+
+    // Server flash / error messages (AuthController / PasswordResetController)
+    'account_disabled'    => 'This account has been disabled',
+    'register_throttle'   => 'Too many registration attempts. Please try again in :seconds seconds.',
+    'register_success'    => 'Registration successful! Please check your email for the verification link.',
+    'email_required'      => 'Please enter your email',
+    'reset_throttle'      => 'Too many reset requests. Please try again in :seconds seconds.',
+    'reset_link_sent'     => 'If that email is registered, a reset link has been sent — please check your inbox.',
+    'reset_token_invalid' => 'Invalid reset token',
+    'password_required'   => 'Please enter a new password',
+    'password_mismatch'   => 'The passwords do not match',
+    'reset_success'       => 'Password reset successfully. Please sign in again.',
 ];

@@ -19,21 +19,12 @@ class TimeCapsuleController extends Controller
     private const ROLE_COOKIE_DAYS = 365;
 
     /**
-     * Default question set for new capsules. 10 prompts covering
-     * past memories, present feelings, and future intentions.
+     * Number of default questions seeded into new capsules. Texts live in
+     * lang/<locale>/minigame.php (capsule_default_q1..q10) so they follow the
+     * creator's locale, covering past memories, present feelings, and
+     * future intentions.
      */
-    private const DEFAULT_QUESTIONS = [
-        '今天我們最想留給未來自己的一句話是？',
-        '對方最讓我感動的一個瞬間是？',
-        '我希望一年後我們還在一起做什麼事？',
-        '我目前正在努力的目標是？',
-        '我希望明年此時的我們，比現在多一點什麼？',
-        '對方有哪個小習慣是我最喜歡的？',
-        '如果可以給未來的自己一個提醒，那會是什麼？',
-        '我們最近一次大笑是什麼時候、為什麼？',
-        '一年後我希望我們一起去哪裡？',
-        '此時此刻我最感謝對方的一件事是？',
-    ];
+    private const DEFAULT_QUESTION_COUNT = 10;
 
     public function lobby()
     {
@@ -47,10 +38,10 @@ class TimeCapsuleController extends Controller
             'open_at' => ['required', 'date', 'after:today'],
             'notify_email' => ['nullable', 'email', 'max:100'],
         ], [
-            'title.required' => '請輸入膠囊標題',
-            'open_at.required' => '請選擇開封日期',
-            'open_at.after' => '開封日期必須是明天以後',
-            'notify_email.email' => 'Email 格式錯誤',
+            'title.required' => __('minigame.capsule_title_required'),
+            'open_at.required' => __('minigame.capsule_open_at_required'),
+            'open_at.after' => __('minigame.capsule_open_at_after'),
+            'notify_email.email' => __('minigame.capsule_email_invalid'),
         ]);
 
         $ownerToken = Str::random(48);
@@ -63,12 +54,12 @@ class TimeCapsuleController extends Controller
                 'owner_token' => $ownerToken,
             ]);
 
-            // Seed default questions
-            foreach (self::DEFAULT_QUESTIONS as $i => $q) {
+            // Seed default questions in the creator's locale
+            for ($i = 1; $i <= self::DEFAULT_QUESTION_COUNT; $i++) {
                 CapsuleQuestion::create([
                     'capsule_id' => $capsule->id,
-                    'question' => $q,
-                    'position' => $i,
+                    'question' => __('minigame.capsule_default_q'.$i),
+                    'position' => $i - 1,
                 ]);
             }
 
@@ -133,11 +124,11 @@ class TimeCapsuleController extends Controller
         $role = $this->resolveRole($request, $capsule);
 
         if (! in_array($role, ['owner', 'partner'])) {
-            return back()->withErrors(['answers' => '無編輯權']);
+            return back()->withErrors(['answers' => __('minigame.capsule_no_edit_permission')]);
         }
 
         if ($capsule->isSealed()) {
-            return back()->withErrors(['answers' => '膠囊已封存，無法修改']);
+            return back()->withErrors(['answers' => __('minigame.capsule_sealed_no_edit')]);
         }
 
         $answers = $request->input('answers', []);
@@ -172,7 +163,7 @@ class TimeCapsuleController extends Controller
             }
         });
 
-        return back()->with('success', '已儲存你的回答');
+        return back()->with('success', __('minigame.capsule_answers_saved'));
     }
 
     public function seal(Request $request, string $shareCode)
@@ -182,11 +173,11 @@ class TimeCapsuleController extends Controller
 
         // Only owner can seal
         if ($role !== 'owner') {
-            return back()->withErrors(['seal' => '只有創建者可以封存膠囊']);
+            return back()->withErrors(['seal' => __('minigame.capsule_owner_only_seal')]);
         }
 
         if ($capsule->isSealed()) {
-            return back()->withErrors(['seal' => '膠囊已封存']);
+            return back()->withErrors(['seal' => __('minigame.capsule_already_sealed')]);
         }
 
         // Sanity check — at least one answer exists
@@ -196,12 +187,12 @@ class TimeCapsuleController extends Controller
         )->exists();
 
         if (! $hasAnyAnswer) {
-            return back()->withErrors(['seal' => '至少要回答一題才能封存']);
+            return back()->withErrors(['seal' => __('minigame.capsule_need_one_answer')]);
         }
 
         $capsule->update(['sealed_at' => now()]);
 
-        return back()->with('success', '膠囊已封存！將在 '.$capsule->open_at->format('Y-m-d').' 開封');
+        return back()->with('success', __('minigame.capsule_sealed_success', ['date' => $capsule->open_at->format('Y-m-d')]));
     }
 
     /**

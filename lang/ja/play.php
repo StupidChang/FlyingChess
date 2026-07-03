@@ -160,4 +160,17 @@ return [
     'js_confirm_reset_path' => 'ルートをマス番号順にリセットしますか？',
     'js_path_min'           => 'メインルートには少なくとも2つのマスが必要です',
     'js_path_saved'         => '✅ ルートを保存しました',
+
+    // Server flash / error messages (BoardController / PlayController)
+    'err_board_forbidden'        => 'このボードを操作する権限がありません',
+    'flash_board_created'        => 'ボードを作成しました。編集を始めましょう！',
+    'err_default_board_delete'   => 'デフォルトのボードは削除できません',
+    'flash_board_deleted'        => 'ボードを削除しました',
+    'err_position_missing'       => 'マス :pos は存在しません',
+    'err_cell_occupied'          => 'このセルにはすでにマスがあります',
+    'err_square_missing'         => 'マスが存在しません',
+    'err_premium_template_play'  => 'これはプレミアム限定テンプレートです。アップグレードしてからご利用ください。',
+    'err_premium_template_clone' => 'このテンプレートは有料会員限定です。先にアップグレードしてください。',
+    'clone_name'                 => ':name（コピー）',
+    'flash_template_cloned'      => 'テンプレートをあなたのボードにコピーしました！',
 ];

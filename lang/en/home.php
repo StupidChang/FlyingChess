@@ -10,8 +10,9 @@ return [
     'hero_eyebrow'      => 'Online couple games platform',
     'hero_title_pre'    => 'Make love ',
     'hero_title_high'   => 'more fun',
-    'hero_sub'          => 'Flying chess matches, truth or dare, custom board tasks — heat up your relationship with free online games.',
-    'hero_cta_chess'    => 'Play flying chess',
+    'hero_sub'          => 'Flying chess, truth or dare, card draws, dice, wheel of fortune — 10 couple games in one place, free to play.',
+    'hero_cta_hall'     => 'Enter the game hall',
+    'hero_cta_chess'    => 'Play flying chess now',
     'hero_cta_truth'    => 'Truth or Dare',
     'hero_trust_1'      => 'Free, no install',
     'hero_trust_2'      => 'Mobile + desktop',
@@ -20,7 +21,7 @@ return [
     // Game modes section
     'modes_label'       => 'Game modes',
     'modes_title'       => 'Pick your style',
-    'modes_desc'        => 'Five game modes — from quick matches to deep interaction. There is one for every mood.',
+    'modes_desc'        => 'Ten game modes — from quick matches to deep interaction. There is one for every mood.',
 
     'mode_chess_title'  => 'Flying Chess',
     'mode_chess_desc'   => 'Classic flying chess for 2–4 players or vs. AI — no need to wait for friends.',
@@ -41,6 +42,8 @@ return [
     'mode_editor_desc'  => 'Sign in for free and design every square of your own board — text and category.',
     'mode_editor_cta_my'=> 'My boards',
     'mode_editor_cta_register' => 'Sign up free to start',
+
+    'mode_community_desc' => 'Browse boards published by other players — jump in with no sign-in, or publish your own.',
 
     // Boards templates
     'templates_title'   => 'Board templates',
@@ -90,7 +93,7 @@ return [
     'faq_a4_short'      => 'Sign up free, open the editor, design each square, and share via code.',
 
     // Stats band
-    'stats_modes_num'   => '5+',
+    'stats_modes_num'   => '10+',
     'stats_modes_label' => 'game modes',
     'stats_install_num' => 'Zero',
     'stats_install_label'=> 'install required',

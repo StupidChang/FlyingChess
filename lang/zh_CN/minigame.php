@@ -98,4 +98,38 @@ return [
     'wheel_player_turn'=> '🎯 :name 的回合',
     'wheel_round_tasks'=> '本轮任务',
     'wheel_premium_gate'=> '免费版最多 6 回合，升级 Premium 解锁无限回合与更刺激的任务！',
+
+    // Bucket list — server messages (BucketListController)
+    'bucket_title_required'     => '请输入清单名称',
+    'bucket_title_max'          => '清单名称不能超过 100 字',
+    'bucket_only_members_add'   => '只有清单所有者或伙伴可以添加项目',
+    'bucket_content_required'   => '请输入想做的事',
+    'bucket_content_max'        => '单条内容不能超过 200 字',
+    'bucket_no_vote_permission' => '没有投票权限',
+    'bucket_delete_own_only'    => '只能删除自己提的项目',
+
+    // Time capsule — server messages (TimeCapsuleController)
+    'capsule_title_required'     => '请输入胶囊标题',
+    'capsule_open_at_required'   => '请选择开启日期',
+    'capsule_open_at_after'      => '开启日期必须是明天以后',
+    'capsule_email_invalid'      => 'Email 格式错误',
+    'capsule_no_edit_permission' => '没有编辑权限',
+    'capsule_sealed_no_edit'     => '胶囊已封存，无法修改',
+    'capsule_answers_saved'      => '已保存你的回答',
+    'capsule_owner_only_seal'    => '只有创建者可以封存胶囊',
+    'capsule_already_sealed'     => '胶囊已封存',
+    'capsule_need_one_answer'    => '至少要回答一题才能封存',
+    'capsule_sealed_success'     => '胶囊已封存！将在 :date 开启',
+
+    // Time capsule — default questions (seeded per capsule at creation)
+    'capsule_default_q1'  => '今天我们最想留给未来自己的一句话是？',
+    'capsule_default_q2'  => '对方最让我感动的一个瞬间是？',
+    'capsule_default_q3'  => '我希望一年后我们还在一起做什么事？',
+    'capsule_default_q4'  => '我目前正在努力的目标是？',
+    'capsule_default_q5'  => '我希望明年此时的我们，比现在多一点什么？',
+    'capsule_default_q6'  => '对方有哪个小习惯是我最喜欢的？',
+    'capsule_default_q7'  => '如果可以给未来的自己一个提醒，那会是什么？',
+    'capsule_default_q8'  => '我们最近一次大笑是什么时候、为什么？',
+    'capsule_default_q9'  => '一年后我希望我们一起去哪里？',
+    'capsule_default_q10' => '此时此刻我最感谢对方的一件事是？',
 ];

@@ -69,7 +69,7 @@
 @endsection
 
 @section('content')
-<div class="mg-page mg-page--md">
+<div class="mg-page mg-page--md mg-page--center" id="mg-page-root">
     <h1 class="mg-title">{{ __('minigame.king_title') }}</h1>
     <p class="mg-subtitle">{{ __('minigame.king_subtitle_long') }}</p>
 
@@ -159,6 +159,8 @@
         });
         if(players.length<3){showToast(@json(__('minigame.king_min_players')));return;}
         round=1;
+        var root=document.getElementById('mg-page-root');
+        if(root) root.classList.remove('mg-page--center');
         dealRound();
     };
 
@@ -256,6 +258,8 @@
         document.getElementById('deal-phase').style.display='none';
         round=0;
         document.getElementById('setup-phase').style.display='block';
+        var root=document.getElementById('mg-page-root');
+        if(root) root.classList.add('mg-page--center');
     };
 })();
 </script>

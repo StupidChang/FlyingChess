@@ -175,9 +175,14 @@
         </div>
         @endif
 
-        <div class="board-container">
-            <div id="game-board" class="game-board" role="grid" aria-label="{{ __('games.fc_aria_board') }}">
-                {{-- Board rendered by JavaScript --}}
+        {{-- .board-stage reserves a fixed gutter above the board for the bot-status
+             pill (see game.js showBotThinking), so it never overlaps the board grid
+             regardless of viewport height. --}}
+        <div class="board-stage">
+            <div class="board-container">
+                <div id="game-board" class="game-board" role="grid" aria-label="{{ __('games.fc_aria_board') }}">
+                    {{-- Board rendered by JavaScript --}}
+                </div>
             </div>
         </div>
     </main>

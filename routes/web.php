@@ -127,13 +127,13 @@ Route::prefix('{locale}')
         Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
             $request->fulfill();
 
-            return redirect()->route('home')->with('success', __('auth.verify_email_success', [], 'zh_TW'));
+            return redirect()->route('home')->with('success', __('auth.verify_email_success'));
         })->middleware(['auth', 'signed'])->name('verification.verify');
 
         Route::post('/email/verification-notification', function (Request $request) {
             $request->user()->sendEmailVerificationNotification();
 
-            return back()->with('success', __('auth.verify_email_resent', [], 'zh_TW'));
+            return back()->with('success', __('auth.verify_email_resent'));
         })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
         // Flying Chess

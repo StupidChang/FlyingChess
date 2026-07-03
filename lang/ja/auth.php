@@ -62,4 +62,16 @@ return [
 
     'login_meta_description'    => 'カップルフライングチェスにログインして、カスタムボードや会員コンテンツを管理しましょう。',
     'register_meta_description' => 'カップルフライングチェスに無料登録して、オリジナルのカスタムボードを作り、ふたりで楽しめるゲームをもっと解放しましょう。',
+
+    // Server flash / error messages (AuthController / PasswordResetController)
+    'account_disabled'    => 'このアカウントは停止されています',
+    'register_throttle'   => '登録リクエストが多すぎます。:seconds 秒後にもう一度お試しください。',
+    'register_success'    => '登録が完了しました！確認メールをご確認ください。',
+    'email_required'      => 'メールアドレスを入力してください',
+    'reset_throttle'      => 'リセットのリクエストが多すぎます。:seconds 秒後にもう一度お試しください。',
+    'reset_link_sent'     => 'このメールアドレスが登録されている場合、リセットリンクを送信しました。受信トレイをご確認ください。',
+    'reset_token_invalid' => 'リセットトークンが無効です',
+    'password_required'   => '新しいパスワードを入力してください',
+    'password_mismatch'   => 'パスワードが一致しません',
+    'reset_success'       => 'パスワードをリセットしました。もう一度ログインしてください。',
 ];

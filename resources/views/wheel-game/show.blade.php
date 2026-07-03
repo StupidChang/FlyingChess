@@ -89,7 +89,7 @@
 @endsection
 
 @section('content')
-<div class="mg-page">
+<div class="mg-page mg-page--center" id="mg-page-root">
     <h1 class="mg-title">{{ __('minigame.wheel_title') }}</h1>
     <p class="mg-subtitle">{{ __('minigame.wheel_subtitle_long') }}</p>
 
@@ -205,6 +205,14 @@
             document.getElementById(id).style.display='none';
         });
         document.getElementById(phase).style.display='block';
+        // Lobby + setup are "entry" screens (pick a wheel / add players) and
+        // stay viewport-centered; once actual play starts, drop centering so
+        // the wheel + task list flow naturally down the page.
+        var root=document.getElementById('mg-page-root');
+        if(root){
+            if(phase==='game-phase') root.classList.remove('mg-page--center');
+            else root.classList.add('mg-page--center');
+        }
     }
 
     /* ═══════════════════════════════════════════

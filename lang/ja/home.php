@@ -10,8 +10,9 @@ return [
     'hero_eyebrow'      => 'オンラインカップルゲームプラットフォーム',
     'hero_title_pre'    => 'ふたりの時間を',
     'hero_title_high'   => 'もっと楽しく',
-    'hero_sub'          => '飛行棋対戦・真実か罰ゲームか・カスタムボードで、カップルの絆を深めよう。無料ですぐ遊べる。',
-    'hero_cta_chess'    => '飛行棋を遊ぶ',
+    'hero_sub'          => '飛行棋、真実か罰ゲームか、カード、サイコロ、ルーレット……10種類のカップルゲームを無料で今すぐ。',
+    'hero_cta_hall'     => 'ゲームホールへ',
+    'hero_cta_chess'    => '今すぐ飛行棋を遊ぶ',
     'hero_cta_truth'    => '真実か罰ゲームか',
     'hero_trust_1'      => '無料・インストール不要',
     'hero_trust_2'      => 'スマホ・PC 対応',
@@ -20,7 +21,7 @@ return [
     // Game modes section
     'modes_label'       => 'ゲームモード',
     'modes_title'       => '好きなスタイルを選ぼう',
-    'modes_desc'        => '5つのゲームモード。軽いマッチから深い対話まで、ふたりの気分に合わせて選べる。',
+    'modes_desc'        => '10のゲームモード。軽いマッチから深い対話まで、ふたりの気分に合わせて選べる。',
 
     'mode_chess_title'  => '飛行棋',
     'mode_chess_desc'   => '2〜4人またはAI対戦。友達を待たずにすぐ遊べるクラシックゲーム。',
@@ -41,6 +42,8 @@ return [
     'mode_editor_desc'  => '無料登録後、ボードの各マスをテキストとカテゴリで自由にカスタマイズ。',
     'mode_editor_cta_my'=> '自分のボード',
     'mode_editor_cta_register' => '無料登録して作る',
+
+    'mode_community_desc' => 'プレイヤーが公開したボードを閲覧。ログイン不要ですぐ遊べ、自分の作品も公開できる',
 
     // Boards templates
     'templates_title'   => 'ボードテンプレート',
@@ -90,7 +93,7 @@ return [
     'faq_a4_short'      => '無料登録後、エディターで各マスをデザインし、シェアコードで共有できます。',
 
     // Stats band
-    'stats_modes_num'   => '5+',
+    'stats_modes_num'   => '10+',
     'stats_modes_label' => '種類のゲームモード',
     'stats_install_num' => '0',
     'stats_install_label'=> 'インストール不要',

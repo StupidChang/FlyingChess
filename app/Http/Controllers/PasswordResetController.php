@@ -27,8 +27,8 @@ class PasswordResetController extends Controller
         $request->validate([
             'email' => ['required', 'email'],
         ], [
-            'email.required' => '請輸入電子信箱',
-            'email.email'    => '電子信箱格式不正確',
+            'email.required' => __('auth.email_required'),
+            'email.email'    => __('auth.email_invalid'),
         ]);
 
         // Rate limit: 3 attempts per hour per IP+email composite key.
@@ -37,7 +37,7 @@ class PasswordResetController extends Controller
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
             return back()->withErrors([
-                'email' => "重設請求過於頻繁，請 {$seconds} 秒後再試。",
+                'email' => __('auth.reset_throttle', ['seconds' => $seconds]),
             ])->withInput();
         }
         RateLimiter::hit($key, 3600);
@@ -46,7 +46,7 @@ class PasswordResetController extends Controller
 
         // Always return the same message regardless of whether the email exists,
         // to prevent attackers from enumerating registered addresses.
-        return back()->with('success', '若該電子信箱已註冊，重設連結已寄出，請查收信箱。');
+        return back()->with('success', __('auth.reset_link_sent'));
     }
 
     /**
@@ -70,12 +70,12 @@ class PasswordResetController extends Controller
             'email'                 => ['required', 'email'],
             'password'              => ['required', 'min:8', 'confirmed'],
         ], [
-            'token.required'            => '重設 token 無效',
-            'email.required'            => '請輸入電子信箱',
-            'email.email'               => '電子信箱格式不正確',
-            'password.required'         => '請輸入新密碼',
-            'password.min'              => '密碼至少需要 8 個字元',
-            'password.confirmed'        => '兩次輸入的密碼不一致',
+            'token.required'            => __('auth.reset_token_invalid'),
+            'email.required'            => __('auth.email_required'),
+            'email.email'               => __('auth.email_invalid'),
+            'password.required'         => __('auth.password_required'),
+            'password.min'              => __('auth.password_min'),
+            'password.confirmed'        => __('auth.password_mismatch'),
         ]);
 
         $status = Password::reset(
@@ -92,7 +92,7 @@ class PasswordResetController extends Controller
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            return redirect()->route('login')->with('success', '密碼已重設成功，請重新登入。');
+            return redirect()->route('login')->with('success', __('auth.reset_success'));
         }
 
         return back()->withErrors(['email' => __($status)]);

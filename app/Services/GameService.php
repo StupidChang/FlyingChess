@@ -115,11 +115,11 @@ class GameService
         }
 
         if (! $game->isWaiting()) {
-            return ['success' => false, 'message' => '遊戲已經開始或結束'];
+            return ['success' => false, 'message' => __('games.err_game_started_or_ended')];
         }
 
         if ($game->isFull()) {
-            return ['success' => false, 'message' => '房間已滿'];
+            return ['success' => false, 'message' => __('games.err_room_full')];
         }
 
         $takenColors = $game->players()->pluck('color')->toArray();
@@ -144,7 +144,7 @@ class GameService
         $hasBots = ! empty($game->game_state['bots'] ?? []);
 
         if (! $hasBots && $playerCount < 2) {
-            return ['success' => false, 'message' => '至少需要2位玩家才能開始'];
+            return ['success' => false, 'message' => __('games.err_need_two_players')];
         }
 
         $colors = $game->players()->pluck('color')->toArray();
@@ -162,10 +162,10 @@ class GameService
         $state = $game->game_state;
 
         if ($state['current_color'] !== $color) {
-            return ['success' => false, 'message' => '還沒輪到你'];
+            return ['success' => false, 'message' => __('games.err_not_your_turn')];
         }
         if ($state['dice_rolled']) {
-            return ['success' => false, 'message' => '已經擲過骰子了'];
+            return ['success' => false, 'message' => __('games.err_already_rolled')];
         }
 
         $dice = random_int(1, 6);
@@ -211,10 +211,10 @@ class GameService
         $state = $game->game_state;
 
         if ($state['current_color'] !== $color) {
-            return ['success' => false, 'message' => '還沒輪到你'];
+            return ['success' => false, 'message' => __('games.err_not_your_turn')];
         }
         if (! $state['dice_rolled']) {
-            return ['success' => false, 'message' => '請先擲骰子'];
+            return ['success' => false, 'message' => __('games.err_roll_first')];
         }
 
         $dice = $state['dice_value'];
@@ -224,7 +224,7 @@ class GameService
         // Validate move
         $validMoves = $this->getValidMoves($state, $color, $dice);
         if (! in_array($pieceIndex, $validMoves)) {
-            return ['success' => false, 'message' => '無效的移動'];
+            return ['success' => false, 'message' => __('games.err_invalid_move')];
         }
 
         // Enter board from home

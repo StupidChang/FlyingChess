@@ -14,7 +14,7 @@ class BoardController extends Controller
     private function checkOwnership(Board $board): void
     {
         if ($board->user_id !== Auth::id()) {
-            abort(403, '沒有權限操作此棋盤');
+            abort(403, __('play.err_board_forbidden'));
         }
     }
 
@@ -85,7 +85,7 @@ class BoardController extends Controller
             $board->update(['path_data' => ['all' => range(0, 22), 'male' => null, 'female' => null]]);
         }
 
-        return redirect()->route('boards.edit', $board)->with('success', '棋盤已建立，請開始編輯！');
+        return redirect()->route('boards.edit', $board)->with('success', __('play.flash_board_created'));
     }
 
     public function edit(Board $board)
@@ -120,11 +120,11 @@ class BoardController extends Controller
     {
         $this->checkOwnership($board);
         if ($board->is_default) {
-            return back()->with('error', '預設棋盤無法刪除');
+            return back()->with('error', __('play.err_default_board_delete'));
         }
         $board->delete();
 
-        return redirect()->route('boards.index')->with('success', '棋盤已刪除');
+        return redirect()->route('boards.index')->with('success', __('play.flash_board_deleted'));
     }
 
     /* ── Individual square content update (text/color/fly_to) ── */
@@ -193,7 +193,7 @@ class BoardController extends Controller
         $validPositions = $board->squares()->pluck('position')->toArray();
         foreach ($data['all'] as $pos) {
             if (! in_array($pos, $validPositions)) {
-                return response()->json(['success' => false, 'message' => "位置 {$pos} 不存在"], 422);
+                return response()->json(['success' => false, 'message' => __('play.err_position_missing', ['pos' => $pos])], 422);
             }
         }
 
@@ -237,7 +237,7 @@ class BoardController extends Controller
 
         // Check cell not already occupied
         if ($board->squares()->where('grid_row', $data['grid_row'])->where('grid_col', $data['grid_col'])->exists()) {
-            return response()->json(['success' => false, 'message' => '此格已有格子'], 422);
+            return response()->json(['success' => false, 'message' => __('play.err_cell_occupied')], 422);
         }
 
         $nextPos = ($board->squares()->max('position') ?? -1) + 1;
@@ -266,7 +266,7 @@ class BoardController extends Controller
         $this->checkOwnership($board);
         $sq = BoardSquare::where('board_id', $board->id)->where('position', $position)->first();
         if (! $sq) {
-            return response()->json(['success' => false, 'message' => '格子不存在'], 404);
+            return response()->json(['success' => false, 'message' => __('play.err_square_missing')], 404);
         }
         $sq->delete();
 
@@ -429,13 +429,13 @@ class BoardController extends Controller
             $user = $request->user();
             if (! $user || ! $user->isPremium()) {
                 return redirect()->route('premium.index')
-                    ->with('error', '此模板僅限付費會員使用，請先升級。');
+                    ->with('error', __('play.err_premium_template_clone'));
             }
         }
 
         // Clone the board
         $newBoard = Board::create([
-            'name' => $board->name.' (副本)',
+            'name' => __('play.clone_name', ['name' => $board->name]),
             'description' => $board->description,
             'user_id' => Auth::id(),
             'canvas_rows' => $board->canvas_rows,
@@ -456,6 +456,6 @@ class BoardController extends Controller
         }
 
         return redirect()->route('boards.edit', $newBoard)
-            ->with('success', '模板已複製到你的棋盤！');
+            ->with('success', __('play.flash_template_cloned'));
     }
 }

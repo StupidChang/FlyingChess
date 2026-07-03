@@ -36,11 +36,15 @@
 /* Result */
 .dg-result{text-align:center;padding:20px;animation:fadeIn .3s ease-out}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Buttons visually disabled while dice are rolling (roll-btn is fully
+   hidden already; this covers the still-visible reset button) */
+.mg-action-btns.dg-rolling .btn-outline{opacity:.45;pointer-events:none;filter:grayscale(.4)}
 </style>
 @endsection
 
 @section('content')
-<div class="mg-page mg-page--md">
+<div class="mg-page mg-page--md mg-page--center" id="mg-page-root">
     <h1 class="mg-title">{{ __('minigame.dice_title') }}</h1>
     <p class="mg-subtitle">{{ __('minigame.dice_subtitle') }}</p>
 
@@ -142,6 +146,8 @@
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         turn=0;round=1;
+        var root=document.getElementById('mg-page-root');
+        if(root) root.classList.remove('mg-page--center');
         showTurn();
     };
 
@@ -182,6 +188,8 @@
 
     window.rollDice=function(){
         document.getElementById('roll-btn').style.display='none';
+        var actionBtns=document.querySelector('.mg-action-btns');
+        if(actionBtns) actionBtns.classList.add('dg-rolling');
         var tier=getTier();
         var pool=POOLS[tier];
 
@@ -212,10 +220,15 @@
             var tRy=fr.ry; while(tRy<0) tRy+=360;
             var extraX=3+Math.floor(Math.random()*2);
             var extraY=2+Math.floor(Math.random()*2);
+            // Randomize spin direction per axis so every roll takes a visually
+            // different path (still lands on the correct face — direction
+            // doesn't affect the final rotateX/rotateY value once normalized).
+            var signX=Math.random()<0.5?1:-1;
+            var signY=Math.random()<0.5?1:-1;
             diceParams.push({
                 el:el,
                 sRx:-20, sRy:25,
-                eRx:tRx+extraX*360, eRy:tRy+extraY*360,
+                eRx:tRx+signX*extraX*360, eRy:tRy+signY*extraY*360,
                 fRx:fr.rx, fRy:fr.ry,
                 wAmp:12+Math.random()*18, wFreq:3+Math.random()*2,
                 delay:i*70
@@ -240,16 +253,19 @@
             }
         }
 
-        // Spring settle: settled face overshoots a few degrees, then bounces back to 0
+        // Spring settle: settled face overshoots a few degrees, then bounces back
+        // to 0 — a subtle squash/stretch scale pulse rides along to sell the
+        // sense of the die "thudding" onto the table.
         function springSettle(){
             var SPR=450, st=null;
             function sTick(now){
                 if(st===null) st=now;
                 var t=Math.min((now-st)/SPR,1);
                 var delta=9*Math.sin(t*Math.PI*2)*(1-t);
+                var bounce=1+0.05*Math.sin(t*Math.PI*2)*(1-t);
                 for(var k=0;k<diceParams.length;k++){
                     var d=diceParams[k];
-                    d.el.style.transform='rotateX('+(d.fRx+delta).toFixed(1)+'deg) rotateY('+(d.fRy+delta*0.6).toFixed(1)+'deg)';
+                    d.el.style.transform='rotateX('+(d.fRx+delta).toFixed(1)+'deg) rotateY('+(d.fRy+delta*0.6).toFixed(1)+'deg) scale3d('+bounce.toFixed(3)+','+bounce.toFixed(3)+','+bounce.toFixed(3)+')';
                 }
                 if(t<1){
                     rollAnimId=requestAnimationFrame(sTick);
@@ -269,6 +285,7 @@
             for(var q=0;q<diceParams.length;q++){
                 diceParams[q].el.style.transform='rotateX('+diceParams[q].fRx+'deg) rotateY('+diceParams[q].fRy+'deg)';
             }
+            if(actionBtns) actionBtns.classList.remove('dg-rolling');
             showResult();
             return;
         }
@@ -286,8 +303,9 @@
                 var ry=d.sRy+(d.eRy-d.sRy)*e;
                 var rz=d.wAmp*(1-e)*Math.sin(e*d.wFreq*Math.PI*2);
                 var sc=1+0.06*Math.sin(t*Math.PI);
-                d.el.style.transform='rotateX('+rx.toFixed(1)+'deg) rotateY('+ry.toFixed(1)+'deg) rotateZ('+rz.toFixed(1)+'deg) scale3d('+sc.toFixed(3)+','+sc.toFixed(3)+','+sc.toFixed(3)+')';
                 var lift=Math.sin(t*Math.PI);
+                var hop=-(lift*10); // small vertical hop, in sync with the shadow below
+                d.el.style.transform='translateY('+hop.toFixed(1)+'px) rotateX('+rx.toFixed(1)+'deg) rotateY('+ry.toFixed(1)+'deg) rotateZ('+rz.toFixed(1)+'deg) scale3d('+sc.toFixed(3)+','+sc.toFixed(3)+','+sc.toFixed(3)+')';
                 d.el.parentElement.style.filter='drop-shadow(0 '+(2+lift*12).toFixed(0)+'px '+(4+lift*16).toFixed(0)+'px rgba(0,0,0,'+(0.25+lift*0.3).toFixed(2)+'))';
                 if(t<1) allDone=false;
             }
@@ -299,6 +317,7 @@
                     diceParams[k].el.style.transform='rotateX('+diceParams[k].fRx+'deg) rotateY('+diceParams[k].fRy+'deg)';
                     diceParams[k].el.parentElement.style.filter='drop-shadow(0 2px 4px rgba(0,0,0,.3))';
                 }
+                if(actionBtns) actionBtns.classList.remove('dg-rolling');
                 if(navigator.vibrate) navigator.vibrate(30);
                 showResult();    // result text synced with dice touchdown
                 springSettle();  // overshoot a few degrees, bounce back to rest
@@ -324,6 +343,8 @@
         document.getElementById('game-phase').style.display='none';
         document.getElementById('setup-phase').style.display='block';
         turn=0;round=0;
+        var root=document.getElementById('mg-page-root');
+        if(root) root.classList.add('mg-page--center');
     };
 })();
 </script>

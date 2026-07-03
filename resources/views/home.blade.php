@@ -16,8 +16,8 @@
         <h1 class="hero-title">{{ __('home.hero_title_pre') }}<span>{{ __('home.hero_title_high') }}</span></h1>
         <p class="hero-sub">{{ __('home.hero_sub') }}</p>
         <div class="hero-btns">
-            <a href="{{ route('games.lobby') }}" class="btn btn-gold btn-xl">{{ __('home.hero_cta_chess') }}</a>
-            <a href="{{ route('truth-dare.lobby') }}" class="btn btn-outline-gold btn-xl">{{ __('home.hero_cta_truth') }}</a>
+            <a href="{{ route('game-hall.index') }}" class="btn btn-gold btn-xl">{{ __('home.hero_cta_hall') }}</a>
+            <a href="{{ route('games.lobby') }}" class="btn btn-outline-gold btn-xl">{{ __('home.hero_cta_chess') }}</a>
         </div>
         <div class="hero-trust">
             <span class="hero-trust-item">{{ __('home.hero_trust_1') }}</span>
@@ -56,12 +56,12 @@
 {{-- ======================================================
      Game Modes
      ====================================================== --}}
-<section class="game-cards-section section">
+<section class="game-cards-section section reveal">
     <div class="container">
         <div class="text-center" style="margin-bottom:48px">
             <span class="section-label">{{ __('home.modes_label') }}</span>
             <h2 class="section-title">{{ __('home.modes_title') }}</h2>
-            <p class="section-desc" style="max-width:480px;margin-left:auto;margin-right:auto">{{ __('home.modes_desc') }}</p>
+            <p class="section-desc" style="max-width:520px;margin-left:auto;margin-right:auto">{{ __('home.modes_desc') }}</p>
         </div>
         <div class="game-cards-grid">
             {{-- 飛行棋 --}}
@@ -73,6 +73,7 @@
                 </div>
                 <h3>{{ __('home.mode_chess_title') }}</h3>
                 <p>{{ __('home.mode_chess_desc') }}</p>
+                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
                 <a href="{{ route('games.lobby') }}" class="btn btn-gold btn-full">{{ __('home.mode_chess_cta') }}</a>
             </article>
 
@@ -85,19 +86,60 @@
                 </div>
                 <h3>{{ __('home.mode_truth_title') }}</h3>
                 <p>{{ __('home.mode_truth_desc') }}</p>
+                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
                 <a href="{{ route('truth-dare.lobby') }}" class="btn btn-gold btn-full">{{ __('home.mode_truth_cta') }}</a>
             </article>
 
-            {{-- 情侶撲克牌 --}}
+            {{-- 抽卡 --}}
             <article class="game-card">
                 <div class="game-card-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
                         <path d="M4 3a2 2 0 00-2 2v14a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2H4zm1 2h2v2H5V5zm12 0h2v2h-2V5zM9.5 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm5 0a4.5 4.5 0 110 9 4.5 4.5 0 010-9zM5 17h2v2H5v-2zm12 0h2v2h-2v-2z"/>
                     </svg>
                 </div>
-                <h3>{{ __('home.mode_card_title') }}</h3>
-                <p>{{ __('home.mode_card_desc') }}</p>
-                <a href="{{ route('card-game.show') }}" class="btn btn-gold btn-full">{{ __('home.mode_truth_cta') }}</a>
+                <h3>{{ __('games.card_game') }}</h3>
+                <p>{{ __('games.desc_card') }}</p>
+                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
+                <a href="{{ route('card-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
+            {{-- 骰子 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
+                        <path d="M3 3h18a1 1 0 011 1v16a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1zm4 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm10 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-5 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-5 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm10 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+                    </svg>
+                </div>
+                <h3>{{ __('games.dice_game') }}</h3>
+                <p>{{ __('games.desc_dice') }}</p>
+                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
+                <a href="{{ route('dice-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
+            {{-- 國王遊戲 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
+                        <path d="M4 3a2 2 0 00-2 2v14a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2H4zm1 2h2v2H5V5zm12 0h2v2h-2V5zM9.5 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm5 0a4.5 4.5 0 110 9 4.5 4.5 0 010-9zM5 17h2v2H5v-2zm12 0h2v2h-2v-2z"/>
+                    </svg>
+                </div>
+                <h3>{{ __('games.king_game') }}</h3>
+                <p>{{ __('games.desc_king') }}</p>
+                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
+                <a href="{{ route('king-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
+            {{-- 命運轉盤 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
+                        <path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 000 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388Zm15.408 3.882a.75.75 0 00-.163.577 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H3.74a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9A9 9 0 0020.694 14.33a.75.75 0 00-1.45-.388.75.75 0 00.919 0Z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3>{{ __('games.wheel_game') }}</h3>
+                <p>{{ __('games.desc_wheel') }}</p>
+                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
+                <a href="{{ route('wheel-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
             {{-- 自訂棋盤 --}}
@@ -116,20 +158,42 @@
                 @endif
             </article>
 
-            {{-- 棋盤編輯器 --}}
+            {{-- 情侶清單 --}}
             <article class="game-card">
                 <div class="game-card-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
-                        <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4Z"/>
+                        <path fill-rule="evenodd" d="M2.625 6.75a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875 0A.75.75 0 018.25 6h12a.75.75 0 010 1.5h-12a.75.75 0 01-.75-.75zM2.625 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zM7.5 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5h-12A.75.75 0 017.5 12zm-4.875 5.25a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875 0a.75.75 0 01.75-.75h12a.75.75 0 010 1.5h-12a.75.75 0 01-.75-.75z" clip-rule="evenodd"/>
                     </svg>
                 </div>
-                <h3>{{ __('home.mode_editor_title') }}</h3>
-                <p>{{ __('home.mode_editor_desc') }}</p>
-                @auth
-                <a href="{{ route('boards.index') }}" class="btn btn-gold btn-full">{{ __('home.mode_editor_cta_my') }}</a>
-                @else
-                <a href="{{ route('register') }}" class="btn btn-outline-gold btn-full">{{ __('home.mode_editor_cta_register') }}</a>
-                @endauth
+                <h3>{{ __('games.bucket_list') }}</h3>
+                <p>{{ __('games.desc_bucket') }}</p>
+                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
+                <a href="{{ route('bucket-list.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
+            {{-- 時光膠囊 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
+                        <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z"/>
+                    </svg>
+                </div>
+                <h3>{{ __('games.time_capsule') }}</h3>
+                <p>{{ __('games.desc_capsule') }}</p>
+                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
+                <a href="{{ route('time-capsule.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
+            {{-- 社群棋盤 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
+                        <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0ZM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0ZM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003Z"/>
+                    </svg>
+                </div>
+                <h3>{{ __('ui.community_boards') }}</h3>
+                <p>{{ __('home.mode_community_desc') }}</p>
+                <a href="{{ route('boards.community') }}" class="btn btn-gold btn-full">{{ __('home.view_all') }}</a>
             </article>
         </div>
     </div>
@@ -138,7 +202,7 @@
 {{-- ======================================================
      How it works
      ====================================================== --}}
-<section class="how-section">
+<section class="how-section reveal">
     <div class="container">
         <div class="text-center" style="margin-bottom:48px">
             <span class="section-label">{{ __('home.steps_label') }}</span>
@@ -160,8 +224,7 @@
                 <div class="how-step-num">2</div>
                 <div class="how-step-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:32px;height:32px">
-                        <path d="M7.5 4.5a3 3 0 113 3h-3m-3 3a3 3 0 100 6h.75m.75-3a3 3 0 113 3v-3m3 0a3 3 0 100-6h-.75m-.75 3V12m-3-3h3m-3 0V6m0 3H6"/>
-                        <path fill-rule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h15A1.5 1.5 0 0121 4.5v15a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 19.5v-15Zm16.5 0h-15v15h15v-15Z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd" d="M19.902 4.098a3.75 3.75 0 00-5.304 0l-4.5 4.5a3.75 3.75 0 001.035 6.037.75.75 0 01-.646 1.353 5.25 5.25 0 01-1.449-8.45l4.5-4.5a5.25 5.25 0 117.424 7.424l-1.757 1.757a.75.75 0 11-1.06-1.06l1.757-1.757a3.75 3.75 0 000-5.304zm-7.389 4.267a.75.75 0 011-.353 5.25 5.25 0 011.449 8.45l-4.5 4.5a5.25 5.25 0 11-7.424-7.424l1.757-1.757a.75.75 0 111.06 1.06l-1.757 1.757a3.75 3.75 0 105.304 5.304l4.5-4.5a3.75 3.75 0 00-1.035-6.037.75.75 0 01-.354-1z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <h3>{{ __('home.steps_2_title') }}</h3>
@@ -188,66 +251,10 @@
 <hr class="section-divider">
 
 {{-- ======================================================
-     Board Templates
-     ====================================================== --}}
-<section class="boards-section container">
-    <div class="section-head">
-        <h2>{{ __('home.templates_title') }}</h2>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <form action="" method="GET" id="share-join-form" style="display:flex;gap:6px">
-                <input type="text" id="share-code-input" name="code" class="form-control"
-                       placeholder="{{ __('home.share_code_input') }}" maxlength="10"
-                       style="width:120px;text-transform:uppercase;padding:5px 10px;font-size:.82rem">
-                <button type="submit" class="btn btn-sm btn-outline-gold">{{ __('home.share_code_open') }}</button>
-            </form>
-            <a href="{{ route('boards.templates') }}" class="btn btn-sm btn-outline-gold">{{ __('home.view_all') }}</a>
-        </div>
-    </div>
-    <div class="boards-grid">
-        @forelse($presetBoards as $board)
-        <article class="board-card">
-            <div class="board-card-body">
-                @php
-                    $shape = 'cross';
-                    if ($board->canvas_rows == 7 && $board->canvas_cols == 7) $shape = 'square';
-                    elseif ($board->canvas_rows == 5 && $board->canvas_cols == 9) $shape = 'rect';
-                @endphp
-                <div class="board-mini-preview shape-{{ $shape }}">
-                    @foreach($board->squares as $sq)
-                        <div class="board-dot{{ $sq->position === 0 ? ' dot-start' : '' }}{{ $sq->position === $board->squares->count() - 1 ? ' dot-end' : '' }}"
-                             style="grid-row:{{ $sq->grid_row }};grid-column:{{ $sq->grid_col }}"></div>
-                    @endforeach
-                </div>
-                <h3>{{ $board->name }}</h3>
-                @if($board->description)<p>{{ $board->description }}</p>@endif
-                <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
-                    <span class="badge-squares">{{ __('home.squares_unit', ['n' => $board->squares_count]) }}</span>
-                    @if($board->is_default)<span class="badge-default">{{ __('home.badge_default') }}</span>@endif
-                    @if($board->is_premium_template)<span class="badge-premium">Premium</span>@endif
-                    @if($board->is_template && !$board->is_premium_template)<span class="badge-free">{{ __('home.badge_free') }}</span>@endif
-                </div>
-            </div>
-            <div class="board-card-foot">
-                @if($board->is_premium_template && (!auth()->check() || !auth()->user()->isPremium()))
-                    <a href="{{ route('premium.index') }}" class="btn btn-sm btn-outline" title="Premium">{{ __('home.unlock_premium') }}</a>
-                @else
-                    <a href="{{ route('play.board', $board) }}" class="btn btn-sm btn-gold">{{ __('home.play_now') }}</a>
-                @endif
-            </div>
-        </article>
-        @empty
-        <div class="empty-notice">{{ __('home.no_template') }}</div>
-        @endforelse
-    </div>
-</section>
-
-@include('partials.ad-unit', ['zone' => 'home_mid'])
-
-{{-- ======================================================
      My Boards (authenticated users)
      ====================================================== --}}
 @auth
-<section class="boards-section container" style="padding-top:0">
+<section class="boards-section container reveal">
     <div class="section-head">
         <h2>{{ __('home.my_boards') }}</h2>
         <a href="{{ route('boards.create') }}" class="btn btn-sm btn-outline-gold">{{ __('home.create_board') }}</a>
@@ -288,7 +295,7 @@
 {{-- ======================================================
      Features
      ====================================================== --}}
-<section class="features-section section">
+<section class="features-section section reveal">
     <div class="container">
         <div class="text-center" style="margin-bottom:48px">
             <span class="section-label">{{ __('home.features_label') }}</span>
@@ -332,7 +339,7 @@
 {{-- ======================================================
      FAQ
      ====================================================== --}}
-<section class="faq-section">
+<section class="faq-section reveal">
     <div class="faq-inner">
         <div class="text-center" style="margin-bottom:40px">
             <span class="section-label">{{ __('home.faq_label') }}</span>
@@ -362,12 +369,12 @@
 {{-- ======================================================
      Closing CTA
      ====================================================== --}}
-<section class="closing-cta-section">
+<section class="closing-cta-section reveal">
     <div class="closing-cta-inner">
         <h2>{{ __('home.cta_close_title_pre') }}<span>{{ __('home.cta_close_title_high') }}</span>{{ __('home.cta_close_title_post') }}</h2>
         <p>{{ __('home.cta_close_sub') }}</p>
         <div class="closing-cta-btns">
-            <a href="{{ route('games.lobby') }}" class="btn btn-gold btn-xl">{{ __('home.cta_close_btn_play') }}</a>
+            <a href="{{ route('game-hall.index') }}" class="btn btn-gold btn-xl">{{ __('home.cta_close_btn_play') }}</a>
             @guest
             <a href="{{ route('register') }}" class="btn btn-outline-gold btn-xl">{{ __('home.cta_close_btn_register') }}</a>
             @endguest
@@ -388,13 +395,32 @@ function copyShareCode(el) {
     });
 }
 
-document.getElementById('share-join-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var code = document.getElementById('share-code-input').value.trim().toUpperCase();
-    if (code.length < 4) return;
-    window.location.href = @json(rtrim(LocaleHelper::localizedUrl(app()->getLocale(), 'play/share'), '/').'/') + code;
-});
+// Scroll-reveal: one-time fade+rise per section when it enters the viewport.
+// Below-the-fold only (hero/stats are excluded), no layout shift (opacity+transform
+// only), and fully skipped for prefers-reduced-motion or missing IntersectionObserver.
+(function () {
+    var reveals = document.querySelectorAll('.reveal');
+    if (!reveals.length) return;
+
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+        reveals.forEach(function (el) { el.classList.add('is-visible'); });
+        return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    reveals.forEach(function (el) { io.observe(el); });
+})();
 </script>
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
 <script type="application/ld+json">
 {
   "@@context": "https://schema.org",

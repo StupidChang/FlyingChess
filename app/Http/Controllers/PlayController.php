@@ -27,7 +27,7 @@ class PlayController extends Controller
         if ($board->is_premium_template) {
             if (! auth()->check() || ! auth()->user()->isPremium()) {
                 return redirect()->route('premium.index')
-                    ->with('error', '此為 Premium 專屬模板，請升級後使用。');
+                    ->with('error', __('play.err_premium_template_play'));
             }
         }
 

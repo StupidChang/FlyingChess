@@ -156,4 +156,17 @@ return [
     'community_intro'         => 'Boards created and shared by players — pick one and start playing!',
     'community_by'            => 'by :name',
     'community_empty'         => 'No public boards yet. Log in and be the first to publish one!',
+
+    // Server flash / error messages (BoardController / PlayController)
+    'err_board_forbidden'        => "You don't have permission to manage this board",
+    'flash_board_created'        => 'Board created — start editing!',
+    'err_default_board_delete'   => 'The default board cannot be deleted',
+    'flash_board_deleted'        => 'Board deleted',
+    'err_position_missing'       => 'Position :pos does not exist',
+    'err_cell_occupied'          => 'There is already a square in this cell',
+    'err_square_missing'         => 'Square not found',
+    'err_premium_template_play'  => 'This is a Premium-only template. Please upgrade to use it.',
+    'err_premium_template_clone' => 'This template is for Premium members only. Please upgrade first.',
+    'clone_name'                 => ':name (Copy)',
+    'flash_template_cloned'      => 'Template copied to your boards!',
 ];

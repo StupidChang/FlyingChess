@@ -98,4 +98,38 @@ return [
     'wheel_player_turn'=> '🎯 :name さんの番',
     'wheel_round_tasks'=> 'このラウンドのミッション',
     'wheel_premium_gate'=> '無料版は最大 6 ラウンドまで。プレミアムで無制限ラウンドとさらに刺激的なミッションを解放！',
+
+    // Bucket list — server messages (BucketListController)
+    'bucket_title_required'     => 'リスト名を入力してください',
+    'bucket_title_max'          => 'リスト名は 100 文字以内で入力してください',
+    'bucket_only_members_add'   => '項目を追加できるのはリストのオーナーとパートナーだけです',
+    'bucket_content_required'   => 'やりたいことを入力してください',
+    'bucket_content_max'        => '1 件の内容は 200 文字以内で入力してください',
+    'bucket_no_vote_permission' => '投票する権限がありません',
+    'bucket_delete_own_only'    => '削除できるのは自分が提案した項目だけです',
+
+    // Time capsule — server messages (TimeCapsuleController)
+    'capsule_title_required'     => 'カプセルのタイトルを入力してください',
+    'capsule_open_at_required'   => '開封日を選択してください',
+    'capsule_open_at_after'      => '開封日は明日以降の日付にしてください',
+    'capsule_email_invalid'      => 'メールアドレスの形式が正しくありません',
+    'capsule_no_edit_permission' => '編集する権限がありません',
+    'capsule_sealed_no_edit'     => 'カプセルは封印済みのため変更できません',
+    'capsule_answers_saved'      => '回答を保存しました',
+    'capsule_owner_only_seal'    => 'カプセルを封印できるのは作成者だけです',
+    'capsule_already_sealed'     => 'カプセルはすでに封印されています',
+    'capsule_need_one_answer'    => '封印するには少なくとも 1 問に回答してください',
+    'capsule_sealed_success'     => 'カプセルを封印しました！:date に開封されます',
+
+    // Time capsule — default questions (seeded per capsule at creation)
+    'capsule_default_q1'  => '未来の自分たちに、今日いちばん残したい一言は？',
+    'capsule_default_q2'  => '相手にいちばん感動させられた瞬間は？',
+    'capsule_default_q3'  => '一年後もふたりで続けていたいことは？',
+    'capsule_default_q4'  => 'いま自分が頑張っている目標は？',
+    'capsule_default_q5'  => '来年の今ごろ、ふたりに今より少し増えていてほしいものは？',
+    'capsule_default_q6'  => '相手のいちばん好きな小さなクセは？',
+    'capsule_default_q7'  => '未来の自分にひとつだけリマインドできるとしたら、何を伝える？',
+    'capsule_default_q8'  => '最近ふたりで大笑いしたのはいつ？きっかけは？',
+    'capsule_default_q9'  => '一年後、ふたりでどこへ行きたい？',
+    'capsule_default_q10' => '今この瞬間、相手にいちばん感謝していることは？',
 ];

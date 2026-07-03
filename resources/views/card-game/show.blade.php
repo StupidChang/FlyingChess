@@ -101,7 +101,7 @@
 @endsection
 
 @section('content')
-<div class="mg-page mg-page--lg">
+<div class="mg-page mg-page--lg mg-page--center" id="mg-page-root">
     <h1 class="mg-title">{{ __('minigame.card_title') }}</h1>
     <p class="mg-subtitle">{{ __('minigame.card_subtitle_long') }}</p>
 
@@ -241,6 +241,8 @@
         var hasFemale=players.some(function(p){return p.gender==='female'});
         if(!hasMale||!hasFemale){alert(@json(__('minigame.card_need_male_female')));return;}
         round=1;usedCards=[];
+        var root=document.getElementById('mg-page-root');
+        if(root) root.classList.remove('mg-page--center');
         startDrawingPhase();
     };
 
@@ -403,6 +405,8 @@
         document.getElementById('drawing-phase').style.display='none';
         round=0;usedCards=[];
         document.getElementById('setup-phase').style.display='block';
+        var root=document.getElementById('mg-page-root');
+        if(root) root.classList.add('mg-page--center');
     };
 })();
 </script>

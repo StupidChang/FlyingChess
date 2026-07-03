@@ -92,4 +92,38 @@ return [
     'wheel_player_turn'=> "🎯 :name's turn",
     'wheel_round_tasks'=> "This round's tasks",
     'wheel_premium_gate'=> 'Free version caps at 6 rounds. Go Premium to unlock unlimited rounds and bolder tasks!',
+
+    // Bucket list — server messages (BucketListController)
+    'bucket_title_required'     => 'Please enter a list name',
+    'bucket_title_max'          => 'List name cannot exceed 100 characters',
+    'bucket_only_members_add'   => 'Only the list owner or partner can add items',
+    'bucket_content_required'   => 'Please enter something you want to do',
+    'bucket_content_max'        => 'Each item cannot exceed 200 characters',
+    'bucket_no_vote_permission' => "You can't vote on this list",
+    'bucket_delete_own_only'    => 'You can only delete items you proposed',
+
+    // Time capsule — server messages (TimeCapsuleController)
+    'capsule_title_required'     => 'Please enter a capsule title',
+    'capsule_open_at_required'   => 'Please choose an opening date',
+    'capsule_open_at_after'      => 'The opening date must be tomorrow or later',
+    'capsule_email_invalid'      => 'Invalid email format',
+    'capsule_no_edit_permission' => "You can't edit this capsule",
+    'capsule_sealed_no_edit'     => 'The capsule is sealed and can no longer be edited',
+    'capsule_answers_saved'      => 'Your answers have been saved',
+    'capsule_owner_only_seal'    => 'Only the creator can seal the capsule',
+    'capsule_already_sealed'     => 'The capsule is already sealed',
+    'capsule_need_one_answer'    => 'Answer at least one question before sealing',
+    'capsule_sealed_success'     => 'Capsule sealed! It will open on :date',
+
+    // Time capsule — default questions (seeded per capsule at creation)
+    'capsule_default_q1'  => 'What one message do we most want to leave for our future selves today?',
+    'capsule_default_q2'  => 'What is one moment when your partner truly touched your heart?',
+    'capsule_default_q3'  => 'What do you hope you two are still doing together a year from now?',
+    'capsule_default_q4'  => 'What goal are you working toward right now?',
+    'capsule_default_q5'  => 'A year from now, what do you hope you two have a little more of?',
+    'capsule_default_q6'  => "What little habit of your partner's do you love the most?",
+    'capsule_default_q7'  => 'If you could leave one reminder for your future self, what would it be?',
+    'capsule_default_q8'  => 'When did you two last laugh out loud together, and why?',
+    'capsule_default_q9'  => 'Where do you hope you two will go together a year from now?',
+    'capsule_default_q10' => 'What is one thing you are most grateful to your partner for right now?',
 ];

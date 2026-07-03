@@ -62,4 +62,16 @@ return [
 
     'login_meta_description'    => '登录情侣飞行棋账号，管理你的自定义棋盘与会员内容。',
     'register_meta_description' => '免费注册情侣飞行棋账号，创建专属自定义棋盘，解锁更多双人互动游戏。',
+
+    // Server flash / error messages (AuthController / PasswordResetController)
+    'account_disabled'    => '该账号已被停用',
+    'register_throttle'   => '注册请求过于频繁，请 :seconds 秒后再试。',
+    'register_success'    => '注册成功！请查收验证邮件。',
+    'email_required'      => '请输入电子邮箱',
+    'reset_throttle'      => '重置请求过于频繁，请 :seconds 秒后再试。',
+    'reset_link_sent'     => '若该邮箱已注册，重置链接已发送，请查收邮箱。',
+    'reset_token_invalid' => '重置 token 无效',
+    'password_required'   => '请输入新密码',
+    'password_mismatch'   => '两次输入的密码不一致',
+    'reset_success'       => '密码重置成功，请重新登录。',
 ];

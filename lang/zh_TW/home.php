@@ -10,8 +10,9 @@ return [
     'hero_eyebrow'      => '線上雙人遊戲平台',
     'hero_title_pre'    => '讓感情',
     'hero_title_high'   => '更有趣',
-    'hero_sub'          => '飛行棋對戰、真心話大冒險、自訂棋盤任務，情侶升溫、派對助興，免費開始玩',
-    'hero_cta_chess'    => '立即玩飛行棋',
+    'hero_sub'          => '飛行棋、真心話大冒險、抽卡、骰子、命運轉盤……十種情侶互動遊戲一次收藏，免費開始玩',
+    'hero_cta_hall'     => '進入遊戲大廳',
+    'hero_cta_chess'    => '立即開玩飛行棋',
     'hero_cta_truth'    => '真心話大冒險',
     'hero_trust_1'      => '免費玩，無需下載',
     'hero_trust_2'      => '支援手機與電腦',
@@ -20,7 +21,7 @@ return [
     // Game modes section
     'modes_label'       => '遊戲模式',
     'modes_title'       => '選擇你的玩法',
-    'modes_desc'        => '五種遊戲模式，從輕鬆對戰到深度互動，總有一款適合你們',
+    'modes_desc'        => '十種遊戲模式，從輕鬆對戰到深度互動，總有一款適合你們',
 
     'mode_chess_title'  => '飛行棋',
     'mode_chess_desc'   => '經典飛行棋對戰，2–4 人或 AI 對手，不用等朋友也能玩',
@@ -41,6 +42,8 @@ return [
     'mode_editor_desc'  => '登入後免費建立棋盤，自訂每個格子的文字與類型',
     'mode_editor_cta_my'=> '我的棋盤',
     'mode_editor_cta_register' => '免費註冊開始建立',
+
+    'mode_community_desc' => '瀏覽玩家公開分享的棋盤，免登入直接開玩，也能發佈你的作品',
 
     // Boards templates
     'templates_title'   => '棋盤模板',
@@ -90,7 +93,7 @@ return [
     'faq_a4_short'      => '免費註冊帳號後，進入棋盤編輯器自由設計每個格子的文字內容、類型與顏色。也可以從棋盤模板一鍵複製開始修改。',
 
     // Stats band
-    'stats_modes_num'   => '5+',
+    'stats_modes_num'   => '10+',
     'stats_modes_label' => '種遊戲模式',
     'stats_install_num' => '0',
     'stats_install_label'=> '需要安裝',

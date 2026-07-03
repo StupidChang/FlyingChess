@@ -156,4 +156,17 @@ return [
     'community_intro'         => '玩家自製、公開分享的棋盤，挑一個喜歡的直接開玩！',
     'community_by'            => '由 :name 製作',
     'community_empty'         => '目前還沒有公開棋盤，登入後發佈你的第一個棋盤吧！',
+
+    // Server flash / error messages (BoardController / PlayController)
+    'err_board_forbidden'        => '沒有權限操作此棋盤',
+    'flash_board_created'        => '棋盤已建立，請開始編輯！',
+    'err_default_board_delete'   => '預設棋盤無法刪除',
+    'flash_board_deleted'        => '棋盤已刪除',
+    'err_position_missing'       => '位置 :pos 不存在',
+    'err_cell_occupied'          => '此格已有格子',
+    'err_square_missing'         => '格子不存在',
+    'err_premium_template_play'  => '此為 Premium 專屬模板，請升級後使用。',
+    'err_premium_template_clone' => '此模板僅限付費會員使用，請先升級。',
+    'clone_name'                 => ':name (副本)',
+    'flash_template_cloned'      => '模板已複製到你的棋盤！',
 ];

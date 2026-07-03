@@ -59,7 +59,7 @@ class GameController extends Controller
 
         $request->session()->put('player_name', $data['player_name']);
 
-        $msg = $solo ? '單人遊戲已開始！' : '房間已建立！分享房間代碼給朋友吧。';
+        $msg = $solo ? __('games.flash_solo_started') : __('games.flash_room_created');
         return redirect()->route('games.show', $result['game']->code)->with('success', $msg);
     }
 
@@ -74,7 +74,7 @@ class GameController extends Controller
         $sessionId  = $this->playerSessionId($request);
         $myPlayer   = $game->players->firstWhere('session_id', $sessionId)
                    ?? $game->players->firstWhere('session_id', $request->session()->getId());
-        $playerName = $request->session()->get('player_name', '玩家');
+        $playerName = $request->session()->get('player_name', __('games.player_fallback'));
 
         $boardData = [
             'track'        => GameService::BOARD_TRACK,
@@ -119,7 +119,7 @@ class GameController extends Controller
                   ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
         if (!$myPlayer || !$myPlayer->is_host) {
-            return response()->json(['success' => false, 'message' => '只有房主可以開始遊戲'], 403);
+            return response()->json(['success' => false, 'message' => __('games.err_host_only_start')], 403);
         }
 
         $result = $this->gameService->startGame($game);
@@ -134,7 +134,7 @@ class GameController extends Controller
                   ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
         if (!$myPlayer) {
-            return response()->json(['success' => false, 'message' => '你不在此遊戲中'], 403);
+            return response()->json(['success' => false, 'message' => __('games.err_not_in_game')], 403);
         }
 
         $result = $this->gameService->rollDice($game, $myPlayer->color);
@@ -166,7 +166,7 @@ class GameController extends Controller
                   ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
         if (!$myPlayer) {
-            return response()->json(['success' => false, 'message' => '你不在此遊戲中'], 403);
+            return response()->json(['success' => false, 'message' => __('games.err_not_in_game')], 403);
         }
 
         $result = $this->gameService->movePiece($game, $myPlayer->color, $data['piece_index']);

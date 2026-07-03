@@ -33,17 +33,18 @@ class TruthDareController extends Controller
     {
         $data = $request->validate([
             'player_name' => ['required', 'string', 'min:1', 'max:20', new NoBlockedWords],
-            'is_adult' => 'boolean',
         ]);
 
         $hostUserId = $request->user()?->id;
 
+        // Adults-only site: the normal (non-18+) mode was removed — every new
+        // room is created in adult mode.
         $result = $this->service->createGame(
             $data['player_name'],
             $this->playerSessionId($request),
             false,
             $hostUserId,
-            (bool) ($data['is_adult'] ?? false)
+            true
         );
 
         $request->session()->put('player_name', $data['player_name']);
@@ -70,10 +71,10 @@ class TruthDareController extends Controller
         // Non-players cannot view game page — redirect to lobby with message
         if (!$myPlayer) {
             return redirect()->route('truth-dare.lobby')
-                ->with('error', '無法進入此房間，可能連線已過期，請重新建立遊戲。');
+                ->with('error', __('games.err_room_expired'));
         }
 
-        $playerName = $request->session()->get('player_name', '玩家');
+        $playerName = $request->session()->get('player_name', __('games.player_fallback'));
 
         // Host premium: stored in game_state (session-driver agnostic)
         $hostIsPremium = $this->resolveHostPremium($game);
@@ -120,7 +121,7 @@ class TruthDareController extends Controller
         $sessionId = $this->playerSessionId($request);
         if (!$game->players()->where('session_id', $sessionId)->exists()
             && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
-            return response()->json(['success' => false, 'message' => '你不在此房間中。'], 403);
+            return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
         $result = $this->service->startGame($game);
@@ -142,11 +143,11 @@ class TruthDareController extends Controller
         $sessionId = $this->playerSessionId($request);
         if (!$game->players()->where('session_id', $sessionId)->exists()
             && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
-            return response()->json(['success' => false, 'message' => '你不在此房間中。'], 403);
+            return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
         if (!$game->isPlaying()) {
-            return response()->json(['success' => false, 'message' => '遊戲尚未開始。']);
+            return response()->json(['success' => false, 'message' => __('games.err_game_not_started')]);
         }
 
         // Check it's the current player's turn
@@ -156,7 +157,7 @@ class TruthDareController extends Controller
 
         $baseSessionId = $request->session()->getId();
         if (!$currentPlayer || ($currentPlayer->session_id !== $sessionId && $currentPlayer->session_id !== $baseSessionId)) {
-            return response()->json(['success' => false, 'message' => '還沒輪到你。']);
+            return response()->json(['success' => false, 'message' => __('games.err_not_your_turn')]);
         }
 
         $hostIsPremium = $this->resolveHostPremium($game);
@@ -177,7 +178,7 @@ class TruthDareController extends Controller
         $sessionId = $this->playerSessionId($request);
         if (!$game->players()->where('session_id', $sessionId)->exists()
             && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
-            return response()->json(['success' => false, 'message' => '你不在此房間中。'], 403);
+            return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
         // Only current player can advance
@@ -187,7 +188,7 @@ class TruthDareController extends Controller
 
         $baseSessionId = $request->session()->getId();
         if (!$currentPlayer || ($currentPlayer->session_id !== $sessionId && $currentPlayer->session_id !== $baseSessionId)) {
-            return response()->json(['success' => false, 'message' => '還沒輪到你。']);
+            return response()->json(['success' => false, 'message' => __('games.err_not_your_turn')]);
         }
 
         $result = $this->service->nextPlayer($game);
@@ -210,7 +211,7 @@ class TruthDareController extends Controller
 
         // Must be in the room to see state
         if (!$myPlayer) {
-            return response()->json(['success' => false, 'message' => '你不在此房間中。'], 403);
+            return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
         $players = $game->players()->orderBy('id')->get();
@@ -255,7 +256,7 @@ class TruthDareController extends Controller
         }
 
         return redirect()->route('truth-dare.lobby')
-            ->with('success', '你已離開房間。');
+            ->with('success', __('games.flash_left_room'));
     }
 
     /**

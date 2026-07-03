@@ -6,11 +6,11 @@
 .game-page { display: flex; gap: 0; min-height: calc(100vh - 60px); font-family: 'Noto Sans TC', sans-serif; font-weight: 700; }
 
 /* ---- Sidebar ---- */
-.game-sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.game-sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
 
 .room-info-box, .players-box, .join-box, .host-controls,
 .waiting-box, .turn-info-box, .dice-box, .pieces-box, .log-box {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px;
 }
 .room-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 8px; }
 .room-code-display { font-size: 2rem; font-weight: 900; font-family: 'Noto Sans TC', monospace; letter-spacing: 4px; color: var(--accent); margin-bottom: 8px; }
@@ -123,7 +123,7 @@
 .log-entry:last-child { border-bottom: none; }
 
 /* ---- Main Board Area ---- */
-.game-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; background: var(--bg); }
+.game-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; position: relative; background: var(--bg); }
 
 /* Overlays */
 .waiting-overlay, .winner-overlay {
@@ -167,6 +167,14 @@
 .code-highlight { color: var(--accent); font-family: monospace; font-size: 1.2rem; letter-spacing: 3px; }
 
 /* ---- Chess Board ---- */
+/* .board-stage wraps .board-container and reserves a fixed top gutter for
+   .bot-status (the "AI is thinking" pill). Without this, the pill — which is
+   absolutely positioned — has nowhere of its own to sit and lands on top of
+   the board's top rows whenever .game-main's height is close to the board's
+   height (common on laptop-height viewports, ~768-900px). The gutter is
+   reserved unconditionally (even when the pill is hidden) so the board never
+   shifts position when a bot's turn starts. */
+.board-stage { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 48px; }
 .board-container { width: min(90vmin, 660px); aspect-ratio: 1; }
 
 .game-board {
@@ -340,9 +348,11 @@
     .piece.piece-captured, .piece.piece-popin { animation: none; }
 }
 
-/* Bot thinking indicator */
+/* Bot thinking indicator — positioned relative to .board-stage (its parent),
+   which reserves exactly enough top padding for this pill. See .board-stage
+   above for why this can't be positioned relative to .game-main. */
 .bot-status {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
     background: #2d1f47; border: 1px solid #7e22ce; border-radius: 20px;
     padding: 6px 16px; display: flex; align-items: center; gap: 8px;
     font-size: .88rem; color: #c084fc; z-index: 60; white-space: nowrap;
@@ -357,10 +367,16 @@
 /* Responsive */
 @media (max-width: 900px) {
     .game-page { flex-direction: column; }
-    .game-sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; overflow-x: auto; padding: 12px; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
+    /* overflow-x:auto + flex-wrap:wrap: explicitly set overflow-y too (rather
+       than relying on the browser's computed-overflow auto-pairing rule) so
+       wrapped boxes always scroll inside the 200px strip instead of visually
+       spilling onto the board below on any browser. */
+    .game-sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; overflow-x: auto; overflow-y: auto; padding: 12px; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
     .game-sidebar > * { flex: 0 0 auto; max-width: 200px; }
     .board-container { width: min(98vmin, 500px); }
-    .game-main { padding: 12px; }
+    .game-main { padding: 16px; }
+    .board-stage { padding-top: 40px; }
+    .bot-status { top: 2px; font-size: .8rem; padding: 5px 12px; }
 }
 
 @media (max-width: 480px) {
@@ -376,4 +392,7 @@
     .dice-face3d.df2 { transform: rotateX(90deg)  translateZ(17px); }
     .dice-face3d.df5 { transform: rotateX(-90deg) translateZ(17px); }
     .my-piece-btn { width: 34px; height: 34px; }
+    .board-stage { padding-top: 36px; }
+    .bot-status { padding: 4px 10px; gap: 6px; }
+    .bot-spinner { width: 12px; height: 12px; }
 }
