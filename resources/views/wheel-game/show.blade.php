@@ -143,7 +143,12 @@
             <div class="wg-wheel-glow"></div>
             <div class="wg-wheel-ring"></div>
             <div class="wg-particles" id="particles"></div>
-            <div class="wg-wheel-container">
+            {{-- The hub is labelled SPIN, so the whole wheel must actually
+                 be clickable — the real #spin-btn sits below the fold on
+                 short viewports and users tap the wheel first. --}}
+            <div class="wg-wheel-container" onclick="spinFromWheel()" role="button" tabindex="0"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();spinFromWheel();}"
+                 style="cursor:pointer" aria-label="SPIN">
                 <div class="wg-wheel-pointer"></div>
                 <canvas id="wheel-canvas" class="wg-wheel-canvas" width="320" height="320"></canvas>
                 <div class="wg-wheel-center">SPIN</div>
@@ -477,6 +482,15 @@
         }
         draw();
     }
+
+    // Wheel-surface tap: only spin while it's actually this turn's spin
+    // moment (spin button visible) — clicking the wheel while the result
+    // card is open must not skip the next-player step.
+    window.spinFromWheel=function(){
+        var btn=document.getElementById('spin-btn');
+        if(!btn || btn.style.display==='none') return;
+        spinWheel();
+    };
 
     window.spinWheel=function(){
         if(spinning) return;

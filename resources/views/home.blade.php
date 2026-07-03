@@ -415,7 +415,10 @@ function copyShareCode(el) {
                 io.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    // Positive bottom rootMargin pre-triggers the reveal ~25% of a viewport
+    // before the section scrolls in — fast scrollers never see a blank gap
+    // where an un-revealed section sits.
+    }, { threshold: 0, rootMargin: '0px 0px 25% 0px' });
 
     reveals.forEach(function (el) { io.observe(el); });
 })();

@@ -389,6 +389,9 @@ class BoardController extends Controller
         $boards = Board::withCount('squares')
             ->with('user:id,name')
             ->published()
+            // Defense-in-depth: publish() already requires >=2 squares, but a
+            // board approved through other paths must never list unplayable.
+            ->has('squares', '>=', 2)
             ->orderByDesc('published_at')
             ->paginate(12);
 

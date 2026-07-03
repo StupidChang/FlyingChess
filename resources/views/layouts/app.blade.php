@@ -108,8 +108,8 @@
                 <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold" style="margin-left:4px">{{ __('auth.register_title') }}</a>
             @endauth
             @include('partials.lang-switcher')
-            <button class="theme-toggle" onclick="toggleTheme()" title="{{ __('ui.switch_language') }}">
-                <span id="theme-label">玫瑰</span>
+            <button class="theme-toggle" onclick="toggleTheme()" title="{{ __('ui.theme_switch') }}">
+                <span id="theme-label">{{ __('ui.theme_rose') }}</span>
             </button>
         </nav>
 
@@ -158,7 +158,7 @@
         @endauth
         @include('partials.lang-switcher', ['mobile' => true])
         <button class="theme-toggle" onclick="toggleTheme()">
-            <span id="theme-label-m">玫瑰</span> 切換配色
+            <span id="theme-label-m">{{ __('ui.theme_rose') }}</span> {{ __('ui.theme_switch') }}
         </button>
     </nav>
 </header>
@@ -221,7 +221,7 @@ function toggleTheme() {
     updateThemeLabels(next);
 }
 function updateThemeLabels(t) {
-    var label = t === 'dark' ? '靛藍' : '玫瑰';
+    var label = t === 'dark' ? @json(__('ui.theme_indigo')) : @json(__('ui.theme_rose'));
     var el1 = document.getElementById('theme-label');
     var el2 = document.getElementById('theme-label-m');
     if (el1) el1.textContent = label;

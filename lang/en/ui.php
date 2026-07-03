@@ -54,4 +54,7 @@ return [
     'no_play_history'   => 'No games played yet — go play one!',
     'history_as_host'   => 'Host',
     'community_boards'  => 'Community Boards',
+    'theme_rose'        => 'Rose',
+    'theme_indigo'      => 'Indigo',
+    'theme_switch'      => 'Switch theme',
 ];

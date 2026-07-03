@@ -54,4 +54,7 @@ return [
     'no_play_history'   => '还没有游玩记录，去玩一场吧！',
     'history_as_host'   => '房主',
     'community_boards'  => '社区棋盘',
+    'theme_rose'        => '玫瑰',
+    'theme_indigo'      => '靛蓝',
+    'theme_switch'      => '切换配色',
 ];

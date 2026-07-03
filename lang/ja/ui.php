@@ -54,4 +54,7 @@ return [
     'no_play_history'   => 'まだプレイ履歴がありません。遊びに行きましょう！',
     'history_as_host'   => 'ホスト',
     'community_boards'  => 'コミュニティボード',
+    'theme_rose'        => 'ローズ',
+    'theme_indigo'      => 'インディゴ',
+    'theme_switch'      => 'テーマ切替',
 ];
