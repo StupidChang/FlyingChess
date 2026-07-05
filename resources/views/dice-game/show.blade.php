@@ -10,17 +10,20 @@
 .dg-dice-area{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;padding:30px 0}
 .dg-dice-wrapper{text-align:center}
 .dg-dice-label{font-size:.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:600}
-.dg-dice-scene{width:80px;height:80px;perspective:300px;margin:0 auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
-.dg-dice{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(-20deg) rotateY(25deg)}
-.dg-dice-face{position:absolute;width:80px;height:80px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2);backface-visibility:hidden;text-align:center;line-height:1.2;padding:4px}
-.dg-dice-face.f1{background:linear-gradient(135deg,#e53935,#c62828);transform:rotateY(0deg) translateZ(40px)}
-.dg-dice-face.f2{background:linear-gradient(135deg,#e53935,#c62828);transform:rotateY(180deg) translateZ(40px)}
-.dg-dice-face.f3{background:linear-gradient(135deg,#e53935,#c62828);transform:rotateY(90deg) translateZ(40px)}
-.dg-dice-face.f4{background:linear-gradient(135deg,#e53935,#c62828);transform:rotateY(-90deg) translateZ(40px)}
-.dg-dice-face.f5{background:linear-gradient(135deg,#e53935,#c62828);transform:rotateX(90deg) translateZ(40px)}
-.dg-dice-face.f6{background:linear-gradient(135deg,#e53935,#c62828);transform:rotateX(-90deg) translateZ(40px)}
-.dg-dice-wrapper:nth-child(2) .dg-dice-face{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
-.dg-dice-wrapper:nth-child(3) .dg-dice-face{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
+.dg-dice-scene{width:80px;height:80px;perspective:300px;margin:0 auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));transform:translateZ(0)}
+.dg-dice{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(-20deg) rotateY(25deg);-webkit-backface-visibility:hidden;backface-visibility:hidden}
+/* outline:transparent + backface hints let the compositor anti-alias the rotated edges (kills the jaggies) */
+.dg-dice-face{position:absolute;width:80px;height:80px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2);-webkit-backface-visibility:hidden;backface-visibility:hidden;outline:1px solid transparent;text-align:center;line-height:1.2;padding:4px}
+.dg-dice-face.f1{transform:rotateY(0deg) translateZ(40px)}
+.dg-dice-face.f2{transform:rotateY(180deg) translateZ(40px)}
+.dg-dice-face.f3{transform:rotateY(90deg) translateZ(40px)}
+.dg-dice-face.f4{transform:rotateY(-90deg) translateZ(40px)}
+.dg-dice-face.f5{transform:rotateX(90deg) translateZ(40px)}
+.dg-dice-face.f6{transform:rotateX(-90deg) translateZ(40px)}
+/* Colour by dice type (stable regardless of which dice are toggled on) */
+.dg-die-action .dg-dice-face{background:linear-gradient(135deg,#e53935,#c62828)}
+.dg-die-part .dg-dice-face{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
+.dg-die-time .dg-dice-face{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
 
 /* Result glow — one-shot pulse on the settled dice */
 .dg-dice-scene.dg-glow{animation:dgGlowPulse .8s ease-out 1}
@@ -32,6 +35,20 @@
 @media (prefers-reduced-motion: reduce){
   .dg-dice-scene.dg-glow{animation:none}
 }
+
+/* Dice intensity selector (player picks in-game) */
+.dg-tier-pick{text-align:center;margin-top:4px}
+.dg-tier-pick-label{font-size:.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:600}
+.dg-tier-select{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.dg-tier-btn{
+  padding:6px 18px;border-radius:999px;cursor:pointer;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);
+  font-size:.85rem;font-weight:700;letter-spacing:.3px;transition:background .15s,color .15s,border-color .15s;
+}
+.dg-tier-btn:hover{color:var(--text);border-color:var(--accent)}
+.dg-tier-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dg-tier-btn.locked{opacity:.55}
+.dg-tier-btn.locked::after{content:' 🔒';font-size:.75rem}
 
 /* Result */
 .dg-result{text-align:center;padding:20px;animation:fadeIn .3s ease-out}
@@ -84,6 +101,10 @@
     <div id="game-phase" style="display:none">
         <div class="mg-round-badge" id="turn-badge"></div>
         <div class="mg-current-player" id="current-player"></div>
+        <div class="dg-tier-pick">
+            <div class="dg-tier-pick-label">{{ __('minigame.dice_pick_tier') }}</div>
+            <div class="dg-tier-select" id="dice-select"></div>
+        </div>
         <div class="dg-dice-area" id="dice-area"></div>
         <div id="result-display" class="dg-result" style="display:none"></div>
         <div class="dg-history" id="roll-history"></div>
@@ -138,21 +159,78 @@
         setTimeout(function(){t.remove()},3200);
     }
 
-    function getTier(){
-        if(round<=3) return 'mild';
-        if(round<=6) return 'medium';
-        return (POOLS.intense ? 'intense' : 'medium');
+    // Player picks WHICH dice to roll (action / part / duration).
+    // Difficulty is no longer a player choice — pools are pre-merged server-side
+    // (free = flirty+bold merged, premium additionally folds in the hottest options).
+    var DICE_DEFS=[
+        {key:'action', label:@json(__('minigame.dice_label_action')), pool:'actions'},
+        {key:'part',   label:@json(__('minigame.dice_label_part')),   pool:'parts'},
+        {key:'time',   label:@json(__('minigame.dice_label_time')),   pool:'durations'}
+    ];
+    var enabled={action:true, part:true, time:true};
+    var builtDice=[];   // [{key,label,values:[…≤6]}] — the dice currently on the table
+
+    function updateBadge(){
+        var roundLabel = @json(__('minigame.round_n', ['n' => '__N__'])).replace('__N__', round);
+        document.getElementById('turn-badge').textContent=roundLabel;
     }
-    var TIER_LABELS={
-        mild: @json(__('minigame.tier_mild')),
-        medium: @json(__('minigame.tier_medium')),
-        intense: @json(__('minigame.tier_intense')),
+
+    function activeDefs(){return DICE_DEFS.filter(function(d){return enabled[d.key]})}
+
+    function shuffled(arr){
+        var a=arr.slice();
+        for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+        return a;
+    }
+
+    function renderDiceSelect(){
+        var wrap=document.getElementById('dice-select');
+        if(!wrap) return;
+        wrap.innerHTML='';
+        DICE_DEFS.forEach(function(d){
+            var b=document.createElement('button');
+            b.type='button';
+            b.className='dg-tier-btn dg-toggle-'+d.key+(enabled[d.key]?' active':'');
+            b.textContent=d.label;
+            b.onclick=function(){toggleDie(d.key)};
+            wrap.appendChild(b);
+        });
+    }
+
+    window.toggleDie=function(key){
+        if(rollAnimId) return;                       // don't toggle mid-roll
+        if(enabled[key] && activeDefs().length<=1){  // keep at least one die
+            showToast(@json(__('minigame.dice_need_one')));
+            return;
+        }
+        enabled[key]=!enabled[key];
+        renderDiceSelect();
+        buildDice();
+        // Let the player re-roll with the new dice set without advancing the turn.
+        document.getElementById('result-display').style.display='none';
+        document.getElementById('next-btn').style.display='none';
+        document.getElementById('roll-btn').style.display='inline-flex';
     };
-    function intensityTag(){
-        var t=getTier();
-        return '<span class="mg-tag mg-tag-'+t+'">'+escHtml(TIER_LABELS[t])+'</span>';
+
+    function buildDice(){
+        var defs=activeDefs();
+        var area=document.getElementById('dice-area');
+        area.innerHTML='';
+        builtDice=[];
+        defs.forEach(function(d,di){
+            var values=shuffled(POOLS[d.pool]).slice(0,6);   // 6 random faces from the merged pool
+            builtDice.push({key:d.key,label:d.label,values:values});
+            var facesHtml='';
+            for(var fi=0;fi<values.length;fi++){
+                facesHtml+='<div class="dg-dice-face f'+(fi+1)+'">'+escHtml(values[fi])+'</div>';
+            }
+            var w=document.createElement('div');
+            w.className='dg-dice-wrapper dg-die-'+d.key;
+            w.innerHTML='<div class="dg-dice-label">'+escHtml(d.label)+'</div>'+
+                '<div class="dg-dice-scene"><div class="dg-dice" id="dice-'+di+'">'+ facesHtml +'</div></div>';
+            area.appendChild(w);
+        });
     }
-    function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 
     /* Setup */
     var playerCount=2;
@@ -181,7 +259,7 @@
             players.push(r.querySelector('.p-name').value.trim()||fallbackName);
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
-        turn=0;round=1;
+        turn=0;round=1;enabled={action:true,part:true,time:true};
         clearHistory();
         showTurn();
     };
@@ -189,64 +267,41 @@
     function showTurn(){
         document.getElementById('setup-phase').style.display='none';
         document.getElementById('game-phase').style.display='block';
-        var roundLabel = @json(__('minigame.round_n', ['n' => '__N__'])).replace('__N__', round);
-        document.getElementById('turn-badge').innerHTML=escHtml(roundLabel)+' '+intensityTag();
+        updateBadge();
         var turnLabel = @json(__('minigame.turn_player', ['name' => '__NAME__'])).replace('__NAME__', players[turn]);
         document.getElementById('current-player').textContent=turnLabel;
         document.getElementById('roll-btn').style.display='inline-flex';
         document.getElementById('next-btn').style.display='none';
         document.getElementById('result-display').style.display='none';
 
-        // Build 3D dice
-        var tier=getTier();
-        var pool=POOLS[tier];
-        var area=document.getElementById('dice-area');
-        area.innerHTML='';
-        var diceData=[
-            {label:@json(__('minigame.dice_label_action')),values:pool.actions},
-            {label:@json(__('minigame.dice_label_part')),values:pool.parts},
-            {label:@json(__('minigame.dice_label_time')),values:pool.durations}
-        ];
-        diceData.forEach(function(dd,di){
-            var w=document.createElement('div');
-            w.className='dg-dice-wrapper';
-            var facesHtml='';
-            var vals=dd.values.slice(0,6);
-            for(var fi=0;fi<vals.length;fi++){
-                facesHtml+='<div class="dg-dice-face f'+(fi+1)+'">'+escHtml(vals[fi])+'</div>';
-            }
-            w.innerHTML='<div class="dg-dice-label">'+dd.label+'</div>'+
-                '<div class="dg-dice-scene"><div class="dg-dice" id="dice-'+di+'">'+ facesHtml +'</div></div>';
-            area.appendChild(w);
-        });
+        renderDiceSelect();
+        buildDice();
     }
 
     window.rollDice=function(){
         document.getElementById('roll-btn').style.display='none';
         var actionBtns=document.querySelector('.mg-action-btns');
         if(actionBtns) actionBtns.classList.add('dg-rolling');
-        var tier=getTier();
-        var pool=POOLS[tier];
 
-        var actionIdx=Math.floor(Math.random()*Math.min(pool.actions.length,6));
-        var partIdx=Math.floor(Math.random()*Math.min(pool.parts.length,6));
-        var durIdx=Math.floor(Math.random()*Math.min(pool.durations.length,6));
-
-        var action=pool.actions[actionIdx];
-        var part=pool.parts[partIdx];
-        var duration=pool.durations[durIdx];
-
-        // Face index → rotation to show that face toward camera
+        // Roll every active die: pick a random face from the faces currently shown.
         var faceRot=[
             {rx:0,ry:0},{rx:0,ry:180},{rx:0,ry:-90},{rx:0,ry:90},{rx:-90,ry:0},{rx:90,ry:0}
         ];
-        var indices=[actionIdx,partIdx,durIdx];
+        var indices=[];
+        var resultTokens=[];
+        for(var bi=0;bi<builtDice.length;bi++){
+            var vals=builtDice[bi].values;
+            var idx=Math.floor(Math.random()*Math.min(vals.length,6));
+            indices.push(idx);
+            resultTokens.push(vals[idx]);
+        }
+        var resultText=resultTokens.join(' ');
 
         // Build animation params for each dice
         var ANIM_DUR=1800;
         var startTime=null;
         var diceParams=[];
-        for(var i=0;i<3;i++){
+        for(var i=0;i<builtDice.length;i++){
             var el=document.getElementById('dice-'+i);
             if(!el) continue;
             var fr=faceRot[indices[i]%6];
@@ -276,9 +331,9 @@
         function showResult(){
             var rd=document.getElementById('result-display');
             rd.style.display='block';
-            rd.innerHTML='<div class="mg-result-text">'+escHtml(action)+' '+escHtml(part)+' '+escHtml(duration)+'</div>';
+            rd.innerHTML='<div class="mg-result-text">'+escHtml(resultText)+'</div>';
             document.getElementById('next-btn').style.display='inline-flex';
-            addHistory(action+' '+part+' '+duration);
+            addHistory(resultText);
             for(var g=0;g<diceParams.length;g++){
                 (function(scene){
                     scene.classList.remove('dg-glow');
