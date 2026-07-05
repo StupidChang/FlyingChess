@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
 /* 3D Dice */
-.dg-dice-area{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;padding:30px 0}
+.dg-dice-area{display:flex;gap:38px;justify-content:center;flex-wrap:wrap;padding:34px 6px}
 .dg-dice-wrapper{text-align:center}
 .dg-dice-label{font-size:.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:600}
 .dg-dice-scene{width:80px;height:80px;perspective:300px;margin:0 auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));transform:translateZ(0)}
@@ -38,40 +38,43 @@
   .dg-dice-scene.dg-glow{animation:none}
 }
 
-/* Two-column play area: dice picker list on the left, dice stage on the right */
-.dg-play{display:flex;gap:22px;align-items:flex-start;justify-content:center;flex-wrap:wrap;margin-top:8px}
+/* Two-column play area: dice picker (left) + dice stage (right) */
+.dg-play{display:flex;gap:26px;align-items:flex-start;justify-content:center;flex-wrap:wrap;margin-top:8px}
 .dg-picker{flex:0 0 auto;text-align:left}
-.dg-picker-label{font-size:.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:600}
-.dg-picker-list{display:flex;flex-direction:column;gap:6px}
-.dg-picker-item{
-  display:flex;align-items:center;gap:8px;min-width:130px;
-  padding:9px 14px;border-radius:10px;cursor:pointer;
-  background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);
-  font-size:.9rem;font-weight:600;transition:background .15s,color .15s,border-color .15s;
+.dg-picker-label{font-size:.82rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;letter-spacing:.3px}
+.dg-picker-list{
+  display:flex;flex-direction:column;gap:16px;min-width:200px;
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:16px 14px;box-shadow:0 6px 20px rgba(0,0,0,.20);
 }
-.dg-picker-item:hover{color:var(--text);border-color:var(--accent)}
-.dg-picker-item.active{background:rgba(244,63,94,.12);border-color:var(--accent);color:var(--text)}
-.dg-picker-item .dg-picker-mark{color:var(--accent);font-weight:800;visibility:hidden}
-.dg-picker-item.active .dg-picker-mark{visibility:visible}
-.dg-picker-item .dg-picker-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.dg-picker-group{display:flex;flex-direction:column;gap:5px}
+.dg-picker-head{font-size:.66rem;color:var(--text-dim);font-weight:800;letter-spacing:1.2px;text-transform:uppercase;opacity:.65;padding-left:4px;margin-bottom:2px}
+.dg-picker-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:10px;cursor:pointer;
+  background:var(--surface2);border:1px solid transparent;color:var(--text-dim);
+  font-size:.9rem;font-weight:600;transition:background .15s,color .15s,border-color .15s,box-shadow .15s;
+}
+.dg-picker-item:hover{color:var(--text);background:var(--border)}
+.dg-picker-item.active{background:rgba(244,63,94,.14);border-color:var(--accent);color:var(--text);box-shadow:inset 3px 0 0 var(--accent)}
+.dg-picker-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.05)}
 .dg-picker-dot-action{background:#e53935}
 .dg-picker-dot-part{background:#2563eb}
 .dg-picker-dot-time{background:#7c3aed}
 .dg-picker-dot-prop{background:#0d9488}
 .dg-picker-dot-custom{background:#d9a441}
-.dg-picker-group{margin-bottom:12px}
-.dg-picker-head{font-size:.72rem;color:var(--text-dim);font-weight:700;letter-spacing:.5px;margin:0 0 5px 2px;text-transform:uppercase;opacity:.8}
-.dg-picker-name{flex:1}
-.dg-picker-item.locked{opacity:.55}
-.dg-picker-item.locked:hover{border-color:var(--border);color:var(--text-dim)}
-.dg-lock{font-size:.72rem;margin-left:auto}
-.dg-manage-link{display:inline-block;margin-top:6px;font-size:.82rem;color:var(--accent)}
+.dg-picker-name{flex:1;white-space:nowrap}
+.dg-picker-check{width:16px;text-align:center;color:var(--accent);font-weight:800;opacity:0;transition:opacity .15s}
+.dg-picker-item.active .dg-picker-check{opacity:1}
+.dg-picker-item.locked{opacity:.5}
+.dg-picker-item.locked:hover{background:var(--surface2);color:var(--text-dim)}
+.dg-lock{width:16px;text-align:center;font-size:.72rem}
+.dg-manage-link{display:inline-block;margin-top:10px;font-size:.82rem;color:var(--accent)}
 .dg-manage-link:hover{text-decoration:underline}
-.dg-stage{flex:1 1 300px;min-width:260px;max-width:520px}
+.dg-stage{flex:1 1 320px;min-width:260px;max-width:540px}
 @media(max-width:560px){
-  .dg-play{gap:14px}
+  .dg-play{gap:16px}
   .dg-picker,.dg-picker-list{width:100%}
-  .dg-picker-item{min-width:0}
 }
 
 /* Result */
@@ -270,10 +273,9 @@
                 if(enabled[d.id] && !d.locked) cls+=' active';
                 if(d.locked) cls+=' locked';
                 b.className=cls;
-                b.innerHTML='<span class="dg-picker-mark">▸</span>'+
-                    '<span class="dg-picker-dot dg-picker-dot-'+cc+'"></span>'+
+                b.innerHTML='<span class="dg-picker-dot dg-picker-dot-'+cc+'"></span>'+
                     '<span class="dg-picker-name">'+escHtml(itemLabel(d))+'</span>'+
-                    (d.locked?'<span class="dg-lock">🔒</span>':'');
+                    (d.locked?'<span class="dg-lock">🔒</span>':'<span class="dg-picker-check">✓</span>');
                 b.onclick=function(){toggleDie(d.id)};
                 group.appendChild(b);
             });
@@ -281,12 +283,22 @@
         });
     }
 
+    function groupOf(d){ return d.custom ? 'custom' : d.cat; }
+
     window.toggleDie=function(id){
         if(rollAnimId) return;                 // don't toggle mid-roll
         var d=BY_ID[id]; if(!d) return;
         if(d.locked){ showToast(WILD_LOCKED_MSG); return; }
-        if(enabled[id] && activeDice().length<=1){ showToast(NEED_ONE_MSG); return; }
-        enabled[id]=!enabled[id];
+        if(enabled[id]){
+            // turning the selected one off — but keep at least one die overall
+            if(activeDice().length<=1){ showToast(NEED_ONE_MSG); return; }
+            enabled[id]=false;
+        } else {
+            // single-select per group: picking a variant replaces the group's current pick
+            var g=groupOf(d);
+            ALL.forEach(function(o){ if(groupOf(o)===g && enabled[o.id]) enabled[o.id]=false; });
+            enabled[id]=true;
+        }
         renderDiceSelect();
         buildDice();
         // let the player re-roll with the new set without advancing the turn
