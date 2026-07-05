@@ -19,6 +19,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TimeCapsuleController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\WheelGameController;
+use App\Http\Controllers\WhoMostLikelyController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
@@ -166,6 +167,7 @@ Route::prefix('{locale}')
         Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
         Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');
         Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
+        Route::get('/who-most-likely', [WhoMostLikelyController::class, 'show'])->name('who-most-likely.show');
 
         // Bucket List
         Route::prefix('bucket-list')->name('bucket-list.')->group(function () {
