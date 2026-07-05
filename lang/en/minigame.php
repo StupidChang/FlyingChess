@@ -25,6 +25,8 @@ return [
     'dice_label_part'  => 'Body part',
     'dice_label_time'  => 'Duration',
     'dice_roll'        => '🎲 Roll',
+    'dice_pick_tier'   => 'Choose which dice to use',
+    'dice_need_one'    => 'Keep at least one die',
     'dice_premium_gate'=> 'Free version caps at 6 rounds. Go Premium to unlock unlimited rounds and bolder dice!',
 
     'card_title'       => 'Couple Card Game',
@@ -126,4 +128,15 @@ return [
     'capsule_default_q8'  => 'When did you two last laugh out loud together, and why?',
     'capsule_default_q9'  => 'Where do you hope you two will go together a year from now?',
     'capsule_default_q10' => 'What is one thing you are most grateful to your partner for right now?',
+
+    // Who's Most Likely To
+    'wml_title'        => 'Who\'s Most Likely To',
+    'wml_meta'         => 'Who\'s Most Likely To — a couples & party voting game with a bold adult question bank. Find out who\'s the naughtiest, boldest and least able to resist!',
+    'wml_subtitle'     => 'Everyone votes to reveal who\'s most likely to do these things',
+    'wml_setup'        => 'Add players (2–8)',
+    'wml_lead'         => 'Who\'s most likely to…',
+    'wml_vote_tip'     => 'Everyone points at the most likely person, then tap them for +1',
+    'wml_scoreboard'   => 'Scores',
+    'wml_next'         => 'Next',
+    'wml_premium_gate' => 'Free version caps at 6 questions. Go Premium to unlock unlimited questions and a bolder adult question bank!',
 ];

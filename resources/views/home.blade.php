@@ -73,7 +73,7 @@
                 </div>
                 <h3>{{ __('home.mode_chess_title') }}</h3>
                 <p>{{ __('home.mode_chess_desc') }}</p>
-                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
+                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
                 <a href="{{ route('games.lobby') }}" class="btn btn-gold btn-full">{{ __('home.mode_chess_cta') }}</a>
             </article>
 
@@ -86,7 +86,7 @@
                 </div>
                 <h3>{{ __('home.mode_truth_title') }}</h3>
                 <p>{{ __('home.mode_truth_desc') }}</p>
-                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
+                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
                 <a href="{{ route('truth-dare.lobby') }}" class="btn btn-gold btn-full">{{ __('home.mode_truth_cta') }}</a>
             </article>
 
@@ -142,6 +142,19 @@
                 <a href="{{ route('wheel-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
+            {{-- 誰最有可能 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
+                        <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z"/>
+                    </svg>
+                </div>
+                <h3>{{ __('games.who_most_likely') }}</h3>
+                <p>{{ __('games.desc_wml') }}</p>
+                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
+                <a href="{{ route('who-most-likely.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
             {{-- 自訂棋盤 --}}
             <article class="game-card">
                 <div class="game-card-icon" aria-hidden="true">
@@ -158,6 +171,8 @@
                 @endif
             </article>
 
+            {{-- 共同清單 / 時光膠囊 暫時隱藏（保留程式碼，日後可還原：移除下面 @if(false)/@endif 即可） --}}
+            @if(false)
             {{-- 情侶清單 --}}
             <article class="game-card">
                 <div class="game-card-icon" aria-hidden="true">
@@ -167,7 +182,7 @@
                 </div>
                 <h3>{{ __('games.bucket_list') }}</h3>
                 <p>{{ __('games.desc_bucket') }}</p>
-                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
+                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
                 <a href="{{ route('bucket-list.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
@@ -180,9 +195,10 @@
                 </div>
                 <h3>{{ __('games.time_capsule') }}</h3>
                 <p>{{ __('games.desc_capsule') }}</p>
-                <span class="game-card-tag tag-online">{{ __('games.tag_online') }}</span>
+                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
                 <a href="{{ route('time-capsule.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
+            @endif
 
             {{-- 社群棋盤 --}}
             <article class="game-card">

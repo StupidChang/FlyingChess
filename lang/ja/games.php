@@ -7,6 +7,7 @@ return [
     'card_game'         => 'カードゲーム',
     'dice_game'         => 'サイコロゲーム',
     'king_game'         => '王様ゲーム',
+    'who_most_likely'   => '誰がいちばん',
     'lobby'             => 'ゲームロビー',
     'create_room'       => 'ルームを作成',
     'join_room'         => 'ルームに参加',
@@ -26,6 +27,7 @@ return [
 
     // Tags / labels used on lobby + game-hall cards
     'tag_online'        => 'オンライン対戦',
+    'tag_couple'        => 'カップル向け',
     'tag_party'         => '同じ端末でパーティー',
     'start_game'        => 'ゲーム開始',
 
@@ -35,6 +37,7 @@ return [
     'desc_card'         => '2〜6人でカードを引いてペアに。強いカードが命令、弱いカードは従う。盛り上がること間違いなし',
     'desc_dice'         => '運命のサイコロを振って、アクションと相手をランダムに決定。パーティーのアイスブレイクに最適',
     'desc_king'         => '王様の命令は絶対！王様を引いた人が他のプレイヤーにミッションを指示できる',
+    'desc_wml'          => 'みんなで投票して、誰がいちばん積極的か暴いちゃおう。大人向けの過激なネタ満載',
     'desc_wheel'        => '運命のルーレットを回して、ミッションや罰ゲームをランダムに指名。運に任せてみよう',
 
     // Bucket list / time capsule

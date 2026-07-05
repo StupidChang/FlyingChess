@@ -7,6 +7,7 @@ return [
     'card_game'         => '紙牌遊戲',
     'dice_game'         => '骰子遊戲',
     'king_game'         => '國王遊戲',
+    'who_most_likely'   => '誰最有可能',
     'lobby'             => '遊戲大廳',
     'create_room'       => '建立房間',
     'join_room'         => '加入房間',
@@ -26,6 +27,7 @@ return [
 
     // Tags / labels used on lobby + game-hall cards
     'tag_online'        => '多人線上',
+    'tag_couple'        => '情侶適合',
     'tag_party'         => '同機派對',
     'start_game'        => '開始遊戲',
 
@@ -35,6 +37,7 @@ return [
     'desc_card'         => '2–6 人抽牌配對，牌大的指揮、牌小的服從，越玩越刺激',
     'desc_dice'         => '擲出命運骰子，隨機決定動作與對象，派對破冰神器',
     'desc_king'         => '國王號令全場，抽到國王的人可以命令其他玩家執行任務',
+    'desc_wml'          => '大家一起投票，看看你們之中誰最騷、最主動、最忍不住，成人辣度題庫',
     'desc_wheel'        => '轉動命運之輪，隨機指定任務或懲罰，讓緣分來決定',
 
     // Bucket list / time capsule

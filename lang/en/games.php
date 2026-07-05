@@ -7,6 +7,7 @@ return [
     'card_game'         => 'Card Game',
     'dice_game'         => 'Dice Game',
     'king_game'         => "King's Game",
+    'who_most_likely'   => "Who's Most Likely",
     'lobby'             => 'Game Lobby',
     'create_room'       => 'Create room',
     'join_room'         => 'Join room',
@@ -26,6 +27,7 @@ return [
 
     // Tags / labels used on lobby + game-hall cards
     'tag_online'        => 'Multiplayer online',
+    'tag_couple'        => 'Couple-friendly',
     'tag_party'         => 'Local party',
     'start_game'        => 'Start',
 
@@ -35,6 +37,7 @@ return [
     'desc_card'         => '2–6 players draw and pair up — higher card commands, lower card obeys.',
     'desc_dice'         => 'Roll the dice of fate — random action, random target. The ultimate ice-breaker.',
     'desc_king'         => "Whoever draws the King commands everyone else's task this round.",
+    'desc_wml'          => 'Everyone votes to reveal who\'s the naughtiest and boldest — bold adult question bank.',
     'desc_wheel'        => 'Spin the wheel of fortune — let chance decide the next task.',
 
     // Bucket list / time capsule

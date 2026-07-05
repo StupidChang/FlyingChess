@@ -28,6 +28,8 @@ return [
     'dice_label_part'  => '部位',
     'dice_label_time'  => '時間',
     'dice_roll'        => '🎲 サイコロを振る',
+    'dice_pick_tier'   => '使うサイコロを選ぶ',
+    'dice_need_one'    => 'サイコロは最低1つ必要です',
     'dice_premium_gate'=> '無料版は最大 6 ラウンドまで。プレミアムで無制限ラウンドとさらに刺激的なサイコロを解放！',
 
     // Card game
@@ -132,4 +134,15 @@ return [
     'capsule_default_q8'  => '最近ふたりで大笑いしたのはいつ？きっかけは？',
     'capsule_default_q9'  => '一年後、ふたりでどこへ行きたい？',
     'capsule_default_q10' => '今この瞬間、相手にいちばん感謝していることは？',
+
+    // Who's Most Likely To（誰がいちばん）
+    'wml_title'        => '誰がいちばん',
+    'wml_meta'         => '「誰がいちばん〜しそう？」— カップル・パーティー向けの投票ゲーム。大人向けの過激な質問で、誰がいちばん積極的か暴かれる！',
+    'wml_subtitle'     => 'みんなで投票して、誰がいちばんやりそうか当てよう',
+    'wml_setup'        => 'プレイヤーを入力（2〜8人）',
+    'wml_lead'         => '誰がいちばん……',
+    'wml_vote_tip'     => 'みんなで「この人！」と指さして、その人をタップして +1 点',
+    'wml_scoreboard'   => '現在のスコア',
+    'wml_next'         => '次の質問',
+    'wml_premium_gate' => '無料版は最大 6 問まで。プレミアムで無制限の質問とさらに過激な大人向けネタを解放！',
 ];

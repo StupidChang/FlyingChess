@@ -28,6 +28,8 @@ return [
     'dice_label_part'  => '部位',
     'dice_label_time'  => '時間',
     'dice_roll'        => '🎲 擲骰子',
+    'dice_pick_tier'   => '選擇要用的骰子',
+    'dice_need_one'    => '至少要保留一顆骰子',
     'dice_premium_gate'=> '免費版最多 6 回合，升級 Premium 解鎖無限回合與更刺激的骰子！',
 
     // Card game
@@ -132,4 +134,15 @@ return [
     'capsule_default_q8'  => '我們最近一次大笑是什麼時候、為什麼？',
     'capsule_default_q9'  => '一年後我希望我們一起去哪裡？',
     'capsule_default_q10' => '此時此刻我最感謝對方的一件事是？',
+
+    // Who's Most Likely To（誰最有可能）
+    'wml_title'        => '誰最有可能',
+    'wml_meta'         => '誰最有可能大冒險 — 情侶、多人派對投票遊戲，成人辣度題庫，看看你們之中誰最騷、最主動、最忍不住！',
+    'wml_subtitle'     => '大家一起投票，看看誰最有可能做出這些事',
+    'wml_setup'        => '輸入玩家（2–8 人）',
+    'wml_lead'         => '誰最有可能……',
+    'wml_vote_tip'     => '大家一起指出最有可能的人，然後點選他 +1 分',
+    'wml_scoreboard'   => '目前得分',
+    'wml_next'         => '下一題',
+    'wml_premium_gate' => '免費版最多 6 題，升級 Premium 解鎖無限題目與更火辣的成人題庫！',
 ];

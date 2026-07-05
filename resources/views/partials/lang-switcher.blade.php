@@ -34,7 +34,7 @@
 
 {{-- Layout-only rules. Visual styling lives in public/css/app.css under "Premium polish". --}}
 <style>
-.lang-switcher{position:relative;display:inline-block;margin-left:8px;cursor:pointer;font-size:.88rem;line-height:1}
+.lang-switcher{position:relative;display:inline-block;margin-left:8px;cursor:pointer;font-size:.82rem;line-height:1}
 .lang-switcher-toggle{display:inline-flex;align-items:center;gap:6px;font:inherit;color:inherit;cursor:pointer}
 .lang-switcher-toggle .toggle-arrow{font-size:.65rem;opacity:.7;transition:transform .2s}
 .lang-switcher.open .lang-switcher-toggle .toggle-arrow{transform:rotate(180deg)}

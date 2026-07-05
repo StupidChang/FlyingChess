@@ -85,32 +85,35 @@
                     <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
                     <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
                     <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
+                    <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
                     <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 </div>
             </div>
             @auth
-                <a href="{{ route('profile.index') }}" class="nav-link">{{ __('ui.profile') }}</a>
-                @if(Auth::user()->isAdmin())
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--accent)">{{ __('ui.admin') }}</a>
-                @endif
-                <span class="nav-user">
-                    {{ Auth::user()->name }}
-                    @if(Auth::user()->isPremium())
-                        <span class="nav-premium">Premium</span>
-                    @endif
-                </span>
-                <form action="{{ route('logout') }}" method="POST" style="display:inline">
-                    @csrf
-                    <button type="submit" class="btn btn-sm btn-outline" style="margin-left:4px">{{ __('auth.logout') }}</button>
-                </form>
+                <div class="nav-dropdown nav-account">
+                    <button type="button" class="nav-link nav-dropdown-toggle nav-account-toggle" aria-haspopup="true">
+                        <span class="nav-account-name">{{ Auth::user()->name }}</span>
+                        @if(Auth::user()->isPremium())
+                            <span class="nav-premium">Premium</span>
+                        @endif
+                    </button>
+                    <div class="nav-dropdown-menu nav-account-menu">
+                        <a href="{{ route('profile.index') }}">{{ __('ui.profile') }}</a>
+                        @if(Auth::user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" style="color:var(--accent)">{{ __('ui.admin') }}</a>
+                        @endif
+                        <a href="{{ route('premium.index') }}">{{ __('premium.page_title') }}</a>
+                        <form action="{{ route('logout') }}" method="POST" class="nav-account-logout">
+                            @csrf
+                            <button type="submit">{{ __('auth.logout') }}</button>
+                        </form>
+                    </div>
+                </div>
             @else
                 <a href="{{ route('login') }}" class="nav-link">{{ __('auth.login_title') }}</a>
                 <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold" style="margin-left:4px">{{ __('auth.register_title') }}</a>
             @endauth
             @include('partials.lang-switcher')
-            <button class="theme-toggle" onclick="toggleTheme()" title="{{ __('ui.theme_switch') }}">
-                <span id="theme-label">{{ __('ui.theme_rose') }}</span>
-            </button>
         </nav>
 
         {{-- Mobile hamburger --}}
@@ -135,6 +138,7 @@
             <a href="{{ route('dice-game.show') }}" class="nav-link">{{ __('games.dice_game') }}</a>
             <a href="{{ route('king-game.show') }}" class="nav-link">{{ __('games.king_game') }}</a>
             <a href="{{ route('wheel-game.show') }}" class="nav-link">{{ __('games.wheel_game') }}</a>
+            <a href="{{ route('who-most-likely.show') }}" class="nav-link">{{ __('games.who_most_likely') }}</a>
             <a href="{{ route('boards.community') }}" class="nav-link">{{ __('ui.community_boards') }}</a>
         </div>
         @auth
@@ -189,6 +193,7 @@
                 <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
                 <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
                 <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
+                <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
                 <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 <a href="{{ route('play') }}">{{ __('play.create_board') }}</a>
                 @auth
@@ -201,7 +206,12 @@
                 <a href="{{ route('legal.terms') }}" rel="nofollow">{{ __('legal.terms_title') }}</a>
             </div>
         </div>
-        <p class="footer-copy">&copy; {{ date('Y') }} {{ __('ui.site_name') }}</p>
+        <div class="footer-bottom">
+            <p class="footer-copy">&copy; {{ date('Y') }} {{ __('ui.site_name') }}</p>
+            <button class="theme-toggle footer-theme" onclick="toggleTheme()" title="{{ __('ui.theme_switch') }}">
+                <span id="theme-label">{{ __('ui.theme_rose') }}</span>
+            </button>
+        </div>
         {{-- Social placeholders --}}
         <div class="footer-social" style="justify-content:center">
             {{-- <a href="#" target="_blank" rel="nofollow noopener">Instagram</a> --}}

@@ -77,10 +77,10 @@ ul{list-style:none}
 .logo:hover{color:var(--accent)}
 
 /* Desktop nav — explicit selector, always shown on desktop */
-.nav-desktop{display:flex;gap:2px;align-items:center;flex-wrap:wrap}
-.nav-link{padding:6px 13px;border-radius:var(--radius);color:var(--text-dim);font-size:.875rem;transition:background .15s,color .15s;font-weight:500}
+.nav-desktop{display:flex;gap:4px;align-items:center;flex-wrap:nowrap}
+.nav-link{padding:6px 10px;border-radius:var(--radius);color:var(--text-dim);font-size:.82rem;transition:background .15s,color .15s;font-weight:500}
 .nav-link:hover{background:var(--surface2);color:var(--text)}
-.nav-play{background:var(--accent);color:#fff !important;font-weight:600;padding:6px 14px}
+.nav-play{background:var(--accent);color:#fff !important;font-weight:600;padding:6px 12px}
 .nav-play:hover{background:var(--accent-hover)}
 
 /* Nav dropdown (desktop hover, mobile click) */
@@ -98,6 +98,15 @@ ul{list-style:none}
 .nav-dropdown:focus-within .nav-dropdown-menu{display:block}
 .nav-dropdown-menu a{display:block;padding:8px 16px;font-size:.85rem;color:var(--text-dim);transition:background .15s,color .15s;white-space:nowrap}
 .nav-dropdown-menu a:hover{background:var(--surface2);color:var(--text)}
+
+/* Account dropdown (authenticated user cluster: profile / admin / premium / logout) */
+.nav-account-toggle{display:flex;align-items:center;gap:6px;max-width:180px;background:none;font:inherit;cursor:pointer}
+.nav-account-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
+.nav-account-menu{left:auto;right:0;transform:none;min-width:170px}
+.nav-account-logout{margin:6px 8px 2px;border-top:1px solid var(--border);padding-top:8px}
+.nav-account-logout button{display:block;width:100%;text-align:left;background:none;border:none;cursor:pointer;
+  padding:8px 8px;font:inherit;font-size:.85rem;color:var(--text-dim);border-radius:var(--radius);transition:background .15s,color .15s}
+.nav-account-logout button:hover{background:var(--surface2);color:var(--text)}
 
 /* Mobile nav collapsible games section */
 .nav-mobile-games-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;color:inherit;font:inherit;cursor:pointer}
@@ -437,6 +446,7 @@ ul{list-style:none}
   opacity:.85;
 }
 .tag-online{color:#60a5fa}
+.tag-couple{color:#f472b6}
 .tag-party{color:#fb923c}
 .tag-free{color:#34d399}
 
@@ -620,7 +630,9 @@ ul{list-style:none}
 .footer-links{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.85rem}
 .footer-links a{color:var(--text-dim);transition:color .15s}
 .footer-links a:hover{color:var(--text)}
-.footer-copy{font-size:.78rem;color:var(--text-dim);text-align:center;margin-top:20px;max-width:1200px;margin-left:auto;margin-right:auto}
+.footer-copy{font-size:.78rem;color:var(--text-dim);text-align:center;margin:0}
+.footer-bottom{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:20px;max-width:1200px;margin-left:auto;margin-right:auto}
+.footer-theme{margin-left:0;font-size:.78rem}
 .footer-social{display:flex;gap:12px;margin-top:8px}
 .footer-social a{color:var(--text-dim);transition:color .15s}
 .footer-social a:hover{color:var(--accent)}
@@ -697,6 +709,12 @@ ul{list-style:none}
 .template-lock-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;background:var(--gold);color:#241a08;padding:8px 16px;border-radius:var(--radius);font-weight:700;font-size:.9rem}
 
 /* ── Responsive ── */
+/* Mid-width desktop: shrink the language switcher to just the globe so the nav row stays uncramped */
+@media(max-width:900px){
+  .nav-desktop .lang-switcher-label{display:none}
+  .nav-desktop .lang-switcher{margin-left:4px}
+}
+
 @media(max-width:768px){
   .hamburger{display:block}
   /* Only hide the desktop nav, not ALL nav elements */
