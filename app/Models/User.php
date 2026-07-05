@@ -61,6 +61,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Board::class);
     }
 
+    public function dice(): HasMany
+    {
+        return $this->hasMany(Dice::class);
+    }
+
     public function isPremium(): bool
     {
         return $this->premium_expires_at && $this->premium_expires_at->isFuture();

@@ -19,6 +19,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TimeCapsuleController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\WheelGameController;
+use App\Http\Controllers\DiceController;
 use App\Http\Controllers\WhoMostLikelyController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -168,6 +169,14 @@ Route::prefix('{locale}')
         Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');
         Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
         Route::get('/who-most-likely', [WhoMostLikelyController::class, 'show'])->name('who-most-likely.show');
+
+        // Custom dice management (logged-in + verified)
+        Route::prefix('my-dice')->name('dice.')->middleware(['auth', 'verified'])->group(function () {
+            Route::get('/', [DiceController::class, 'index'])->name('index');
+            Route::post('/', [DiceController::class, 'store'])->name('store');
+            Route::patch('/{dice}', [DiceController::class, 'update'])->name('update');
+            Route::delete('/{dice}', [DiceController::class, 'destroy'])->name('destroy');
+        });
 
         // Bucket List
         Route::prefix('bucket-list')->name('bucket-list.')->group(function () {
