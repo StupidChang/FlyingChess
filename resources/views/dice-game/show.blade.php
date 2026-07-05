@@ -24,6 +24,8 @@
 .dg-die-action .dg-dice-face{background:linear-gradient(135deg,#e53935,#c62828)}
 .dg-die-part .dg-dice-face{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
 .dg-die-time .dg-dice-face{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
+.dg-die-prop .dg-dice-face{background:linear-gradient(135deg,#0d9488,#0f766e)}
+.dg-die-custom .dg-dice-face{background:linear-gradient(135deg,#d9a441,#b8860b)}
 
 /* Result glow — one-shot pulse on the settled dice */
 .dg-dice-scene.dg-glow{animation:dgGlowPulse .8s ease-out 1}
@@ -36,19 +38,41 @@
   .dg-dice-scene.dg-glow{animation:none}
 }
 
-/* Dice intensity selector (player picks in-game) */
-.dg-tier-pick{text-align:center;margin-top:4px}
-.dg-tier-pick-label{font-size:.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:600}
-.dg-tier-select{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.dg-tier-btn{
-  padding:6px 18px;border-radius:999px;cursor:pointer;
+/* Two-column play area: dice picker list on the left, dice stage on the right */
+.dg-play{display:flex;gap:22px;align-items:flex-start;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.dg-picker{flex:0 0 auto;text-align:left}
+.dg-picker-label{font-size:.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:600}
+.dg-picker-list{display:flex;flex-direction:column;gap:6px}
+.dg-picker-item{
+  display:flex;align-items:center;gap:8px;min-width:130px;
+  padding:9px 14px;border-radius:10px;cursor:pointer;
   background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);
-  font-size:.85rem;font-weight:700;letter-spacing:.3px;transition:background .15s,color .15s,border-color .15s;
+  font-size:.9rem;font-weight:600;transition:background .15s,color .15s,border-color .15s;
 }
-.dg-tier-btn:hover{color:var(--text);border-color:var(--accent)}
-.dg-tier-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.dg-tier-btn.locked{opacity:.55}
-.dg-tier-btn.locked::after{content:' 🔒';font-size:.75rem}
+.dg-picker-item:hover{color:var(--text);border-color:var(--accent)}
+.dg-picker-item.active{background:rgba(244,63,94,.12);border-color:var(--accent);color:var(--text)}
+.dg-picker-item .dg-picker-mark{color:var(--accent);font-weight:800;visibility:hidden}
+.dg-picker-item.active .dg-picker-mark{visibility:visible}
+.dg-picker-item .dg-picker-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.dg-picker-dot-action{background:#e53935}
+.dg-picker-dot-part{background:#2563eb}
+.dg-picker-dot-time{background:#7c3aed}
+.dg-picker-dot-prop{background:#0d9488}
+.dg-picker-dot-custom{background:#d9a441}
+.dg-picker-group{margin-bottom:12px}
+.dg-picker-head{font-size:.72rem;color:var(--text-dim);font-weight:700;letter-spacing:.5px;margin:0 0 5px 2px;text-transform:uppercase;opacity:.8}
+.dg-picker-name{flex:1}
+.dg-picker-item.locked{opacity:.55}
+.dg-picker-item.locked:hover{border-color:var(--border);color:var(--text-dim)}
+.dg-lock{font-size:.72rem;margin-left:auto}
+.dg-manage-link{display:inline-block;margin-top:6px;font-size:.82rem;color:var(--accent)}
+.dg-manage-link:hover{text-decoration:underline}
+.dg-stage{flex:1 1 300px;min-width:260px;max-width:520px}
+@media(max-width:560px){
+  .dg-play{gap:14px}
+  .dg-picker,.dg-picker-list{width:100%}
+  .dg-picker-item{min-width:0}
+}
 
 /* Result */
 .dg-result{text-align:center;padding:20px;animation:fadeIn .3s ease-out}
@@ -101,17 +125,28 @@
     <div id="game-phase" style="display:none">
         <div class="mg-round-badge" id="turn-badge"></div>
         <div class="mg-current-player" id="current-player"></div>
-        <div class="dg-tier-pick">
-            <div class="dg-tier-pick-label">{{ __('minigame.dice_pick_tier') }}</div>
-            <div class="dg-tier-select" id="dice-select"></div>
-        </div>
-        <div class="dg-dice-area" id="dice-area"></div>
-        <div id="result-display" class="dg-result" style="display:none"></div>
-        <div class="dg-history" id="roll-history"></div>
-        <div class="mg-action-btns">
-            <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
-            <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
-            <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
+
+        <div class="dg-play">
+            {{-- Left: pick which dice to use --}}
+            <aside class="dg-picker">
+                <div class="dg-picker-label">{{ __('minigame.dice_pick_tier') }}</div>
+                <div class="dg-picker-list" id="dice-select"></div>
+                @auth
+                    <a href="{{ route('dice.index') }}" class="dg-manage-link">{{ __('minigame.dice_manage') }} →</a>
+                @endauth
+            </aside>
+
+            {{-- Right: dice stage --}}
+            <div class="dg-stage">
+                <div class="dg-dice-area" id="dice-area"></div>
+                <div id="result-display" class="dg-result" style="display:none"></div>
+                <div class="dg-history" id="roll-history"></div>
+                <div class="mg-action-btns">
+                    <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
+                    <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
+                    <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -123,7 +158,11 @@
 <script>
 (function(){
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
-    var POOLS = @json($dicePools);
+    var DICE = @json($dice);            // built-in dice: {id,cat,intensity,premium,locked,custom,faces}
+    var CUSTOM = @json($customDice);    // user's saved custom dice (same shape + name)
+    var ALL = DICE.concat(CUSTOM);
+    var BY_ID = {};
+    ALL.forEach(function(d){ BY_ID[d.id]=d; });
     var players = [];
     var turn = 0;
     var round = 0;
@@ -159,23 +198,40 @@
         setTimeout(function(){t.remove()},3200);
     }
 
-    // Player picks WHICH dice to roll (action / part / duration).
-    // Difficulty is no longer a player choice — pools are pre-merged server-side
-    // (free = flirty+bold merged, premium additionally folds in the hottest options).
-    var DICE_DEFS=[
-        {key:'action', label:@json(__('minigame.dice_label_action')), pool:'actions'},
-        {key:'part',   label:@json(__('minigame.dice_label_part')),   pool:'parts'},
-        {key:'time',   label:@json(__('minigame.dice_label_time')),   pool:'durations'}
-    ];
-    var enabled={action:true, part:true, time:true};
-    var builtDice=[];   // [{key,label,values:[…≤6]}] — the dice currently on the table
+    // Each category offers gentle/bold/wild variants (wild = premium); the player
+    // picks which dice to include. Custom account dice are grouped under 我的骰子.
+    var CAT_ORDER = ['action','part','time','prop','custom'];
+    var CAT_LABELS = {
+        action: @json(__('minigame.dice_label_action')),
+        part:   @json(__('minigame.dice_label_part')),
+        time:   @json(__('minigame.dice_label_time')),
+        prop:   @json(__('minigame.dice_label_prop')),
+        custom: @json(__('minigame.dice_my'))
+    };
+    var INT_LABELS = {
+        gentle:   @json(__('minigame.dice_int_gentle')),
+        bold:     @json(__('minigame.dice_int_bold')),
+        wild:     @json(__('minigame.dice_int_wild')),
+        standard: @json(__('minigame.dice_int_standard'))
+    };
+    var WILD_LOCKED_MSG = @json(__('minigame.dice_wild_locked'));
+    var NEED_ONE_MSG    = @json(__('minigame.dice_need_one'));
+
+    var enabled = {};   // die id -> true
+    function defaultEnabled(){
+        enabled = {};
+        ['builtin_action_gentle','builtin_part_gentle','builtin_time'].forEach(function(id){
+            if(BY_ID[id]) enabled[id]=true;
+        });
+    }
+    defaultEnabled();
+
+    var builtDice=[];   // [{catClass,topLabel,values:[…≤6]}] — dice currently on the table
 
     function updateBadge(){
         var roundLabel = @json(__('minigame.round_n', ['n' => '__N__'])).replace('__N__', round);
         document.getElementById('turn-badge').textContent=roundLabel;
     }
-
-    function activeDefs(){return DICE_DEFS.filter(function(d){return enabled[d.key]})}
 
     function shuffled(arr){
         var a=arr.slice();
@@ -183,50 +239,78 @@
         return a;
     }
 
+    function catClassOf(d){ return d.custom ? 'custom' : d.cat; }
+    function itemLabel(d){
+        if(d.custom) return d.name;
+        if(d.intensity) return INT_LABELS[d.intensity] || '';
+        return INT_LABELS.standard;
+    }
+    function topLabelOf(d){
+        if(d.custom) return d.name;
+        if(d.intensity) return CAT_LABELS[d.cat]+' · '+(INT_LABELS[d.intensity]||'');
+        return CAT_LABELS[d.cat];
+    }
+    function activeDice(){ return ALL.filter(function(d){return enabled[d.id] && !d.locked}); }
+
     function renderDiceSelect(){
         var wrap=document.getElementById('dice-select');
         if(!wrap) return;
         wrap.innerHTML='';
-        DICE_DEFS.forEach(function(d){
-            var b=document.createElement('button');
-            b.type='button';
-            b.className='dg-tier-btn dg-toggle-'+d.key+(enabled[d.key]?' active':'');
-            b.textContent=d.label;
-            b.onclick=function(){toggleDie(d.key)};
-            wrap.appendChild(b);
+        CAT_ORDER.forEach(function(cat){
+            var items = ALL.filter(function(d){ return cat==='custom' ? d.custom : (d.cat===cat && !d.custom); });
+            if(!items.length) return;
+            var group=document.createElement('div');
+            group.className='dg-picker-group';
+            group.innerHTML='<div class="dg-picker-head">'+escHtml(CAT_LABELS[cat]||cat)+'</div>';
+            items.forEach(function(d){
+                var cc=catClassOf(d);
+                var b=document.createElement('button');
+                b.type='button';
+                var cls='dg-picker-item dg-cat-'+cc;
+                if(enabled[d.id] && !d.locked) cls+=' active';
+                if(d.locked) cls+=' locked';
+                b.className=cls;
+                b.innerHTML='<span class="dg-picker-mark">▸</span>'+
+                    '<span class="dg-picker-dot dg-picker-dot-'+cc+'"></span>'+
+                    '<span class="dg-picker-name">'+escHtml(itemLabel(d))+'</span>'+
+                    (d.locked?'<span class="dg-lock">🔒</span>':'');
+                b.onclick=function(){toggleDie(d.id)};
+                group.appendChild(b);
+            });
+            wrap.appendChild(group);
         });
     }
 
-    window.toggleDie=function(key){
-        if(rollAnimId) return;                       // don't toggle mid-roll
-        if(enabled[key] && activeDefs().length<=1){  // keep at least one die
-            showToast(@json(__('minigame.dice_need_one')));
-            return;
-        }
-        enabled[key]=!enabled[key];
+    window.toggleDie=function(id){
+        if(rollAnimId) return;                 // don't toggle mid-roll
+        var d=BY_ID[id]; if(!d) return;
+        if(d.locked){ showToast(WILD_LOCKED_MSG); return; }
+        if(enabled[id] && activeDice().length<=1){ showToast(NEED_ONE_MSG); return; }
+        enabled[id]=!enabled[id];
         renderDiceSelect();
         buildDice();
-        // Let the player re-roll with the new dice set without advancing the turn.
+        // let the player re-roll with the new set without advancing the turn
         document.getElementById('result-display').style.display='none';
         document.getElementById('next-btn').style.display='none';
         document.getElementById('roll-btn').style.display='inline-flex';
     };
 
     function buildDice(){
-        var defs=activeDefs();
+        var defs=activeDice();
         var area=document.getElementById('dice-area');
         area.innerHTML='';
         builtDice=[];
         defs.forEach(function(d,di){
-            var values=shuffled(POOLS[d.pool]).slice(0,6);   // 6 random faces from the merged pool
-            builtDice.push({key:d.key,label:d.label,values:values});
+            var faces=(d.faces&&d.faces.length)?d.faces:[''];
+            var values=shuffled(faces).slice(0,6);
+            builtDice.push({catClass:catClassOf(d),topLabel:topLabelOf(d),values:values});
             var facesHtml='';
             for(var fi=0;fi<values.length;fi++){
                 facesHtml+='<div class="dg-dice-face f'+(fi+1)+'">'+escHtml(values[fi])+'</div>';
             }
             var w=document.createElement('div');
-            w.className='dg-dice-wrapper dg-die-'+d.key;
-            w.innerHTML='<div class="dg-dice-label">'+escHtml(d.label)+'</div>'+
+            w.className='dg-dice-wrapper dg-die-'+catClassOf(d);
+            w.innerHTML='<div class="dg-dice-label">'+escHtml(topLabelOf(d))+'</div>'+
                 '<div class="dg-dice-scene"><div class="dg-dice" id="dice-'+di+'">'+ facesHtml +'</div></div>';
             area.appendChild(w);
         });
@@ -259,7 +343,7 @@
             players.push(r.querySelector('.p-name').value.trim()||fallbackName);
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
-        turn=0;round=1;enabled={action:true,part:true,time:true};
+        turn=0;round=1;defaultEnabled();
         clearHistory();
         showTurn();
     };
