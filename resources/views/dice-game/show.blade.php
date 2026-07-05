@@ -38,9 +38,12 @@
   .dg-dice-scene.dg-glow{animation:none}
 }
 
-/* Two-column play area: dice picker (left) + dice stage (right) */
-.dg-play{display:flex;gap:26px;align-items:flex-start;justify-content:center;flex-wrap:wrap;margin-top:8px}
-.dg-picker{flex:0 0 auto;text-align:left}
+/* Play area: dice stage stays centered in the page column; the picker floats
+   as an independent sidebar to the LEFT (outside the column) on wide screens,
+   and stacks above the dice on narrower screens. */
+.dg-play{position:relative;margin-top:8px}
+.dg-stage{max-width:none}
+.dg-picker{position:absolute;top:0;right:calc(100% + 24px);width:198px;text-align:left}
 .dg-picker-label{font-size:.82rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;letter-spacing:.3px}
 .dg-picker-list{
   display:flex;flex-direction:column;gap:16px;min-width:200px;
@@ -71,10 +74,10 @@
 .dg-lock{width:16px;text-align:center;font-size:.72rem}
 .dg-manage-link{display:inline-block;margin-top:10px;font-size:.82rem;color:var(--accent)}
 .dg-manage-link:hover{text-decoration:underline}
-.dg-stage{flex:1 1 320px;min-width:260px;max-width:540px}
-@media(max-width:560px){
-  .dg-play{gap:16px}
-  .dg-picker,.dg-picker-list{width:100%}
+/* Not enough room to the left → put the picker back in flow, above the dice */
+@media(max-width:1060px){
+  .dg-picker{position:static;right:auto;width:100%;max-width:360px;margin:0 auto 22px}
+  .dg-picker-list{max-width:360px;margin:0 auto}
 }
 
 /* Result */
