@@ -246,12 +246,10 @@ function pollState() {
         // Update turn text
         var cp = data.current_player;
         if (cp && data.status === 'playing') {
+            // Same-device play: everyone shares this device, so always show whose
+            // turn it is by name (rather than "your turn").
             var turnText = document.getElementById('current-turn-text');
-            if (cp.session_id === MY_SESSION) {
-                turnText.textContent = @json(__('games.td_your_turn_pick'));
-            } else {
-                turnText.textContent = @json(__('games.td_player_turn', ['name' => '__NAME__'])).replace('__NAME__', cp.player_name);
-            }
+            turnText.textContent = @json(__('games.td_player_turn', ['name' => '__NAME__'])).replace('__NAME__', cp.player_name);
         }
 
         if (data.status === 'playing' && !IS_PLAYING) {

@@ -31,28 +31,48 @@ class TruthDareController extends Controller
 
     public function create(Request $request)
     {
+        // Same-device play: all players sit on one device and take turns, so we
+        // accept a list of names and create every player under the same session.
         $data = $request->validate([
-            'player_name' => ['required', 'string', 'min:1', 'max:20', new NoBlockedWords],
+            'players' => ['required', 'array', 'min:1', 'max:6'],
+            'players.*' => ['nullable', 'string', 'max:20', new NoBlockedWords],
         ]);
 
+        $names = array_values(array_filter(
+            array_map('trim', $data['players']),
+            fn ($n) => $n !== ''
+        ));
+        if (empty($names)) {
+            $names = [__('games.td_player_default')];
+        }
+        $names = array_slice($names, 0, 6);
+
         $hostUserId = $request->user()?->id;
+        $sessionId = $this->playerSessionId($request);
 
-        // Adults-only site: the normal (non-18+) mode was removed — every new
-        // room is created in adult mode.
-        $result = $this->service->createGame(
-            $data['player_name'],
-            $this->playerSessionId($request),
-            false,
-            $hostUserId,
-            true
-        );
+        // Adults-only site: every room is created in adult mode.
+        $result = $this->service->createGame($names[0], $sessionId, false, $hostUserId, true);
+        $game = $result['game'];
 
-        $request->session()->put('player_name', $data['player_name']);
+        // Add the remaining local players. Each needs a DISTINCT session_id
+        // (game_players has a UNIQUE(game_id, session_id) constraint), so we
+        // suffix the host session. The device holder acts for all of them.
+        foreach (array_slice($names, 1) as $i => $name) {
+            $game->players()->create([
+                'session_id' => $sessionId . '#' . ($i + 1),
+                'player_name' => $name,
+                'color' => 'none',
+                'is_host' => false,
+                'user_id' => $hostUserId,
+            ]);
+        }
 
-        // Auto-start the game for direct play
-        $this->service->startGame($result['game']);
+        $request->session()->put('player_name', $names[0]);
 
-        return redirect()->route('truth-dare.show', $result['game']->code);
+        // Auto-start for direct play
+        $this->service->startGame($game);
+
+        return redirect()->route('truth-dare.show', $game->code);
     }
 
     public function show(Request $request, string $code)
@@ -150,16 +170,8 @@ class TruthDareController extends Controller
             return response()->json(['success' => false, 'message' => __('games.err_game_not_started')]);
         }
 
-        // Check it's the current player's turn
-        $players = $game->players()->orderBy('id')->get();
-        $currentIndex = $game->game_state['current_player_index'] ?? 0;
-        $currentPlayer = $players->values()->get($currentIndex);
-
-        $baseSessionId = $request->session()->getId();
-        if (!$currentPlayer || ($currentPlayer->session_id !== $sessionId && $currentPlayer->session_id !== $baseSessionId)) {
-            return response()->json(['success' => false, 'message' => __('games.err_not_your_turn')]);
-        }
-
+        // Same-device play: one device controls every player's turn, so we don't
+        // gate the draw on "is it your turn" — being in the room is enough.
         $hostIsPremium = $this->resolveHostPremium($game);
         $isAdult = (bool) ($game->game_state['is_adult'] ?? false);
 
@@ -174,21 +186,11 @@ class TruthDareController extends Controller
             ->where('game_type', 'truth_or_dare')
             ->firstOrFail();
 
-        // Must be in the room
+        // Must be in the room (same-device: the device holder advances the turn)
         $sessionId = $this->playerSessionId($request);
         if (!$game->players()->where('session_id', $sessionId)->exists()
             && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
             return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
-        }
-
-        // Only current player can advance
-        $players = $game->players()->orderBy('id')->get();
-        $currentIndex = $game->game_state['current_player_index'] ?? 0;
-        $currentPlayer = $players->values()->get($currentIndex);
-
-        $baseSessionId = $request->session()->getId();
-        if (!$currentPlayer || ($currentPlayer->session_id !== $sessionId && $currentPlayer->session_id !== $baseSessionId)) {
-            return response()->json(['success' => false, 'message' => __('games.err_not_your_turn')]);
         }
 
         $result = $this->service->nextPlayer($game);

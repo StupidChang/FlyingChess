@@ -63,7 +63,20 @@
         <form action="{{ route('truth-dare.create') }}" method="POST" id="td-create-form">
             @csrf
             <input type="hidden" name="tab_id" id="td-create-tab-id">
-            <input type="hidden" name="player_name" value="{{ __('games.td_player_default') }}">
+
+            {{-- Same-device play: enter everyone taking turns on this one device --}}
+            <div class="mg-setup" style="background:none;border:none;padding:0;margin:0">
+                <h2 class="mg-setup-heading">{{ __('minigame.players_setup') }}</h2>
+                <div id="td-players-list">
+                    <div class="mg-player-row">
+                        <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="20">
+                    </div>
+                    <div class="mg-player-row">
+                        <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="20">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline mg-add-player" id="td-add-player" onclick="tdAddPlayer()">{{ __('minigame.add_player') }}</button>
+            </div>
 
             {{-- 18+ only — normal mode removed; the whole site is adults-only --}}
             <p class="td-mode-desc adult-desc" id="mode-desc">{{ __('games.td_mode_adult_desc') }}</p>
@@ -91,5 +104,25 @@
     var el = document.getElementById('td-create-tab-id');
     if (el) el.value = sessionStorage.getItem('tab_id');
 })();
+
+// Same-device player rows (2–6)
+var tdPlayerCount = 2;
+function escHtmlTd(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+window.tdAddPlayer = function(){
+    if (tdPlayerCount >= 6) return;
+    tdPlayerCount++;
+    var row = document.createElement('div');
+    row.className = 'mg-player-row';
+    var name = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', tdPlayerCount);
+    row.innerHTML = '<input type="text" name="players[]" class="form-control p-name" value="'+escHtmlTd(name)+'" maxlength="20">'+
+        '<button type="button" class="mg-player-remove" onclick="tdRemovePlayer(this)">✕</button>';
+    document.getElementById('td-players-list').appendChild(row);
+    if (tdPlayerCount >= 6) document.getElementById('td-add-player').style.display = 'none';
+};
+window.tdRemovePlayer = function(btn){
+    btn.closest('.mg-player-row').remove();
+    tdPlayerCount--;
+    document.getElementById('td-add-player').style.display = 'inline-block';
+};
 </script>
 @endsection
