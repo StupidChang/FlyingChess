@@ -4,11 +4,35 @@
    Canvas/layout/path edit: see board-editor.js
    ===================================================== */
 
+/* Category "colors" reference the CSS custom properties defined in
+   board.css (--sq-action, --sq-drink, ...) so the action-modal color
+   bar always matches the on-board square styling — one source of truth. */
 const COLOR_HEX = {
-  action:'#ff9800',drink:'#fdd835',dare:'#9c27b0',truth:'#1976d2',
-  strip:'#e91e63',move:'#43a047',normal:'#9e9e9e',
-  start:'#f57c00',end:'#d32f2f',male:'#1565c0',female:'#c2185b',
+  action:'var(--sq-action)', drink:'var(--sq-drink)', dare:'var(--sq-dare)', truth:'var(--sq-truth)',
+  strip:'var(--sq-strip)', move:'var(--sq-move)', normal:'var(--sq-normal)',
+  start:'var(--sq-start)', end:'var(--sq-end)', male:'var(--sq-male)', female:'var(--sq-female)',
 };
+
+/* Small inline SVG icon set — replaces emoji for a more premium, on-brand
+   look. All icons use currentColor so color is controlled purely via CSS. */
+const SVG_ICONS = {
+  dice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.75" y="3.75" width="16.5" height="16.5" rx="4"/><circle cx="8.25" cy="8.25" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.75" cy="8.25" r="1.15" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/><circle cx="8.25" cy="15.75" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.75" cy="15.75" r="1.15" fill="currentColor" stroke="none"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.645 20.91a.75.75 0 0 0 .708 0c.106-.058.243-.134.406-.228a25.175 25.175 0 0 0 4.244-3.17C19.312 15.36 21.75 12.174 21.75 8.25 21.75 5.322 19.286 3 16.313 3A5.5 5.5 0 0 0 12 5.052 5.5 5.5 0 0 0 7.688 3C4.714 3 2.25 5.322 2.25 8.25c0 3.925 2.438 7.111 4.739 9.256a25.175 25.175 0 0 0 4.244 3.17c.163.094.3.17.406.228l.002.001-.002-.001Z"/></svg>',
+  cup: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1.2 12.5a3 3 0 0 1-3 2.7h-3.6a3 3 0 0 1-3-2.7L6 3Z"/><path d="M9 21h6"/><path d="M12 18.2V21"/><path d="M6.6 7.5h10.8"/></svg>',
+  trophy: '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 0 0-.584.859 6.753 6.753 0 0 0 6.138 5.6 6.73 6.73 0 0 0 2.743 1.35A6.98 6.98 0 0 1 9.25 15v.25H9a.75.75 0 0 0 0 1.5h1.5v2.128a2.251 2.251 0 0 1-1.679 2.17l-.196.047a.75.75 0 0 0 .353 1.46l.196-.047a3.75 3.75 0 0 0 2.826-3.63V16.75h1.5a.75.75 0 0 0 0-1.5h-.25V15a6.98 6.98 0 0 1-.293-1.342 6.73 6.73 0 0 0 2.743-1.35 6.753 6.753 0 0 0 6.139-5.6.75.75 0 0 0-.585-.858 47.077 47.077 0 0 0-3.07-.543V2.62a.75.75 0 0 0-.658-.744 49.798 49.798 0 0 0-6.093-.377c-2.063 0-4.096.128-6.093.377a.75.75 0 0 0-.657.744Zm0 2.629c0 1.196.312 2.32.857 3.294A5.266 5.266 0 0 1 3.16 5.337a45.6 45.6 0 0 1 2.006-.343v.256Zm13.5 0v-.256c.674.1 1.343.214 2.006.343a5.265 5.265 0 0 1-2.863 3.207 6.72 6.72 0 0 0 .857-3.294Z" clip-rule="evenodd"/></svg>',
+};
+function svgIcon(name) { return SVG_ICONS[name] || ''; }
+
+/* ── i18n + locale-aware endpoints (injected by the Blade views) ──
+   PLAY_I18N: UI strings; BOARD_ROUTES: route()-generated URLs that carry
+   the /tw|cn|jp|en prefix (edit pages only). Placeholders use the
+   __N__/__NAME__ convention and are replaced via String.replace. */
+const PI18N = window.PLAY_I18N || {};
+function tp(key, repl) {
+  let s = (PI18N[key] != null) ? PI18N[key] : key;
+  if (repl) for (const k in repl) s = s.replace(k, repl[k]);
+  return s;
+}
 
 /* ── Game state ── */
 const state = {
@@ -121,39 +145,103 @@ function roll3dDice() {
   return new Promise(function(resolve) {
     const overlay = document.getElementById('dice-overlay');
     const cube = document.getElementById('dice-cube');
+    const result = Math.floor(Math.random() * 6) + 1;
     if (!overlay || !cube) {
-      resolve(Math.floor(Math.random() * 6) + 1);
+      resolve(result);
       return;
     }
-
-    const result = Math.floor(Math.random() * 6) + 1;
+    const scene = overlay.querySelector('.dice-scene');
+    const reduced = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Show overlay
     overlay.classList.add('active');
 
-    // Start spin
+    if (reduced) {
+      // Reduced motion: show the result face directly, briefly
+      cube.className = 'dice-cube';
+      cube.style.transform = FACE_ROTATIONS[result];
+      setTimeout(function() {
+        overlay.classList.remove('active');
+        resolve(result);
+      }, 650);
+      return;
+    }
+
+    // Stage 1: fast tumble → decelerating settle (CSS keyframe, .9s)
     cube.className = 'dice-cube rolling';
     cube.style.transform = '';
 
-    // After spin animation ends, land on result face
+    // Stage 2: land on result face (overshoot bezier transition)
     setTimeout(function() {
       cube.className = 'dice-cube landing';
       cube.style.transform = FACE_ROTATIONS[result];
-    }, 1000);
+    }, 900);
+
+    // Stage 3: squash & stretch bounce on touchdown
+    setTimeout(function() {
+      if (scene) scene.classList.add('dice-landed');
+    }, 1450);
 
     // Hide overlay after landing
     setTimeout(function() {
       overlay.classList.remove('active');
       cube.className = 'dice-cube';
+      if (scene) scene.classList.remove('dice-landed');
       resolve(result);
-    }, 1700);
+    }, 1950);
   });
 }
 
 /* ═══════════════════════════════════════════════════
    BOARD RENDERING  (content + play modes)
    ═══════════════════════════════════════════════════ */
+let lastGrid = null;
+
+/* Measure the header and pin --header-h so .play-page's height budget
+   matches the real chrome instead of a hardcoded guess. */
+function updateHeaderVar() {
+  const header = document.querySelector('.site-header');
+  if (header) {
+    document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+  }
+  // Self-contained play screen: hide the footer so the page never scrolls
+  // (a scrolled sticky header would sit on top of the board).
+  const footer = document.querySelector('.site-footer');
+  if (footer && document.querySelector('.play-page')) footer.style.display = 'none';
+}
+
+/* Size the board to the wrap's actual free space (padding excluded),
+   preserving the grid's aspect ratio. */
+function sizeGameBoard(board, cols, rows) {
+  const wrap = board.closest('.board-wrap');
+  const ar = cols / rows;
+  let maxW = Math.min(window.innerWidth * 0.96, 960);
+  let maxH = window.innerHeight - 205; // fallback if wrap not measurable yet
+  if (wrap) {
+    const cs = getComputedStyle(wrap);
+    maxW = Math.min(maxW, wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    maxH = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  }
+  let bw = maxW, bh = bw / ar;
+  if (bh > maxH) { bh = maxH; bw = bh * ar; }
+  board.style.width  = Math.floor(bw) + 'px';
+  board.style.height = Math.floor(bh) + 'px';
+}
+
+/* Re-fit on resize/rotation; piece positions are derived from square rects,
+   so re-render them after the board changes size. */
+window.addEventListener('resize', () => {
+  if (window.EDIT_MODE || !lastGrid) return;
+  updateHeaderVar();
+  const board = document.getElementById('game-board');
+  if (!board) return;
+  sizeGameBoard(board, lastGrid.cols, lastGrid.rows);
+  if (typeof renderPieces === 'function') renderPieces();
+});
+
 function buildBoard() {
+  updateHeaderVar();
   const board = document.getElementById('game-board');
   if (!board) return;
   board.innerHTML = '';
@@ -185,15 +273,13 @@ function buildBoard() {
   board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   board.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
 
-  // Calculate board dimensions to fit within viewport
+  // Calculate board dimensions to fit within the wrap's real free space —
+  // guessing "viewport - 140" undersized the reserved space (header 61 +
+  // player bar 120 + padding) and the board's top row ended up hidden
+  // under the player bar.
   if (!isEditMode) {
-    const ar = cols / rows;
-    const maxW = Math.min(window.innerWidth * 0.96, 960);
-    const maxH = window.innerHeight - 140; // header + player bar
-    let bw = maxW, bh = bw / ar;
-    if (bh > maxH) { bh = maxH; bw = bh * ar; }
-    board.style.width  = bw + 'px';
-    board.style.height = bh + 'px';
+    sizeGameBoard(board, cols, rows);
+    lastGrid = { cols: cols, rows: rows };
   } else {
     board.style.aspectRatio = `${cols} / ${rows}`;
   }
@@ -236,23 +322,23 @@ function buildBoard() {
     center.style.gridRow    = '6';
     center.style.gridColumn = '2 / 13';
     center.innerHTML = `
-      <div class="center-title">✈ 情侶飛行棋 V2.0</div>
-      <div class="center-rules-inline">♂格僅男執行 · ♀格僅女執行 · 雙方同格後到者退回起點</div>
+      <div class="center-title">${escHtml(tp('centerTitle'))}</div>
+      <div class="center-rules-inline">${escHtml(tp('centerRules'))}</div>
     `;
     board.appendChild(center);
 
     const cornerData = [
-      {row:'1/5',col:'1/5',  icon:'🎲',sub:'準備好酒水\n啤酒或調酒'},
-      {row:'1/5',col:'8/14', icon:'💕',sub:'起點→終點\n先到者獲勝'},
-      {row:'8/12',col:'1/5', icon:'🍺',sub:'不喝酒可改\n對方口交30秒'},
-      {row:'8/12',col:'8/14',icon:'🏆',sub:'完成所有挑戰\n為愛鼓掌！'},
+      {row:'1/5',col:'1/5',  icon:'dice',  sub:tp('corner1')},
+      {row:'1/5',col:'8/14', icon:'heart', sub:tp('corner2')},
+      {row:'8/12',col:'1/5', icon:'cup',   sub:tp('corner3')},
+      {row:'8/12',col:'8/14',icon:'trophy',sub:tp('corner4')},
     ];
     cornerData.forEach(c => {
       const el = document.createElement('div');
       el.className = 'board-corner-deco';
       el.style.gridRow    = c.row;
       el.style.gridColumn = c.col;
-      el.innerHTML = `<div class="corner-icon">${c.icon}</div><div class="corner-sub">${escHtml(c.sub)}</div>`;
+      el.innerHTML = `<div class="corner-icon ic-${c.icon}">${svgIcon(c.icon)}</div><div class="corner-sub">${escHtml(c.sub)}</div>`;
       board.appendChild(el);
     });
   }
@@ -260,18 +346,52 @@ function buildBoard() {
   if (!isEditMode && state.players.length) renderPieces();
 }
 
-/* ── Piece tokens ── */
+/* ── Piece tokens ──
+   Pieces are appended directly to #game-board (not into the square div)
+   and repositioned with a CSS transform, so moving from square to square
+   is a smooth slide (with a slight overshoot/bounce from the transition
+   easing) instead of a DOM teardown + rebuild on every step. */
+function positionPiece(el, sqEl, board, offsetIndex) {
+  const boardRect = board.getBoundingClientRect();
+  const sqRect    = sqEl.getBoundingClientRect();
+  const size = Math.max(10, Math.min(sqRect.width, sqRect.height) * 0.5);
+  el.style.width  = size + 'px';
+  el.style.height = size + 'px';
+  // Small per-player offset so two pieces sharing a square stay visible
+  // instead of fully overlapping (mirrors the previous top-left/bottom-right layout).
+  const nudge = size * 0.28;
+  const dx = offsetIndex === 0 ? -nudge : nudge;
+  const dy = offsetIndex === 0 ? -nudge : nudge;
+  const cx = (sqRect.left - boardRect.left) + sqRect.width  / 2 + dx;
+  const cy = (sqRect.top  - boardRect.top)  + sqRect.height / 2 + dy;
+  el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
+}
+
 function renderPieces() {
-  document.querySelectorAll('.piece-token').forEach(e => e.remove());
+  const board = document.getElementById('game-board');
+  if (!board) return;
   state.players.forEach((p, i) => {
     const pos  = currentPos(p);
     const sqEl = document.getElementById(`sq-${pos}`);
     if (!sqEl) return;
-    const el       = document.createElement('div');
-    el.className   = `piece-token piece-${i+1}`;
-    el.id          = `piece-${i+1}`;
-    el.textContent = i === 0 ? '♥' : '♦';
-    sqEl.appendChild(el);
+    let el = document.getElementById(`piece-${i+1}`);
+    const isNew = !el;
+    if (isNew) {
+      el = document.createElement('div');
+      el.className = `piece-token piece-${i+1}`;
+      el.id        = `piece-${i+1}`;
+      board.appendChild(el);
+    }
+    if (isNew) {
+      // Snap into place on first placement (setup/reset/rebuild) instead
+      // of visibly sliding in from the top-left corner.
+      el.style.transition = 'none';
+      positionPiece(el, sqEl, board, i);
+      void el.offsetWidth; // force reflow so the transition-less transform commits
+      el.style.transition = '';
+    } else {
+      positionPiece(el, sqEl, board, i);
+    }
   });
 }
 
@@ -315,9 +435,9 @@ async function saveSquare() {
   const flyVal = document.getElementById('sq-fly-to')?.value.trim();
   const fly_to = flyVal !== '' ? parseInt(flyVal,10) : null;
   const status = document.getElementById('sq-save-status');
-  status.style.color='#5fd080'; status.textContent='儲存中…';
+  status.style.color='#5fd080'; status.textContent=tp('saving');
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}/squares/${editPos}`, {
+    const res = await fetch(`${window.BOARD_ROUTES.squares}/${editPos}`, {
       method:'PATCH',
       headers:{'Content-Type':'application/json','X-CSRF-TOKEN':window.CSRF_TOKEN},
       body:JSON.stringify({text,color,fly_to}),
@@ -337,10 +457,10 @@ async function saveSquare() {
         flyBadge.textContent = `✈→${fly_to}`;
       } else if (flyBadge) flyBadge.remove();
     }
-    status.textContent='✅ 已儲存';
+    status.textContent=tp('saved');
     setTimeout(closeSqModal, 900);
   } catch(err) {
-    status.style.color='#f06080'; status.textContent='❌ 儲存失敗，請重試';
+    status.style.color='#f06080'; status.textContent=tp('saveFailed');
     console.error('saveSquare:',err);
   }
 }
@@ -356,7 +476,7 @@ async function saveMeta() {
   const desc = document.getElementById('meta-desc').value.trim();
   if (!name) return;
   try {
-    const res = await fetch(`/boards/${window.BOARD_ID}`, {
+    const res = await fetch(window.BOARD_ROUTES.update, {
       method:'PATCH',
       headers:{'Content-Type':'application/json','X-CSRF-TOKEN':window.CSRF_TOKEN},
       body:JSON.stringify({name,description:desc}),
@@ -366,30 +486,30 @@ async function saveMeta() {
     const d = document.getElementById('board-name-display');
     if (d) d.textContent = name;
     closeMetaModal();
-  } catch { alert('儲存失敗，請重試'); }
+  } catch { alert(tp('saveFailed')); }
 }
 
 /* ═══════════════════════════════════════════════════
    PLAY MODE — Setup
    ═══════════════════════════════════════════════════ */
 function startSetup() {
-  const p1Name   = document.getElementById('setup-p1')?.value.trim()  || '玩家 1';
+  const p1Name   = document.getElementById('setup-p1')?.value.trim()  || tp('player1');
   const p1Gender = document.querySelector('input[name="p1-gender"]:checked')?.value || 'male';
   state.players  = [{ name:p1Name, stepIndex:0, skip:false, gender:p1Gender }];
   state.current  = 0; state.rolling=false; state.gameOver=false;
 
   if (window.PLAYER_COUNT >= 2) {
-    const p2Name   = document.getElementById('setup-p2')?.value.trim()  || '玩家 2';
+    const p2Name   = document.getElementById('setup-p2')?.value.trim()  || tp('player2');
     const p2Gender = document.querySelector('input[name="p2-gender"]:checked')?.value || 'female';
     state.players.push({ name:p2Name, stepIndex:0, skip:false, gender:p2Gender });
   }
 
   const gIcon = g => g==='male'?' ♂':' ♀';
   document.getElementById('p1-name').textContent = state.players[0].name + gIcon(p1Gender);
-  document.getElementById('p1-pos').textContent  = '起點';
+  document.getElementById('p1-pos').textContent  = tp('startPoint');
   if (state.players[1]) {
     document.getElementById('p2-name').textContent = state.players[1].name + gIcon(state.players[1].gender);
-    document.getElementById('p2-pos').textContent  = '起點';
+    document.getElementById('p2-pos').textContent  = tp('startPoint');
   }
 
   closeModal('setup-modal');
@@ -409,7 +529,7 @@ function rollDice() {
     player.skip = false;
     document.getElementById('action-dice').textContent = '-';
     updateActionDiceFace(0);
-    document.getElementById('action-text').textContent = `${player.name} 本回合跳過！`;
+    document.getElementById('action-text').textContent = tp('skipTurnName', { '__NAME__': player.name });
     document.getElementById('action-color-bar').style.background = '#9e9e9e';
     document.getElementById('skip-notice').classList.remove('hidden');
     document.getElementById('gender-notice').classList.add('hidden');
@@ -585,13 +705,13 @@ function showActionModal(roll, pos) {
     (sq.color==='female' && player.gender!=='female');
 
   if (genderMismatch) {
-    const label = sq.color==='male'?'♂ 男生':'♀ 女生';
+    const label = sq.color==='male' ? tp('male') : tp('female');
     textEl.textContent = sq.text || '';
-    genderEl.textContent = `此格為 ${label} 專屬，${player.name} 跳過本次懲罰`;
+    genderEl.textContent = tp('genderSkip', { '__LABEL__': label, '__NAME__': player.name });
     genderEl.classList.remove('hidden');
     showFlyButtons(false, null);
   } else {
-    textEl.textContent = sq.text || '普通格子，繼續！';
+    textEl.textContent = sq.text || tp('normalSquare');
     const hasFly = sq.fly_to != null;
     showFlyButtons(hasFly, hasFly ? sq.fly_to : null);
   }
@@ -661,8 +781,8 @@ function flashSquare(pos) {
 
 function showWin(name) {
   state.gameOver = true;
-  document.getElementById('win-title').textContent = `🏆 ${name} 獲勝！`;
-  document.getElementById('win-text').textContent  = `恭喜 ${name} 率先抵達終點！遊戲結束，為愛鼓掌！🎉`;
+  document.getElementById('win-title').textContent = tp('winTitle', { '__NAME__': name });
+  document.getElementById('win-text').textContent  = tp('winText', { '__NAME__': name });
   openModal('win-modal');
 }
 
@@ -672,7 +792,8 @@ function resetGame() {
   state.players.forEach(p => { p.stepIndex=0; p.skip=false; });
   buildBoard(); updateTurnUI(); updatePosDisplay();
   document.getElementById('roll-btn').disabled = false;
-  document.getElementById('dice').textContent  = '🎲';
+  const idleDice = document.getElementById('dice');
+  if (idleDice) idleDice.innerHTML = svgIcon('dice');
   openModal('setup-modal');
 }
 
@@ -681,7 +802,7 @@ function updateTurnUI() {
   const p = state.players[state.current];
   if (!p) return;
   const label = document.getElementById('turn-label');
-  if (label) label.textContent = `${p.name} 的回合`;
+  if (label) label.textContent = tp('turnOf', { ':name': p.name });
   document.getElementById('p1-panel')?.classList.toggle('active', state.current===0);
   document.getElementById('p2-panel')?.classList.toggle('active', state.current===1);
 }
@@ -693,9 +814,9 @@ function updatePosDisplay() {
     const path   = getEffectivePath(p.gender);
     const endIdx = path.length - 1;
     el.textContent =
-      p.stepIndex === 0        ? '起點'
-      : p.stepIndex >= endIdx  ? '終點 🏁'
-      : `第 ${p.stepIndex} 步`;
+      p.stepIndex === 0        ? tp('startPoint')
+      : p.stepIndex >= endIdx  ? tp('endPoint')
+      : tp('stepN', { '__N__': p.stepIndex });
   });
 }
 

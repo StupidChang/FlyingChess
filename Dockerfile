@@ -1,5 +1,5 @@
 # =====================================================
-#  情侶飛行棋 — Production Docker Image
+#  枕邊遊戲 PillowPlay — Production Docker Image
 #  PHP 8.2-FPM + Nginx + Supervisor (Alpine, ~120 MB)
 # =====================================================
 FROM php:8.2-fpm-alpine
@@ -41,7 +41,12 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# Install PHP dependencies (no dev, optimised autoloader)
+# Install PHP dependencies (no dev, optimised autoloader).
+# Strict install — composer.lock must be in sync with composer.json before build.
+# When you add a new package, regenerate the lock locally (or in a transient
+# container) and commit it; do not let production resolve dependencies at build
+# time, otherwise a fresh upstream release in the same constraint window can
+# break the image without any repo change.
 RUN composer install \
         --no-dev \
         --optimize-autoloader \
@@ -55,6 +60,13 @@ RUN mkdir -p storage/framework/{sessions,views,cache} \
              database \
  && chown -R www-data:www-data storage bootstrap/cache database \
  && chmod -R 775 storage bootstrap/cache database
+
+# Stash migrations in a non-volume path so the entrypoint can re-seed the
+# `db_data` named volume on every start. Without this, the SQLite volume
+# (which masks /var/www/html/database/) keeps an out-of-date migrations/
+# directory across image rebuilds and migrate ignores new files.
+RUN mkdir -p /var/migrations-image \
+ && cp database/migrations/*.php /var/migrations-image/ 2>/dev/null || true
 
 # ── Nginx ──────────────────────────────────────────
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf

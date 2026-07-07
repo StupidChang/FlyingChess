@@ -1,6 +1,7 @@
 @extends('layouts.app')
-@section('title', $board->name . ' — 棋盤模板預覽')
-@section('robots', 'noindex,nofollow')
+@section('title', $board->name . ' — ' . __('play.template_preview'))
+@section('meta_description', __('seo.templates_description'))
+@section('robots', 'noindex,follow')
 @section('content')
 
 <div class="container" style="max-width:800px;padding:40px 20px">
@@ -13,11 +14,11 @@
         </div>
         <div style="display:flex;gap:8px;align-items:center">
             @if($board->is_premium_template)
-                <span class="badge-premium">Premium 模板</span>
+                <span class="badge-premium">{{ __('play.premium_template') }}</span>
             @else
-                <span class="badge-free">免費模板</span>
+                <span class="badge-free">{{ __('play.free_template') }}</span>
             @endif
-            <span class="badge-squares">{{ $board->squares->count() }} 格</span>
+            <span class="badge-squares">{{ __('ui.square_count', ['n' => $board->squares->count()]) }}</span>
         </div>
     </div>
 
@@ -43,28 +44,28 @@
     </div>
 
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        <a href="{{ route('boards.templates') }}" class="btn btn-outline">返回模板列表</a>
+        <a href="{{ route('boards.templates') }}" class="btn btn-outline">{{ __('play.back_to_templates') }}</a>
         @if($board->is_premium_template)
             @auth
                 @if(auth()->user()->isPremium())
                     <form action="{{ route('boards.template.clone', $board) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-gold">使用此模板</button>
+                        <button type="submit" class="btn btn-gold">{{ __('play.use_this_template') }}</button>
                     </form>
                 @else
-                    <a href="{{ route('premium.index') }}" class="btn btn-gold">升級會員解鎖</a>
+                    <a href="{{ route('premium.index') }}" class="btn btn-gold">{{ __('play.upgrade_to_unlock') }}</a>
                 @endif
             @else
-                <a href="{{ route('premium.index') }}" class="btn btn-gold">升級會員解鎖</a>
+                <a href="{{ route('premium.index') }}" class="btn btn-gold">{{ __('play.upgrade_to_unlock') }}</a>
             @endauth
         @else
             @auth
                 <form action="{{ route('boards.template.clone', $board) }}" method="POST">
                     @csrf
-                    <button type="submit" class="btn btn-gold">使用此模板</button>
+                    <button type="submit" class="btn btn-gold">{{ __('play.use_this_template') }}</button>
                 </form>
             @else
-                <a href="{{ route('register') }}" class="btn btn-outline-gold">註冊後使用</a>
+                <a href="{{ route('register') }}" class="btn btn-outline-gold">{{ __('play.register_to_use') }}</a>
             @endauth
         @endif
     </div>

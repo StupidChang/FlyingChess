@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Game;
-use App\Models\GamePlayer;
 use App\Models\TruthDareCard;
 use Illuminate\Support\Str;
 
@@ -32,25 +31,26 @@ class TruthDareService
             'player_name' => $playerName,
             'color' => 'none',
             'is_host' => true,
+            'user_id' => $hostUserId,
         ]);
 
         return ['success' => true, 'game' => $game];
     }
 
-    public function joinGame(Game $game, string $playerName, string $sessionId): array
+    public function joinGame(Game $game, string $playerName, string $sessionId, ?int $userId = null): array
     {
         // Allow same-session re-entry (idempotent) regardless of game status
         if ($game->players()->where('session_id', $sessionId)->exists()) {
-            return ['success' => true, 'message' => '你已在房間中。'];
+            return ['success' => true, 'message' => __('games.td_already_in_room')];
         }
 
         // New players can only join during waiting phase
-        if (!$game->isWaiting()) {
-            return ['success' => false, 'message' => '此房間已開始或已結束，無法加入。'];
+        if (! $game->isWaiting()) {
+            return ['success' => false, 'message' => __('games.td_room_started_or_ended')];
         }
 
         if ($game->players()->count() >= 6) {
-            return ['success' => false, 'message' => '房間已滿（最多 6 人）。'];
+            return ['success' => false, 'message' => __('games.td_room_full')];
         }
 
         $game->players()->create([
@@ -58,6 +58,7 @@ class TruthDareService
             'player_name' => $playerName,
             'color' => 'none',
             'is_host' => false,
+            'user_id' => $userId,
         ]);
 
         return ['success' => true];
@@ -66,7 +67,7 @@ class TruthDareService
     public function startGame(Game $game): array
     {
         if ($game->players()->count() < 1) {
-            return ['success' => false, 'message' => '至少需要 1 位玩家才能開始。'];
+            return ['success' => false, 'message' => __('games.td_need_one_player')];
         }
 
         $state = $game->game_state ?? [];
@@ -99,14 +100,14 @@ class TruthDareService
         $query = TruthDareCard::where('category', $category)
             ->whereIn('tier', $tiers);
 
-        if (!empty($usedIds)) {
+        if (! empty($usedIds)) {
             $query->whereNotIn('id', $usedIds);
         }
 
         $card = $query->inRandomOrder()->first();
 
-        if (!$card) {
-            return ['success' => false, 'message' => '此類別已無更多題目'];
+        if (! $card) {
+            return ['success' => false, 'message' => __('games.td_no_more_cards')];
         }
 
         $usedIds[] = $card->id;
@@ -130,7 +131,7 @@ class TruthDareService
     {
         $playerCount = $game->players()->count();
         if ($playerCount === 0) {
-            return ['success' => false, 'message' => '沒有玩家在房間中。'];
+            return ['success' => false, 'message' => __('games.td_no_players')];
         }
 
         $state = $game->game_state ?? [];
@@ -147,8 +148,8 @@ class TruthDareService
     public function leaveGame(Game $game, string $sessionId): array
     {
         $player = $game->players()->where('session_id', $sessionId)->first();
-        if (!$player) {
-            return ['success' => false, 'message' => '你不在此房間中。'];
+        if (! $player) {
+            return ['success' => false, 'message' => __('games.err_not_in_room')];
         }
 
         $state = $game->game_state ?? [];
@@ -161,7 +162,8 @@ class TruthDareService
 
         if ($remainingCount === 0) {
             $game->update(['status' => 'finished']);
-            return ['success' => true, 'message' => '房間已關閉。'];
+
+            return ['success' => true, 'message' => __('games.td_room_closed')];
         }
 
         // Adjust current_player_index if necessary

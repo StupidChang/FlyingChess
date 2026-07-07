@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@include('errors._locale')
+@section('code', '403')
+@section('title', __('errors.403_title'))
+@section('message', __('errors.403_message'))

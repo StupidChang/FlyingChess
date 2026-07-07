@@ -1,5 +1,12 @@
 <?php
 
+use App\Http\Middleware\AgeVerification;
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureNotBanned;
+use App\Http\Middleware\EnsurePremium;
+use App\Http\Middleware\RedirectUnprefixedUrl;
+use App\Http\Middleware\SetLocale;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,12 +19,33 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'age.verify' => \App\Http\Middleware\AgeVerification::class,
-            'premium' => \App\Http\Middleware\EnsurePremium::class,
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'age.verify' => AgeVerification::class,
+            'premium' => EnsurePremium::class,
+            'admin' => EnsureAdmin::class,
+            'not.banned' => EnsureNotBanned::class,
+            'set.locale' => SetLocale::class,
+            'redirect.unprefixed' => RedirectUnprefixedUrl::class,
         ]);
 
-        $middleware->append(\App\Http\Middleware\AgeVerification::class);
+        // The locale cookie is a UI preference (not sensitive); skip encryption
+        // so RedirectUnprefixedUrl can read it before EncryptCookies runs, and
+        // so the front end can read it via document.cookie for the language switcher.
+        $middleware->encryptCookies(except: ['locale']);
+
+        // Order matters: RedirectUnprefixedUrl 301s legacy non-prefixed URLs
+        // before AgeVerification renders the age gate, avoiding wasted renders.
+        $middleware->prepend(RedirectUnprefixedUrl::class);
+        $middleware->append(AgeVerification::class);
+
+        // SetLocale must run before Authenticate / EnsureEmailIsVerified:
+        // their guest/unverified redirects call route('login') /
+        // route('verification.notice'), which need URL::defaults(['locale'])
+        // already pinned or they throw UrlGenerationException (500 instead
+        // of a redirect for logged-out visitors on auth-only pages).
+        $middleware->prependToPriorityList(
+            AuthenticatesRequests::class,
+            SetLocale::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -25,6 +25,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'premium_expires_at',
         'is_admin',
+        'is_banned',
+        'banned_at',
     ];
 
     /**
@@ -49,12 +51,19 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'premium_expires_at' => 'datetime',
             'is_admin' => 'boolean',
+            'is_banned' => 'boolean',
+            'banned_at' => 'datetime',
         ];
     }
 
     public function boards(): HasMany
     {
         return $this->hasMany(Board::class);
+    }
+
+    public function dice(): HasMany
+    {
+        return $this->hasMany(Dice::class);
     }
 
     public function isPremium(): bool
@@ -67,8 +76,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return (bool) $this->is_admin;
     }
 
+    public function isBanned(): bool
+    {
+        return (bool) $this->is_banned;
+    }
+
     public function orders(): HasMany
     {
-        return $this->hasMany(\App\Models\PaymentOrder::class);
+        return $this->hasMany(PaymentOrder::class);
     }
 }

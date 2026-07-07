@@ -2,18 +2,46 @@
    FlyingChessOnline - Game Board Styles
    ============================================= */
 
-/* ---- Game Layout ---- */
-.game-page { display: flex; gap: 0; min-height: calc(100vh - 60px); font-family: 'Noto Sans TC', sans-serif; font-weight: 700; }
+/* ---- Game Layout ----
+   .game-page is given a *definite* height (viewport minus the sticky header),
+   not just min-height — that's what lets .game-sidebar's overflow-y:auto and
+   the board's responsive sizing below actually work. With only min-height,
+   the flex row's cross-size is derived from its tallest child's natural
+   content size, so a tall sidebar or an oversized board silently grows the
+   whole document instead of scrolling internally, and the sticky header ends
+   up covering the board once the document scrolls. --header-h is measured in
+   game.js (falls back to 61px = the 60px header content box + 1px border, in
+   case JS hasn't run yet or the header markup changes). */
+.game-page {
+    display: flex; gap: 0;
+    min-height: calc(100vh - 61px);
+    height: calc(100vh - var(--header-h, 61px));
+    height: calc(100dvh - var(--header-h, 61px));
+    overflow: hidden;
+    font-family: 'Noto Sans TC', sans-serif; font-weight: 700;
+}
 
 /* ---- Sidebar ---- */
-.game-sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.game-sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
 
 .room-info-box, .players-box, .join-box, .host-controls,
 .waiting-box, .turn-info-box, .dice-box, .pieces-box, .log-box {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px;
 }
+
+/* Sidebar priority — while playing, "whose turn" + the dice/roll button are
+   the boxes a player needs constantly and immediately, so they're bumped to
+   the top of the (flex-column) sidebar via `order` rather than DOM order —
+   this keeps them inside the fold on laptop-height viewports even though the
+   sidebar's full stack (room code, player list, my pieces, log) is taller
+   than the viewport and has to scroll. Room code / player list matter most
+   during the waiting-lobby phase (rendered without these two boxes, so the
+   reorder has no effect there); "my pieces" and the log are supplementary
+   and fine to reach via the sidebar's own scroll. */
+.turn-info-box { order: -2; }
+.dice-box       { order: -1; }
 .room-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 8px; }
-.room-code-display { font-size: 2rem; font-weight: 900; font-family: 'Noto Sans TC', monospace; letter-spacing: 4px; color: var(--yellow); margin-bottom: 8px; }
+.room-code-display { font-size: 2rem; font-weight: 900; font-family: 'Noto Sans TC', monospace; letter-spacing: 4px; color: var(--accent); margin-bottom: 8px; }
 .copy-btn { width: 100%; }
 
 .players-box h3, .join-box h3, .dice-box h3, .pieces-box h3, .log-box h3, .turn-info-box h3 {
@@ -27,7 +55,7 @@
 .player-dot.green  { background: radial-gradient(ellipse at 35% 30%, #66dd8a, var(--green) 60%, #1b7a2a); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .player-dot.red    { background: radial-gradient(ellipse at 35% 30%, #ef8a8a, var(--red) 60%, #8b1a1a); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .player-name { flex: 1; font-size: .92rem; }
-.host-badge { font-size: .7rem; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--yellow); border: 1px solid var(--yellow); }
+.host-badge { font-size: .7rem; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--accent); border: 1px solid var(--accent); }
 .me-badge  { font-size: .7rem; background: var(--primary); padding: 2px 6px; border-radius: 4px; color: #fff; }
 .bot-badge { font-size: .7rem; background: #2d1f47; padding: 2px 6px; border-radius: 4px; color: #c084fc; border: 1px solid #7e22ce; }
 .player-item.player-yellow { border-left: 3px solid var(--yellow); }
@@ -46,21 +74,59 @@
 #turn-dot.green  { background: var(--green); }
 #turn-dot.red    { background: var(--red); }
 
-/* Dice */
-.dice-display { text-align: center; margin-bottom: 12px; }
+/* Dice — true 3D CSS cube (DOM built by game.js inside #dice) */
+.dice-display { text-align: center; margin-bottom: 12px; position: relative; }
 .dice {
     width: 64px; height: 64px; background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
     font-size: 2rem; font-weight: 800; margin-bottom: 8px;
-    transition: transform .2s;
+    perspective: 300px;
 }
-.dice.rolling { animation: rollAnim .5s ease; }
-@keyframes rollAnim {
-    0%   { transform: rotate(0) scale(1); }
-    25%  { transform: rotate(20deg) scale(1.15); }
-    50%  { transform: rotate(-20deg) scale(1.05); }
-    75%  { transform: rotate(10deg) scale(1.1); }
-    100% { transform: rotate(0) scale(1); }
+.dice-cube3d {
+    width: 42px; height: 42px; position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+.dice-face3d {
+    position: absolute; inset: 0;
+    display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    padding: 5px; box-sizing: border-box;
+    background: linear-gradient(150deg, #ffffff 0%, #f2f2f5 55%, #d9d9e0 100%);
+    border: 1px solid #c4c4cc; border-radius: 7px;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,.95), inset 0 -2px 4px rgba(0,0,0,.14);
+    backface-visibility: hidden;
+}
+.dice-face3d .dot {
+    background: radial-gradient(circle at 35% 30%, #4a4a55, #14141c 75%);
+    border-radius: 50%; width: 80%; height: 80%; margin: auto;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.55);
+}
+/* Cube face placement: 1 front, 6 back, 3 left, 4 right, 2 top, 5 bottom */
+.dice-face3d.df1 { transform: rotateY(0deg)   translateZ(21px); }
+.dice-face3d.df6 { transform: rotateY(180deg) translateZ(21px); }
+.dice-face3d.df3 { transform: rotateY(-90deg) translateZ(21px); }
+.dice-face3d.df4 { transform: rotateY(90deg)  translateZ(21px); }
+.dice-face3d.df2 { transform: rotateX(90deg)  translateZ(21px); }
+.dice-face3d.df5 { transform: rotateX(-90deg) translateZ(21px); }
+/* Idle (no value yet) — slightly dimmed, tilted by JS */
+.dice.dice-idle .dice-cube3d { opacity: .75; }
+/* While tumbling, the outer box hovers slightly */
+.dice.rolling3d { animation: diceHover3d .5s ease-in-out infinite alternate; }
+@keyframes diceHover3d {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-5px); }
+}
+/* Landing squash & stretch bounce */
+.dice.dice-land { animation: diceLand3d .5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes diceLand3d {
+    0%   { transform: translateY(-8px) scale(1.05); }
+    40%  { transform: translateY(0)    scale(1.15, .82); }
+    70%  { transform: translateY(-3px) scale(.92, 1.1); }
+    100% { transform: translateY(0)    scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dice.rolling3d, .dice.dice-land { animation: none; }
+    .dice-cube3d { transition: none !important; }
 }
 
 /* My pieces sidebar display */
@@ -85,7 +151,7 @@
 .log-entry:last-child { border-bottom: none; }
 
 /* ---- Main Board Area ---- */
-.game-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; background: var(--bg); }
+.game-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; position: relative; background: var(--bg); overflow: hidden; min-height: 0; }
 
 /* Overlays */
 .waiting-overlay, .winner-overlay {
@@ -97,6 +163,23 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
     padding: 40px; text-align: center; max-width: 360px;
     animation: cardSlideIn .5s ease-out;
+    position: relative; z-index: 2;
+}
+
+/* Winner confetti — a handful of falling rectangles behind the card, JS-spawned in showWinner() */
+.confetti-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.confetti-piece {
+    position: absolute; top: -12px; width: 8px; height: 14px; opacity: 0;
+    border-radius: 2px;
+    animation-name: confettiFall; animation-timing-function: cubic-bezier(.25,.46,.45,.94);
+    animation-fill-mode: forwards;
+}
+@keyframes confettiFall {
+    0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--drift, 0), 640px) rotate(560deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .confetti-layer { display: none; }
 }
 @keyframes overlayFadeIn {
     from { opacity: 0; }
@@ -109,10 +192,33 @@
 .waiting-icon, .trophy-icon { font-size: 3rem; margin-bottom: 16px; }
 .waiting-card h2, .winner-card h2 { margin-bottom: 12px; font-size: 1.6rem; }
 .waiting-card p { color: var(--text-dim); margin-bottom: 8px; }
-.code-highlight { color: var(--yellow); font-family: monospace; font-size: 1.2rem; letter-spacing: 3px; }
+.code-highlight { color: var(--accent); font-family: monospace; font-size: 1.2rem; letter-spacing: 3px; }
 
 /* ---- Chess Board ---- */
-.board-container { width: min(90vmin, 660px); aspect-ratio: 1; }
+/* .board-stage wraps .board-container and reserves a fixed top gutter for
+   .bot-status (the "AI is thinking" pill). Without this, the pill — which is
+   absolutely positioned — has nowhere of its own to sit and lands on top of
+   the board's top rows whenever .game-main's height is close to the board's
+   height (common on laptop-height viewports, ~768-900px). The gutter is
+   reserved unconditionally (even when the pill is hidden) so the board never
+   shifts position when a bot's turn starts. */
+.board-stage { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 48px; min-height: 0; }
+/* --board-max is set by game.js to (viewport height − header − sidebar-if-stacked
+   − .game-main padding − .board-stage padding), so the board always fits the
+   current viewport height on laptop-height screens (720–900px) without any
+   page scroll, while never exceeding its natural 660px size on tall screens.
+   min-height:0 stops the flex item's automatic content-based minimum height
+   (driven by the grid's text/icon content) from overriding aspect-ratio at
+   small sizes — without it the board silently stops being square once the
+   board shrinks below ~450px (e.g. narrow phones). container-type lets the
+   cell/piece font-size clamp()s below scale with the board's real pixel size
+   instead of a fixed rem value that can outgrow tiny boards. */
+.board-container {
+    width: min(90vmin, 660px, var(--board-max, 660px));
+    aspect-ratio: 1;
+    min-height: 0;
+    container-type: inline-size;
+}
 
 .game-board {
     display: grid;
@@ -122,69 +228,113 @@
     border: 2px solid var(--border);
     border-radius: 4px;
     overflow: hidden;
-    background: #1a2030;
+    background: var(--bg);
     position: relative;
+    /* Soft per-color halo behind each home quadrant — shows through the
+       semi-transparent .cell-home-* tints, sits below the opaque path/lane
+       cells so it never bleeds into the rest of the board. */
+    isolation: isolate;
+}
+.game-board::before {
+    content: '';
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+        radial-gradient(circle at 13% 13%, rgba(250,204,21,.28), transparent 42%),
+        radial-gradient(circle at 87% 13%, rgba(56,189,248,.28), transparent 42%),
+        radial-gradient(circle at 87% 87%, rgba(74,222,128,.28), transparent 42%),
+        radial-gradient(circle at 13% 87%, rgba(248,113,113,.28), transparent 42%);
 }
 
 /* Board cells */
 .board-cell {
-    border: 1px solid rgba(255,255,255,.06);
+    border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    position: relative; font-size: .5rem;
+    position: relative;
+    /* Fallback fixed size, then scale with the board's actual pixel width via
+       container query units (cqw) so text/icons never force the grid taller
+       than aspect-ratio intends on small boards — see .board-container. */
+    font-size: .5rem;
+    font-size: clamp(5px, 1.15cqw, 8px);
     transition: background .15s;
 }
 
 /* Home base areas */
-.cell-home-yellow { background: rgba(245,197,24,.18); }
-.cell-home-blue   { background: rgba(41,121,255,.18); }
-.cell-home-green  { background: rgba(0,200,83,.18); }
-.cell-home-red    { background: rgba(244,67,54,.18); }
+.cell-home-yellow { background: rgba(250,204,21,.16); }
+.cell-home-blue   { background: rgba(56,189,248,.16); }
+.cell-home-green  { background: rgba(74,222,128,.16); }
+.cell-home-red    { background: rgba(248,113,113,.16); }
 
 /* Home piece circles */
 .cell-home-circle { background: rgba(255,255,255,.05); border-radius: 50%; width: 80%; height: 80%; border: 2px solid rgba(255,255,255,.15); }
-.cell-home-circle.yellow { border-color: var(--yellow); background: rgba(245,197,24,.15); }
-.cell-home-circle.blue   { border-color: var(--blue); background: rgba(41,121,255,.15); }
-.cell-home-circle.green  { border-color: var(--green); background: rgba(0,200,83,.15); }
-.cell-home-circle.red    { border-color: var(--red); background: rgba(244,67,54,.15); }
+.cell-home-circle.yellow { border-color: var(--yellow); background: rgba(250,204,21,.15); }
+.cell-home-circle.blue   { border-color: var(--blue); background: rgba(56,189,248,.15); }
+.cell-home-circle.green  { border-color: var(--green); background: rgba(74,222,128,.15); }
+.cell-home-circle.red    { border-color: var(--red); background: rgba(248,113,113,.15); }
 
 /* Path cells */
-.cell-path { background: #1e2a3a; }
-.cell-path:hover { background: #253040; }
+.cell-path { background: var(--surface2); }
+.cell-path:hover { background: #262c40; }
 
 /* Safe squares (starred) */
-.cell-safe { background: #1e2a3a; }
-.cell-safe::after { content: '★'; position: absolute; font-size: .7em; color: rgba(255,255,255,.3); }
+.cell-safe {
+    background: radial-gradient(circle, rgba(var(--glow-rgb),.22), var(--surface2) 72%);
+}
+.cell-safe::after {
+    content: '★'; position: absolute; font-size: .75em; color: var(--accent);
+    text-shadow: 0 0 6px rgba(var(--glow-rgb),.65);
+}
 
 /* Safe lane cells */
-.cell-lane-yellow { background: rgba(245,197,24,.25); }
-.cell-lane-blue   { background: rgba(41,121,255,.25); }
-.cell-lane-green  { background: rgba(0,200,83,.25); }
-.cell-lane-red    { background: rgba(244,67,54,.25); }
+.cell-lane-yellow { background: rgba(250,204,21,.25); }
+.cell-lane-blue   { background: rgba(56,189,248,.25); }
+.cell-lane-green  { background: rgba(74,222,128,.25); }
+.cell-lane-red    { background: rgba(248,113,113,.25); }
 
 /* Start squares */
-.cell-start-yellow { background: rgba(245,197,24,.35); }
-.cell-start-blue   { background: rgba(41,121,255,.35); }
-.cell-start-green  { background: rgba(0,200,83,.35); }
-.cell-start-red    { background: rgba(244,67,54,.35); }
+.cell-start-yellow { background: rgba(250,204,21,.35); }
+.cell-start-blue   { background: rgba(56,189,248,.35); }
+.cell-start-green  { background: rgba(74,222,128,.35); }
+.cell-start-red    { background: rgba(248,113,113,.35); }
 
 /* Center cell */
 .cell-center {
     background: conic-gradient(var(--yellow) 0 25%, var(--blue) 25% 50%, var(--green) 50% 75%, var(--red) 75%);
-    font-size: 1.2rem; z-index: 2;
+    font-size: 1.2rem;
+    font-size: clamp(10px, 2.7cqw, 19px);
+    z-index: 2;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.15);
+}
+
+/* Piece overlay — an absolutely-positioned layer above the static board grid.
+   Each piece keeps one persistent DOM node inside a .piece-slot; moving a piece
+   only changes the slot's left/top, which is what lets the transition below
+   actually animate (see game.js renderPieces / animatePieceTo). */
+.pieces-layer {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+}
+.piece-slot {
+    position: absolute;
+    width: 6.6667%; height: 6.6667%;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    transition: left .16s cubic-bezier(.4,0,.2,1), top .16s cubic-bezier(.4,0,.2,1);
 }
 
 /* Pieces on board — 3D chess pawn style */
 .piece {
     width: 70%; height: 70%;
-    position: absolute; display: flex; align-items: center; justify-content: center;
-    font-size: .55rem; font-weight: 900; color: #fff;
-    cursor: default; z-index: 10;
+    position: relative; display: flex; align-items: center; justify-content: center;
+    font-size: .55rem;
+    font-size: clamp(5px, 1.3cqw, 9px);
+    font-weight: 900; color: #fff;
+    cursor: default; z-index: 1;
     transition: transform .3s ease;
     pointer-events: none;
     border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
     border: none;
     font-family: 'Noto Sans TC', sans-serif;
 }
+.piece.piece-finished { transform: scale(.72); }
 .piece::before {
     content: '';
     position: absolute;
@@ -228,10 +378,33 @@
 .piece-offset-1 { transform: translate(20%, -20%); }
 .piece-offset-2 { transform: translate(-20%, 20%); }
 .piece-offset-3 { transform: translate(20%, 20%); }
+/* Finished pieces shrink to fit several on the center square; keep the offset nudge too */
+.piece.piece-finished.piece-offset-1 { transform: scale(.72) translate(20%, -20%); }
+.piece.piece-finished.piece-offset-2 { transform: scale(.72) translate(-20%, 20%); }
+.piece.piece-finished.piece-offset-3 { transform: scale(.72) translate(20%, 20%); }
 
-/* Bot thinking indicator */
+/* Captured — shrink & fade at the old square before popping back in at home */
+.piece.piece-captured { animation: pieceCaptured .24s ease-in forwards; }
+@keyframes pieceCaptured {
+    0%   { transform: scale(1);   opacity: 1; }
+    100% { transform: scale(.15) rotate(20deg); opacity: 0; }
+}
+.piece.piece-popin { animation: piecePopIn .32s cubic-bezier(.34,1.56,.64,1); }
+@keyframes piecePopIn {
+    0%   { transform: scale(.2); opacity: 0; }
+    70%  { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .piece-slot { transition: none; }
+    .piece.piece-captured, .piece.piece-popin { animation: none; }
+}
+
+/* Bot thinking indicator — positioned relative to .board-stage (its parent),
+   which reserves exactly enough top padding for this pill. See .board-stage
+   above for why this can't be positioned relative to .game-main. */
 .bot-status {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
     background: #2d1f47; border: 1px solid #7e22ce; border-radius: 20px;
     padding: 6px 16px; display: flex; align-items: center; gap: 8px;
     font-size: .88rem; color: #c084fc; z-index: 60; white-space: nowrap;
@@ -246,7 +419,32 @@
 /* Responsive */
 @media (max-width: 900px) {
     .game-page { flex-direction: column; }
-    .game-sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; overflow-x: auto; padding: 12px; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
+    /* overflow-x:auto + flex-wrap:wrap: explicitly set overflow-y too (rather
+       than relying on the browser's computed-overflow auto-pairing rule) so
+       wrapped boxes always scroll inside the 200px strip instead of visually
+       spilling onto the board below on any browser. */
+    .game-sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; overflow-x: auto; overflow-y: auto; padding: 12px; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
     .game-sidebar > * { flex: 0 0 auto; max-width: 200px; }
-    .board-container { width: min(98vmin, 500px); }
+    .board-container { width: min(98vmin, 500px, var(--board-max, 500px)); }
+    .game-main { padding: 16px; }
+    .board-stage { padding-top: 40px; }
+    .bot-status { top: 2px; font-size: .8rem; padding: 5px 12px; }
+}
+
+@media (max-width: 480px) {
+    .board-container { width: min(98vw, 420px, var(--board-max, 420px)); }
+    .room-code-display { font-size: 1.5rem; letter-spacing: 2px; }
+    .dice { width: 52px; height: 52px; }
+    .dice-cube3d { width: 34px; height: 34px; }
+    /* Shrink the cube's translateZ to match the smaller face size above */
+    .dice-face3d.df1 { transform: rotateY(0deg)   translateZ(17px); }
+    .dice-face3d.df6 { transform: rotateY(180deg) translateZ(17px); }
+    .dice-face3d.df3 { transform: rotateY(-90deg) translateZ(17px); }
+    .dice-face3d.df4 { transform: rotateY(90deg)  translateZ(17px); }
+    .dice-face3d.df2 { transform: rotateX(90deg)  translateZ(17px); }
+    .dice-face3d.df5 { transform: rotateX(-90deg) translateZ(17px); }
+    .my-piece-btn { width: 34px; height: 34px; }
+    .board-stage { padding-top: 36px; }
+    .bot-status { padding: 4px 10px; gap: 6px; }
+    .bot-spinner { width: 12px; height: 12px; }
 }

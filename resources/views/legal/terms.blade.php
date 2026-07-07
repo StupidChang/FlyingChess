@@ -1,61 +1,123 @@
 @extends('layouts.app')
-@section('title','使用條款 — 情侶飛行棋')
-@section('meta_description','情侶飛行棋使用條款，使用本站即表示您同意以下規範。')
+@section('title', __('legal.terms_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('legal.terms_meta_description'))
 @section('canonical', route('legal.terms'))
+
+@section('styles')
+<style>
+.legal-page{max-width:800px;margin:0 auto;padding:40px 16px}
+.legal-page h1{color:var(--gold);margin-bottom:8px}
+.legal-updated{color:var(--text-dim);font-size:.9rem;margin-bottom:24px}
+.legal-intro{margin-bottom:28px;line-height:1.8}
+.legal-toc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:36px}
+.legal-toc-title{font-size:1rem;color:var(--gold);margin-bottom:10px;font-weight:700}
+.legal-toc ol{margin:0;padding-left:0;list-style:none}
+.legal-toc li{margin:4px 0}
+.legal-toc a{color:var(--text);font-size:.95rem;transition:color .15s}
+.legal-toc a:hover{color:var(--accent)}
+.legal-section{margin-bottom:36px;scroll-margin-top:80px}
+.legal-section h2{font-size:1.2rem;margin-bottom:12px;color:var(--text);border-left:3px solid var(--accent);padding-left:10px}
+.legal-section p{line-height:1.8}
+.legal-section p + p{margin-top:8px}
+.legal-list{margin:12px 0 0 20px;line-height:1.8;list-style:disc}
+.legal-list li{margin-bottom:6px}
+.legal-note{margin-top:12px;color:var(--text-dim);font-size:.95rem}
+.legal-email{margin-top:8px;color:var(--text-dim)}
+.legal-email a{color:var(--accent)}
+</style>
+@endsection
+
 @section('content')
-<div class="container" style="max-width:800px;padding:40px 16px">
-    <h1 style="color:var(--gold);margin-bottom:8px">使用條款</h1>
-    <p style="color:var(--text-dim);font-size:.9rem;margin-bottom:32px">最後更新：{{ date('Y') }} 年</p>
+@php
+    $toc = [
+        'service'    => __('legal.terms.service_title'),
+        'account'    => __('legal.terms.account_title'),
+        'ugc'        => __('legal.terms.ugc_title'),
+        'payment'    => __('legal.terms.payment_title'),
+        'disclaimer' => __('legal.terms.disclaimer_title'),
+        'age'        => __('legal.terms.age_title'),
+        'changes'    => __('legal.terms.changes_title'),
+        'law'        => __('legal.terms.law_title'),
+        'contact'    => __('legal.terms.contact_title'),
+    ];
+@endphp
+<div class="legal-page">
+    <h1>{{ __('legal.terms_title') }}</h1>
+    <p class="legal-updated">{{ __('legal.last_updated') }}</p>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">一、服務說明</h2>
-        <p>情侶飛行棋（以下簡稱「本站」）提供線上情侶飛行棋遊戲及自訂棋盤服務。本站包含成人向趣味內容，使用本服務即表示您確認已年滿 18 歲，並同意本條款之所有規定。</p>
+    <p class="legal-intro">{{ __('legal.terms.intro') }}</p>
+
+    <nav class="legal-toc" aria-label="{{ __('legal.toc_title') }}">
+        <p class="legal-toc-title">{{ __('legal.toc_title') }}</p>
+        <ol>
+            @foreach($toc as $anchor => $label)
+                <li><a href="#{{ $anchor }}">{{ $label }}</a></li>
+            @endforeach
+        </ol>
+    </nav>
+
+    <section id="service" class="legal-section">
+        <h2>{{ __('legal.terms.service_title') }}</h2>
+        <p>{{ __('legal.terms.service_body') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">二、使用資格</h2>
-        <ul style="margin:0 0 0 20px;line-height:1.8">
-            <li>您必須年滿 18 歲才能使用本站服務。</li>
-            <li>您必須提供真實且有效的帳號資訊進行註冊。</li>
-            <li>您不得使用機器人、爬蟲或自動化工具存取本站。</li>
+    <section id="account" class="legal-section">
+        <h2>{{ __('legal.terms.account_title') }}</h2>
+        <ul class="legal-list">
+            @foreach(__('legal.terms.account_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
         </ul>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">三、使用者行為規範</h2>
-        <p>使用本站時，您同意不進行以下行為：</p>
-        <ul style="margin:12px 0 0 20px;line-height:1.8">
-            <li>上傳、輸入或散播含有違法、仇恨、歧視、或侵害他人權益的內容</li>
-            <li>冒充他人或提供虛假資訊</li>
-            <li>嘗試入侵、破壞或干擾本站的正常運作</li>
-            <li>利用本站進行任何商業目的的非授權使用</li>
+    <section id="ugc" class="legal-section">
+        <h2>{{ __('legal.terms.ugc_title') }}</h2>
+        <p>{{ __('legal.terms.ugc_intro') }}</p>
+        <ul class="legal-list">
+            @foreach(__('legal.terms.ugc_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
+        </ul>
+        <p class="legal-note">{{ __('legal.terms.ugc_note') }}</p>
+    </section>
+
+    <section id="payment" class="legal-section">
+        <h2>{{ __('legal.terms.payment_title') }}</h2>
+        <ul class="legal-list">
+            @foreach(__('legal.terms.payment_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
         </ul>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">四、自訂內容</h2>
-        <p>您在本站建立的自訂棋盤及格子文字，由您自行負責其合法性與適當性。本站保留移除違反本條款或法律規定之內容的權利，恕不另行通知。</p>
+    <section id="disclaimer" class="legal-section">
+        <h2>{{ __('legal.terms.disclaimer_title') }}</h2>
+        <ul class="legal-list">
+            @foreach(__('legal.terms.disclaimer_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
+        </ul>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">五、帳號管理</h2>
-        <p>您有責任妥善保管帳號及密碼。如發現帳號遭盜用，請立即聯絡我們。本站對因帳號管理不當造成的損失不承擔責任。</p>
+    <section id="age" class="legal-section">
+        <h2>{{ __('legal.terms.age_title') }}</h2>
+        <p>{{ __('legal.terms.age_body') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">六、免責聲明</h2>
-        <p>本站服務以「現狀」提供，不保證服務不中斷或無錯誤。本站對因使用或無法使用本服務所造成的任何直接或間接損失，不承擔賠償責任。</p>
+    <section id="changes" class="legal-section">
+        <h2>{{ __('legal.terms.changes_title') }}</h2>
+        <p>{{ __('legal.terms.changes_body') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">七、條款修改</h2>
-        <p>本站保留隨時修改本條款的權利。修改後的條款將公告於本頁。繼續使用本站即視為接受修改後之條款。</p>
+    <section id="law" class="legal-section">
+        <h2>{{ __('legal.terms.law_title') }}</h2>
+        <p>{{ __('legal.terms.law_body') }}</p>
     </section>
 
-    <section style="margin-bottom:32px">
-        <h2 style="font-size:1.2rem;margin-bottom:12px">八、聯絡方式</h2>
-        <p>如有任何問題，請聯絡：</p>
-        <p style="margin-top:8px;color:var(--text-dim)">電子信箱：contact@flyingchessonline.com</p>
+    <section id="contact" class="legal-section">
+        <h2>{{ __('legal.terms.contact_title') }}</h2>
+        <p>{{ __('legal.terms.contact_body') }}</p>
+        <p class="legal-email"><a href="mailto:{{ __('legal.contact_email') }}">{{ __('legal.contact_email') }}</a></p>
     </section>
 </div>
 @endsection

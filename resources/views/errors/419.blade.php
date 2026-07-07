@@ -1,0 +1,6 @@
+@extends('errors.layout')
+@include('errors._locale')
+@section('code', '419')
+@section('title', __('errors.419_title'))
+@section('message', __('errors.419_message'))
+@section('show_back', '1')

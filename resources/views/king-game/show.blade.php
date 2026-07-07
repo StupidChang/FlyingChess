@@ -1,21 +1,11 @@
 @extends('layouts.app')
-@section('title', '國王遊戲 — 情侶派對遊戲 — 情侶飛行棋')
-@section('meta_description', '經典國王遊戲線上版！抽號碼牌決定身份，國王下指令，身份揭曉才知道是誰。2-6 人同機暢玩。')
+@section('title', __('minigame.king_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('minigame.king_meta'))
 @section('canonical', route('king-game.show'))
 
 @section('styles')
+<link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
-.kg-page{max-width:600px;margin:0 auto;padding:20px 16px;min-height:calc(100vh - 56px);position:relative;isolation:isolate}
-.kg-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(var(--glow-rgb,180,60,100),.1) 0%,transparent 70%);animation:hero-glow 6s ease-in-out infinite;pointer-events:none;z-index:-1}
-.kg-page>*{position:relative}
-.kg-title{text-align:center;color:var(--gold);font-size:1.4rem;margin-bottom:4px}
-.kg-subtitle{text-align:center;color:var(--text-dim);font-size:.85rem;margin-bottom:20px}
-.kg-setup{background:var(--card-bg,rgba(255,255,255,.06));border:1px solid var(--border);border-radius:12px;padding:20px}
-.kg-player-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
-.kg-player-row input[type=text]{flex:1;min-width:100px}
-.kg-player-remove{background:none;border:none;color:#e53935;font-size:1.2rem;cursor:pointer;padding:0 4px}
-.kg-add-player{margin-bottom:16px}
-
 /* Cards — poker style, bigger */
 .kg-card-area{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;padding:20px 0}
 .kg-card-slot{text-align:center}
@@ -51,6 +41,7 @@
 .kg-card-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .kg-card-center .center-suit{font-size:2.2rem}
 .kg-card-center .center-label{font-size:.8rem;font-weight:700;letter-spacing:.3px}
+.kg-card-center .center-number{font-weight:800}
 
 /* King card */
 .kg-card-front.king{background:linear-gradient(175deg,#fffdf0 30%,#fef3c7 100%);border-color:#d97706}
@@ -73,53 +64,87 @@
   .kg-card-center .center-label{font-size:.9rem}
 }
 
-.kg-round-badge{text-align:center;color:var(--gold);font-size:1.1rem;margin-bottom:16px}
-.kg-action-btns{text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 @keyframes cardDealIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 .kg-card-scene.dealing{animation:cardDealIn .3s cubic-bezier(.34,1.56,.64,1) both}
 
-/* Inline toast */
-.kg-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 24px;border-radius:8px;background:#2a0a0f;border:1px solid var(--rose,#e53935);color:#f06080;font-weight:600;font-size:.9rem;animation:kg-toast-in .3s ease-out,kg-toast-out .4s 2.5s ease-in forwards;pointer-events:none}
-@keyframes kg-toast-in{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes kg-toast-out{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+/* ── Reveal phase: king banner + command card + number legend ────── */
+.kg-reveal{margin-top:28px}
+
+@keyframes kgKingPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes kgGoldPulse{0%,100%{text-shadow:0 0 0 rgba(217,164,65,0)}50%{text-shadow:0 0 20px rgba(217,164,65,.7)}}
+@keyframes kgCommandReveal{0%{opacity:0;transform:translateY(14px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes kgLegendIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.kg-king-banner{text-align:center;margin-bottom:22px;animation:kgKingPop .5s cubic-bezier(.34,1.56,.64,1) both}
+.kg-king-banner .kg-crown-icon{font-size:2.4rem;line-height:1;margin-bottom:4px;animation:kgGoldPulse 1.8s ease-in-out .5s 2}
+.kg-king-banner .kg-king-label{font-size:.85rem;color:var(--text-dim,#9aa1b5);letter-spacing:.5px;margin-bottom:2px}
+.kg-king-banner .kg-king-name{font-size:1.6rem;font-weight:800;color:var(--gold,#d9a441)}
+
+.kg-command-card{animation:kgCommandReveal .5s .15s cubic-bezier(.34,1.56,.64,1) both}
+.kg-command-card .mg-content-card-category .mg-tag{margin-left:0}
+.kg-name-badge{display:inline-block;background:rgba(217,164,65,.16);color:var(--gold,#d9a441);font-weight:800;padding:2px 10px;border-radius:6px;margin:0 2px;white-space:nowrap}
+
+.kg-legend{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px;animation:kgLegendIn .4s .35s ease-out both}
+.kg-legend-chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface2,#1d2130);border:1px solid var(--border,#2a2f42);border-radius:999px;padding:4px 12px;font-size:.8rem;color:var(--text-dim,#9aa1b5)}
+.kg-legend-chip b{color:var(--text,#e9ebf2);font-weight:800}
+.kg-legend-chip.kg-legend-king{border-color:var(--gold,#d9a441);color:var(--gold,#d9a441)}
+
+@media(prefers-reduced-motion:reduce){
+  .kg-card-scene.dealing,.kg-king-banner,.kg-king-banner .kg-crown-icon,.kg-command-card,.kg-legend{animation:none !important}
+}
 </style>
 @endsection
 
 @section('content')
-<div class="kg-page">
-    <h1 class="kg-title">國王遊戲</h1>
-    <p class="kg-subtitle">每人點自己的撲克牌偷看身份，抽到 K 的就是國王！</p>
+<div class="mg-page mg-page--md mg-page--center" id="mg-page-root">
+    <h1 class="mg-title">{{ __('minigame.king_title') }}</h1>
+    <p class="mg-subtitle">{{ __('minigame.king_subtitle_long') }}</p>
 
     {{-- Setup Phase --}}
-    <div id="setup-phase" class="kg-setup">
-        <h2 style="color:var(--gold);font-size:1.1rem;margin-bottom:12px">設定玩家 (3-6人)</h2>
+    <div id="setup-phase" class="mg-setup">
+        <h2 class="mg-setup-heading">{{ __('minigame.king_setup') }}</h2>
         <div id="players-list">
-            <div class="kg-player-row" data-idx="0">
-                <input type="text" class="form-control p-name" value="玩家 1" maxlength="12">
+            <div class="mg-player-row" data-idx="0">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="12">
             </div>
-            <div class="kg-player-row" data-idx="1">
-                <input type="text" class="form-control p-name" value="玩家 2" maxlength="12">
+            <div class="mg-player-row" data-idx="1">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="12">
             </div>
-            <div class="kg-player-row" data-idx="2">
-                <input type="text" class="form-control p-name" value="玩家 3" maxlength="12">
+            <div class="mg-player-row" data-idx="2">
+                <input type="text" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 3]) }}" maxlength="12">
             </div>
         </div>
-        <button class="btn btn-sm btn-outline kg-add-player" id="add-player-btn" onclick="addPlayer()">+ 新增玩家</button>
-        <button class="btn btn-gold btn-full" onclick="startGame()">開始遊戲</button>
+        <button class="btn btn-sm btn-outline mg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
     {{-- Deal Phase --}}
     <div id="deal-phase" style="display:none">
-        <div class="kg-round-badge" id="round-badge"></div>
-        <p style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:12px">每人點自己的牌偷看身份（不要讓別人看到！）</p>
+        <div class="mg-round-badge" id="round-badge"></div>
+        <p id="peek-tip" style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:12px">{{ __('minigame.king_peek_tip') }}</p>
         <div class="kg-card-area" id="card-area"></div>
-        <div class="kg-action-btns">
-            <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">下一回合</button>
-            <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">重新開始</button>
+
+        {{-- Reveal: who's the king + this round's command --}}
+        <div id="reveal-phase" class="kg-reveal" style="display:none">
+            <div class="kg-king-banner" id="king-banner">
+                <div class="kg-crown-icon" aria-hidden="true">👑</div>
+                <div class="kg-king-label">{{ __('minigame.king_is_king') }}</div>
+                <div class="kg-king-name" id="king-banner-name"></div>
+            </div>
+            <div class="mg-content-card kg-command-card">
+                <div class="mg-content-card-category"><span class="mg-tag" id="command-tier-tag"></span></div>
+                <div class="mg-content-card-text" id="command-text"></div>
+            </div>
+            <div class="kg-legend" id="kg-legend"></div>
+        </div>
+
+        <div class="mg-action-btns">
+            <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">{{ __('minigame.next_turn') }}</button>
+            <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
         <div id="upgrade-notice" style="display:none;text-align:center;margin-top:12px">
-            <p style="color:var(--gold);margin-bottom:8px">免費版最多 6 回合，升級 Premium 解鎖無限回合！</p>
-            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">升級 Premium</a>
+            <p style="color:var(--gold);margin-bottom:8px">{{ __('minigame.king_premium_gate') }}</p>
+            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">{{ __('minigame.go_premium') }}</a>
         </div>
     </div>
 </div>
@@ -131,18 +156,26 @@
 <script>
 (function(){
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
+    var COMMANDS = @json($commands);
+    var TIER_TAG_CLASS = {mild:'mg-tag-mild',medium:'mg-tag-medium',intense:'mg-tag-intense'};
+    var TIER_LABELS = {
+        mild: @json(__('minigame.tier_mild')),
+        medium: @json(__('minigame.tier_medium')),
+        intense: @json(__('minigame.tier_intense'))
+    };
     var players=[];
     var round=0;
     var assignments=[];
     var peeked=[];
+    var currentReveal=null;
 
     function escHtml(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
     function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
     function showToast(msg){
-        var old=document.querySelector('.kg-toast');
+        var old=document.querySelector('.mg-toast');
         if(old) old.remove();
         var t=document.createElement('div');
-        t.className='kg-toast';
+        t.className='mg-toast';
         t.textContent=msg;
         document.body.appendChild(t);
         setTimeout(function(){t.remove()},3200);
@@ -154,67 +187,131 @@
         if(playerCount>=6) return;
         playerCount++;
         var row=document.createElement('div');
-        row.className='kg-player-row';
-        row.innerHTML='<input type="text" class="form-control p-name" value="玩家 '+playerCount+'" maxlength="12">'+
-            '<button class="kg-player-remove" onclick="removePlayer(this)">✕</button>';
+        row.className='mg-player-row';
+        var defaultName = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', playerCount);
+        row.innerHTML='<input type="text" class="form-control p-name" value="'+escHtml(defaultName)+'" maxlength="12">'+
+            '<button class="mg-player-remove" onclick="removePlayer(this)">✕</button>';
         document.getElementById('players-list').appendChild(row);
         if(playerCount>=6) document.getElementById('add-player-btn').style.display='none';
     };
     window.removePlayer=function(btn){
-        btn.closest('.kg-player-row').remove();
+        btn.closest('.mg-player-row').remove();
         playerCount--;
         document.getElementById('add-player-btn').style.display='inline-block';
     };
 
     window.startGame=function(){
-        var rows=document.querySelectorAll('.kg-player-row');
+        var rows=document.querySelectorAll('.mg-player-row');
         players=[];
+        var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){
-            players.push(r.querySelector('.p-name').value.trim()||'玩家');
+            players.push(r.querySelector('.p-name').value.trim()||fallbackName);
         });
-        if(players.length<3){showToast('國王遊戲至少需要 3 位玩家');return;}
+        if(players.length<3){showToast(@json(__('minigame.king_min_players')));return;}
         round=1;
         dealRound();
     };
 
     function buildDeck(count){
-        // Build a mini poker deck: 1 King + (count-1) number cards, each with unique rank+suit
+        // Build a mini deck: 1 King card + (count-1) number cards.
+        // Number cards use a sequential 1..(count-1) game number (not a random poker rank) so that
+        // this number can later be matched 1:1 against a player name in the command reveal + legend.
+        // Suit is kept purely as visual card-suit flavor.
         var allSuits=['♠','♥','♦','♣'];
-        var allRanks=['A','2','3','4','5','6','7','8','9','10','J','Q'];
         var redSuits={'♥':true,'♦':true};
-        // Generate enough unique rank+suit combos for non-king players
-        var pool=[];
-        for(var r=0;r<allRanks.length;r++){
-            for(var s=0;s<allSuits.length;s++){
-                pool.push({rank:allRanks[r],suit:allSuits[s],isRed:!!redSuits[allSuits[s]]});
-            }
-        }
-        shuffle(pool);
-        // Pick (count-1) cards for non-king, plus 1 King with random suit
         var kingSuit=allSuits[Math.floor(Math.random()*4)];
-        var cards=[{role:'king',rank:'K',suit:kingSuit,isRed:!!redSuits[kingSuit],label:'國王'}];
-        for(var i=0;i<count-1;i++){
-            var c=pool[i];
-            cards.push({role:'number',rank:c.rank,suit:c.suit,isRed:c.isRed,label:c.rank+c.suit});
+        var cards=[{role:'king',rank:'K',suit:kingSuit,isRed:!!redSuits[kingSuit],label:@json(__('minigame.king_role_king')),number:null}];
+
+        var numbers=[];
+        for(var n=1;n<=count-1;n++) numbers.push(n);
+        shuffle(numbers);
+        for(var i=0;i<numbers.length;i++){
+            var suit=allSuits[Math.floor(Math.random()*4)];
+            var isRed=!!redSuits[suit];
+            cards.push({role:'number',rank:String(numbers[i]),suit:suit,isRed:isRed,label:String(numbers[i]),number:numbers[i]});
         }
         return shuffle(cards);
+    }
+
+    function pickCommand(){
+        var tiers=Object.keys(COMMANDS);
+        var tier=tiers[Math.floor(Math.random()*tiers.length)];
+        var pool=COMMANDS[tier];
+        var template=pool[Math.floor(Math.random()*pool.length)];
+        return {tier:tier,template:template};
+    }
+
+    function pickTwoDistinct(numberAssignments){
+        var idxs=numberAssignments.map(function(_,i){return i});
+        shuffle(idxs);
+        return {a:numberAssignments[idxs[0]],b:numberAssignments[idxs[1]]};
+    }
+
+    function nameBadge(a){
+        return '<span class="kg-name-badge">'+escHtml(a.number+'號 '+a.name)+'</span>';
+    }
+
+    function renderCommandText(template,a,b){
+        return template.split('{A}').join(nameBadge(a)).split('{B}').join(nameBadge(b));
+    }
+
+    function renderLegend(kingName,numberAssignments){
+        var html='<span class="kg-legend-chip kg-legend-king">👑 '+escHtml(kingName)+'</span>';
+        numberAssignments.forEach(function(a){
+            html+='<span class="kg-legend-chip"><b>'+a.number+'</b> '+escHtml(a.name)+'</span>';
+        });
+        return html;
+    }
+
+    function buildReveal(){
+        var king=assignments.filter(function(a){return a.role==='king'})[0];
+        var numberAssignments=assignments.filter(function(a){return a.role==='number'});
+        var cmd=pickCommand();
+        var pair=pickTwoDistinct(numberAssignments);
+        currentReveal={
+            kingName:king.name,
+            tier:cmd.tier,
+            text:renderCommandText(cmd.template,pair.a,pair.b),
+            legendHtml:renderLegend(king.name,numberAssignments)
+        };
+    }
+
+    function showReveal(){
+        if(!currentReveal) return;
+        document.getElementById('king-banner-name').textContent=currentReveal.kingName;
+        var tag=document.getElementById('command-tier-tag');
+        tag.className='mg-tag '+(TIER_TAG_CLASS[currentReveal.tier]||'mg-tag-mild');
+        tag.textContent=TIER_LABELS[currentReveal.tier]||'';
+        document.getElementById('command-text').innerHTML=currentReveal.text;
+        document.getElementById('kg-legend').innerHTML=currentReveal.legendHtml;
+        var tip=document.getElementById('peek-tip');
+        if(tip) tip.style.display='none';
+        var panel=document.getElementById('reveal-phase');
+        panel.style.display='block';
+        var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        panel.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});
     }
 
     function dealRound(){
         document.getElementById('setup-phase').style.display='none';
         document.getElementById('deal-phase').style.display='block';
-        document.getElementById('round-badge').innerHTML='第 '+round+' 回合';
+        var roundLabel = @json(__('minigame.king_round_n', ['n' => '__N__'])).replace('__N__', round);
+        document.getElementById('round-badge').innerHTML=escHtml(roundLabel);
         document.getElementById('next-round-btn').style.display='none';
         document.getElementById('reset-btn').style.display='none';
         document.getElementById('upgrade-notice').style.display='none';
+        document.getElementById('reveal-phase').style.display='none';
+        var tip=document.getElementById('peek-tip');
+        if(tip) tip.style.display='';
         peeked=[];
 
         var deck=buildDeck(players.length);
 
         assignments=[];
         for(var i=0;i<players.length;i++){
-            assignments.push({name:players[i],role:deck[i].role,rank:deck[i].rank,suit:deck[i].suit,isRed:deck[i].isRed,label:deck[i].label});
+            assignments.push({name:players[i],role:deck[i].role,rank:deck[i].rank,suit:deck[i].suit,isRed:deck[i].isRed,label:deck[i].label,number:deck[i].number});
         }
+        buildReveal();
 
         var area=document.getElementById('card-area');
         area.innerHTML='';
@@ -223,11 +320,16 @@
             var isKing=a.role==='king';
             var cls=isKing?'king':'number'+(a.isRed?' red-suit':'');
 
+            // King card keeps the poker-suit motif front and center; number cards flip the
+            // emphasis so the player's game number is the dominant glyph (it's the piece of
+            // information they actually need to remember), with the suit demoted to flavor.
+            var centerHtml=isKing
+                ? '<span class="center-suit">'+a.suit+'</span><span class="center-label">'+escHtml(@json(__('minigame.king_role_king')))+'</span>'
+                : '<span class="center-suit center-number">'+a.rank+'</span><span class="center-label">'+a.suit+'</span>';
             var frontHtml=
                 '<div class="kg-card-corner kg-card-corner-tl"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
                 '<div class="kg-card-corner kg-card-corner-br"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
-                '<div class="kg-card-center"><span class="center-suit">'+a.suit+'</span>'+
-                (isKing?'<span class="center-label">國王</span>':'<span class="center-label">'+a.rank+' '+a.suit+'</span>')+'</div>';
+                '<div class="kg-card-center">'+centerHtml+'</div>';
 
             var backSuit=['♠','♥','♦','♣'][i%4];
             var slot=document.createElement('div');
@@ -251,7 +353,8 @@
             inner.classList.add('flipped');
             if(peeked.indexOf(idx)===-1) peeked.push(idx);
             if(peeked.length>=players.length){
-                // All peeked — show next round button directly
+                // All peeked — reveal the king + this round's command, then show next round button
+                showReveal();
                 document.getElementById('reset-btn').style.display='inline-flex';
                 if(round>=6&&!IS_PREMIUM){
                     document.getElementById('upgrade-notice').style.display='block';
