@@ -269,3 +269,81 @@
     .mg-tool-hero h1{font-size:1.4rem}
     .mg-setup{padding:16px}
 }
+
+/* ===================================================================
+   撲克牌元件(mg-card-*)—— 紙牌遊戲與國王遊戲共用
+   原本兩邊各有一份幾乎相同的實作(cg-card-* / kg-card-*),
+   差異只在配色與中央字級。統一到這裡,配色採經典撲克(黑 #1a1a1a / 紅 #c62828)。
+   國王牌用 .is-king 疊一層金色即可,不需要另一整套。
+   =================================================================== */
+.mg-deal-area{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;padding:20px 0}
+.mg-card-slot{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:80px;
+    animation:mgSlotIn .4s cubic-bezier(.16,1,.3,1) both}
+.mg-card-slot .slot-name{font-size:.85rem;color:var(--text-dim);font-weight:600}
+
+.mg-card-scene{width:100px;height:140px;perspective:600px}
+.mg-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+    transition:transform .6s cubic-bezier(.4,0,.2,1)}
+.mg-card-inner.flipped{transform:rotateY(180deg)}
+.mg-card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px}
+
+/* 牌背:紅底 + 菱格暗紋 + 白框 */
+.mg-card-back{background:#b91c1c;border:3px solid #fff;overflow:hidden;
+    box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.mg-card-back::before{content:'';position:absolute;inset:5px;border-radius:5px;
+    border:1.5px solid rgba(255,255,255,.4);
+    background:repeating-conic-gradient(#b91c1c 0% 25%,#991b1b 0% 50%) 50%/12px 12px}
+.mg-card-back-icon{position:absolute;inset:0;display:flex;align-items:center;
+    justify-content:center;font-size:1.8rem;color:rgba(255,255,255,.3);z-index:1}
+
+/* 牌面 */
+.mg-card-front{background:#fffdf7;border:2px solid #d4d0c8;transform:rotateY(180deg);
+    box-shadow:0 2px 10px rgba(0,0,0,.22)}
+.mg-card-corner{position:absolute;display:flex;flex-direction:column;align-items:center;line-height:1}
+.mg-card-corner-tl{top:6px;left:7px}
+.mg-card-corner-br{bottom:6px;right:7px;transform:rotate(180deg)}
+.mg-card-corner .corner-rank{font-size:.95rem;font-weight:800}
+.mg-card-corner .corner-suit{font-size:.85rem;margin-top:-1px}
+.mg-card-center{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:2px}
+.mg-card-center .center-suit{font-size:2.6rem}
+.mg-card-center .center-rank{font-size:1rem;font-weight:700;letter-spacing:.3px}
+.mg-card-center .center-label{font-size:.9rem;font-weight:700;letter-spacing:.3px}
+
+/* 經典撲克配色 */
+.mg-card-front.red   .mg-card-corner,.mg-card-front.red   .mg-card-center{color:#c62828}
+.mg-card-front.black .mg-card-corner,.mg-card-front.black .mg-card-center{color:#1a1a1a}
+
+/* 國王牌:在經典牌面上疊一層金色,不另立一套配色 */
+.mg-card-front.is-king{background:linear-gradient(175deg,#fffdf0 30%,#fef3c7 100%);border-color:#d97706}
+.mg-card-front.is-king .mg-card-corner,
+.mg-card-front.is-king .mg-card-center .center-suit{color:#d97706}
+.mg-card-front.is-king .center-label{color:#92400e}
+
+/* 發牌 / 翻牌動效 */
+@keyframes mgCardDealIn{from{transform:scale(0) translateY(30px);opacity:0}to{transform:none;opacity:1}}
+@keyframes mgSlotIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes mgCardFlipBump{
+    0%  {filter:brightness(1)}
+    45% {filter:brightness(1.35) drop-shadow(0 0 10px rgba(255,235,180,.7))}
+    100%{filter:brightness(1)}
+}
+.mg-card-scene.dealing{animation:mgCardDealIn .35s cubic-bezier(.34,1.56,.64,1) both}
+.mg-card-scene.flip-bump{animation:mgCardFlipBump .8s ease-out}
+
+.mg-card-placeholder{width:100px;height:140px;border:2px dashed var(--border);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.8rem}
+
+@media(max-width:520px){
+    .mg-deal-area{gap:10px}
+    .mg-card-slot{min-width:70px}
+    .mg-card-scene,.mg-card-placeholder{width:80px;height:112px}
+    .mg-card-corner .corner-rank{font-size:.7rem}
+    .mg-card-corner .corner-suit{font-size:.6rem}
+    .mg-card-center .center-suit{font-size:1.6rem}
+    .mg-card-back-icon{font-size:1.4rem}
+}
+@media (prefers-reduced-motion: reduce){
+    .mg-card-slot,.mg-card-scene.dealing,.mg-card-scene.flip-bump{animation:none}
+    .mg-card-inner{transition:transform .2s linear}
+}
