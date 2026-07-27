@@ -406,6 +406,17 @@ ul{list-style:none}
 @media(max-width:479px){
   .game-cards-grid{grid-template-columns:1fr;max-width:400px}
 }
+/* Blocks holding only a handful of cards — the flying-chess lobby's "more
+   games" row is 2 cards for guests, 3 once signed in. The 5-column default
+   squeezes those into a fifth of the row each and strands the remainder as
+   dead space, so size the columns instead of counting them. auto-fit is safe
+   here (unlike above) precisely because there is only ever one row to keep
+   aligned. Outranks the breakpoint rules on specificity, so no !important. */
+.game-cards-grid.is-compact{
+  grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),240px));
+  justify-content:center;
+  max-width:780px;
+}
 .game-card{
   background:var(--surface);
   border:1px solid var(--border);

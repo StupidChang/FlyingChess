@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Database\Seeders\BoardSeeder;
+use Database\Seeders\BoardTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -121,6 +122,26 @@ class PublicRoutesSmokeTest extends TestCase
         $this->visit('/tw/play')
             ->assertOk()
             ->assertDontSee('class="age-gate"', false);
+    }
+
+    /**
+     * The paginator only reaches for lang/<locale>/pagination.php, which is not
+     * part of a stock Laravel skeleton — when it is missing, __() hands back the
+     * key and the buttons read "pagination.previous", wide enough to break the
+     * row. Asserting the absence of the raw keys rather than the translated text
+     * keeps this from failing every time someone rewords a label.
+     */
+    #[DataProvider('localePrefixProvider')]
+    public function test_pagination_labels_are_translated_in_every_locale(string $prefix): void
+    {
+        $this->seed(BoardSeeder::class);
+        $this->seed(BoardTemplateSeeder::class);
+
+        $this->visit("/$prefix/games")
+            ->assertOk()
+            ->assertSee('pg-btn', false)
+            ->assertDontSee('pagination.previous')
+            ->assertDontSee('pagination.next');
     }
 
     /**

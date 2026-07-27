@@ -4,14 +4,14 @@
     {{-- Mobile: prev / next only --}}
     <div class="pagination-mobile" style="display:none;width:100%;justify-content:space-between;gap:8px">
         @if ($paginator->onFirstPage())
-            <span class="btn btn-sm btn-outline" style="opacity:.4;cursor:default">{!! __('pagination.previous') !!}</span>
+            <span class="btn btn-sm btn-outline" style="opacity:.4;cursor:default">{{ __('pagination.previous') }}</span>
         @else
-            <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="btn btn-sm btn-outline">{!! __('pagination.previous') !!}</a>
+            <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="btn btn-sm btn-outline">{{ __('pagination.previous') }}</a>
         @endif
         @if ($paginator->hasMorePages())
-            <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="btn btn-sm btn-outline">{!! __('pagination.next') !!}</a>
+            <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="btn btn-sm btn-outline">{{ __('pagination.next') }}</a>
         @else
-            <span class="btn btn-sm btn-outline" style="opacity:.4;cursor:default">{!! __('pagination.next') !!}</span>
+            <span class="btn btn-sm btn-outline" style="opacity:.4;cursor:default">{{ __('pagination.next') }}</span>
         @endif
     </div>
 

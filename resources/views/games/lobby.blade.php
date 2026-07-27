@@ -65,7 +65,7 @@
     <div style="text-align:center;margin-bottom:24px">
         <h2 class="section-title" style="font-size:1.2rem">{{ __('games.more_games') }}</h2>
     </div>
-    <div class="game-cards-grid" style="max-width:720px;margin:0 auto">
+    <div class="game-cards-grid is-compact">
         <article class="game-card">
             <div class="game-card-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
