@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#161b22"/>
-  <text x="16" y="24" font-size="22" text-anchor="middle" fill="#f5c518">✈</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="heart">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff9fc1"/>
+      <stop offset="1" stop-color="#f53d7e"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#g)" d="M16 28.4C16 28.4 3.2 20.9 3.2 12.3 3.2 7.9 6.7 4.6 10.9 4.6c2.5 0 4.3 1.2 5.1 2.6.8-1.4 2.6-2.6 5.1-2.6 4.2 0 7.7 3.3 7.7 7.7 0 8.6-12.8 16.1-12.8 16.1z"/>
 </svg>

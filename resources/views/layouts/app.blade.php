@@ -30,7 +30,11 @@
     <meta property="og:image" content="@yield('og_image', asset('images/174655ssvy4mu6pwyllysm.jpg'))">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <link rel="icon" href="{{ asset('images/favicon.svg') }}">
+    {{-- 粉色愛心 icon:SVG 給現代瀏覽器,ico 作為舊版與 /favicon.ico 直接請求的後備 --}}
+    <link rel="icon" type="image/svg+xml" href="{{ asset_v('images/favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="{{ asset_v('favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset_v('images/apple-touch-icon.png') }}">
+    <meta name="theme-color" content="#f43f5e">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -71,7 +75,7 @@
 <body>
 <header class="site-header">
     <div class="container">
-        <a href="{{ route('home') }}" class="logo">{{ __('ui.site_name') }}</a>
+        <a href="{{ route('home') }}" class="logo">@include('partials.heart-icon')<span>{{ __('ui.site_name') }}</span></a>
 
         {{-- Desktop nav — explicit .nav-desktop class; hidden on mobile via .nav-desktop{display:none} in media query --}}
         <nav class="nav-desktop">
@@ -85,6 +89,7 @@
                     <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
                     <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
                     <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
+                    <a href="{{ route('wheel.pure') }}">{{ __('games.pure_wheel') }}</a>
                     <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
                     <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 </div>
@@ -138,6 +143,7 @@
             <a href="{{ route('dice-game.show') }}" class="nav-link">{{ __('games.dice_game') }}</a>
             <a href="{{ route('king-game.show') }}" class="nav-link">{{ __('games.king_game') }}</a>
             <a href="{{ route('wheel-game.show') }}" class="nav-link">{{ __('games.wheel_game') }}</a>
+            <a href="{{ route('wheel.pure') }}" class="nav-link">{{ __('games.pure_wheel') }}</a>
             <a href="{{ route('who-most-likely.show') }}" class="nav-link">{{ __('games.who_most_likely') }}</a>
             <a href="{{ route('boards.community') }}" class="nav-link">{{ __('ui.community_boards') }}</a>
         </div>
@@ -182,7 +188,7 @@
     <div class="container">
         <div class="footer-inner">
             <div class="footer-brand">
-                <span class="footer-logo">{{ __('ui.site_name') }}</span>
+                <span class="footer-logo">@include('partials.heart-icon')<span>{{ __('ui.site_name') }}</span></span>
                 <span class="footer-tagline">{{ __('ui.tagline') }}</span>
             </div>
             <div class="footer-links">
@@ -193,6 +199,7 @@
                 <a href="{{ route('dice-game.show') }}">{{ __('games.dice_game') }}</a>
                 <a href="{{ route('king-game.show') }}">{{ __('games.king_game') }}</a>
                 <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
+                <a href="{{ route('wheel.pure') }}">{{ __('games.pure_wheel') }}</a>
                 <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
                 <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 <a href="{{ route('play') }}">{{ __('play.create_board') }}</a>

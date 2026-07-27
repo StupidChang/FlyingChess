@@ -10,7 +10,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('legal.age_gate_title') }} — {{ __('ui.site_name') }}</title>
     <meta name="robots" content="noindex,nofollow">
-    <link rel="icon" href="{{ asset('images/favicon.svg') }}">
+    {{-- 與 layouts/app 保持一致的粉色愛心 icon 組合 --}}
+    <link rel="icon" type="image/svg+xml" href="{{ asset_v('images/favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="{{ asset_v('favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset_v('images/apple-touch-icon.png') }}">
+    <meta name="theme-color" content="#f43f5e">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Segoe UI','微軟正黑體',sans-serif;background:#0d0f16;color:#e9ebf2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
