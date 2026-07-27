@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Board;
 use App\Models\Game;
-use App\Models\GamePlayer;
 use App\Rules\NoBlockedWords;
 use App\Services\GameService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
@@ -21,16 +21,20 @@ class GameController extends Controller
     private function playerSessionId(Request $request): string
     {
         $base = $request->session()->getId();
-        $tab  = $request->input('tab_id') ?? $request->header('X-Tab-Id', '');
-        return $tab ? "{$base}|{$tab}" : $base;
+        $tab = $request->input('tab_id') ?? $request->header('X-Tab-Id', '');
+
+        // game_players.session_id is limited to 64 characters. Browser tab IDs
+        // are commonly UUIDs, so concatenating them to Laravel's session ID can
+        // exceed the column and turn a normal join into a database error.
+        return $tab ? hash('sha256', "{$base}|{$tab}") : $base;
     }
 
     public function lobby()
     {
         $boards = Board::where(function ($q) {
-                $q->where('is_template', true)
-                  ->orWhere('is_default', true);
-            })
+            $q->where('is_template', true)
+                ->orWhere('is_default', true);
+        })
             ->with('squares')
             ->withCount('squares')
             ->orderByDesc('is_default')
@@ -60,6 +64,7 @@ class GameController extends Controller
         $request->session()->put('player_name', $data['player_name']);
 
         $msg = $solo ? __('games.flash_solo_started') : __('games.flash_room_created');
+
         return redirect()->route('games.show', $result['game']->code)->with('success', $msg);
     }
 
@@ -71,17 +76,17 @@ class GameController extends Controller
             ->with('players')
             ->firstOrFail();
 
-        $sessionId  = $this->playerSessionId($request);
-        $myPlayer   = $game->players->firstWhere('session_id', $sessionId)
+        $sessionId = $this->playerSessionId($request);
+        $myPlayer = $game->players->firstWhere('session_id', $sessionId)
                    ?? $game->players->firstWhere('session_id', $request->session()->getId());
         $playerName = $request->session()->get('player_name', __('games.player_fallback'));
 
         $boardData = [
-            'track'        => GameService::BOARD_TRACK,
-            'safeLanes'    => GameService::SAFE_LANES,
-            'homePos'      => GameService::HOME_POSITIONS,
-            'center'       => GameService::CENTER,
-            'safeSquares'  => GameService::SAFE_SQUARES,
+            'track' => GameService::BOARD_TRACK,
+            'safeLanes' => GameService::SAFE_LANES,
+            'homePos' => GameService::HOME_POSITIONS,
+            'center' => GameService::CENTER,
+            'safeSquares' => GameService::SAFE_SQUARES,
             'startOffsets' => GameService::START_OFFSETS,
         ];
 
@@ -94,7 +99,7 @@ class GameController extends Controller
             'player_name' => ['required', 'string', 'min:1', 'max:20', new NoBlockedWords],
         ]);
 
-        $game   = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
+        $game = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
         $result = $this->gameService->joinGame(
             $game,
             $data['player_name'],
@@ -102,7 +107,7 @@ class GameController extends Controller
             $request->user()?->id
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['message']);
         }
 
@@ -113,99 +118,109 @@ class GameController extends Controller
 
     public function start(Request $request, string $code)
     {
-        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
-        $sessionId = $this->playerSessionId($request);
-        $myPlayer  = $game->players()->where('session_id', $sessionId)->first()
-                  ?? $game->players()->where('session_id', $request->session()->getId())->first();
+        return DB::transaction(function () use ($request, $code) {
+            $game = Game::where('code', $code)
+                ->where('game_type', 'flying_chess')
+                ->lockForUpdate()
+                ->firstOrFail();
+            $sessionId = $this->playerSessionId($request);
+            $myPlayer = $game->players()->where('session_id', $sessionId)->first()
+                ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
-        if (!$myPlayer || !$myPlayer->is_host) {
-            return response()->json(['success' => false, 'message' => __('games.err_host_only_start')], 403);
-        }
+            if (! $myPlayer || ! $myPlayer->is_host) {
+                return response()->json(['success' => false, 'message' => __('games.err_host_only_start')], 403);
+            }
 
-        $result = $this->gameService->startGame($game);
-        return response()->json($result);
+            return response()->json($this->gameService->startGame($game));
+        }, 3);
     }
 
     public function roll(Request $request, string $code)
     {
-        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
-        $sessionId = $this->playerSessionId($request);
-        $myPlayer  = $game->players()->where('session_id', $sessionId)->first()
-                  ?? $game->players()->where('session_id', $request->session()->getId())->first();
+        return DB::transaction(function () use ($request, $code) {
+            $game = Game::where('code', $code)->where('game_type', 'flying_chess')
+                ->lockForUpdate()->firstOrFail();
+            $sessionId = $this->playerSessionId($request);
+            $myPlayer = $game->players()->where('session_id', $sessionId)->first()
+                ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
-        if (!$myPlayer) {
-            return response()->json(['success' => false, 'message' => __('games.err_not_in_game')], 403);
-        }
+            if (! $myPlayer) {
+                return response()->json(['success' => false, 'message' => __('games.err_not_in_game')], 403);
+            }
 
-        $result = $this->gameService->rollDice($game, $myPlayer->color);
+            $result = $this->gameService->rollDice($game, $myPlayer->color);
 
-        // If roll resulted in no moves (turn auto-passed), execute any pending bot turns
-        $noMoves = empty($result['valid_moves'] ?? []) && !($result['three_sixes'] ?? false);
-        if ($result['success'] && $noMoves) {
-            $botActions = $this->executePendingBotTurns($game);
-            if (!empty($botActions)) {
-                $game->refresh();
-                $result['state']       = $game->game_state;
-                $result['bot_actions'] = $botActions;
-                if ($game->isFinished()) {
-                    $result['winner'] = $game->game_state['winner'] ?? null;
+            // If roll resulted in no moves (turn auto-passed), execute any pending bot turns
+            $noMoves = empty($result['valid_moves'] ?? []) && ! ($result['three_sixes'] ?? false);
+            if ($result['success'] && $noMoves) {
+                $botActions = $this->executePendingBotTurns($game);
+                if (! empty($botActions)) {
+                    $game->refresh();
+                    $result['state'] = $game->game_state;
+                    $result['bot_actions'] = $botActions;
+                    if ($game->isFinished()) {
+                        $result['winner'] = $game->game_state['winner'] ?? null;
+                    }
                 }
             }
-        }
 
-        return response()->json($result);
+            return response()->json($result);
+        }, 3);
     }
 
     public function move(Request $request, string $code)
     {
         $data = $request->validate(['piece_index' => 'required|integer|between:0,3']);
 
-        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->firstOrFail();
-        $sessionId = $this->playerSessionId($request);
-        $myPlayer  = $game->players()->where('session_id', $sessionId)->first()
-                  ?? $game->players()->where('session_id', $request->session()->getId())->first();
+        return DB::transaction(function () use ($request, $code, $data) {
+            $game = Game::where('code', $code)->where('game_type', 'flying_chess')
+                ->lockForUpdate()->firstOrFail();
+            $sessionId = $this->playerSessionId($request);
+            $myPlayer = $game->players()->where('session_id', $sessionId)->first()
+                      ?? $game->players()->where('session_id', $request->session()->getId())->first();
 
-        if (!$myPlayer) {
-            return response()->json(['success' => false, 'message' => __('games.err_not_in_game')], 403);
-        }
-
-        $result = $this->gameService->movePiece($game, $myPlayer->color, $data['piece_index']);
-
-        if (!$result['success'] || isset($result['winner'])) {
-            return response()->json($result);
-        }
-
-        // After human moves, let all pending bot turns run
-        $botActions = $this->executePendingBotTurns($game);
-        if (!empty($botActions)) {
-            $game->refresh();
-            $result['state']       = $game->game_state;
-            $result['bot_actions'] = $botActions;
-            if ($game->isFinished()) {
-                $result['winner'] = $game->game_state['winner'] ?? null;
+            if (! $myPlayer) {
+                return response()->json(['success' => false, 'message' => __('games.err_not_in_game')], 403);
             }
-        }
 
-        return response()->json($result);
+            $result = $this->gameService->movePiece($game, $myPlayer->color, $data['piece_index']);
+
+            if (! $result['success'] || isset($result['winner'])) {
+                return response()->json($result);
+            }
+
+            // After human moves, let all pending bot turns run
+            $botActions = $this->executePendingBotTurns($game);
+            if (! empty($botActions)) {
+                $game->refresh();
+                $result['state'] = $game->game_state;
+                $result['bot_actions'] = $botActions;
+                if ($game->isFinished()) {
+                    $result['winner'] = $game->game_state['winner'] ?? null;
+                }
+            }
+
+            return response()->json($result);
+        }, 3);
     }
 
     public function state(Request $request, string $code)
     {
-        $game      = Game::where('code', $code)->where('game_type', 'flying_chess')->with('players')->firstOrFail();
+        $game = Game::where('code', $code)->where('game_type', 'flying_chess')->with('players')->firstOrFail();
         $sessionId = $this->playerSessionId($request);
-        $myPlayer  = $game->players->firstWhere('session_id', $sessionId)
+        $myPlayer = $game->players->firstWhere('session_id', $sessionId)
                   ?? $game->players->firstWhere('session_id', $request->session()->getId());
 
         return response()->json([
-            'status'        => $game->status,
-            'game_state'    => $game->game_state,
-            'players'       => $game->players->map(fn($p) => [
-                'color'       => $p->color,
+            'status' => $game->status,
+            'game_state' => $game->game_state,
+            'players' => $game->players->map(fn ($p) => [
+                'color' => $p->color,
                 'player_name' => $p->player_name,
-                'is_host'     => $p->is_host,
-                'is_bot'      => str_starts_with($p->session_id, 'bot_'),
+                'is_host' => $p->is_host,
+                'is_bot' => str_starts_with($p->session_id, 'bot_'),
             ]),
-            'my_color'      => $myPlayer?->color,
+            'my_color' => $myPlayer?->color,
             'players_count' => $game->players->count(),
         ]);
     }
@@ -225,22 +240,28 @@ class GameController extends Controller
 
         while ($maxIter-- > 0) {
             $game->refresh();
-            if (!$game->isPlaying()) break;
+            if (! $game->isPlaying()) {
+                break;
+            }
 
             $state = $game->game_state;
-            $bots  = $state['bots'] ?? [];
-            if (!in_array($state['current_color'], $bots)) break;
+            $bots = $state['bots'] ?? [];
+            if (! in_array($state['current_color'], $bots)) {
+                break;
+            }
 
             $result = $this->gameService->executeBotTurn($game);
 
             $actions[] = [
-                'color'  => $result['bot_color'] ?? $state['current_color'],
-                'dice'   => $result['bot_dice']  ?? null,
-                'piece'  => $result['bot_piece'] ?? null,
+                'color' => $result['bot_color'] ?? $state['current_color'],
+                'dice' => $result['bot_dice'] ?? null,
+                'piece' => $result['bot_piece'] ?? null,
                 'action' => $result['bot_action'] ?? 'move',
             ];
 
-            if (!$result['success'] || isset($result['winner'])) break;
+            if (! $result['success'] || isset($result['winner'])) {
+                break;
+            }
         }
 
         return $actions;

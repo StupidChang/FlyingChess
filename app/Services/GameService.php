@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Game;
 use App\Models\GamePlayer;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class GameService
@@ -108,38 +109,45 @@ class GameService
 
     public function joinGame(Game $game, string $playerName, string $sessionId, ?int $userId = null): array
     {
-        // Check already in game
-        $existing = $game->players()->where('session_id', $sessionId)->first();
-        if ($existing) {
-            return ['success' => true, 'player' => $existing, 'game' => $game];
-        }
+        return DB::transaction(function () use ($game, $playerName, $sessionId, $userId) {
+            $game = Game::whereKey($game->id)->lockForUpdate()->firstOrFail();
+            // Check already in game
+            $existing = $game->players()->where('session_id', $sessionId)->first();
+            if ($existing) {
+                return ['success' => true, 'player' => $existing, 'game' => $game];
+            }
 
-        if (! $game->isWaiting()) {
-            return ['success' => false, 'message' => __('games.err_game_started_or_ended')];
-        }
+            if (! $game->isWaiting()) {
+                return ['success' => false, 'message' => __('games.err_game_started_or_ended')];
+            }
 
-        if ($game->isFull()) {
-            return ['success' => false, 'message' => __('games.err_room_full')];
-        }
+            if ($game->isFull()) {
+                return ['success' => false, 'message' => __('games.err_room_full')];
+            }
 
-        $takenColors = $game->players()->pluck('color')->toArray();
-        $available = array_diff(self::COLORS, $takenColors);
-        $color = array_values($available)[0];
+            $takenColors = $game->players()->pluck('color')->toArray();
+            $available = array_diff(self::COLORS, $takenColors);
+            $color = array_values($available)[0];
 
-        $player = GamePlayer::create([
-            'game_id' => $game->id,
-            'session_id' => $sessionId,
-            'player_name' => $playerName,
-            'color' => $color,
-            'is_host' => false,
-            'user_id' => $userId,
-        ]);
+            $player = GamePlayer::create([
+                'game_id' => $game->id,
+                'session_id' => $sessionId,
+                'player_name' => $playerName,
+                'color' => $color,
+                'is_host' => false,
+                'user_id' => $userId,
+            ]);
 
-        return ['success' => true, 'player' => $player, 'game' => $game];
+            return ['success' => true, 'player' => $player, 'game' => $game];
+        }, 3);
     }
 
     public function startGame(Game $game): array
     {
+        if (! $game->isWaiting()) {
+            return ['success' => false, 'message' => __('games.err_game_started_or_ended')];
+        }
+
         $playerCount = $game->players()->count();
         $hasBots = ! empty($game->game_state['bots'] ?? []);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ class PremiumController extends Controller
         $amount = config('premium.price');
 
         // Create new order every time
-        $orderNo = 'FC' . date('YmdHis') . strtoupper(Str::random(4));
+        $orderNo = 'FC'.date('YmdHis').strtoupper(Str::random(4));
 
         $order = PaymentOrder::create([
             'user_id' => $user->id,
@@ -85,7 +86,7 @@ class PremiumController extends Controller
         $orderNo = $data['MerchantTradeNo'] ?? '';
         $order = PaymentOrder::where('order_no', $orderNo)->first();
 
-        if (!$order) {
+        if (! $order) {
             return response('0|ERR_ORDER');
         }
 
@@ -106,6 +107,7 @@ class PremiumController extends Controller
 
                 if ($locked->isPaid()) {
                     $alreadyPaid = true;
+
                     return;
                 }
 
@@ -115,7 +117,7 @@ class PremiumController extends Controller
                 ]);
 
                 // Lock user row to prevent concurrent renewal from losing updates
-                $user = \App\Models\User::where('id', $locked->user_id)->lockForUpdate()->first();
+                $user = User::where('id', $locked->user_id)->lockForUpdate()->first();
                 $now = now();
                 $currentExpiry = $user->premium_expires_at;
 
@@ -132,7 +134,7 @@ class PremiumController extends Controller
             // Idempotent: already paid orders stay paid (concurrency-safe)
             DB::transaction(function () use ($order) {
                 $locked = PaymentOrder::where('id', $order->id)->lockForUpdate()->first();
-                if ($locked && !$locked->isPaid()) {
+                if ($locked && ! $locked->isPaid()) {
                     $locked->update(['status' => 'failed']);
                 }
             });
@@ -145,6 +147,12 @@ class PremiumController extends Controller
     {
         $orderNo = $request->input('MerchantTradeNo');
         $order = $orderNo ? PaymentOrder::where('order_no', $orderNo)->first() : null;
+
+        // The gateway posts here without a user session, but an anonymous
+        // visitor must not be able to inspect another customer's order.
+        if ($order && (! $request->user() || $order->user_id !== $request->user()->id)) {
+            $order = null;
+        }
 
         return view('premium.result', [
             'order' => $order,
