@@ -1172,3 +1172,80 @@ ul{list-style:none}
 @media (prefers-reduced-motion: reduce){
   .reveal{opacity:1;transform:none;transition:none}
 }
+
+/* ---- 站徽粉色愛心(header / footer)---- */
+.logo,.footer-logo{display:inline-flex;align-items:center;gap:7px}
+.brand-heart{width:1.05em;height:1.05em;flex:0 0 auto;color:var(--accent);
+    filter:drop-shadow(0 1px 2px rgba(244,63,94,.35))}
+.logo:hover .brand-heart{color:var(--accent-hover)}
+@media(max-width:420px){.brand-heart{width:1em;height:1em}}
+
+/* ---- RWD 加固:修正實測會在窄螢幕撐出橫向捲軸的既有規則 ----
+   1) .form-page::before 是 420px 寬的裝飾光暈,但 .form-page 本身沒有
+      position:relative 也沒有 overflow 裁切,絕對定位的它會逸出容器。
+   2) .age-gate::before 同理(320px)。兩者皆 pointer-events:none 的純裝飾,
+      限制寬度不影響版面,只是不再溢出。                                  */
+.form-page{position:relative;overflow:hidden}
+.form-page::before{max-width:100%}
+.age-gate{overflow:hidden}
+.age-gate::before{max-width:100%}
+
+/* ---- 廣告版位的 RWD / CLS 處理 ----
+   第三方廣告是非同步載入的,不預留高度會在載入完成時把下方內容往下推
+   (CLS,同時影響體感與 Core Web Vitals)。這裡預留保守高度:
+   .ad-unit 本身只在 zone 有設定時才會被 render(見 partials/ad-unit.blade.php),
+   所以沒接廣告的環境不會出現空白區塊。
+   ⚠ 數值要對齊你在聯播網後台實際選的版位尺寸;ExoClick / TrafficJunky 的
+     zone 是固定尺寸的,桌機與手機建議各建一個 zone。                        */
+.ad-unit{contain:layout}
+.ad-unit--banner{min-height:100px}
+.ad-unit--banner > ins,.ad-unit--banner iframe{max-width:100%!important}
+@media(max-width:600px){
+  .ad-unit--banner{min-height:60px}
+}
+/* .closing-cta-section::after 是 700px 寬的裝飾光暈,父層原本沒有裁切,
+   在窄螢幕會逸出容器撐出橫向捲軸。 */
+.closing-cta-section{position:relative;overflow:hidden}
+.closing-cta-section::after{max-width:100%}
+
+/* ---- 廣告下方的 Premium 入口 ----
+   刻意做得低調:小字、次要色、僅 hover 時變色。目的是讓看到廣告的人
+   知道「付費可以移除」,而不是再多一個干擾元素。 */
+.ad-upsell{text-align:center;padding:6px 12px 10px;line-height:1.4}
+.ad-upsell a{font-size:.74rem;color:var(--text-dim);text-decoration:none;
+    border-bottom:1px dotted currentColor;transition:color .15s}
+.ad-upsell a:hover,.ad-upsell a:focus-visible{color:var(--accent)}
+
+/* ---- 登入 / 註冊等表單頁:上下左右置中 ----
+   原本只有水平置中(.form-card 的 margin auto),垂直方向靠 padding 撐,
+   在大螢幕上會整張卡片黏在上方。改為扣掉 60px header 後在視窗內垂直居中。 */
+.form-page{
+    display:flex;flex-direction:column;justify-content:center;
+    /* align-items 保持 stretch:.form-page 本身已是 max-width:500px 的置中容器,
+       若改成 center,.form-card 會縮成內容寬度而不是填滿 500px。 */
+    align-items:stretch;
+    min-height:calc(100vh - 60px);
+}
+@supports (height:100dvh){ .form-page{min-height:calc(100dvh - 60px)} }
+.form-page > .form-card{margin-top:0;margin-bottom:0}
+@media(max-width:520px){
+    /* 手機上鍵盤彈出會壓縮視窗,改回自然高度避免卡片被擠壓 */
+    .form-page{min-height:auto;padding-top:32px;padding-bottom:48px}
+}
+
+/* ---- OAuth 分隔線與 Google 按鈕 ---- */
+.oauth-sep{display:flex;align-items:center;gap:12px;margin:20px 0 14px;
+    color:var(--text-dim);font-size:.78rem}
+.oauth-sep::before,.oauth-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Google 品牌規範:白底、深色字、原色 logo。刻意不套站內的 .btn 配色。 */
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;
+    width:100%;padding:11px 16px;border-radius:var(--radius);
+    background:#fff;color:#3c4043;font-size:.94rem;font-weight:600;
+    text-decoration:none;border:1px solid #dadce0;
+    transition:box-shadow .18s, background .18s}
+.btn-google:hover{background:#f7f8f8;box-shadow:0 1px 4px rgba(0,0,0,.28)}
+.btn-google:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(var(--glow-rgb),.35)}
+.btn-google-icon{width:18px;height:18px;flex:0 0 auto}
+/* 遊戲卡片的補充說明(合併玩法的提示) */
+.game-card-alt{margin:6px 0 0;font-size:.76rem;color:var(--text-dim);opacity:.85}

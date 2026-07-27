@@ -93,6 +93,21 @@
                 <a href="{{ route('wheel-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
+            {{-- 純轉盤:只有轉盤與指針,無玩家/回合/任務清單 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:40px;height:40px">
+                        <circle cx="12" cy="12" r="8.25"/>
+                        <path d="M12 3.75v8.25M12 12l7.1 4.2M12 12l-7.1 4.2" stroke-linecap="round"/>
+                        <path d="M12 1.6l1.9 2.6h-3.8z" fill="currentColor" stroke="none"/>
+                    </svg>
+                </div>
+                <h3>{{ __('games.pure_wheel') }}</h3>
+                <p>{{ __('games.desc_pure_wheel') }}</p>
+                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
+                <a href="{{ route('wheel.pure') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
             {{-- 誰最有可能 --}}
             <article class="game-card">
                 <div class="game-card-icon" aria-hidden="true">

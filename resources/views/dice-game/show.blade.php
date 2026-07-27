@@ -43,9 +43,24 @@
    column — the equal side columns guarantee the picker never shifts the dice. */
 #mg-page-root{max-width:1100px}
 #setup-phase{max-width:560px;margin-left:auto;margin-right:auto}
-.dg-play{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:24px;margin-top:8px}
-.dg-stage{grid-column:2;width:100%;max-width:540px;min-width:0;margin:0 auto}
+/* 桌機版面:對稱三欄,讓骰子區落在頁面的絕對中央。
+     [ 1fr 側欄 ] [ auto 骰子區 ] [ 1fr 空白 ]
+   左右兩個 1fr 等寬,所以中間欄的中心就是頁面的中心 —— 側欄不會把骰子推偏。
+   第三欄刻意留空,它的存在就是為了對稱。
+
+   原本的設計就是這個形狀,壞掉的原因是寬度不夠:
+   容器 .mg-page--md 內容寬只有 568px(600 − padding 32),
+   而三欄至少需要 210 + 20 + 488 + 20 + 210 = 948px,
+   且斷點只在 ≤1040px 把頁面設成 640px、沒有任何規則在更寬時放大。
+   這裡把頁面給到 1000px(內容 968px),三欄才真的排得開。 */
+#mg-page-root{max-width:1000px}
+.dg-play{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    align-items:start;gap:20px;margin-top:8px}
 .dg-picker{grid-column:1;justify-self:start;width:210px;text-align:left}
+.dg-main{grid-column:2;width:100%;max-width:488px;min-width:0}
+.dg-stage{width:100%;min-width:0}
+/* 頁面加寬後,標題與玩家設定表單不要跟著被拉長 */
+#setup-phase{max-width:520px;margin-left:auto;margin-right:auto}
 .dg-picker-label{font-size:.82rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;letter-spacing:.3px}
 .dg-picker-list{
   display:flex;flex-direction:column;gap:16px;min-width:200px;
@@ -77,12 +92,13 @@
 .dg-manage-link{display:inline-block;margin-top:10px;font-size:.82rem;color:var(--accent)}
 .dg-manage-link:hover{text-decoration:underline}
 /* Not enough room for 3 columns → single column: picker centered above dice */
-@media(max-width:1040px){
+@media(max-width:1024px){
   #mg-page-root{max-width:640px}
   .dg-play{grid-template-columns:1fr}
   .dg-picker{grid-column:1;justify-self:center;width:100%;max-width:360px;margin:0 auto 22px}
   .dg-picker-list{max-width:360px;margin:0 auto}
   .dg-stage{grid-column:1}
+  .dg-main{grid-column:1;max-width:none;margin:0 auto}
 }
 
 /* Result */
@@ -134,9 +150,10 @@
 
     {{-- Game Phase --}}
     <div id="game-phase" style="display:none">
-        <div class="mg-round-badge" id="turn-badge"></div>
-        <div class="mg-current-player" id="current-player"></div>
-
+        {{-- 兩欄:側欄在整個遊戲區的最左邊(不只是骰子旁邊),
+             回合標籤與當前玩家一起移進右欄,側欄才會對齊到頁面左緣。
+             grid 放在 .dg-play 而非 #game-phase,因為 JS 會把 #game-phase
+             的 display 設成 block,那會覆蓋掉 grid。 --}}
         <div class="dg-play">
             {{-- Left: pick which dice to use --}}
             <aside class="dg-picker">
@@ -147,22 +164,26 @@
                 @endauth
             </aside>
 
-            {{-- Right: dice stage --}}
-            <div class="dg-stage">
-                <div class="dg-dice-area" id="dice-area"></div>
-                <div id="result-display" class="dg-result" style="display:none"></div>
-                <div class="dg-history" id="roll-history"></div>
-                <div class="mg-action-btns">
-                    <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
-                    <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
-                    <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
+            {{-- Right: 回合資訊 + 骰子舞台 --}}
+            <div class="dg-main">
+                <div class="mg-round-badge" id="turn-badge"></div>
+                <div class="mg-current-player" id="current-player"></div>
+
+                <div class="dg-stage">
+                    <div class="dg-dice-area" id="dice-area"></div>
+                    <div id="result-display" class="dg-result" style="display:none"></div>
+                    <div class="dg-history" id="roll-history"></div>
+                    <div class="mg-action-btns">
+                        <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
+                        <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
+                        <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@include('partials.ad-unit', ['zone' => 'lobby_side'])
 @endsection
 
 @section('scripts')

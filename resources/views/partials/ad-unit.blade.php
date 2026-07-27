@@ -53,3 +53,10 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
 @endif
+
+@if($showAds && ($hasEC || $hasTJ || $hasAS))
+    {{-- 廣告本身就是 Premium 的最佳說服時機:給一條低調的出口,不用彈窗。 --}}
+    <div class="ad-upsell">
+        <a href="{{ route('premium.index') }}">{{ __('ui.ad_remove') }}</a>
+    </div>
+@endif

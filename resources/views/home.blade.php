@@ -90,20 +90,7 @@
                 <a href="{{ route('truth-dare.lobby') }}" class="btn btn-gold btn-full">{{ __('home.mode_truth_cta') }}</a>
             </article>
 
-            {{-- 抽卡 --}}
-            <article class="game-card">
-                <div class="game-card-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
-                        <path d="M4 3a2 2 0 00-2 2v14a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2H4zm1 2h2v2H5V5zm12 0h2v2h-2V5zM9.5 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm5 0a4.5 4.5 0 110 9 4.5 4.5 0 010-9zM5 17h2v2H5v-2zm12 0h2v2h-2v-2z"/>
-                    </svg>
-                </div>
-                <h3>{{ __('games.card_game') }}</h3>
-                <p>{{ __('games.desc_card') }}</p>
-                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
-                <a href="{{ route('card-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
-            </article>
-
-            {{-- 骰子 --}}
+                        {{-- 骰子 --}}
             <article class="game-card">
                 <div class="game-card-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
@@ -125,6 +112,9 @@
                 </div>
                 <h3>{{ __('games.king_game') }}</h3>
                 <p>{{ __('games.desc_king') }}</p>
+                {{-- 兩個玩法已合併成同一頁,首頁只留一張卡片;
+                     這行讓「情侶撲克牌」這組關鍵字仍出現在首頁。 --}}
+                <p class="game-card-alt">{{ __('games.also_includes', ['name' => __('minigame.card_title')]) }}</p>
                 <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
                 <a href="{{ route('king-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
@@ -140,6 +130,21 @@
                 <p>{{ __('games.desc_wheel') }}</p>
                 <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
                 <a href="{{ route('wheel-game.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
+            </article>
+
+            {{-- 純轉盤:只有轉盤與指針,無玩家/回合/任務清單 --}}
+            <article class="game-card">
+                <div class="game-card-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:40px;height:40px">
+                        <circle cx="12" cy="12" r="8.25"/>
+                        <path d="M12 3.75v8.25M12 12l7.1 4.2M12 12l-7.1 4.2" stroke-linecap="round"/>
+                        <path d="M12 1.6l1.9 2.6h-3.8z" fill="currentColor" stroke="none"/>
+                    </svg>
+                </div>
+                <h3>{{ __('games.pure_wheel') }}</h3>
+                <p>{{ __('games.desc_pure_wheel') }}</p>
+                <span class="game-card-tag tag-party">{{ __('games.tag_party') }}</span>
+                <a href="{{ route('wheel.pure') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
             {{-- 誰最有可能 --}}

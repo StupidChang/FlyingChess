@@ -98,7 +98,6 @@
     </div>
 </div>
 
-@include('partials.ad-unit', ['zone' => 'lobby_side'])
 @endsection
 
 @section('scripts')
