@@ -17,6 +17,13 @@
             @if($board->is_premium_template)
                 <span class="template-lock-badge">{{ __('play.premium_template') }}</span>
             @endif
+            @if($board->reference_image)
+                <a href="{{ asset($board->reference_image) }}" target="_blank" rel="noopener"
+                   style="display:block;aspect-ratio:16/9;overflow:hidden;background:var(--surface2)">
+                    <img src="{{ asset($board->reference_image) }}" alt="{{ $board->name }} 參考棋盤"
+                         loading="lazy" style="width:100%;height:100%;object-fit:cover">
+                </a>
+            @endif
             <div class="board-card-body">
                 <h3>{{ $board->name }}</h3>
                 @if($board->description)<p>{{ $board->description }}</p>@endif

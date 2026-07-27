@@ -28,6 +28,7 @@ class Board extends Model
         'canvas_rows', 'canvas_cols', 'path_data',
         'user_id', 'share_code', 'machine_translated_at',
         'publish_status', 'published_at', 'publish_note',
+        'reference_image',
     ];
 
     protected $casts = [

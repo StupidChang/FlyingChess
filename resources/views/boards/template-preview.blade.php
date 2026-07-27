@@ -22,6 +22,18 @@
         </div>
     </div>
 
+    @if($board->reference_image)
+        <figure style="margin:0 0 24px">
+            <a href="{{ asset($board->reference_image) }}" target="_blank" rel="noopener">
+                <img src="{{ asset($board->reference_image) }}" alt="{{ $board->name }} 原始設計參考圖"
+                     style="display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border)">
+            </a>
+            <figcaption style="color:var(--text-dim);font-size:.8rem;margin-top:8px;text-align:center">
+                原始設計參考圖（點擊可查看完整尺寸）
+            </figcaption>
+        </figure>
+    @endif
+
     {{-- Static preview grid --}}
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;overflow-x:auto;margin-bottom:24px">
         <div style="display:grid;grid-template-columns:repeat({{ $board->canvas_cols }}, minmax(60px, 1fr));gap:4px">
