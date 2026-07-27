@@ -32,14 +32,30 @@ composer run setup      # install, .env, key:generate, migrate, npm install, bui
 ### Tests
 ```bash
 composer run test       # Clears config cache then runs PHPUnit
+composer run check      # Pint in --test mode, then the full suite (run before pushing)
 php artisan test --filter=TestClassName   # Run a single test class
 php artisan test --filter="test method name"  # Run a single test method
 ```
 
+`PublicRoutesSmokeTest` renders every parameter-free route, so a controller
+left pointing at a deleted or renamed view fails there rather than in
+production. Two traps it documents, worth knowing before adding a case:
+
+- **Requests need a crawler User-Agent.** `AgeVerification` lives in the `web`
+  middleware group, so it runs *before* route middleware and answers an
+  unverified visitor with the age gate — at status 200. Asserting only the
+  status code passes without ever reaching the view under test.
+- **Locale prefixes are not locale codes**: `zh_TW` → `tw`, `zh_CN` → `cn`,
+  `ja` → `jp`. Requesting `/ja` returns a 301, which reads like a broken
+  locale. See `config('app.available_locales')`.
+
 ### Linting / Formatting
 ```bash
-./vendor/bin/pint       # Laravel Pint (PHP code style fixer)
+composer run lint       # Laravel Pint (PHP code style fixer)
+./vendor/bin/pint --test   # Report violations without writing
 ```
+Keep Pint clean as you go. Letting it drift means the next person's formatting
+run rewrites dozens of unrelated files and buries their actual change.
 
 ### Database
 ```bash
