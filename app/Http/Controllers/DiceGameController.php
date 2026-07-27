@@ -19,7 +19,7 @@ class DiceGameController extends Controller
                 ->orderBy('category')
                 ->get()
                 ->map(fn ($d) => [
-                    'id' => 'custom_' . $d->id,
+                    'id' => 'custom_'.$d->id,
                     'cat' => $d->category,
                     'intensity' => null,
                     'premium' => false,

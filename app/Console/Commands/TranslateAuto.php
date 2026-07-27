@@ -34,8 +34,8 @@ class TranslateAuto extends Command
     public function handle(): int
     {
         $modelOpt = $this->option('model');
-        $limit    = (int) $this->option('limit');
-        $dryRun   = (bool) $this->option('dry-run');
+        $limit = (int) $this->option('limit');
+        $dryRun = (bool) $this->option('dry-run');
 
         $masterLocale = LocaleHelper::defaultLocale();
         $targetLocales = collect(LocaleHelper::supported())
@@ -46,14 +46,15 @@ class TranslateAuto extends Command
 
         if (empty($targetLocales)) {
             $this->info('No non-master locales configured; nothing to translate.');
+
             return self::SUCCESS;
         }
 
         $matrix = [
-            'cards'    => [TruthDareCard::class, 'content',  'content_translations'],
-            'squares'  => [BoardSquare::class,   'text',     'text_translations'],
+            'cards' => [TruthDareCard::class, 'content',  'content_translations'],
+            'squares' => [BoardSquare::class,   'text',     'text_translations'],
             'segments' => [WheelSegment::class,  'content',  'content_translations'],
-            'boards'   => [Board::class,         'name',     'name_translations'],
+            'boards' => [Board::class,         'name',     'name_translations'],
         ];
 
         $selected = $modelOpt === 'all' ? array_keys($matrix) : [$modelOpt];
@@ -63,6 +64,7 @@ class TranslateAuto extends Command
         foreach ($selected as $key) {
             if (! isset($matrix[$key])) {
                 $this->warn("Unknown model option: {$key} — skipping.");
+
                 continue;
             }
             [$class, $masterCol, $jsonCol] = $matrix[$key];
@@ -112,7 +114,7 @@ class TranslateAuto extends Command
                 } catch (Throwable $e) {
                     Log::warning('translate:auto row failed', [
                         'model' => $class,
-                        'id'    => $row->id ?? null,
+                        'id' => $row->id ?? null,
                         'error' => $e->getMessage(),
                     ]);
                     $totalFailed++;
@@ -121,6 +123,7 @@ class TranslateAuto extends Command
         }
 
         $this->info("Done. translated={$totalDone} failed={$totalFailed} dry_run={$dryRun}");
+
         return self::SUCCESS;
     }
 
@@ -134,7 +137,8 @@ class TranslateAuto extends Command
         $driver = env('TRANSLATE_DRIVER', 'none');
 
         if ($dryRun || $driver === 'none') {
-            $this->line("    [{$from}→{$to}] ".str()->limit($text, 40)." (no provider)");
+            $this->line("    [{$from}→{$to}] ".str()->limit($text, 40).' (no provider)');
+
             // Surface the master value as a placeholder so callers can still
             // write a non-null entry, distinguishing "untouched" from "tried".
             return $dryRun ? null : $text;

@@ -31,8 +31,8 @@ class AppServiceProvider extends ServiceProvider
 
             return url(route('password.reset', [
                 'locale' => $prefix,
-                'token'  => $token,
-                'email'  => $notifiable->getEmailForPasswordReset(),
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
             ], false));
         });
 
@@ -45,8 +45,8 @@ class AppServiceProvider extends ServiceProvider
                 Carbon::now()->addMinutes(config('auth.verification.expire', 60)),
                 [
                     'locale' => $prefix,
-                    'id'     => $notifiable->getKey(),
-                    'hash'   => sha1($notifiable->getEmailForVerification()),
+                    'id' => $notifiable->getKey(),
+                    'hash' => sha1($notifiable->getEmailForVerification()),
                 ]
             );
         });

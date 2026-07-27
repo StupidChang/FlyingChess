@@ -10,8 +10,9 @@ class DevAccountSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!app()->environment('local', 'testing')) {
+        if (! app()->environment('local', 'testing')) {
             $this->command?->info('DevAccountSeeder skipped: not in local/testing environment.');
+
             return;
         }
 

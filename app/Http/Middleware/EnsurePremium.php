@@ -12,7 +12,7 @@ class EnsurePremium
     {
         $user = $request->user();
 
-        if (!$user || !$user->isPremium()) {
+        if (! $user || ! $user->isPremium()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,

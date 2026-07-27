@@ -19,9 +19,9 @@ return new class extends Migration
         DB::table('boards')->update([
             'canvas_rows' => 11,
             'canvas_cols' => 13,
-            'path_data'   => json_encode([
-                'all'    => range(0, 22),
-                'male'   => null,
+            'path_data' => json_encode([
+                'all' => range(0, 22),
+                'male' => null,
                 'female' => null,
             ]),
         ]);

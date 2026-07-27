@@ -103,9 +103,9 @@ return [
     */
     'available_locales' => [
         'zh_TW' => ['name' => '繁體中文', 'native' => '繁體中文', 'prefix' => 'tw', 'hreflang' => 'zh-TW', 'ready' => true],
-        'en'    => ['name' => 'English',  'native' => 'English',  'prefix' => 'en', 'hreflang' => 'en',    'ready' => true],
+        'en' => ['name' => 'English',  'native' => 'English',  'prefix' => 'en', 'hreflang' => 'en',    'ready' => true],
         'zh_CN' => ['name' => '簡體中文', 'native' => '简体中文', 'prefix' => 'cn', 'hreflang' => 'zh-CN', 'ready' => false],
-        'ja'    => ['name' => '日本語',   'native' => '日本語',   'prefix' => 'jp', 'hreflang' => 'ja',    'ready' => false],
+        'ja' => ['name' => '日本語',   'native' => '日本語',   'prefix' => 'jp', 'hreflang' => 'ja',    'ready' => false],
     ],
 
     /*

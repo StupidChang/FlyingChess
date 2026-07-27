@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 return new class extends Migration
@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::table('boards', function (Blueprint $table) {
             $table->foreignId('user_id')->nullable()->after('id')
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->string('share_code', 10)->nullable()->unique()->after('user_id');
         });
 

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 
 class PasswordResetController extends Controller
@@ -28,14 +28,15 @@ class PasswordResetController extends Controller
             'email' => ['required', 'email'],
         ], [
             'email.required' => __('auth.email_required'),
-            'email.email'    => __('auth.email_invalid'),
+            'email.email' => __('auth.email_invalid'),
         ]);
 
         // Rate limit: 3 attempts per hour per IP+email composite key.
         // Prevents email enumeration via differential responses and reset-link spam.
-        $key = 'password-reset:' . $request->ip() . ':' . strtolower($request->input('email'));
+        $key = 'password-reset:'.$request->ip().':'.strtolower($request->input('email'));
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
+
             return back()->withErrors([
                 'email' => __('auth.reset_throttle', ['seconds' => $seconds]),
             ])->withInput();
@@ -66,16 +67,16 @@ class PasswordResetController extends Controller
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'token'                 => ['required'],
-            'email'                 => ['required', 'email'],
-            'password'              => ['required', 'min:8', 'confirmed'],
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:8', 'confirmed'],
         ], [
-            'token.required'            => __('auth.reset_token_invalid'),
-            'email.required'            => __('auth.email_required'),
-            'email.email'               => __('auth.email_invalid'),
-            'password.required'         => __('auth.password_required'),
-            'password.min'              => __('auth.password_min'),
-            'password.confirmed'        => __('auth.password_mismatch'),
+            'token.required' => __('auth.reset_token_invalid'),
+            'email.required' => __('auth.email_required'),
+            'email.email' => __('auth.email_invalid'),
+            'password.required' => __('auth.password_required'),
+            'password.min' => __('auth.password_min'),
+            'password.confirmed' => __('auth.password_mismatch'),
         ]);
 
         $status = Password::reset(

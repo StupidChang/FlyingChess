@@ -23,15 +23,16 @@ class BucketList extends Model
                 $maxAttempts = 10;
                 for ($i = 0; $i < $maxAttempts; $i++) {
                     $code = strtoupper(Str::random(8));
-                    if (!static::where('share_code', $code)->exists()) {
+                    if (! static::where('share_code', $code)->exists()) {
                         $list->share_code = $code;
+
                         return;
                     }
                 }
                 Log::alert('bucket_list share_code generation exhausted retries', [
                     'attempts' => $maxAttempts,
                 ]);
-                throw new RuntimeException('Unable to generate unique share_code after ' . $maxAttempts . ' attempts');
+                throw new RuntimeException('Unable to generate unique share_code after '.$maxAttempts.' attempts');
             }
         });
     }

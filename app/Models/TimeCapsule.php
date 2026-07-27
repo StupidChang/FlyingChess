@@ -17,10 +17,10 @@ class TimeCapsule extends Model
     ];
 
     protected $casts = [
-        'open_at'        => 'date',
-        'sealed_at'      => 'datetime',
-        'opened_at'      => 'datetime',
-        'reminder_sent'  => 'boolean',
+        'open_at' => 'date',
+        'sealed_at' => 'datetime',
+        'opened_at' => 'datetime',
+        'reminder_sent' => 'boolean',
     ];
 
     protected static function boot(): void
@@ -32,15 +32,16 @@ class TimeCapsule extends Model
                 $maxAttempts = 10;
                 for ($i = 0; $i < $maxAttempts; $i++) {
                     $code = strtoupper(Str::random(8));
-                    if (!static::where('share_code', $code)->exists()) {
+                    if (! static::where('share_code', $code)->exists()) {
                         $capsule->share_code = $code;
+
                         return;
                     }
                 }
                 Log::alert('time_capsule share_code generation exhausted retries', [
                     'attempts' => $maxAttempts,
                 ]);
-                throw new RuntimeException('Unable to generate unique share_code after ' . $maxAttempts . ' attempts');
+                throw new RuntimeException('Unable to generate unique share_code after '.$maxAttempts.' attempts');
             }
         });
     }
@@ -52,7 +53,7 @@ class TimeCapsule extends Model
 
     public function isSealed(): bool
     {
-        return !is_null($this->sealed_at);
+        return ! is_null($this->sealed_at);
     }
 
     public function isOpenable(): bool

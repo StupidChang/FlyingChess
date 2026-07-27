@@ -33,16 +33,16 @@ class SendCapsuleReminders extends Command
             try {
                 $localePrefix = LocaleHelper::localeToPrefix(LocaleHelper::defaultLocale()) ?? 'tw';
                 $url = url(route('time-capsule.show', [
-                    'locale'    => $localePrefix,
+                    'locale' => $localePrefix,
                     'shareCode' => $capsule->share_code,
                 ], false));
                 $body = "你的時間膠囊「{$capsule->title}」今天可以開封了。\n\n"
-                      . "點開連結回去看看：\n{$url}\n\n"
-                      . "— 枕邊遊戲 PillowPlay";
+                      ."點開連結回去看看：\n{$url}\n\n"
+                      .'— 枕邊遊戲 PillowPlay';
 
                 Mail::raw($body, function ($message) use ($capsule) {
                     $message->to($capsule->notify_email)
-                            ->subject("📦 時間膠囊「{$capsule->title}」今天開封！");
+                        ->subject("📦 時間膠囊「{$capsule->title}」今天開封！");
                 });
 
                 $capsule->update(['reminder_sent' => true]);
@@ -51,13 +51,14 @@ class SendCapsuleReminders extends Command
                 // Mail config missing or transport failed — degrade gracefully.
                 Log::warning('Capsule reminder mail failed', [
                     'capsule_id' => $capsule->id,
-                    'error'      => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
                 $failed++;
             }
         }
 
         $this->info("Capsule reminders: sent {$sent}, failed {$failed}");
+
         return self::SUCCESS;
     }
 }

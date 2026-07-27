@@ -13,10 +13,10 @@ return new class extends Migration
         // This allows truth_or_dare players to all have color='none'.
 
         if (Schema::hasTable('game_players_temp')) {
-            DB::statement("DROP TABLE game_players_temp");
+            DB::statement('DROP TABLE game_players_temp');
         }
 
-        DB::statement("CREATE TABLE game_players_temp AS SELECT * FROM game_players");
+        DB::statement('CREATE TABLE game_players_temp AS SELECT * FROM game_players');
         Schema::drop('game_players');
 
         DB::statement("
@@ -33,10 +33,10 @@ return new class extends Migration
             )
         ");
 
-        DB::statement("CREATE UNIQUE INDEX game_players_game_id_session_id_unique ON game_players (game_id, session_id)");
+        DB::statement('CREATE UNIQUE INDEX game_players_game_id_session_id_unique ON game_players (game_id, session_id)');
 
-        DB::statement("INSERT INTO game_players SELECT * FROM game_players_temp");
-        DB::statement("DROP TABLE game_players_temp");
+        DB::statement('INSERT INTO game_players SELECT * FROM game_players_temp');
+        DB::statement('DROP TABLE game_players_temp');
     }
 
     public function down(): void

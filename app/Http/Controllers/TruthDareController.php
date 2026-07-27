@@ -20,7 +20,8 @@ class TruthDareController extends Controller
     private function playerSessionId(Request $request): string
     {
         $base = $request->session()->getId();
-        $tab  = $request->input('tab_id') ?? $request->header('X-Tab-Id', '');
+        $tab = $request->input('tab_id') ?? $request->header('X-Tab-Id', '');
+
         return $tab ? "{$base}|{$tab}" : $base;
     }
 
@@ -59,7 +60,7 @@ class TruthDareController extends Controller
         // suffix the host session. The device holder acts for all of them.
         foreach (array_slice($names, 1) as $i => $name) {
             $game->players()->create([
-                'session_id' => $sessionId . '#' . ($i + 1),
+                'session_id' => $sessionId.'#'.($i + 1),
                 'player_name' => $name,
                 'color' => 'none',
                 'is_host' => false,
@@ -84,12 +85,12 @@ class TruthDareController extends Controller
 
         $sessionId = $this->playerSessionId($request);
         $baseSessionId = $request->session()->getId();
-        $myPlayer  = $game->players->firstWhere('session_id', $sessionId)
+        $myPlayer = $game->players->firstWhere('session_id', $sessionId)
                   ?? $game->players->firstWhere('session_id', $baseSessionId)
-                  ?? $game->players->first(fn($p) => str_starts_with($p->session_id, $baseSessionId . '|'));
+                  ?? $game->players->first(fn ($p) => str_starts_with($p->session_id, $baseSessionId.'|'));
 
         // Non-players cannot view game page — redirect to lobby with message
-        if (!$myPlayer) {
+        if (! $myPlayer) {
             return redirect()->route('truth-dare.lobby')
                 ->with('error', __('games.err_room_expired'));
         }
@@ -122,7 +123,7 @@ class TruthDareController extends Controller
             $request->user()?->id
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['message']);
         }
 
@@ -139,8 +140,8 @@ class TruthDareController extends Controller
 
         // Must be in the room to start
         $sessionId = $this->playerSessionId($request);
-        if (!$game->players()->where('session_id', $sessionId)->exists()
-            && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
+        if (! $game->players()->where('session_id', $sessionId)->exists()
+            && ! $game->players()->where('session_id', $request->session()->getId())->exists()) {
             return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
@@ -161,12 +162,12 @@ class TruthDareController extends Controller
 
         // Must be in the room to draw
         $sessionId = $this->playerSessionId($request);
-        if (!$game->players()->where('session_id', $sessionId)->exists()
-            && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
+        if (! $game->players()->where('session_id', $sessionId)->exists()
+            && ! $game->players()->where('session_id', $request->session()->getId())->exists()) {
             return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
-        if (!$game->isPlaying()) {
+        if (! $game->isPlaying()) {
             return response()->json(['success' => false, 'message' => __('games.err_game_not_started')]);
         }
 
@@ -188,8 +189,8 @@ class TruthDareController extends Controller
 
         // Must be in the room (same-device: the device holder advances the turn)
         $sessionId = $this->playerSessionId($request);
-        if (!$game->players()->where('session_id', $sessionId)->exists()
-            && !$game->players()->where('session_id', $request->session()->getId())->exists()) {
+        if (! $game->players()->where('session_id', $sessionId)->exists()
+            && ! $game->players()->where('session_id', $request->session()->getId())->exists()) {
             return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
@@ -207,12 +208,12 @@ class TruthDareController extends Controller
 
         $sessionId = $this->playerSessionId($request);
         $baseSessionId = $request->session()->getId();
-        $myPlayer  = $game->players->firstWhere('session_id', $sessionId)
+        $myPlayer = $game->players->firstWhere('session_id', $sessionId)
                   ?? $game->players->firstWhere('session_id', $baseSessionId)
-                  ?? $game->players->first(fn($p) => str_starts_with($p->session_id, $baseSessionId . '|'));
+                  ?? $game->players->first(fn ($p) => str_starts_with($p->session_id, $baseSessionId.'|'));
 
         // Must be in the room to see state
-        if (!$myPlayer) {
+        if (! $myPlayer) {
             return response()->json(['success' => false, 'message' => __('games.err_not_in_room')], 403);
         }
 
@@ -224,7 +225,7 @@ class TruthDareController extends Controller
         return response()->json([
             'status' => $game->status,
             'game_state' => $game->game_state,
-            'players' => $players->map(fn($p) => [
+            'players' => $players->map(fn ($p) => [
                 'player_name' => $p->player_name,
                 'is_host' => $p->is_host,
                 'session_id' => $p->session_id,
@@ -249,7 +250,7 @@ class TruthDareController extends Controller
         $result = $this->service->leaveGame($game, $sessionId);
 
         // Fallback: try plain session ID if composite didn't match
-        if (!($result['success'] ?? true)) {
+        if (! ($result['success'] ?? true)) {
             $result = $this->service->leaveGame($game, $request->session()->getId());
         }
 
@@ -267,11 +268,12 @@ class TruthDareController extends Controller
     private function resolveHostPremium(Game $game): bool
     {
         $hostUserId = $game->game_state['host_user_id'] ?? null;
-        if (!$hostUserId) {
+        if (! $hostUserId) {
             return false;
         }
 
         $hostUser = User::find($hostUserId);
+
         return $hostUser && $hostUser->isPremium();
     }
 }

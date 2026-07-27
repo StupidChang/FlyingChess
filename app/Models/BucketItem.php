@@ -21,9 +21,16 @@ class BucketItem extends Model
         $o = $this->owner_vote;
         $p = $this->partner_vote;
 
-        if (!$o || !$p) return 'pending';
-        if ($o === 'yes' && $p === 'yes') return 'agreed';
-        if ($o === 'no' || $p === 'no') return 'rejected';
+        if (! $o || ! $p) {
+            return 'pending';
+        }
+        if ($o === 'yes' && $p === 'yes') {
+            return 'agreed';
+        }
+        if ($o === 'no' || $p === 'no') {
+            return 'rejected';
+        }
+
         return 'maybe';
     }
 }
