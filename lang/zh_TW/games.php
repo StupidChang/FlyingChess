@@ -4,6 +4,7 @@ return [
     'flying_chess'      => '飛行棋',
     'truth_dare'        => '真心話大冒險',
     'wheel_game'        => '輪盤遊戲',
+    'pure_wheel'        => '純轉盤',
     'card_game'         => '紙牌遊戲',
     'dice_game'         => '骰子遊戲',
     'king_game'         => '國王遊戲',
@@ -37,8 +38,10 @@ return [
     'desc_card'         => '2–6 人抽牌配對，牌大的指揮、牌小的服從，越玩越刺激',
     'desc_dice'         => '擲出命運骰子，隨機決定動作與對象，派對破冰神器',
     'desc_king'         => '國王號令全場，抽到國王的人可以命令其他玩家執行任務',
+    'also_includes' => '同一頁也包含「:name」玩法，可直接切換',
     'desc_wml'          => '大家一起投票，看看你們之中誰最騷、最主動、最忍不住，成人辣度題庫',
     'desc_wheel'        => '轉動命運之輪，隨機指定任務或懲罰，讓緣分來決定',
+    'desc_pure_wheel'   => '手機平放桌面，按一下讓指針隨機指向在座的某個人',
 
     // Bucket list / time capsule
     'bucket_list'       => '共同清單',

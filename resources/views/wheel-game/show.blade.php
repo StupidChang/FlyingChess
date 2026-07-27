@@ -48,12 +48,12 @@
 .wg-change-btn:hover{background:rgba(217,164,65,.1)}
 
 /* ── Phase 3: Game ── */
-.wg-wheel-wrapper{position:relative;width:320px;height:320px;margin:16px auto}
+.wg-wheel-wrapper{position:relative;width:min(320px,calc(100vw - 72px));height:min(320px,calc(100vw - 72px));margin:16px auto}
 .wg-wheel-glow{position:absolute;inset:-12px;border-radius:50%;background:conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#1e88e5,#8e24aa,#f06292,#e53935);filter:blur(16px);opacity:.35;animation:wg-glow-spin 8s linear infinite;z-index:0}
 @keyframes wg-glow-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .wg-wheel-ring{position:absolute;inset:-4px;border-radius:50%;border:3px solid transparent;background:linear-gradient(var(--bg),var(--bg)) padding-box,conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#1e88e5,#8e24aa,#f06292,#e53935) border-box;z-index:1}
-.wg-wheel-container{position:relative;width:320px;height:320px;z-index:2}
-.wg-wheel-canvas{width:320px;height:320px;border-radius:50%;transition:transform 5s cubic-bezier(.17,.67,.05,.99);box-shadow:0 0 30px rgba(0,0,0,.4)}
+.wg-wheel-container{position:relative;width:100%;height:100%;z-index:2}
+.wg-wheel-canvas{width:100%;height:100%;border-radius:50%;transition:transform 5s cubic-bezier(.17,.67,.05,.99);box-shadow:0 0 30px rgba(0,0,0,.4)}
 .wg-wheel-pointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);z-index:5;font-size:0;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:28px solid var(--gold);filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
 .wg-wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;background:radial-gradient(circle,#fff 0%,#f0e6d3 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 16px rgba(217,164,65,.5),0 2px 8px rgba(0,0,0,.3);z-index:3;color:var(--gold);font-weight:800;letter-spacing:1px;border:2px solid var(--gold)}
 .wg-wheel-wrapper.spinning .wg-wheel-glow{opacity:.6;filter:blur(20px);animation:wg-glow-spin 2s linear infinite}
@@ -168,7 +168,12 @@
 </div>
 <canvas id="confetti-canvas"></canvas>
 
-@include('partials.ad-unit', ['zone' => 'lobby_side'])
+{{-- 命運轉盤區塊是滿版的,提示下方還有內容 --}}
+@include('partials.scroll-hint', ['target' => '#cw-root'])
+
+{{-- 自訂轉盤(帶權重):放在命運轉盤下方 --}}
+@include('partials.custom-wheel')
+
 @endsection
 
 @section('scripts')
@@ -188,7 +193,9 @@
     var TIER_META={
         mild:   {name:@json(__('minigame.wheel_mild_name')),icon:'🌸',desc:@json(__('minigame.wheel_mild_desc')),badge:'mg-tag-mild'},
         medium: {name:@json(__('minigame.wheel_medium_name')),icon:'🔥',desc:@json(__('minigame.wheel_medium_desc')),badge:'mg-tag-medium'},
-        intense:{name:@json(__('minigame.wheel_intense_name')),icon:'💋',desc:@json(__('minigame.wheel_intense_desc')),badge:'mg-tag-intense'}
+        intense:{name:@json(__('minigame.wheel_intense_name')),icon:'💋',desc:@json(__('minigame.wheel_intense_desc')),badge:'mg-tag-intense'},
+        // 自訂轉盤:選項由下方編輯器提供,不是 DB 題庫
+        custom: {name:@json(__('minigame.cw_title')),icon:'✏️',desc:@json(__('minigame.cw_subtitle')),badge:'mg-tag-mild'}
     };
 
     var COLORS=[
@@ -252,13 +259,33 @@
         ctx.beginPath();ctx.arc(cx,cy,8,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
     }
 
+    /* 開頁時就把編輯器存在 localStorage 的自訂選項帶進來,
+       這樣重新整理後大廳仍然看得到自訂轉盤(與編輯器共用同一個 key)。 */
+    function loadCustomFromStorage(){
+        try{
+            var raw=localStorage.getItem('cw_items_v1');
+            if(!raw) return;
+            var a=JSON.parse(raw);
+            if(!Array.isArray(a)||a.length<2) return;
+            var tot=a.reduce(function(s,o){return s+(o.p||0);},0)||1;
+            var slots=Math.max(a.length,Math.min(12,a.length*2));
+            var counts=a.map(function(o){return Math.max(1,Math.round((o.p||1)/tot*slots));});
+            var out=[];
+            a.forEach(function(o,i){for(var k=0;k<counts[i];k++) out.push(o.t);});
+            SEGMENTS.custom=out;
+        }catch(e){}
+    }
+
     function renderLobby(){
         var grid=document.getElementById('wheel-cards');
         var html='';
-        ['mild','medium','intense'].forEach(function(tier){
+        var tiers=['mild','medium','intense'];
+        // 自訂轉盤要有至少 2 個選項才出現在大廳
+        if((SEGMENTS.custom||[]).length>=2) tiers.push('custom');
+        tiers.forEach(function(tier){
             var meta=TIER_META[tier];
             var pool=SEGMENTS[tier]||[];
-            var locked=(tier==='intense'&&!IS_PREMIUM);
+            var locked=false;
             var preview=pool.slice(0,4);
 
             html+='<div class="wg-wheel-card'+(locked?' locked':'')+'" onclick="selectWheel(\''+tier+'\')">';
@@ -287,11 +314,20 @@
         });
     }
 
+    /* 由下方的自訂轉盤編輯器呼叫:接收已按權重展開的扇形陣列,
+       然後走與其他轉盤完全相同的流程(設定玩家 → 回合 → 任務面板)。 */
+    window.startCustomWheelGame=function(segs){
+        if(!segs||segs.length<2) return;
+        SEGMENTS.custom=segs;
+        currentTier='custom';
+        renderLobby();               // 讓大廳也出現自訂轉盤卡片
+        renderSelectedBar();
+        showPhase('setup-phase');
+        var root=document.getElementById('mg-page-root');
+        if(root) root.scrollIntoView({behavior:'smooth',block:'start'});
+    };
+
     window.selectWheel=function(tier){
-        if(tier==='intense'&&!IS_PREMIUM){
-            showToast(@json(__('minigame.wheel_intense_premium')));
-            return;
-        }
         var pool=SEGMENTS[tier];
         if(!pool||!pool.length){showToast(@json(__('minigame.wheel_no_tasks')));return;}
         currentTier=tier;
@@ -523,13 +559,6 @@
     window.nextTurn=function(){
         turn++;
         if(turn>=players.length){turn=0;round++;}
-        if(round>6&&!IS_PREMIUM){
-            document.getElementById('result-display').innerHTML=
-                '<p style="color:var(--gold);margin:16px 0">'+escHtml(@json(__('minigame.wheel_premium_gate')))+'</p>'+
-                '<a href="{{ route('premium.index') }}" class="btn btn-outline-gold">'+escHtml(@json(__('minigame.go_premium')))+'</a>';
-            document.getElementById('next-btn').style.display='none';
-            return;
-        }
         showTurn();
     };
 
@@ -541,6 +570,7 @@
     };
 
     // Init — render lobby
+    loadCustomFromStorage();
     renderLobby();
 })();
 </script>

@@ -49,6 +49,8 @@ return [
     'custom_dare'      => '自定义大冒险',
     'coming_soon'      => '即将推出',
     'ad_label'         => '广告',
+    'ad_remove'        => '不想看广告？升级 Premium 全站免广告',
+    'scroll_more'      => '往下还有 自定义转盘',
 
     'play_history'      => '游玩记录',
     'no_play_history'   => '还没有游玩记录，去玩一场吧！',

@@ -49,6 +49,8 @@ return [
     'custom_dare'      => 'Custom dares',
     'coming_soon'      => 'Coming soon',
     'ad_label'         => 'Advertisement',
+    'ad_remove'        => 'Tired of ads? Go Premium for an ad-free site',
+    'scroll_more'      => 'More below — Custom Wheel',
 
     'play_history'      => 'Play history',
     'no_play_history'   => 'No games played yet — go play one!',

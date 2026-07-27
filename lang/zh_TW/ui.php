@@ -49,6 +49,8 @@ return [
     'custom_dare'      => '自訂大冒險',
     'coming_soon'      => '即將推出',
     'ad_label'         => '廣告',
+    'ad_remove'        => '不想看廣告？升級 Premium 全站免廣告',
+    'scroll_more'      => '往下還有 自訂轉盤',
 
     'play_history'      => '遊玩紀錄',
     'no_play_history'   => '還沒有遊玩紀錄，去玩一場吧！',

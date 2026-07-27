@@ -4,6 +4,7 @@ return [
     'flying_chess'      => 'Flying Chess',
     'truth_dare'        => 'Truth or Dare',
     'wheel_game'        => 'Wheel of Fortune',
+    'pure_wheel'        => 'Pure Wheel',
     'card_game'         => 'Card Game',
     'dice_game'         => 'Dice Game',
     'king_game'         => "King's Game",
@@ -37,8 +38,10 @@ return [
     'desc_card'         => '2–6 players draw and pair up — higher card commands, lower card obeys.',
     'desc_dice'         => 'Roll the dice of fate — random action, random target. The ultimate ice-breaker.',
     'desc_king'         => "Whoever draws the King commands everyone else's task this round.",
+    'also_includes' => 'The same page also includes :name — switch modes anytime',
     'desc_wml'          => 'Everyone votes to reveal who\'s the naughtiest and boldest — bold adult question bank.',
     'desc_wheel'        => 'Spin the wheel of fortune — let chance decide the next task.',
+    'desc_pure_wheel'   => 'Lay the phone flat, tap once, and let the needle pick someone',
 
     // Bucket list / time capsule
     'bucket_list'       => 'Bucket list',

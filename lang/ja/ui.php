@@ -49,6 +49,8 @@ return [
     'custom_dare'      => 'カスタム挑戦',
     'coming_soon'      => '近日公開',
     'ad_label'         => '広告',
+    'ad_remove'        => '広告なしで遊びたい？Premium で全ページ広告なし',
+    'scroll_more'      => '下にもあります — カスタムルーレット',
 
     'play_history'      => 'プレイ履歴',
     'no_play_history'   => 'まだプレイ履歴がありません。遊びに行きましょう！',
