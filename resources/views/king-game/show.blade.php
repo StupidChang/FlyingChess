@@ -6,73 +6,26 @@
 @section('styles')
 <link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
-/* Cards — poker style, bigger */
-.kg-card-area{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;padding:20px 0}
-.kg-card-slot{text-align:center}
-.kg-card-slot .slot-name{font-size:.85rem;color:var(--text-dim);font-weight:600;margin-bottom:6px}
-.kg-card-scene{width:100px;height:140px;perspective:600px;margin:0 auto;cursor:pointer}
-.kg-card-inner{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
-.kg-card-inner.flipped{transform:rotateY(180deg)}
-.kg-card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px}
 
-/* Card back */
-.kg-card-back{
-  background:#b91c1c;
-  border:3px solid #fff;
-  box-shadow:0 4px 14px rgba(0,0,0,.35);
-  overflow:hidden;
-}
-.kg-card-back::before{
-  content:'';position:absolute;inset:5px;border:1.5px solid rgba(255,255,255,.4);border-radius:5px;
-  background:repeating-conic-gradient(#b91c1c 0% 25%,#991b1b 0% 50%) 50%/12px 12px;
-}
-.kg-card-back-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:rgba(255,255,255,.3);z-index:1}
 
-/* Card front — poker layout */
-.kg-card-front{
-  background:#fffdf7;border:2px solid #d4d0c8;
-  box-shadow:0 2px 10px rgba(0,0,0,.22);transform:rotateY(180deg);
-}
-.kg-card-corner{position:absolute;display:flex;flex-direction:column;align-items:center;line-height:1}
-.kg-card-corner-tl{top:6px;left:7px}
-.kg-card-corner-br{bottom:6px;right:7px;transform:rotate(180deg)}
-.kg-card-corner .corner-rank{font-size:.85rem;font-weight:800}
-.kg-card-corner .corner-suit{font-size:.75rem;margin-top:-1px}
-.kg-card-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.kg-card-center .center-suit{font-size:2.2rem}
-.kg-card-center .center-label{font-size:.8rem;font-weight:700;letter-spacing:.3px}
-.kg-card-center .center-number{font-weight:800}
 
-/* King card */
-.kg-card-front.king{background:linear-gradient(175deg,#fffdf0 30%,#fef3c7 100%);border-color:#d97706}
-.kg-card-front.king .kg-card-corner{color:#d97706}
-.kg-card-front.king .center-suit{font-size:2.6rem}
-.kg-card-front.king .center-label{color:#92400e;font-size:.85rem}
 
-/* Number card — black suits */
-.kg-card-front.number .kg-card-corner{color:#1e3a5f}
-.kg-card-front.number .center-suit{color:#1e3a5f}
-/* Number card — red suits */
-.kg-card-front.number.red-suit .kg-card-corner{color:#b91c1c}
-.kg-card-front.number.red-suit .center-suit{color:#b91c1c}
 
 @media(min-width:500px){
-  .kg-card-scene{width:110px;height:154px}
-  .kg-card-corner .corner-rank{font-size:.95rem}
-  .kg-card-corner .corner-suit{font-size:.85rem}
-  .kg-card-center .center-suit{font-size:2.6rem}
-  .kg-card-center .center-label{font-size:.9rem}
+  .mg-card-scene{width:110px;height:154px}
+  .mg-card-corner .corner-rank{font-size:.95rem}
+  .mg-card-corner .corner-suit{font-size:.85rem}
+  .mg-card-center .center-suit{font-size:2.6rem}
+  .mg-card-center .center-label{font-size:.9rem}
 }
 
 @keyframes cardDealIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.kg-card-scene.dealing{animation:cardDealIn .3s cubic-bezier(.34,1.56,.64,1) both}
 
-/* ── Reveal phase: king banner + command card + number legend ────── */
+/* ── Reveal phase: king banner + number legend ─────────────────────── */
 .kg-reveal{margin-top:28px}
 
 @keyframes kgKingPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
 @keyframes kgGoldPulse{0%,100%{text-shadow:0 0 0 rgba(217,164,65,0)}50%{text-shadow:0 0 20px rgba(217,164,65,.7)}}
-@keyframes kgCommandReveal{0%{opacity:0;transform:translateY(14px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes kgLegendIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 .kg-king-banner{text-align:center;margin-bottom:22px;animation:kgKingPop .5s cubic-bezier(.34,1.56,.64,1) both}
@@ -80,8 +33,6 @@
 .kg-king-banner .kg-king-label{font-size:.85rem;color:var(--text-dim,#9aa1b5);letter-spacing:.5px;margin-bottom:2px}
 .kg-king-banner .kg-king-name{font-size:1.6rem;font-weight:800;color:var(--gold,#d9a441)}
 
-.kg-command-card{animation:kgCommandReveal .5s .15s cubic-bezier(.34,1.56,.64,1) both}
-.kg-command-card .mg-content-card-category .mg-tag{margin-left:0}
 .kg-name-badge{display:inline-block;background:rgba(217,164,65,.16);color:var(--gold,#d9a441);font-weight:800;padding:2px 10px;border-radius:6px;margin:0 2px;white-space:nowrap}
 
 .kg-legend{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px;animation:kgLegendIn .4s .35s ease-out both}
@@ -90,9 +41,28 @@
 .kg-legend-chip.kg-legend-king{border-color:var(--gold,#d9a441);color:var(--gold,#d9a441)}
 
 @media(prefers-reduced-motion:reduce){
-  .kg-card-scene.dealing,.kg-king-banner,.kg-king-banner .kg-crown-icon,.kg-command-card,.kg-legend{animation:none !important}
+  .mg-card-scene.dealing,.kg-king-banner,.kg-king-banner .kg-crown-icon,.kg-legend{animation:none !important}
+}
+/* 集體翻牌:確認按鈕與倒數 */
+.kg-agree{display:flex;justify-content:center;margin:18px 0 4px}
+.kg-agree .btn{min-width:min(200px,60vw)}
+
+.kg-countdown{display:flex;flex-direction:column;align-items:center;
+    justify-content:center;min-height:104px;margin:10px 0 2px}
+.kg-countdown-num{font-size:clamp(2.6rem,12vw,4rem);font-weight:900;line-height:1;
+    color:var(--gold);text-shadow:0 4px 18px rgba(217,164,65,.35);
+    animation:kg-count-pop .9s ease-out}
+.kg-countdown-num.go{font-size:clamp(1.6rem,7vw,2.4rem);letter-spacing:.06em}
+@keyframes kg-count-pop{
+    0%  {transform:scale(.5);opacity:0}
+    35% {transform:scale(1.12);opacity:1}
+    100%{transform:scale(1);opacity:1}
+}
+@media (prefers-reduced-motion: reduce){
+    .kg-countdown-num{animation:none}
 }
 </style>
+
 @endsection
 
 @section('content')
@@ -121,19 +91,28 @@
     {{-- Deal Phase --}}
     <div id="deal-phase" style="display:none">
         <div class="mg-round-badge" id="round-badge"></div>
-        <p id="peek-tip" style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:12px">{{ __('minigame.king_peek_tip') }}</p>
-        <div class="kg-card-area" id="card-area"></div>
+        <p id="peek-tip" style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:12px">{{ __('minigame.king_agree_tip') }}</p>
+        <div class="mg-deal-area" id="card-area"></div>
 
-        {{-- Reveal: who's the king + this round's command --}}
+        {{-- 集體翻牌:先確認規則講好,倒數後所有牌同時翻開。
+             改成集體翻牌的理由:國王遊戲的重點是「先講好懲罰、再看誰是國王」,
+             一個一個偷看會讓先看到的人有資訊優勢。 --}}
+        <div class="kg-agree" id="kg-agree">
+            <button type="button" class="btn btn-gold btn-xl" id="kg-agree-btn" onclick="confirmRules()">
+                {{ __('minigame.king_agree_btn') }}
+            </button>
+        </div>
+
+        <div class="kg-countdown" id="kg-countdown" hidden aria-live="assertive">
+            <span class="kg-countdown-num" id="kg-countdown-num"></span>
+        </div>
+
+        {{-- Reveal: 只顯示誰是國王與號碼對照,指令由玩家自己講好 --}}
         <div id="reveal-phase" class="kg-reveal" style="display:none">
             <div class="kg-king-banner" id="king-banner">
                 <div class="kg-crown-icon" aria-hidden="true">👑</div>
                 <div class="kg-king-label">{{ __('minigame.king_is_king') }}</div>
                 <div class="kg-king-name" id="king-banner-name"></div>
-            </div>
-            <div class="mg-content-card kg-command-card">
-                <div class="mg-content-card-category"><span class="mg-tag" id="command-tier-tag"></span></div>
-                <div class="mg-content-card-text" id="command-text"></div>
             </div>
             <div class="kg-legend" id="kg-legend"></div>
         </div>
@@ -149,20 +128,12 @@
     </div>
 </div>
 
-@include('partials.ad-unit', ['zone' => 'lobby_side'])
 @endsection
 
 @section('scripts')
 <script>
 (function(){
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
-    var COMMANDS = @json($commands);
-    var TIER_TAG_CLASS = {mild:'mg-tag-mild',medium:'mg-tag-medium',intense:'mg-tag-intense'};
-    var TIER_LABELS = {
-        mild: @json(__('minigame.tier_mild')),
-        medium: @json(__('minigame.tier_medium')),
-        intense: @json(__('minigame.tier_intense'))
-    };
     var players=[];
     var round=0;
     var assignments=[];
@@ -215,7 +186,7 @@
     function buildDeck(count){
         // Build a mini deck: 1 King card + (count-1) number cards.
         // Number cards use a sequential 1..(count-1) game number (not a random poker rank) so that
-        // this number can later be matched 1:1 against a player name in the command reveal + legend.
+        // this number can later be matched 1:1 against a player name in the legend.
         // Suit is kept purely as visual card-suit flavor.
         var allSuits=['♠','♥','♦','♣'];
         var redSuits={'♥':true,'♦':true};
@@ -233,27 +204,12 @@
         return shuffle(cards);
     }
 
-    function pickCommand(){
-        var tiers=Object.keys(COMMANDS);
-        var tier=tiers[Math.floor(Math.random()*tiers.length)];
-        var pool=COMMANDS[tier];
-        var template=pool[Math.floor(Math.random()*pool.length)];
-        return {tier:tier,template:template};
-    }
 
-    function pickTwoDistinct(numberAssignments){
-        var idxs=numberAssignments.map(function(_,i){return i});
-        shuffle(idxs);
-        return {a:numberAssignments[idxs[0]],b:numberAssignments[idxs[1]]};
-    }
 
     function nameBadge(a){
         return '<span class="kg-name-badge">'+escHtml(a.number+'號 '+a.name)+'</span>';
     }
 
-    function renderCommandText(template,a,b){
-        return template.split('{A}').join(nameBadge(a)).split('{B}').join(nameBadge(b));
-    }
 
     function renderLegend(kingName,numberAssignments){
         var html='<span class="kg-legend-chip kg-legend-king">👑 '+escHtml(kingName)+'</span>';
@@ -263,15 +219,13 @@
         return html;
     }
 
+    /* 揭曉內容只有「誰是國王」與「誰是幾號」。
+       指令由玩家自己在翻牌前講好 —— 所以不再自動產生任何任務文字。 */
     function buildReveal(){
         var king=assignments.filter(function(a){return a.role==='king'})[0];
         var numberAssignments=assignments.filter(function(a){return a.role==='number'});
-        var cmd=pickCommand();
-        var pair=pickTwoDistinct(numberAssignments);
         currentReveal={
             kingName:king.name,
-            tier:cmd.tier,
-            text:renderCommandText(cmd.template,pair.a,pair.b),
             legendHtml:renderLegend(king.name,numberAssignments)
         };
     }
@@ -279,10 +233,6 @@
     function showReveal(){
         if(!currentReveal) return;
         document.getElementById('king-banner-name').textContent=currentReveal.kingName;
-        var tag=document.getElementById('command-tier-tag');
-        tag.className='mg-tag '+(TIER_TAG_CLASS[currentReveal.tier]||'mg-tag-mild');
-        tag.textContent=TIER_LABELS[currentReveal.tier]||'';
-        document.getElementById('command-text').innerHTML=currentReveal.text;
         document.getElementById('kg-legend').innerHTML=currentReveal.legendHtml;
         var tip=document.getElementById('peek-tip');
         if(tip) tip.style.display='none';
@@ -303,6 +253,10 @@
         document.getElementById('reveal-phase').style.display='none';
         var tip=document.getElementById('peek-tip');
         if(tip) tip.style.display='';
+        // 每一輪都要把確認按鈕與倒數還原
+        document.getElementById('kg-agree').style.display='flex';
+        document.getElementById('kg-countdown').hidden=true;
+        flipping=false;
         peeked=[];
 
         var deck=buildDeck(players.length);
@@ -318,52 +272,95 @@
         players.forEach(function(name,i){
             var a=assignments[i];
             var isKing=a.role==='king';
-            var cls=isKing?'king':'number'+(a.isRed?' red-suit':'');
+            // 配色改用共用元件的經典撲克規則:黑桃梅花黑、紅心方塊紅。
+            // 國王牌額外加 is-king 疊一層金色。
+            var cls=(a.isRed?'red':'black')+(isKing?' is-king':'');
 
             // King card keeps the poker-suit motif front and center; number cards flip the
             // emphasis so the player's game number is the dominant glyph (it's the piece of
             // information they actually need to remember), with the suit demoted to flavor.
+            // 號碼牌就是標準撲克牌:大花色 + rank —— 玩家的號碼就是牌面數字,
+            // 不必再把數字放大成主視覺(那反而不像撲克牌)。
             var centerHtml=isKing
                 ? '<span class="center-suit">'+a.suit+'</span><span class="center-label">'+escHtml(@json(__('minigame.king_role_king')))+'</span>'
-                : '<span class="center-suit center-number">'+a.rank+'</span><span class="center-label">'+a.suit+'</span>';
+                : '<span class="center-suit">'+a.suit+'</span><span class="center-rank">'+a.rank+'</span>';
             var frontHtml=
-                '<div class="kg-card-corner kg-card-corner-tl"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
-                '<div class="kg-card-corner kg-card-corner-br"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
-                '<div class="kg-card-center">'+centerHtml+'</div>';
+                '<div class="mg-card-corner mg-card-corner-tl"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
+                '<div class="mg-card-corner mg-card-corner-br"><span class="corner-rank">'+a.rank+'</span><span class="corner-suit">'+a.suit+'</span></div>'+
+                '<div class="mg-card-center">'+centerHtml+'</div>';
 
             var backSuit=['♠','♥','♦','♣'][i%4];
             var slot=document.createElement('div');
-            slot.className='kg-card-slot';
+            slot.className='mg-card-slot';
             slot.innerHTML='<div class="slot-name">'+escHtml(name)+'</div>'+
-                '<div class="kg-card-scene dealing" style="animation-delay:'+(i*100)+'ms" onclick="peekCard('+i+')">'+
-                '<div class="kg-card-inner" id="king-card-'+i+'">'+
-                '<div class="kg-card-face kg-card-back"><div class="kg-card-back-icon">'+backSuit+'</div></div>'+
-                '<div class="kg-card-face kg-card-front '+cls+'">'+frontHtml+'</div>'+
+                '<div class="mg-card-scene dealing" style="animation-delay:'+(i*100)+'ms">'+
+                '<div class="mg-card-inner" id="king-card-'+i+'">'+
+                '<div class="mg-card-face mg-card-back"><div class="mg-card-back-icon">'+backSuit+'</div></div>'+
+                '<div class="mg-card-face mg-card-front '+cls+'">'+frontHtml+'</div>'+
                 '</div></div>';
             area.appendChild(slot);
         });
     }
 
-    window.peekCard=function(idx){
-        var inner=document.getElementById('king-card-'+idx);
-        if(!inner) return;
-        if(inner.classList.contains('flipped')){
-            inner.classList.remove('flipped');
-        } else {
-            inner.classList.add('flipped');
-            if(peeked.indexOf(idx)===-1) peeked.push(idx);
-            if(peeked.length>=players.length){
-                // All peeked — reveal the king + this round's command, then show next round button
-                showReveal();
-                document.getElementById('reset-btn').style.display='inline-flex';
-                if(round>=6&&!IS_PREMIUM){
-                    document.getElementById('upgrade-notice').style.display='block';
-                } else {
-                    document.getElementById('next-round-btn').style.display='inline-flex';
-                }
+    /* 集體翻牌:確認規則 → 倒數 → 所有牌同時翻開 → 揭曉國王與指令。
+       不再逐張偷看 —— 先翻到的人會有資訊優勢,也違背「先講好懲罰」的玩法。 */
+    var flipping=false;
+
+    window.confirmRules=function(){
+        if(flipping) return;
+        flipping=true;
+
+        document.getElementById('kg-agree').style.display='none';
+        var tip=document.getElementById('peek-tip');
+        if(tip) tip.style.display='none';
+
+        var box=document.getElementById('kg-countdown');
+        var num=document.getElementById('kg-countdown-num');
+        box.hidden=false;
+
+        var reduce = window.matchMedia
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var step = reduce ? 200 : 900;
+        var seq=['3','2','1'];
+        var i=0;
+
+        function tick(){
+            if(i<seq.length){
+                num.className='kg-countdown-num';
+                num.textContent=seq[i];
+                // 重新觸發動畫
+                void num.offsetWidth;
+                i++;
+                setTimeout(tick, step);
+                return;
             }
+            num.className='kg-countdown-num go';
+            num.textContent=@json(__('minigame.king_flip_now'));
+            flipAll();
         }
+        tick();
     };
+
+    function flipAll(){
+        // 同時翻開,不做逐張延遲 —— 「一起翻」才公平
+        for(var i=0;i<players.length;i++){
+            var inner=document.getElementById('king-card-'+i);
+            if(inner) inner.classList.add('flipped');
+        }
+        var reduce = window.matchMedia
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        setTimeout(function(){
+            document.getElementById('kg-countdown').hidden=true;
+            showReveal();
+            document.getElementById('reset-btn').style.display='inline-flex';
+            if(round>=6&&!IS_PREMIUM){
+                document.getElementById('upgrade-notice').style.display='block';
+            } else {
+                document.getElementById('next-round-btn').style.display='inline-flex';
+            }
+            flipping=false;
+        }, reduce ? 120 : 700);
+    }
 
     window.nextRound=function(){
         round++;
