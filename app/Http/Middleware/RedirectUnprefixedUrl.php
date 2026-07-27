@@ -22,6 +22,8 @@ class RedirectUnprefixedUrl
         'up',
         'premium/callback',
         'premium/result',
+        'auth/google',
+        'auth/google/callback',
     ];
 
     private const NEVER_PREFIX_PATTERNS = [
