@@ -43,4 +43,12 @@ return [
         'id' => env('GOOGLE_GA4_ID'),
     ],
 
+    // Google 登入（Socialite）。三個值都填齊才會顯示登入按鈕，
+    // 未設定時登入頁不會出現 Google 按鈕，也不會註冊任何路由行為。
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
 ];

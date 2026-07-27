@@ -5,9 +5,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\BucketListController;
 use App\Http\Controllers\CardGameController;
+use App\Http\Controllers\CustomWheelController;
+use App\Http\Controllers\DiceController;
 use App\Http\Controllers\DiceGameController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameHallController;
+use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KingGameController;
 use App\Http\Controllers\LegalController;
@@ -19,7 +22,6 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TimeCapsuleController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\WheelGameController;
-use App\Http\Controllers\DiceController;
 use App\Http\Controllers\WhoMostLikelyController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -81,6 +83,14 @@ Route::post('/premium/callback', [PremiumController::class, 'callback'])
 // Layout shared with localized routes calls route('home') etc., which require
 // the {locale} URL default. set.locale falls back to cookie/Accept-Language when
 // no route parameter exists, so the shared layout renders correctly here.
+// Google 登入(Socialite)。redirect URI 必須是固定 URL,不能帶語系前綴 ——
+// 否則使用者切語言後 Google Console 註冊的 URI 就對不上。與金流 callback 同理。
+// set.locale 讓共用 layout 內的 route('home') 等呼叫仍能解析。
+Route::middleware('set.locale')->group(function () {
+    Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
+});
+
 Route::match(['get', 'post'], '/premium/result', [PremiumController::class, 'result'])
     ->name('premium.result')
     ->middleware('set.locale')
@@ -168,7 +178,17 @@ Route::prefix('{locale}')
         Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
         Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');
         Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
+        // 純轉盤:只有轉盤與指針
+        Route::get('/wheel', [WheelGameController::class, 'pure'])->name('wheel.pure');
         Route::get('/who-most-likely', [WhoMostLikelyController::class, 'show'])->name('who-most-likely.show');
+
+        // 自訂轉盤的儲存 / 讀取 / 刪除(登入 + 已驗證)。純 JSON API,
+        // 由 partials/custom-wheel 的編輯器以 fetch 呼叫。
+        Route::prefix('my-wheels')->name('custom-wheel.')->middleware(['auth', 'verified'])->group(function () {
+            Route::get('/', [CustomWheelController::class, 'index'])->name('index');
+            Route::post('/', [CustomWheelController::class, 'store'])->name('store');
+            Route::delete('/{customWheel}', [CustomWheelController::class, 'destroy'])->name('destroy');
+        });
 
         // Custom dice management (logged-in + verified)
         Route::prefix('my-dice')->name('dice.')->middleware(['auth', 'verified'])->group(function () {
