@@ -34,8 +34,10 @@ class PlayController extends Controller
         $board->load('squares');
         $squares = $board->squaresArray();
 
+        // V8.0 四人版:最多 4 人,兩人一組(index 0-1 為第一組、2-3 為第二組)。
+        // 同組兩人都抵達終點才算贏 —— 見 board.js 的 teamOf() / checkTeamWin()。
         $playerCount = (int) $request->query('players', 2);
-        $playerCount = max(1, min(2, $playerCount));
+        $playerCount = max(1, min(4, $playerCount));
 
         // Resolve path data (fallback to sequential if not set)
         $pathData = $board->path_data;

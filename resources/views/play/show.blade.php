@@ -40,6 +40,10 @@
                 </div>
             </div>
             <button id="roll-btn" class="btn btn-gold btn-roll" onclick="rollDice()">{{ __('play.roll_dice') }}</button>
+            <button type="button" id="rules-toggle" class="btn btn-sm btn-outline btn-rules"
+                    onclick="toggleRules()" aria-expanded="false" aria-controls="rules-panel">
+                {{ __('play.rules_title') }}
+            </button>
         </div>
 
         @if($playerCount >= 2)
@@ -54,18 +58,51 @@
                 <span id="p2-pos" class="ppos">{{ __('play.start_point') }}</span>
             </div>
         </div>
+        @foreach (range(3, 4) as $n)
+            @if($playerCount >= $n)
+                <div id="p{{ $n }}-panel" class="player-panel p{{ $n }}">
+                    <div class="pawn pawn-{{ $n }}" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline-block">
+                            <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="player-info">
+                        <span id="p{{ $n }}-name" class="pname">{{ __('play.player_name', ['n' => $n]) }}</span>
+                        <span id="p{{ $n }}-pos" class="ppos">{{ __('play.start_point') }}</span>
+                    </div>
+                </div>
+            @endif
+        @endforeach
         @endif
     </div>
 
-    {{-- 廣告版位：分享頁底部 --}}
-    @include('partials.ad-unit', ['zone' => 'share'])
-
-    {{-- Board --}}
-    <div class="board-wrap">
-        <div id="game-board" class="game-board play-mode">
-            {{-- rendered by JS --}}
+    {{-- 棋盤 + 玩法側欄 --}}
+    <div class="play-body">
+        {{-- Board --}}
+        <div class="board-wrap">
+            <div id="game-board" class="game-board play-mode">
+                {{-- rendered by JS --}}
+            </div>
         </div>
+
+        {{-- 玩法說明:桌機為右側欄,窄螢幕為滑出抽屜。可收合,收合後棋盤回到滿版居中。 --}}
+        <aside class="rules-panel" id="rules-panel" aria-labelledby="rules-heading">
+            <div class="rules-head">
+                <h2 class="rules-title" id="rules-heading">{{ __('play.rules_title') }}</h2>
+                <button type="button" class="rules-close" onclick="toggleRules(false)"
+                        aria-label="{{ __('play.rules_hide') }}">&times;</button>
+            </div>
+            <ol class="rules-list">
+                @foreach (__('play.rules') as $r)
+                    <li>{{ $r }}</li>
+                @endforeach
+            </ol>
+        </aside>
+        <div class="rules-scrim" id="rules-scrim" onclick="toggleRules(false)"></div>
     </div>
+
+    {{-- 廣告版位:放在棋盤之後,不把遊戲區往下推 --}}
+    @include('partials.ad-unit', ['zone' => 'share'])
 </div>
 
 {{-- Action Modal --}}
@@ -111,6 +148,16 @@
 </div>
 
 {{-- Win Modal --}}
+{{-- V8.0 規則 8:全場第一位抵達終點者,可讓自己的夥伴前進 1–6 格 --}}
+<div id="bonus-modal" class="modal bonus-modal" role="dialog" aria-modal="true">
+    <div class="modal-overlay"></div>
+    <div class="modal-box">
+        <h2>{{ __('play.bonus_title') }}</h2>
+        <p id="bonus-text" class="bonus-text"></p>
+        <div id="bonus-btns" class="bonus-btns"></div>
+    </div>
+</div>
+
 <div id="win-modal" class="modal win-modal" role="dialog" aria-modal="true">
     <div class="modal-overlay"></div>
     <div class="modal-box win-box">
@@ -146,24 +193,30 @@
     <div class="modal-box setup-box">
         <h2>{{ $board->name }}</h2>
         @if($board->description)<p style="color:var(--text-dim);margin-bottom:16px">{{ $board->description }}</p>@endif
-        <div class="form-group">
-            <label for="setup-p1">{{ __('play.player_name', ['n' => 1]) }}</label>
-            <input type="text" id="setup-p1" class="form-control" value="{{ __('play.player_1') }}" maxlength="12">
-            <div class="gender-radio-group" style="margin-top:8px">
-                <label><input type="radio" name="p1-gender" value="male" checked> {{ __('play.male') }}</label>
-                <label><input type="radio" name="p1-gender" value="female"> {{ __('play.female') }}</label>
+        {{-- 1–4 人:兩人一組(1&2 為第一組,3&4 為第二組),同組都抵達終點才算贏。
+             用迴圈產生,避免四份重複標記。 --}}
+        @foreach (range(1, $playerCount) as $n)
+            @php
+                $team = intdiv($n - 1, 2) + 1;
+                $defaultGender = $n % 2 === 1 ? 'male' : 'female';
+            @endphp
+            <div class="form-group">
+                <label for="setup-p{{ $n }}">
+                    {{ __('play.player_name', ['n' => $n]) }}
+                    @if($playerCount > 2)
+                        <span class="setup-team">{{ __('play.team_n', ['n' => $team]) }}</span>
+                    @endif
+                </label>
+                <input type="text" id="setup-p{{ $n }}" class="form-control"
+                       value="{{ __('play.player_name', ['n' => $n]) }}" maxlength="12">
+                <div class="gender-radio-group" style="margin-top:8px">
+                    <label><input type="radio" name="p{{ $n }}-gender" value="male"
+                        @if($defaultGender === 'male') checked @endif> {{ __('play.male') }}</label>
+                    <label><input type="radio" name="p{{ $n }}-gender" value="female"
+                        @if($defaultGender === 'female') checked @endif> {{ __('play.female') }}</label>
+                </div>
             </div>
-        </div>
-        @if($playerCount >= 2)
-        <div class="form-group">
-            <label for="setup-p2">{{ __('play.player_name', ['n' => 2]) }}</label>
-            <input type="text" id="setup-p2" class="form-control" value="{{ __('play.player_2') }}" maxlength="12">
-            <div class="gender-radio-group" style="margin-top:8px">
-                <label><input type="radio" name="p2-gender" value="male"> {{ __('play.male') }}</label>
-                <label><input type="radio" name="p2-gender" value="female" checked> {{ __('play.female') }}</label>
-            </div>
-        </div>
-        @endif
+        @endforeach
         <button class="btn btn-gold btn-full" onclick="startSetup()">
             {{ __('play.start_game') }}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline-block">
@@ -212,6 +265,9 @@
         'female'       => __('play.female'),
         'genderSkip'   => __('play.js_gender_skip'),
         'normalSquare' => __('play.js_normal_square'),
+        // V8.0 四人版新增
+        'nameJoin'     => __('play.name_join'),
+        'bonusText'    => __('play.bonus_text'),
         'winTitle'     => __('play.js_win_title'),
         'winText'      => __('play.js_win_text'),
     ];

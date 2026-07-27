@@ -883,3 +883,92 @@
   background: rgba(255,255,255,.02);
   border: 1px dashed rgba(255,255,255,.07);
 }
+
+/* ---- RWD:路徑側欄在窄螢幕改為橫向排列,避免 260px 固定寬撐破版面 ----
+   斷點沿用專案既有的 600px(見 minigames.css / app.css)。            */
+@media(max-width:600px){
+  .path-side-panel{width:100%;min-width:0;flex-direction:row;flex-wrap:wrap;
+    overflow-x:auto;max-height:220px}
+  .path-side-panel > *{flex:0 0 auto}
+}
+
+/* ---- 四人版:玩家面板與棋子配色 ----
+   .player-bar 原本是 space-between 的三欄(p1 | 骰子 | p2),
+   四人時允許換行,骰子區保持在中間。 */
+.player-bar { flex-wrap: wrap; }
+.turn-center { order: 0; }
+.player-panel.p3, .player-panel.p4 { order: 1; }
+@media(min-width: 761px){
+  /* 桌機:四個面板兩側各兩個,骰子仍居中 */
+  .player-panel.p1, .player-panel.p3 { order: -1; }
+  .player-panel.p2, .player-panel.p4 { order: 1; }
+}
+.pawn-3 { color: var(--green, #4ade80); }
+.pawn-4 { color: var(--yellow, #facc15); }
+
+/* 同組標示(設定視窗) */
+.setup-team{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;
+    font-size:.68rem;font-weight:700;color:var(--text-dim);
+    background:var(--surface2);border:1px solid var(--border)}
+
+/* 等待同組夥伴 */
+.player-panel.finished{opacity:.55}
+.player-panel.finished .ppos::after{content:' ✔'}
+
+/* ---- 終點特權視窗(規則 8)---- */
+.bonus-text{color:var(--text-dim);font-size:.9rem;margin:8px 0 18px;line-height:1.6}
+.bonus-btns{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.bonus-btns .bonus-num{padding:14px 0;font-size:1.15rem;font-weight:800;min-width:0}
+@media(max-width:520px){
+  .bonus-btns{grid-template-columns:repeat(3,1fr)}
+}
+
+/* =====================================================
+   玩法側欄(規則參考)
+   .play-page 是垂直 flex(player-bar + 內容),這裡把棋盤與玩法
+   包成水平兩欄。面板可收合 —— 收合後棋盤回到滿版居中,
+   避免像先前骰子頁那樣被側欄推偏。
+   ===================================================== */
+.play-body{flex:1;display:flex;min-height:0;position:relative}
+.play-body > .board-wrap{flex:1;min-width:0}
+
+.rules-panel{
+  flex:0 0 300px;width:300px;overflow-y:auto;
+  background:var(--surface);border-left:1px solid var(--border);
+  padding:16px 18px 24px;
+  display:none;                    /* 預設收合,由 .rules-open 打開 */
+}
+.play-body.rules-open .rules-panel{display:block}
+
+.rules-head{display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin-bottom:10px;position:sticky;top:-16px;
+  background:var(--surface);padding:6px 0 8px}
+.rules-title{font-size:1rem;font-weight:800;margin:0;color:var(--gold)}
+.rules-close{background:none;border:0;color:var(--text-dim);cursor:pointer;
+  font-size:1.5rem;line-height:1;padding:0 4px;border-radius:6px}
+.rules-close:hover,.rules-close:focus-visible{color:var(--accent)}
+
+.rules-list{margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:10px}
+.rules-list li{font-size:.84rem;line-height:1.65;color:var(--text-dim)}
+.rules-list li::marker{color:var(--gold);font-weight:700}
+
+.btn-rules{margin-top:6px}
+.rules-scrim{display:none}
+
+/* 窄螢幕:改成從右側滑出的抽屜,不佔版面寬度 */
+@media(max-width:1023px){
+  .rules-panel{
+    position:absolute;top:0;right:0;bottom:0;z-index:30;
+    width:min(320px,86vw);flex-basis:auto;
+    transform:translateX(100%);transition:transform .25s ease;
+    box-shadow:-8px 0 24px rgba(0,0,0,.4);
+    display:block;                 /* 抽屜一律存在,靠 transform 收起 */
+  }
+  .play-body.rules-open .rules-panel{transform:translateX(0)}
+  .play-body.rules-open .rules-scrim{
+    display:block;position:absolute;inset:0;z-index:20;
+    background:rgba(0,0,0,.45)}
+}
+@media (prefers-reduced-motion: reduce){
+  .rules-panel{transition:none}
+}

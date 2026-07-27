@@ -493,24 +493,28 @@ async function saveMeta() {
    PLAY MODE — Setup
    ═══════════════════════════════════════════════════ */
 function startSetup() {
-  const p1Name   = document.getElementById('setup-p1')?.value.trim()  || tp('player1');
-  const p1Gender = document.querySelector('input[name="p1-gender"]:checked')?.value || 'male';
-  state.players  = [{ name:p1Name, stepIndex:0, skip:false, gender:p1Gender }];
-  state.current  = 0; state.rolling=false; state.gameOver=false;
-
-  if (window.PLAYER_COUNT >= 2) {
-    const p2Name   = document.getElementById('setup-p2')?.value.trim()  || tp('player2');
-    const p2Gender = document.querySelector('input[name="p2-gender"]:checked')?.value || 'female';
-    state.players.push({ name:p2Name, stepIndex:0, skip:false, gender:p2Gender });
+  /* V8.0 四人版:兩人一組(0&1 第一組、2&3 第二組),同組都抵達終點才算贏。 */
+  const count = Math.max(1, Math.min(4, window.PLAYER_COUNT || 1));
+  state.players = [];
+  for (let n = 1; n <= count; n++) {
+    const nameEl = document.getElementById('setup-p' + n);
+    const gEl = document.querySelector('input[name="p' + n + '-gender"]:checked');
+    state.players.push({
+      name: (nameEl && nameEl.value.trim()) || ('P' + n),
+      stepIndex: 0, skip: false, finished: false,
+      gender: (gEl && gEl.value) || (n % 2 === 1 ? 'male' : 'female')
+    });
   }
+  state.current = 0; state.rolling = false; state.gameOver = false;
+  state.finishOrder = [];
 
-  const gIcon = g => g==='male'?' ♂':' ♀';
-  document.getElementById('p1-name').textContent = state.players[0].name + gIcon(p1Gender);
-  document.getElementById('p1-pos').textContent  = tp('startPoint');
-  if (state.players[1]) {
-    document.getElementById('p2-name').textContent = state.players[1].name + gIcon(state.players[1].gender);
-    document.getElementById('p2-pos').textContent  = tp('startPoint');
-  }
+  const gIcon = g => g === 'male' ? ' \u2642' : ' \u2640';
+  state.players.forEach(function(p, i) {
+    const nm = document.getElementById('p' + (i + 1) + '-name');
+    const ps = document.getElementById('p' + (i + 1) + '-pos');
+    if (nm) nm.textContent = p.name + gIcon(p.gender);
+    if (ps) ps.textContent = tp('startPoint');
+  });
 
   closeModal('setup-modal');
   buildBoard();
@@ -518,9 +522,37 @@ function startSetup() {
   updateTurnUI();
 }
 
-/* ═══════════════════════════════════════════════════
-   PLAY MODE — Dice & Movement
-   ═══════════════════════════════════════════════════ */
+/* ── V8.0 分組與追趕 ─────────────────────────────────────────────
+   分組:3–4 人時兩人一組;1–2 人時每人自成一組(維持原本「先到即贏」)。 */
+function teamOf(idx) {
+  return state.players.length >= 3 ? Math.floor(idx / 2) : idx;
+}
+function teammatesOf(idx) {
+  const t = teamOf(idx);
+  return state.players.map(function(_, i) { return i; })
+    .filter(function(i) { return i !== idx && teamOf(i) === t; });
+}
+
+/* 追趕驅逐:檢查「所有」其他玩家,不只下一位。
+   原本只比對 (current+1) % length —— 那在 3–4 人時會漏掉其他對手。
+   已抵達終點的棋子不再被驅逐。 */
+function captureAt(moverIdx) {
+  const mover = state.players[moverIdx];
+  if (!mover || mover.stepIndex <= 0) return false;
+  const pos = currentPos(mover);
+  let hit = false;
+  state.players.forEach(function(other, i) {
+    if (i === moverIdx || other.finished) return;
+    if (other.stepIndex > 0 && currentPos(other) === pos) {
+      other.stepIndex = 0;
+      hit = true;
+    }
+  });
+  if (hit) { renderPieces(); updatePosDisplay(); }
+  return hit;
+}
+
+
 function rollDice() {
   if (state.rolling || state.gameOver) return;
   const player = state.players[state.current];
@@ -567,7 +599,7 @@ function animateMove(roll) {
     if (rawNext >= endIdx) {
       animateSteps(player, startIdx, endIdx, function() {
         updatePosDisplay();
-        setTimeout(function() { showWin(player.name); }, 400);
+        setTimeout(function() { arriveAtEnd(state.current); }, 400);
         resolve();
       });
       return;
@@ -578,26 +610,14 @@ function animateMove(roll) {
       updatePosDisplay();
 
       /* Collision */
-      if (state.players.length > 1 && player.stepIndex > 0) {
-        const other = state.players[(state.current+1) % state.players.length];
-        if (other.stepIndex > 0 && currentPos(other) === pos) {
-          other.stepIndex = 0;
-          renderPieces(); updatePosDisplay();
-        }
-      }
+      captureAt(state.current);
 
       const sq = getSq(pos);
       if (sq.color === 'move') {
         applyMoveEffect(sq, function() {
           const finalPos = currentPos(player);
           /* Collision check after move effect */
-          if (state.players.length > 1 && player.stepIndex > 0) {
-            const other = state.players[(state.current+1) % state.players.length];
-            if (other.stepIndex > 0 && currentPos(other) === finalPos) {
-              other.stepIndex = 0;
-              renderPieces(); updatePosDisplay();
-            }
-          }
+          captureAt(state.current);
           setTimeout(function() { showActionModal(roll, finalPos); resolve(); }, 200);
         });
         return;
@@ -749,27 +769,19 @@ function confirmAction(choice) {
           player.stepIndex = endIdx;
           closeModal('action-modal');
           renderPieces(); flashSquare(path[endIdx]); updatePosDisplay();
-          setTimeout(() => showWin(player.name), 400);
+          setTimeout(() => arriveAtEnd(state.current), 400);
           return;
         }
         player.stepIndex = flyIdx;
         renderPieces(); flashSquare(currentPos(player)); updatePosDisplay();
         /* Collision check after fly */
-        if (state.players.length > 1 && player.stepIndex > 0) {
-          const other = state.players[(state.current+1) % state.players.length];
-          if (other.stepIndex > 0 && currentPos(other) === currentPos(player)) {
-            other.stepIndex = 0;
-            renderPieces(); updatePosDisplay();
-          }
-        }
+        captureAt(state.current);
       }
     }
   }
 
   closeModal('action-modal');
-  if (state.players.length > 1) state.current = (state.current+1) % state.players.length;
-  updateTurnUI();
-  document.getElementById('roll-btn').disabled = false;
+  advanceTurn();
 }
 
 function flashSquare(pos) {
@@ -777,6 +789,98 @@ function flashSquare(pos) {
   if (!el) return;
   el.classList.add('highlight');
   setTimeout(() => el.classList.remove('highlight'), 2200);
+}
+
+/* ── V8.0 抵達終點 ─────────────────────────────────────────────
+   規則 7:同組兩人都進終點才算贏,先到者要等夥伴。
+   規則 8:全場第一位抵達者可讓自己的夥伴前進 1–6 格。
+   1–2 人時 teamOf() 讓每人自成一組,行為與改動前相同(先到即贏)。 */
+function arriveAtEnd(idx) {
+  const player = state.players[idx];
+  if (player.finished) return;
+  player.finished = true;
+  state.finishOrder = state.finishOrder || [];
+  const isFirstOverall = state.finishOrder.length === 0;
+  state.finishOrder.push(idx);
+
+  const panel = document.getElementById('p' + (idx + 1) + '-panel');
+  if (panel) panel.classList.add('finished');
+  const posEl = document.getElementById('p' + (idx + 1) + '-pos');
+  if (posEl) posEl.textContent = tp('endPoint') || tp('startPoint');
+
+  const mates = teammatesOf(idx);
+
+  /* 同組全部抵達 → 該組獲勝 */
+  if (mates.every(function(i) { return state.players[i].finished; })) {
+    const names = [player.name].concat(mates.map(function(i) { return state.players[i].name; }));
+    showWin(names.join(tp('nameJoin') || '、'));
+    return;
+  }
+
+  /* 規則 8:全場第一位抵達者,可讓夥伴前進 1–6 格 */
+  if (isFirstOverall && mates.length) {
+    showFinishBonus(idx, mates[0]);
+    return;
+  }
+
+  /* 還有夥伴沒到 → 換下一位繼續 */
+  advanceTurn();
+}
+
+/* 終點特權:選 1–6 讓夥伴前進 */
+function showFinishBonus(finisherIdx, mateIdx) {
+  const box = document.getElementById('bonus-modal');
+  if (!box) { advanceTurn(); return; }
+  const label = document.getElementById('bonus-text');
+  if (label) {
+    label.textContent = tp('bonusText', {
+      '__NAME__': state.players[finisherIdx].name,
+      '__MATE__': state.players[mateIdx].name
+    });
+  }
+  const btns = document.getElementById('bonus-btns');
+  if (btns) {
+    btns.innerHTML = '';
+    for (let n = 1; n <= 6; n++) {
+      const b = document.createElement('button');
+      b.className = 'btn btn-gold bonus-num';
+      b.textContent = n;
+      b.onclick = function() { applyFinishBonus(mateIdx, n); };
+      btns.appendChild(b);
+    }
+  }
+  openModal('bonus-modal');
+}
+
+function applyFinishBonus(mateIdx, steps) {
+  closeModal('bonus-modal');
+  const mate = state.players[mateIdx];
+  const path = getEffectivePath(mate.gender);
+  const endIdx = path.length - 1;
+  const from = mate.stepIndex;
+  const to = Math.min(endIdx, from + steps);
+  animateSteps(mate, from, to, function() {
+    updatePosDisplay();
+    captureAt(mateIdx);
+    if (mate.stepIndex >= endIdx) { arriveAtEnd(mateIdx); return; }
+    advanceTurn();
+  });
+}
+
+/* 換手:跳過已抵達終點的玩家 */
+function advanceTurn() {
+  if (state.gameOver) return;
+  const n = state.players.length;
+  if (n > 1) {
+    let guard = 0;
+    do {
+      state.current = (state.current + 1) % n;
+      guard++;
+    } while (state.players[state.current].finished && guard <= n);
+  }
+  updateTurnUI();
+  const rb = document.getElementById('roll-btn');
+  if (rb) rb.disabled = false;
 }
 
 function showWin(name) {
@@ -834,3 +938,29 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sq-char').textContent = sqText.value.length;
   });
 });
+
+/* 玩法側欄:桌機為右側欄、窄螢幕為滑出抽屜。狀態記在 localStorage,
+   使用者關掉之後不會每次進來又跳出來。 */
+function toggleRules(force) {
+  const body = document.querySelector('.play-body');
+  const btn = document.getElementById('rules-toggle');
+  if (!body) return;
+  const open = typeof force === 'boolean' ? force : !body.classList.contains('rules-open');
+  body.classList.toggle('rules-open', open);
+  if (btn) btn.setAttribute('aria-expanded', String(open));
+  try { localStorage.setItem('play_rules_open', open ? '1' : '0'); } catch (e) {}
+}
+
+/* 首次進入預設打開(讓使用者知道有規則可看);之後尊重上次的選擇。 */
+(function initRules() {
+  function apply() {
+    let pref = null;
+    try { pref = localStorage.getItem('play_rules_open'); } catch (e) {}
+    // 桌機預設開、窄螢幕預設關(抽屜蓋住棋盤不適合當預設)
+    const wide = window.matchMedia && window.matchMedia('(min-width:1024px)').matches;
+    toggleRules(pref === null ? wide : pref === '1');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', apply);
+  } else { apply(); }
+})();
