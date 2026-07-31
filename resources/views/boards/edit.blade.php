@@ -49,6 +49,10 @@
             <span class="sq sq-move">{{ __('play.sq_move') }}</span>
             <span class="sq sq-male">{{ __('play.sq_male') }}</span>
             <span class="sq sq-female">{{ __('play.sq_female') }}</span>
+            <span class="sq sq-p1">{{ __('play.sq_p1') }}</span>
+            <span class="sq sq-p2">{{ __('play.sq_p2') }}</span>
+            <span class="sq sq-p3">{{ __('play.sq_p3') }}</span>
+            <span class="sq sq-p4">{{ __('play.sq_p4') }}</span>
             <span class="sq sq-normal">{{ __('play.sq_normal') }}</span>
         </div>
     </div>
@@ -74,6 +78,45 @@
             <span class="layout-label">{{ __('play.apply_preset') }}</span>
             <button onclick="applyPreset('cross')"  class="btn btn-sm">{{ __('play.preset_cross') }}</button>
             <button onclick="applyPreset('square')" class="btn btn-sm">{{ __('play.preset_square') }}</button>
+        </div>
+        <div class="layout-preset-controls">
+            <button onclick="openRulesModal()" class="btn btn-sm btn-outline">⚙ {{ __('play.start_wheel') }} / {{ __('play.capture_rule') }}</button>
+        </div>
+    </div>
+
+    {{-- 規則設定:進場轉盤 + 追趕規則 --}}
+    <div id="rules-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-overlay" onclick="closeModal('rules-modal')"></div>
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('rules-modal')">✕</button>
+            <h2>{{ __('play.start_wheel') }} / {{ __('play.capture_rule') }}</h2>
+
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:6px;font-weight:400">
+                    <input type="checkbox" id="rule-capture"> {{ __('play.capture_enable') }}
+                </label>
+                <div style="font-size:.75rem;color:var(--text-dim);margin-top:4px">{{ __('play.capture_help') }}</div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:6px;font-weight:400">
+                    <input type="checkbox" id="rule-wheel-on" onchange="toggleWheelSlots()"> {{ __('play.start_wheel_enable') }}
+                </label>
+                <div style="font-size:.75rem;color:var(--text-dim);margin:4px 0 10px">{{ __('play.start_wheel_help') }}</div>
+                <div id="wheel-slots" class="wheel-slots">
+                    @foreach (range(1, 6) as $i)
+                        <div class="wheel-slot">
+                            <span class="wheel-face" data-face="{{ $i }}">{{ $i }}</span>
+                            <input type="text" id="wheel-text-{{ $i }}" class="form-control" maxlength="60">
+                            <label><input type="checkbox" id="wheel-enter-{{ $i }}"> {{ __('play.start_wheel_enter') }}</label>
+                            <label><input type="checkbox" id="wheel-reroll-{{ $i }}"> {{ __('play.start_wheel_reroll') }}</label>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <button class="btn btn-gold" onclick="saveRules()">{{ __('play.save_path') }}</button>
+            <div id="rules-save-status" class="save-status"></div>
         </div>
     </div>
 
@@ -132,6 +175,11 @@
                 <label class="cp-opt"><input type="radio" name="sq-color" value="move">   <span class="sq sq-move">{{ __('play.sq_move') }}</span></label>
                 <label class="cp-opt"><input type="radio" name="sq-color" value="male">   <span class="sq sq-male">{{ __('play.sq_male') }}</span></label>
                 <label class="cp-opt"><input type="radio" name="sq-color" value="female"> <span class="sq sq-female">{{ __('play.sq_female') }}</span></label>
+                {{-- 四人版:只對該座位玩家生效 --}}
+                <label class="cp-opt"><input type="radio" name="sq-color" value="p1"> <span class="sq sq-p1">{{ __('play.sq_p1') }}</span></label>
+                <label class="cp-opt"><input type="radio" name="sq-color" value="p2"> <span class="sq sq-p2">{{ __('play.sq_p2') }}</span></label>
+                <label class="cp-opt"><input type="radio" name="sq-color" value="p3"> <span class="sq sq-p3">{{ __('play.sq_p3') }}</span></label>
+                <label class="cp-opt"><input type="radio" name="sq-color" value="p4"> <span class="sq sq-p4">{{ __('play.sq_p4') }}</span></label>
                 <label class="cp-opt"><input type="radio" name="sq-color" value="normal"> <span class="sq sq-normal">{{ __('play.sq_normal') }}</span></label>
             </div>
         </div>
@@ -151,6 +199,22 @@
             </div>
             <div style="font-size:.75rem;color:var(--text-dim);margin-top:4px">
                 {{ __('play.fly_to_help') }}
+            </div>
+        </div>
+
+        {{-- 移動效果:取代舊的「從文字解析前進N格」做法,翻譯後仍然有效 --}}
+        <div class="form-group">
+            <label>{{ __('play.move_effect') }}</label>
+            <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" id="sq-move-steps" class="form-control"
+                       min="-20" max="20" placeholder="0" style="width:160px">
+                <span style="font-size:.78rem;color:var(--text-dim)">{{ __('play.move_steps_unit') }}</span>
+            </div>
+            <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:400">
+                <input type="checkbox" id="sq-skip-turn"> {{ __('play.skip_turn_effect') }}
+            </label>
+            <div style="font-size:.75rem;color:var(--text-dim);margin-top:4px">
+                {{ __('play.move_effect_help') }}
             </div>
         </div>
 
@@ -196,6 +260,19 @@ window.CANVAS_ROWS   = {{ $board->canvas_rows }};
 window.CANVAS_COLS   = {{ $board->canvas_cols }};
 window.CSRF_TOKEN    = document.querySelector('meta[name="csrf-token"]').content;
 window.EDIT_MODE     = true;
+window.START_WHEEL   = @json($board->startWheel());
+window.CAPTURE_ON    = @json($board->capture_enabled ?? true);
+/* board.js and board-editor.js have always read their endpoints from here, but
+   nothing ever defined it — every save threw "cannot read properties of
+   undefined". `squares` doubles as the POST base and the PATCH/DELETE prefix. */
+window.BOARD_ROUTES  = {
+    update : @json(route('boards.update', $board)),
+    squares: @json(route('boards.squares.store', $board)),
+    canvas : @json(route('boards.canvas.update', $board)),
+    path   : @json(route('boards.path.update', $board)),
+    preset : @json(route('boards.preset', $board)),
+    rules  : @json(route('boards.rules.update', $board)),
+};
 </script>
 <script src="{{ asset_v('js/board.js') }}"></script>
 <script src="{{ asset_v('js/board-editor.js') }}"></script>

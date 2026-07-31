@@ -18,11 +18,14 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlayController;
 use App\Http\Controllers\PremiumController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RewardedUnlockController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TimeCapsuleController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\WheelGameController;
 use App\Http\Controllers\WhoMostLikelyController;
+use App\Support\LocaleHelper;
+use App\Support\Pricing;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
@@ -44,6 +47,52 @@ Route::post('/age-verify', function () {
     return redirect()->back()->withCookie($cookie);
 })->name('age.verify');
 
+// llms.txt — the convention generative engines read for a plain-text map of the
+// site. Generated rather than static for the same reason as robots.txt: every
+// link has to carry the live domain. Kept deliberately short; the point is that
+// an engine can tell what each page is without executing the page's JS.
+Route::get('/llms.txt', function () {
+    // 這條路由沒有語系前綴,所以 set.locale 會依 cookie / Accept-Language 決定語言 ——
+    // 但連結一律指向預設語系。不把語言釘死的話,會產生「英文說明 + /tw 連結」這種
+    // 前後不一致的檔案,而且同一個網址每次抓到的語言還可能不一樣。
+    $locale = LocaleHelper::defaultLocale();
+    app()->setLocale($locale);
+    $link = fn (string $path, string $key) => '- ['.__($key).']('.LocaleHelper::localizedUrl($locale, $path).')';
+
+    return response(implode("\n", [
+        '# '.__('ui.site_name'),
+        '',
+        '> '.__('home.meta_description'),
+        '',
+        '## '.__('games.lobby'),
+        $link('game-hall', 'seo.lobby_title').': '.__('seo.game_hall_seo_description'),
+        '',
+        '## '.__('games.more_games'),
+        $link('games', 'games.flying_chess').': '.__('games.desc_flying_chess'),
+        $link('truth-dare', 'games.truth_dare').': '.__('games.desc_truth_dare'),
+        $link('card-game', 'minigame.card_title').': '.__('games.desc_card'),
+        $link('king-game', 'minigame.king_title').': '.__('games.desc_king'),
+        $link('dice-game', 'minigame.dice_title').': '.__('games.desc_dice'),
+        $link('wheel-game', 'minigame.wheel_title').': '.__('games.desc_wheel'),
+        $link('wheel', 'games.pure_wheel').': '.__('games.desc_pure_wheel'),
+        $link('who-most-likely', 'minigame.wml_title').': '.__('games.desc_wml'),
+        // Short labels on purpose: seo.play_title carries a :board placeholder and
+        // the community/templates SEO titles are full sentences. A link label in
+        // llms.txt should read as a page name, so use the plain UI strings here.
+        $link('play', 'ui.play').': '.__('games.my_boards_desc'),
+        '',
+        '## '.__('ui.community_boards'),
+        $link('community', 'ui.community_boards').': '.__('seo.community_description'),
+        $link('templates', 'games.templates_short').': '.__('seo.templates_description'),
+        '',
+        '## Optional',
+        $link('premium', 'seo.premium_title').': '.__('seo.premium_description', ['price' => Pricing::entryPrice()]),
+        $link('privacy', 'legal.privacy_title').'',
+        $link('terms', 'legal.terms_title').'',
+        '',
+    ])."\n", 200, ['Content-Type' => 'text/plain; charset=utf-8']);
+})->name('llms');
+
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 // Per-locale sitemap (referenced by /sitemap.xml index)
@@ -62,12 +111,56 @@ Route::get('/ads.txt', function () {
     return response($lines."\n", 200, ['Content-Type' => 'text/plain']);
 })->name('ads.txt');
 
+/*
+ * robots.txt is generated here rather than shipped as public/robots.txt for one
+ * reason: the Sitemap line has to carry the live domain. The static file that
+ * used to sit in public/ hard-coded https://yourdomain.com, and because nginx
+ * `try_files $uri` serves a real file before it ever reaches Laravel, that
+ * placeholder is what crawlers actually got — this route existed but was dead.
+ *
+ * Two things worth knowing before editing:
+ *
+ * - Every app route lives under a /{locale} prefix, so `Disallow: /admin/` does
+ *   not match anything; the real path is /tw/admin/. The private paths below are
+ *   therefore emitted once per locale prefix, plus a wildcard form, instead of
+ *   once at the root.
+ * - The AI section mirrors AgeVerification::CRAWLER_PATTERNS. Retrieval bots are
+ *   allowed there and here; training bots are gated there and disallowed here.
+ *   Change one and change the other, or the two disagree about the same bot.
+ */
 Route::get('/robots.txt', function () {
-    return response(
-        "User-agent: *\nDisallow: /admin/\nSitemap: ".url('/sitemap.xml')."\n",
-        200,
-        ['Content-Type' => 'text/plain']
-    );
+    $privatePaths = ['admin', 'boards', 'email', 'forgot-password', 'reset-password', 'profile', 'my-wheels', 'my-dice'];
+    $prefixes = array_column(LocaleHelper::supported(), 'prefix');
+
+    $lines = ['User-agent: *'];
+    foreach ($privatePaths as $path) {
+        $lines[] = 'Disallow: /*/'.$path;
+        foreach ($prefixes as $prefix) {
+            $lines[] = 'Disallow: /'.$prefix.'/'.$path;
+        }
+    }
+
+    // Training-only crawlers: they take content into a model and send no traffic
+    // back. The age gate already stops them; this states the policy explicitly
+    // for the ones that honour robots.txt. Google-Extended and Applebot-Extended
+    // are robots.txt tokens rather than real user agents — they opt this site out
+    // of Gemini / Apple Intelligence training without touching Googlebot or
+    // Applebot, which stay allowed above.
+    $trainingBots = [
+        'GPTBot', 'ClaudeBot', 'CCBot', 'Bytespider', 'meta-externalagent',
+        'Amazonbot', 'Google-Extended', 'Applebot-Extended', 'anthropic-ai',
+        'cohere-ai', 'Diffbot', 'Omgilibot', 'ImagesiftBot',
+    ];
+    foreach ($trainingBots as $bot) {
+        $lines[] = '';
+        $lines[] = 'User-agent: '.$bot;
+        $lines[] = 'Disallow: /';
+    }
+
+    $lines[] = '';
+    $lines[] = 'Sitemap: '.url('/sitemap.xml');
+
+    return response(implode("\n", $lines)."\n", 200, ['Content-Type' => 'text/plain']);
 })->name('robots');
 
 // Premium gateway callbacks: URLs are pinned by the payment provider — adding
@@ -173,6 +266,13 @@ Route::prefix('{locale}')
             Route::post('/{code}/leave', [TruthDareController::class, 'leave'])->name('leave');
         });
 
+        // 看廣告換一段時間的付費內容。throttle 是必要的:兌換端點決定了誰能玩到
+        // 付費題庫,不擋的話等於開放無限重試。
+        Route::post('/ad-unlock/start', [RewardedUnlockController::class, 'start'])
+            ->name('rewarded.start')->middleware('throttle:20,1');
+        Route::post('/ad-unlock/claim', [RewardedUnlockController::class, 'claim'])
+            ->name('rewarded.claim')->middleware('throttle:20,1');
+
         // Single-player mini games
         Route::get('/card-game', [CardGameController::class, 'show'])->name('card-game.show');
         Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
@@ -242,6 +342,7 @@ Route::prefix('{locale}')
             Route::patch('/{board}/squares', [BoardController::class, 'bulkUpdateSquares'])->name('squares.bulk');
             Route::patch('/{board}/canvas', [BoardController::class, 'updateCanvas'])->name('canvas.update');
             Route::patch('/{board}/path', [BoardController::class, 'updatePath'])->name('path.update');
+            Route::patch('/{board}/rules', [BoardController::class, 'updateRules'])->name('rules.update');
             Route::post('/{board}/preset', [BoardController::class, 'applyPreset'])->name('preset');
 
             Route::post('/{board}/publish', [BoardController::class, 'publish'])->name('publish');

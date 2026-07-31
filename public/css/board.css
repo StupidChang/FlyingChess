@@ -28,6 +28,11 @@
   --sq-end:    var(--red, #f87171);
   --sq-male:   var(--blue, #38bdf8);
   --sq-female: var(--accent, #f43f5e);
+  /* V8.0 四人版:依玩家顏色生效的格子(P1 藍 / P2 綠 / P3 紅 / P4 黃) */
+  --sq-p1: #3b82f6;
+  --sq-p2: #22c55e;
+  --sq-p3: #ef4444;
+  --sq-p4: #eab308;
 }
 
 /* Shared square badge (legend + edit picker) — dark chip style */
@@ -43,6 +48,10 @@
 .sq-end    { background:rgba(248,113,113,.14); color:var(--sq-end);   border:1px solid rgba(248,113,113,.4); }
 .sq-male   { background:rgba(56,189,248,.14); color:var(--sq-male);   border:1px solid rgba(56,189,248,.4); }
 .sq-female { background:rgba(244,63,94,.14); color:var(--sq-female);  border:1px solid rgba(244,63,94,.4); }
+.sq-p1     { background:rgba(59,130,246,.14); color:var(--sq-p1);     border:1px solid rgba(59,130,246,.45); }
+.sq-p2     { background:rgba(34,197,94,.14);  color:var(--sq-p2);     border:1px solid rgba(34,197,94,.45); }
+.sq-p3     { background:rgba(239,68,68,.14);  color:var(--sq-p3);     border:1px solid rgba(239,68,68,.45); }
+.sq-p4     { background:rgba(234,179,8,.14);  color:var(--sq-p4);     border:1px solid rgba(234,179,8,.45); }
 
 /* =====================================================
    EDIT PAGE
@@ -972,3 +981,26 @@
 @media (prefers-reduced-motion: reduce){
   .rules-panel{transition:none}
 }
+
+/* =====================================================
+   ENTRY WHEEL — pre-board dice wheel (V8.0 corner wheels)
+   ===================================================== */
+.wheel-box { text-align:center; max-width:340px; }
+.wheel-graphic { display:flex; justify-content:center; margin-bottom:10px; }
+.wheel-svg { width:160px; height:160px; }
+.wheel-player { font-size:.8rem; color:var(--text-dim,#9aa1b5); margin-bottom:2px; }
+.wheel-text { font-size:1.15rem; font-weight:700; margin-bottom:8px; line-height:1.4; }
+.wheel-note { font-size:.8rem; color:var(--text-dim,#9aa1b5); margin-bottom:14px; }
+.wheel-note.is-enter { color:var(--gold,#d9a441); font-weight:700; }
+/* A piece waiting to enter is kept off the track entirely. */
+.piece-token.piece-waiting { display:none; }
+
+/* Wheel editor (board edit page) */
+.wheel-slots { display:flex; flex-direction:column; gap:8px; }
+.wheel-slot { display:flex; align-items:center; gap:8px; }
+.wheel-slot .wheel-face { width:22px; height:22px; border-radius:50%; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.72rem; font-weight:800; color:#fff; }
+.wheel-slot input[type="text"] { flex:1; min-width:0; }
+.wheel-slot label { display:flex; align-items:center; gap:4px; font-size:.72rem;
+  color:var(--text-dim,#9aa1b5); font-weight:400; white-space:nowrap; }

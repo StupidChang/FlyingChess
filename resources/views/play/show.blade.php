@@ -11,6 +11,10 @@
 
 @section('content')
 <div class="play-page">
+    {{-- 這頁整版都是棋盤,版面上沒有放標題的位置,但沒有 H1 的頁面搜尋引擎只能
+         從 <title> 猜主題。用 sr-only 補一個,畫面不變。 --}}
+    <h1 class="sr-only">{{ $board->name }}</h1>
+
     {{-- Player Bar --}}
     <div class="player-bar">
         <div id="p1-panel" class="player-panel p1 active">
@@ -106,6 +110,20 @@
 </div>
 
 {{-- Action Modal --}}
+{{-- 進場轉盤:棋子還沒上場時,骰子點數對照轉盤而不是走格 --}}
+@if($startWheel ?? null)
+<div id="wheel-modal" class="modal wheel-modal" role="dialog" aria-modal="true">
+    <div class="modal-overlay"></div>
+    <div class="modal-box wheel-box">
+        <div id="wheel-graphic" class="wheel-graphic"></div>
+        <div class="wheel-player"><span id="wheel-player"></span></div>
+        <div id="wheel-text" class="wheel-text"></div>
+        <div id="wheel-note" class="wheel-note"></div>
+        <button class="btn btn-gold" onclick="confirmWheel()">{{ __('play.wheel_ok') }}</button>
+    </div>
+</div>
+@endif
+
 <div id="action-modal" class="modal action-modal" role="dialog" aria-modal="true">
     <div class="modal-overlay"></div>
     <div class="modal-box action-box">
@@ -263,11 +281,20 @@
         'skipTurnName' => __('play.js_skip_turn_name'),
         'male'         => __('play.male'),
         'female'       => __('play.female'),
+        'sq_p1'        => __('play.sq_p1'),
+        'sq_p2'        => __('play.sq_p2'),
+        'sq_p3'        => __('play.sq_p3'),
+        'sq_p4'        => __('play.sq_p4'),
         'genderSkip'   => __('play.js_gender_skip'),
         'normalSquare' => __('play.js_normal_square'),
         // V8.0 四人版新增
         'nameJoin'     => __('play.name_join'),
         'bonusText'    => __('play.bonus_text'),
+        // 進場轉盤
+        'wheelEnter'   => __('play.js_wheel_enter'),
+        'wheelReroll'  => __('play.js_wheel_reroll'),
+        'wheelStay'    => __('play.js_wheel_stay'),
+        'wheelWaiting' => __('play.js_wheel_waiting'),
         'winTitle'     => __('play.js_win_title'),
         'winText'      => __('play.js_win_text'),
     ];
@@ -281,6 +308,8 @@ window.PATH_DATA    = @json($pathData);
 window.CANVAS_ROWS  = {{ $board->canvas_rows ?? 11 }};
 window.CANVAS_COLS  = {{ $board->canvas_cols ?? 13 }};
 window.PLAYER_COUNT = {{ $playerCount }};
+window.START_WHEEL  = @json($startWheel ?? null);
+window.CAPTURE_ON   = @json($captureEnabled ?? true);
 window.EDIT_MODE    = false;
 window.PLAY_I18N    = @json($playI18n);
 </script>

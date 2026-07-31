@@ -434,3 +434,89 @@ document.addEventListener('DOMContentLoaded', () => {
   if (rowInput) rowInput.value = edState.canvasRows;
   if (colInput) colInput.value = edState.canvasCols;
 });
+
+/* ═══════════════════════════════════════════════════
+   BOARD RULES — entry wheel + eviction toggle
+   ═══════════════════════════════════════════════════ */
+const WHEEL_EDIT_HEX = ['#ec4899', '#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444'];
+
+/* Mirrors Board::DEFAULT_START_WHEEL — used to prefill when a board turns the
+   wheel on for the first time. */
+const WHEEL_DEFAULTS = [
+  { text: '喝一口',       enter: false, reroll: false },
+  { text: '再擲一次',     enter: false, reroll: true  },
+  { text: '親吻對方伴侶', enter: false, reroll: false },
+  { text: '喝一杯',       enter: false, reroll: false },
+  { text: '再擲一次',     enter: false, reroll: true  },
+  { text: '進入棋盤',     enter: true,  reroll: false },
+];
+
+function openRulesModal() {
+  const wheel = Array.isArray(window.START_WHEEL) ? window.START_WHEEL : null;
+  const slots = wheel || WHEEL_DEFAULTS;
+
+  document.getElementById('rule-capture').checked  = window.CAPTURE_ON !== false;
+  document.getElementById('rule-wheel-on').checked = !!wheel;
+
+  for (let i = 1; i <= 6; i++) {
+    const s = slots[i - 1] || { text: '', enter: false, reroll: false };
+    document.getElementById(`wheel-text-${i}`).value     = s.text || '';
+    document.getElementById(`wheel-enter-${i}`).checked  = !!s.enter;
+    document.getElementById(`wheel-reroll-${i}`).checked = !!s.reroll;
+    const face = document.querySelector(`.wheel-face[data-face="${i}"]`);
+    if (face) face.style.background = WHEEL_EDIT_HEX[i - 1];
+  }
+
+  toggleWheelSlots();
+  document.getElementById('rules-save-status').textContent = '';
+  document.getElementById('rules-modal').classList.add('open');
+}
+
+function toggleWheelSlots() {
+  const on = document.getElementById('rule-wheel-on').checked;
+  const box = document.getElementById('wheel-slots');
+  box.style.opacity = on ? '1' : '.4';
+  box.querySelectorAll('input').forEach(el => { el.disabled = !on; });
+}
+
+async function saveRules() {
+  const status = document.getElementById('rules-save-status');
+  const wheelOn = document.getElementById('rule-wheel-on').checked;
+  const segments = [];
+
+  for (let i = 1; i <= 6; i++) {
+    segments.push({
+      text  : document.getElementById(`wheel-text-${i}`).value.trim(),
+      enter : document.getElementById(`wheel-enter-${i}`).checked,
+      reroll: document.getElementById(`wheel-reroll-${i}`).checked,
+    });
+  }
+
+  status.style.color = '#5fd080';
+  status.textContent = tp('saving');
+
+  try {
+    const res = await fetch(window.BOARD_ROUTES.rules, {
+      method : 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.CSRF_TOKEN },
+      body   : JSON.stringify({
+        capture_enabled: document.getElementById('rule-capture').checked,
+        wheel_enabled  : wheelOn,
+        segments       : segments,
+      }),
+    });
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      const first = json.errors && Object.values(json.errors)[0];
+      throw new Error(Array.isArray(first) ? first[0] : `HTTP ${res.status}`);
+    }
+
+    window.START_WHEEL = wheelOn ? segments : null;
+    window.CAPTURE_ON  = document.getElementById('rule-capture').checked;
+    status.textContent = tp('saved');
+  } catch (e) {
+    status.style.color = '#ff6b6b';
+    status.textContent = e.message || tp('saveFailed');
+  }
+}

@@ -26,6 +26,7 @@ class Board extends Model
         'name', 'name_translations', 'description', 'is_default',
         'is_template', 'is_premium_template',
         'canvas_rows', 'canvas_cols', 'path_data',
+        'start_wheel', 'capture_enabled',
         'user_id', 'share_code', 'machine_translated_at',
         'publish_status', 'published_at', 'publish_note',
         'reference_image',
@@ -36,6 +37,8 @@ class Board extends Model
         'is_template' => 'boolean',
         'is_premium_template' => 'boolean',
         'path_data' => 'array',
+        'start_wheel' => 'array',
+        'capture_enabled' => 'boolean',
         'canvas_rows' => 'integer',
         'canvas_cols' => 'integer',
         'machine_translated_at' => 'datetime',
@@ -43,6 +46,43 @@ class Board extends Model
     ];
 
     public array $translatable = ['name_translations'];
+
+    /**
+     * The entry wheel from the physical V8.0 board — six slots read by dice face.
+     * `enter` puts the piece on the track, `reroll` gives the turn straight back.
+     * Used as the starting point when a board first switches the wheel on.
+     */
+    public const DEFAULT_START_WHEEL = [
+        ['text' => '喝一口', 'enter' => false, 'reroll' => false],
+        ['text' => '再擲一次', 'enter' => false, 'reroll' => true],
+        ['text' => '親吻對方伴侶', 'enter' => false, 'reroll' => false],
+        ['text' => '喝一杯', 'enter' => false, 'reroll' => false],
+        ['text' => '再擲一次', 'enter' => false, 'reroll' => true],
+        ['text' => '進入棋盤', 'enter' => true, 'reroll' => false],
+    ];
+
+    /** Normalised wheel for the front end: null when the board has none. */
+    public function startWheel(): ?array
+    {
+        $wheel = $this->start_wheel;
+
+        if (! is_array($wheel) || empty($wheel['enabled'])) {
+            return null;
+        }
+
+        $slots = array_values((array) ($wheel['segments'] ?? []));
+
+        // A wheel is always read by dice face, so it must have exactly six slots.
+        for ($i = 0; $i < 6; $i++) {
+            $slots[$i] = [
+                'text' => (string) ($slots[$i]['text'] ?? ''),
+                'enter' => (bool) ($slots[$i]['enter'] ?? false),
+                'reroll' => (bool) ($slots[$i]['reroll'] ?? false),
+            ];
+        }
+
+        return array_slice($slots, 0, 6);
+    }
 
     /**
      * Master locale reads $value directly; non-master uses translations JSON
@@ -121,6 +161,8 @@ class Board extends Model
             'text' => $s->text,
             'color' => $s->color,
             'fly_to' => $s->fly_to,
+            'move_steps' => $s->move_steps,
+            'skip_turn' => (bool) $s->skip_turn,
             'grid_row' => $s->grid_row,
             'grid_col' => $s->grid_col,
         ])->toArray();

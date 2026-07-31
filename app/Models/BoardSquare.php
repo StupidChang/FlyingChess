@@ -12,10 +12,11 @@ class BoardSquare extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['board_id', 'position', 'text', 'text_translations', 'color', 'fly_to', 'grid_row', 'grid_col', 'machine_translated_at'];
+    protected $fillable = ['board_id', 'position', 'text', 'text_translations', 'color', 'fly_to', 'move_steps', 'skip_turn', 'grid_row', 'grid_col', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
+        'skip_turn' => 'boolean',
     ];
 
     public array $translatable = ['text_translations'];

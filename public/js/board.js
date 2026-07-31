@@ -11,7 +11,28 @@ const COLOR_HEX = {
   action:'var(--sq-action)', drink:'var(--sq-drink)', dare:'var(--sq-dare)', truth:'var(--sq-truth)',
   strip:'var(--sq-strip)', move:'var(--sq-move)', normal:'var(--sq-normal)',
   start:'var(--sq-start)', end:'var(--sq-end)', male:'var(--sq-male)', female:'var(--sq-female)',
+  p1:'var(--sq-p1)', p2:'var(--sq-p2)', p3:'var(--sq-p3)', p4:'var(--sq-p4)',
 };
+
+/* V8.0 四人版:p1..p4 只對該座位的玩家生效,其他人停到就跳過 —— 和 male/female
+   同一個機制,差別只在比對的是座位而不是性別。 */
+const SEAT_COLORS = ['p1', 'p2', 'p3', 'p4'];
+
+/* Entry wheel colours, in dice-face order — matches the six-slice wheel printed
+   in each corner of the physical board. */
+const WHEEL_HEX = ['#ec4899', '#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444'];
+
+/** The board's entry wheel, or null when pieces start on the track directly. */
+function startWheel() {
+  const w = window.START_WHEEL;
+  return (Array.isArray(w) && w.length === 6) ? w : null;
+}
+
+/** A piece only occupies a square once it has entered. Without a wheel,
+    everyone is on the track from the first turn (the previous behaviour). */
+function isOnTrack(player) {
+  return !startWheel() || player.entered === true;
+}
 
 /* Small inline SVG icon set — replaces emoji for a more premium, on-brand
    look. All icons use currentColor so color is controlled purely via CSS. */
@@ -371,10 +392,18 @@ function renderPieces() {
   const board = document.getElementById('game-board');
   if (!board) return;
   state.players.forEach((p, i) => {
+    let el = document.getElementById(`piece-${i+1}`);
+
+    /* Not on the track yet (entry wheel) → keep the piece off the board. */
+    if (!isOnTrack(p)) {
+      if (el) el.classList.add('piece-waiting');
+      return;
+    }
+    el?.classList.remove('piece-waiting');
+
     const pos  = currentPos(p);
     const sqEl = document.getElementById(`sq-${pos}`);
     if (!sqEl) return;
-    let el = document.getElementById(`piece-${i+1}`);
     const isNew = !el;
     if (isNew) {
       el = document.createElement('div');
@@ -417,6 +446,11 @@ function openSqModal(pos) {
   const flyInput = document.getElementById('sq-fly-to');
   if (flyInput) flyInput.value = sq.fly_to != null ? sq.fly_to : '';
 
+  const stepsInput = document.getElementById('sq-move-steps');
+  if (stepsInput) stepsInput.value = sq.move_steps != null ? sq.move_steps : '';
+  const skipInput = document.getElementById('sq-skip-turn');
+  if (skipInput) skipInput.checked = !!sq.skip_turn;
+
   const st = document.getElementById('sq-save-status');
   st.textContent = '';
   st.style.color = '#5fd080';
@@ -434,17 +468,20 @@ async function saveSquare() {
   const color  = document.querySelector('input[name="sq-color"]:checked')?.value || 'normal';
   const flyVal = document.getElementById('sq-fly-to')?.value.trim();
   const fly_to = flyVal !== '' ? parseInt(flyVal,10) : null;
+  const stepsVal   = document.getElementById('sq-move-steps')?.value.trim();
+  const move_steps = stepsVal ? parseInt(stepsVal,10) : null;
+  const skip_turn  = !!document.getElementById('sq-skip-turn')?.checked;
   const status = document.getElementById('sq-save-status');
   status.style.color='#5fd080'; status.textContent=tp('saving');
   try {
     const res = await fetch(`${window.BOARD_ROUTES.squares}/${editPos}`, {
       method:'PATCH',
       headers:{'Content-Type':'application/json','X-CSRF-TOKEN':window.CSRF_TOKEN},
-      body:JSON.stringify({text,color,fly_to}),
+      body:JSON.stringify({text,color,fly_to,move_steps,skip_turn}),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     if (!window.SQUARES_DATA) window.SQUARES_DATA = {};
-    Object.assign(window.SQUARES_DATA[editPos], {text,color,fly_to});
+    Object.assign(window.SQUARES_DATA[editPos], {text,color,fly_to,move_steps,skip_turn});
 
     const sqEl = document.getElementById(`sq-${editPos}`);
     if (sqEl) {
@@ -502,6 +539,8 @@ function startSetup() {
     state.players.push({
       name: (nameEl && nameEl.value.trim()) || ('P' + n),
       stepIndex: 0, skip: false, finished: false,
+      /* With a wheel, nobody is on the track until they roll an `enter` slot. */
+      entered: !startWheel(),
       gender: (gEl && gEl.value) || (n % 2 === 1 ? 'male' : 'female')
     });
   }
@@ -514,6 +553,7 @@ function startSetup() {
     const ps = document.getElementById('p' + (i + 1) + '-pos');
     if (nm) nm.textContent = p.name + gIcon(p.gender);
     if (ps) ps.textContent = tp('startPoint');
+    document.getElementById('p' + (i + 1) + '-panel')?.classList.remove('finished');
   });
 
   closeModal('setup-modal');
@@ -537,12 +577,14 @@ function teammatesOf(idx) {
    原本只比對 (current+1) % length —— 那在 3–4 人時會漏掉其他對手。
    已抵達終點的棋子不再被驅逐。 */
 function captureAt(moverIdx) {
+  /* Per-board rule: some boards turn eviction off entirely. */
+  if (window.CAPTURE_ON === false) return false;
   const mover = state.players[moverIdx];
-  if (!mover || mover.stepIndex <= 0) return false;
+  if (!mover || mover.stepIndex <= 0 || !isOnTrack(mover)) return false;
   const pos = currentPos(mover);
   let hit = false;
   state.players.forEach(function(other, i) {
-    if (i === moverIdx || other.finished) return;
+    if (i === moverIdx || other.finished || !isOnTrack(other)) return;
     if (other.stepIndex > 0 && currentPos(other) === pos) {
       other.stepIndex = 0;
       hit = true;
@@ -578,6 +620,13 @@ function rollDice() {
     // Update player bar dice display
     const diceEl = document.getElementById('dice');
     if (diceEl) diceEl.innerHTML = diceFaceHtml(roll);
+
+    /* Still off the track → the roll is read off the entry wheel, not walked. */
+    if (!isOnTrack(player)) {
+      showWheelModal(roll);
+      state.rolling = false;
+      return;
+    }
 
     // Animate piece movement step by step
     animateMove(roll).then(function() {
@@ -618,6 +667,18 @@ function animateMove(roll) {
           const finalPos = currentPos(player);
           /* Collision check after move effect */
           captureAt(state.current);
+
+          /* A 前進 square can carry the piece onto the last step. The fly and
+             partner-bonus paths already end the game there; this one used to
+             fall through to the action modal, leaving the player parked on the
+             end square and still taking turns. */
+          if (player.stepIndex >= endIdx) {
+            updatePosDisplay();
+            setTimeout(function() { arriveAtEnd(state.current); }, 400);
+            resolve();
+            return;
+          }
+
           setTimeout(function() { showActionModal(roll, finalPos); resolve(); }, 200);
         });
         return;
@@ -657,22 +718,43 @@ function applyMoveEffect(sq, callback) {
   callback = callback || function(){};
   const player = state.players[state.current];
   const path   = getEffectivePath(player.gender);
-  const fwd    = sq.text?.match(/前進\s*(\d+)\s*格/);
-  const bwd    = sq.text?.match(/後退\s*(\d+)\s*格/);
-  if (fwd) {
+  /* Structured fields win; the zh-TW text patterns are only a fallback for
+     squares saved before move_steps/skip_turn existed. Parsing the wording is
+     locale-bound — 前进 (zh-CN), マス, "Move forward" all fail to match. */
+  const eff  = squareEffect(sq);
+
+  if (eff.skip) player.skip = true;
+
+  if (eff.steps > 0) {
     const from = player.stepIndex;
-    const to = Math.min(path.length-1, player.stepIndex+parseInt(fwd[1],10));
+    const to = Math.min(path.length-1, player.stepIndex + eff.steps);
     animateSteps(player, from, to, function() { updatePosDisplay(); callback(); });
-  } else if (bwd) {
+  } else if (eff.steps < 0) {
     const from = player.stepIndex;
-    const to = Math.max(0, player.stepIndex-parseInt(bwd[1],10));
+    const to = Math.max(0, player.stepIndex + eff.steps);
     animateStepsBackward(player, from, to, function() { updatePosDisplay(); callback(); });
-  } else if (/跳過/.test(sq.text||'')) {
-    player.skip = true;
-    callback();
   } else {
     callback();
   }
+}
+
+/** Resolve a square's movement effect: { steps, skip }. */
+function squareEffect(sq) {
+  const steps = parseInt(sq.move_steps, 10) || 0;
+  const skip  = !!sq.skip_turn;
+
+  /* skip_turn defaults to false rather than null, so "are the structured fields
+     present" is not a usable test — check whether they actually say anything. */
+  if (steps !== 0 || skip) return { steps: steps, skip: skip };
+
+  const text = sq.text || '';
+  const fwd  = text.match(/前進\s*(\d+)\s*格/);
+  const bwd  = text.match(/後退\s*(\d+)\s*格/);
+
+  return {
+    steps: fwd ? parseInt(fwd[1], 10) : (bwd ? -parseInt(bwd[1], 10) : 0),
+    skip: /跳過/.test(text),
+  };
 }
 
 /** Animate piece moving backward one square at a time */
@@ -720,12 +802,16 @@ function showActionModal(roll, pos) {
   document.getElementById('action-color-bar').style.background = COLOR_HEX[sq.color]||COLOR_HEX.normal;
   skipNote.classList.add('hidden'); genderEl.classList.add('hidden');
 
+  const seatIdx = SEAT_COLORS.indexOf(sq.color);
   const genderMismatch =
     (sq.color==='male'   && player.gender!=='male') ||
-    (sq.color==='female' && player.gender!=='female');
+    (sq.color==='female' && player.gender!=='female') ||
+    (seatIdx >= 0 && seatIdx !== state.current);
 
   if (genderMismatch) {
-    const label = sq.color==='male' ? tp('male') : tp('female');
+    const label = seatIdx >= 0
+      ? (state.players[seatIdx] ? state.players[seatIdx].name : tp('sq_' + sq.color))
+      : (sq.color==='male' ? tp('male') : tp('female'));
     textEl.textContent = sq.text || '';
     genderEl.textContent = tp('genderSkip', { '__LABEL__': label, '__NAME__': player.name });
     genderEl.classList.remove('hidden');
@@ -738,6 +824,87 @@ function showActionModal(roll, pos) {
 
   if (player.skip) skipNote.classList.remove('hidden');
   openModal('action-modal');
+}
+
+/* ── Entry wheel ─────────────────────────────────────────────────────────
+   Rendered as a six-slice SVG pie with the rolled slice pulled out, mirroring
+   the wheel printed in each corner of the physical board. */
+function wheelSvg(activeFace) {
+  const w = startWheel();
+  if (!w) return '';
+  const R = 72, CX = 80, CY = 80, slice = Math.PI * 2 / 6;
+  let out = `<svg viewBox="0 0 160 160" class="wheel-svg" role="img">`;
+
+  w.forEach(function(seg, i) {
+    const a0 = slice * i - Math.PI / 2;
+    const a1 = a0 + slice;
+    const active = (i + 1) === activeFace;
+    const r = active ? R : R - 6;
+    const x0 = CX + r * Math.cos(a0), y0 = CY + r * Math.sin(a0);
+    const x1 = CX + r * Math.cos(a1), y1 = CY + r * Math.sin(a1);
+    out += `<path d="M${CX} ${CY} L${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1} Z"`
+        +  ` fill="${WHEEL_HEX[i]}" opacity="${active ? 1 : .35}"`
+        +  ` stroke="rgba(0,0,0,.35)" stroke-width="1"/>`;
+
+    const am = a0 + slice / 2, lr = r * .62;
+    out += `<text x="${CX + lr * Math.cos(am)}" y="${CY + lr * Math.sin(am)}"`
+        +  ` text-anchor="middle" dominant-baseline="middle"`
+        +  ` font-size="15" font-weight="700" fill="#fff">${i + 1}</text>`;
+  });
+
+  return out + `<circle cx="${CX}" cy="${CY}" r="20" fill="rgba(0,0,0,.55)"/>`
+    + `<text x="${CX}" y="${CY}" text-anchor="middle" dominant-baseline="middle"`
+    + ` font-size="20" font-weight="800" fill="#fff">${activeFace}</text></svg>`;
+}
+
+function showWheelModal(roll) {
+  const w      = startWheel();
+  const seg    = w[roll - 1];
+  const player = state.players[state.current];
+
+  state.pendingWheel = { roll: roll, seg: seg };
+
+  document.getElementById('wheel-graphic').innerHTML = wheelSvg(roll);
+  document.getElementById('wheel-player').textContent = player.name;
+  document.getElementById('wheel-text').textContent = seg.text || '';
+
+  const note = document.getElementById('wheel-note');
+  if (note) {
+    note.textContent = seg.enter ? tp('wheelEnter') : (seg.reroll ? tp('wheelReroll') : tp('wheelStay'));
+    note.className = 'wheel-note' + (seg.enter ? ' is-enter' : '');
+  }
+
+  openModal('wheel-modal');
+}
+
+/** Resolve the wheel result: enter the track, roll again, or pass the turn. */
+function confirmWheel() {
+  const pending = state.pendingWheel;
+  closeModal('wheel-modal');
+  state.pendingWheel = null;
+  if (!pending) { advanceTurn(); return; }
+
+  const player = state.players[state.current];
+
+  if (pending.seg.enter) {
+    player.entered = true;
+    player.stepIndex = 0;
+    renderPieces(); updatePosDisplay(); flashSquare(currentPos(player));
+    /* Entering onto an occupied start square must not evict anyone — captureAt
+       already ignores stepIndex 0, so nothing to do here. */
+    advanceTurn();
+    return;
+  }
+
+  if (pending.seg.reroll) {
+    /* Same player rolls again — do not advance the turn. */
+    updateTurnUI();
+    const rb = document.getElementById('roll-btn');
+    if (rb) rb.disabled = false;
+    return;
+  }
+
+  advanceTurn();
 }
 
 function showFlyButtons(hasFly, dest) {
@@ -893,7 +1060,14 @@ function showWin(name) {
 function resetGame() {
   closeModal('win-modal');
   state.gameOver=false; state.rolling=false; state.current=0;
-  state.players.forEach(p => { p.stepIndex=0; p.skip=false; });
+  /* finished / finishOrder and the panel styling have to go too — otherwise the
+     next game starts with every seat already flagged as finished, so arriveAtEnd
+     returns early and advanceTurn skips everyone. */
+  state.finishOrder = [];
+  state.players.forEach((p, i) => {
+    p.stepIndex=0; p.skip=false; p.finished=false; p.entered=!startWheel();
+    document.getElementById('p' + (i + 1) + '-panel')?.classList.remove('finished');
+  });
   buildBoard(); updateTurnUI(); updatePosDisplay();
   document.getElementById('roll-btn').disabled = false;
   const idleDice = document.getElementById('dice');
@@ -907,8 +1081,11 @@ function updateTurnUI() {
   if (!p) return;
   const label = document.getElementById('turn-label');
   if (label) label.textContent = tp('turnOf', { ':name': p.name });
-  document.getElementById('p1-panel')?.classList.toggle('active', state.current===0);
-  document.getElementById('p2-panel')?.classList.toggle('active', state.current===1);
+  /* Every seat, not just p1/p2 — in a 4-player game the highlight used to get
+     stuck on whoever of the first two moved last. */
+  state.players.forEach(function(_, i) {
+    document.getElementById('p' + (i + 1) + '-panel')?.classList.toggle('active', state.current === i);
+  });
 }
 
 function updatePosDisplay() {
@@ -918,7 +1095,8 @@ function updatePosDisplay() {
     const path   = getEffectivePath(p.gender);
     const endIdx = path.length - 1;
     el.textContent =
-      p.stepIndex === 0        ? tp('startPoint')
+      !isOnTrack(p)            ? tp('wheelWaiting')
+      : p.stepIndex === 0      ? tp('startPoint')
       : p.stepIndex >= endIdx  ? tp('endPoint')
       : tp('stepN', { '__N__': p.stepIndex });
   });

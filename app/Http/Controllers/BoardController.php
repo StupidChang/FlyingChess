@@ -134,8 +134,11 @@ class BoardController extends Controller
 
         $validator = Validator::make($request->all(), [
             'text' => ['nullable', 'string', 'max:200', new NoBlockedWords],
-            'color' => 'required|string|in:action,drink,dare,truth,strip,move,normal,start,end,male,female',
+            'color' => 'required|string|in:action,drink,dare,truth,strip,move,normal,start,end,male,female,p1,p2,p3,p4',
             'fly_to' => 'nullable|integer|min:0|max:999',
+            // Signed: + forward, - backward. Replaces parsing 前進N格 out of the text.
+            'move_steps' => 'nullable|integer|min:-20|max:20',
+            'skip_turn' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -149,6 +152,8 @@ class BoardController extends Controller
         }
 
         $data = $validator->validated();
+        // Absent checkbox means "off", not "leave as-is".
+        $data['skip_turn'] = (bool) ($data['skip_turn'] ?? false);
 
         BoardSquare::updateOrCreate(
             ['board_id' => $board->id, 'position' => $position],
@@ -159,6 +164,37 @@ class BoardController extends Controller
         if ($board->isPublished()) {
             $board->update(['publish_status' => Board::PUBLISH_PENDING]);
         }
+
+        return response()->json(['success' => true]);
+    }
+
+    /* ── Per-board rules: entry wheel + eviction toggle ── */
+    public function updateRules(Request $request, Board $board)
+    {
+        $this->checkOwnership($board);
+
+        $data = $request->validate([
+            'capture_enabled' => 'required|boolean',
+            'wheel_enabled' => 'required|boolean',
+            'segments' => 'required_if:wheel_enabled,true|array|size:6',
+            'segments.*.text' => ['nullable', 'string', 'max:60', new NoBlockedWords],
+            'segments.*.enter' => 'required|boolean',
+            'segments.*.reroll' => 'required|boolean',
+        ]);
+
+        // A wheel nobody can leave would soft-lock the game on the first turn.
+        if ($data['wheel_enabled'] && ! collect($data['segments'])->contains(fn ($s) => $s['enter'])) {
+            return response()->json([
+                'errors' => ['segments' => [__('play.err_wheel_needs_enter')]],
+            ], 422);
+        }
+
+        $board->update([
+            'capture_enabled' => $data['capture_enabled'],
+            'start_wheel' => $data['wheel_enabled']
+                ? ['enabled' => true, 'segments' => $data['segments']]
+                : null,
+        ]);
 
         return response()->json(['success' => true]);
     }

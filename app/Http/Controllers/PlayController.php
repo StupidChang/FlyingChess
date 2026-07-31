@@ -46,7 +46,10 @@ class PlayController extends Controller
             $pathData = ['all' => $positions, 'male' => null, 'female' => null];
         }
 
-        return view('play.show', compact('board', 'squares', 'playerCount', 'pathData'));
+        $startWheel = $board->startWheel();
+        $captureEnabled = $board->capture_enabled ?? true;
+
+        return view('play.show', compact('board', 'squares', 'playerCount', 'pathData', 'startWheel', 'captureEnabled'));
     }
 
     public function showByCode(Request $request, string $code)
