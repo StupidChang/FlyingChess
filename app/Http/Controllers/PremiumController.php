@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
 use App\Models\User;
+use App\Support\Payments\PaymentGateway;
 use App\Support\Pricing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,9 @@ use Illuminate\Support\Str;
 
 class PremiumController extends Controller
 {
+    /** Resolved from config/payments.php — see AppServiceProvider::register(). */
+    public function __construct(private readonly PaymentGateway $gateway) {}
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -34,44 +38,15 @@ class PremiumController extends Controller
             'entryPrice' => Pricing::entryPrice($currency),
             'isPremium' => $user && $user->isPremium(),
             'expiresAt' => $user?->premium_expires_at,
-            'gatewayLive' => $this->gatewayIsLive(),
+            'gatewayLive' => $this->gateway->isLive(),
         ]);
-    }
-
-    /**
-     * ECPay publishes these merchant/key values in its own integration docs, so
-     * a CheckMacValue built with them proves nothing — anyone can compute a
-     * valid one and POST it to the callback. Treating them as usable in
-     * production would hand out premium for free.
-     */
-    private const ECPAY_TEST_MERCHANTS = ['3002607', '2000132', '2000214'];
-
-    private const ECPAY_TEST_HASH_KEY = 'pwFHCqoQZGmho4w6';
-
-    private const ECPAY_TEST_HASH_IV = 'EkRm7iFT261dpevs';
-
-    /** False when the configured gateway must not be trusted with real money. */
-    private function gatewayIsLive(): bool
-    {
-        // Off production, the sandbox is exactly what we want.
-        if (! app()->environment('production')) {
-            return true;
-        }
-
-        $e = config('ecpay');
-
-        return ! ($e['is_sandbox'] ?? true)
-            && ! in_array((string) ($e['merchant_id'] ?? ''), self::ECPAY_TEST_MERCHANTS, true)
-            && ($e['hash_key'] ?? '') !== self::ECPAY_TEST_HASH_KEY
-            && ($e['hash_iv'] ?? '') !== self::ECPAY_TEST_HASH_IV
-            && str_contains((string) ($e['service_url'] ?? ''), 'payment.ecpay.com.tw');
     }
 
     public function checkout(Request $request)
     {
         // Refuse to start a payment we cannot verify. 503 rather than a silent
         // redirect so a misconfigured deploy is loud instead of quietly free.
-        abort_unless($this->gatewayIsLive(), 503, __('premium.err_gateway_not_live'));
+        abort_unless($this->gateway->isLive(), 503, __('premium.err_gateway_not_live'));
 
         $user = $request->user();
 
@@ -96,40 +71,20 @@ class PremiumController extends Controller
             'status' => 'pending',
         ]);
 
-        // Build ECPay form data
-        //
-        // 綠界的 TotalAmount 只吃「新台幣整數元」,所以非台幣的方案根本送不出去。
-        // 這裡明確擋掉而不是默默送出一個錯的金額 —— 靜默送錯會變成使用者付了
-        // US$34.99 的心理價、實際被收 3499 元台幣這種等級的事故。
-        // 換到支援多幣別的金流(CCBill / SegPay 之類)之後,這段會整個被 driver 取代。
-        $ecpay = config('ecpay');
+        // 金額的幣別必須是這家金流真的能結算的,否則就是「顯示 US$34.99、實際
+        // 扣 3499 元台幣」這種等級的事故。明確擋掉而不是默默送出。
         abort_if(
-            $currency !== 'TWD',
+            ! in_array($currency, $this->gateway->supportedCurrencies(), true),
             503,
-            "目前串接的金流只支援新台幣,無法用 {$currency} 結帳。請見 config/premium.php 的說明。"
+            "目前串接的金流({$this->gateway->name()})不支援 {$currency} 結帳。請見 config/premium.php 的說明。"
         );
 
-        $params = [
-            'MerchantID' => $ecpay['merchant_id'],
-            'MerchantTradeNo' => $order->order_no,
-            'MerchantTradeDate' => now()->format('Y/m/d H:i:s'),
-            'PaymentType' => 'aio',
-            'TotalAmount' => (int) Pricing::fromMinor($minorAmount, $currency),
-            'TradeDesc' => '枕邊遊戲 Premium 會員',
-            'ItemName' => __('premium.plan_'.$planKey),
-            'ReturnURL' => route('premium.callback'),
-            'ClientBackURL' => route('premium.index'),
-            'OrderResultURL' => route('premium.result'),
-            'ChoosePayment' => 'ALL',
-            'EncryptType' => 1,
-        ];
-
-        // Generate CheckMacValue
-        $params['CheckMacValue'] = $this->generateCheckMacValue($params, $ecpay['hash_key'], $ecpay['hash_iv']);
+        $form = $this->gateway->checkout($order, __('premium.plan_'.$planKey));
 
         return view('premium.checkout', [
-            'params' => $params,
-            'actionUrl' => $ecpay['service_url'],
+            'params' => $form->params,
+            'actionUrl' => $form->actionUrl,
+            'method' => $form->method,
         ]);
     }
 
@@ -138,50 +93,33 @@ class PremiumController extends Controller
         // The signature below is only meaningful with private credentials. With
         // the published test key anyone could forge a paid callback, so reject
         // before looking at anything the caller sent.
-        if (! $this->gatewayIsLive()) {
+        if (! $this->gateway->isLive()) {
             return response('0|ERR_GATEWAY');
         }
 
-        $data = $request->all();
-        $ecpay = config('ecpay');
+        $result = $this->gateway->verifyCallback($request->all());
 
-        // Verify CheckMacValue
-        $receivedMac = $data['CheckMacValue'] ?? '';
-        $paramsForMac = $data;
-        unset($paramsForMac['CheckMacValue']);
-
-        $expectedMac = $this->generateCheckMacValue($paramsForMac, $ecpay['hash_key'], $ecpay['hash_iv']);
-
-        if (strtoupper($receivedMac) !== strtoupper($expectedMac)) {
-            return response('0|ERR_MAC');
+        if (! $result->valid) {
+            return response($result->response);
         }
 
-        // Verify MerchantID matches our config
-        if (($data['MerchantID'] ?? '') !== $ecpay['merchant_id']) {
-            return response('0|ERR_MERCHANT');
-        }
-
-        $orderNo = $data['MerchantTradeNo'] ?? '';
-        $order = PaymentOrder::where('order_no', $orderNo)->first();
+        $order = PaymentOrder::where('order_no', $result->orderNo)->first();
 
         if (! $order) {
             return response('0|ERR_ORDER');
         }
 
-        // Verify amount matches local order.
-        // order->amount 是最小單位,綠界回傳的是元。台幣沒有小數,兩者相等;而
-        // checkout 已經擋掉非台幣的結帳,所以這裡不需要換算。換金流時要一起改。
-        $callbackAmount = (int) ($data['TradeAmt'] ?? $data['TotalAmount'] ?? 0);
-        if ($callbackAmount !== (int) $order->amount) {
+        // The signature proves the callback came from the gateway; it does not
+        // prove the customer paid what we asked. Compare against the stored
+        // order before granting anything.
+        if ($result->paid && $result->amountMinor !== (int) $order->amount) {
             return response('0|ERR_AMOUNT');
         }
 
-        $rtnCode = (int) ($data['RtnCode'] ?? 0);
-
-        if ($rtnCode === 1) {
+        if ($result->paid) {
             $alreadyPaid = false;
 
-            DB::transaction(function () use ($order, $data, &$alreadyPaid) {
+            DB::transaction(function () use ($order, $result, &$alreadyPaid) {
                 // Lock the order row to prevent concurrent callback race
                 $locked = PaymentOrder::where('id', $order->id)->lockForUpdate()->first();
 
@@ -193,7 +131,7 @@ class PremiumController extends Controller
 
                 $locked->update([
                     'status' => 'paid',
-                    'trade_no' => $data['TradeNo'] ?? null,
+                    'trade_no' => $result->tradeNo,
                 ]);
 
                 // Lock user row to prevent concurrent renewal from losing updates
@@ -222,12 +160,14 @@ class PremiumController extends Controller
             });
         }
 
-        return response('1|OK');
+        // The exact acknowledgement string is provider-specific — gateways use
+        // it to decide whether to retry the callback.
+        return response($result->response);
     }
 
     public function result(Request $request)
     {
-        $orderNo = $request->input('MerchantTradeNo');
+        $orderNo = $this->gateway->orderNoFromResult($request->all());
         $order = $orderNo ? PaymentOrder::where('order_no', $orderNo)->first() : null;
 
         // The gateway posts here without a user session, but an anonymous
@@ -240,33 +180,5 @@ class PremiumController extends Controller
             'order' => $order,
             'isPremium' => $request->user()?->fresh()?->isPremium() ?? false,
         ]);
-    }
-
-    private function generateCheckMacValue(array $params, string $hashKey, string $hashIV): string
-    {
-        // Sort by key (case-insensitive per ECPay spec)
-        uksort($params, 'strcasecmp');
-
-        // Build query string
-        $str = "HashKey={$hashKey}";
-        foreach ($params as $key => $value) {
-            $str .= "&{$key}={$value}";
-        }
-        $str .= "&HashIV={$hashIV}";
-
-        // ECPay-specific URL encode then lowercase
-        $str = strtolower(urlencode($str));
-
-        // ECPay custom character replacements
-        $str = str_replace('%2d', '-', $str);
-        $str = str_replace('%5f', '_', $str);
-        $str = str_replace('%2e', '.', $str);
-        $str = str_replace('%21', '!', $str);
-        $str = str_replace('%2a', '*', $str);
-        $str = str_replace('%28', '(', $str);
-        $str = str_replace('%29', ')', $str);
-
-        // SHA256
-        return strtoupper(hash('sha256', $str));
     }
 }

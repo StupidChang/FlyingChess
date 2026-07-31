@@ -7,7 +7,7 @@
     <h1 style="color:var(--gold);margin-bottom:20px">{{ __('premium.checkout_h1') }}</h1>
     <p style="color:var(--text-dim);margin-bottom:28px">{{ __('premium.checkout_no_redirect') }}</p>
 
-    <form id="ecpay-form" action="{{ $actionUrl }}" method="POST">
+    <form id="gateway-form" action="{{ $actionUrl }}" method="{{ $method ?? 'POST' }}">
         @foreach($params as $key => $value)
             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
         @endforeach
@@ -16,6 +16,6 @@
 </div>
 
 <script>
-    document.getElementById('ecpay-form').submit();
+    document.getElementById('gateway-form').submit();
 </script>
 @endsection

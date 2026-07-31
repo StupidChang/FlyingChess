@@ -3,18 +3,31 @@
 namespace App\Providers;
 
 use App\Support\LocaleHelper;
+use App\Support\Payments\PaymentGateway;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Resolve the configured payment gateway. Swapping providers is a config
+        // change plus one new class — see config/payments.php.
+        $this->app->singleton(PaymentGateway::class, function () {
+            $name = config('payments.default');
+            $entry = config("payments.gateways.{$name}");
+
+            if (! $entry) {
+                throw new InvalidArgumentException("Unknown payment gateway [{$name}].");
+            }
+
+            return new $entry['driver'](config($entry['config'], []));
+        });
     }
 
     /**
