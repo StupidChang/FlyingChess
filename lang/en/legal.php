@@ -95,10 +95,11 @@ return [
 
         'payment_title' => '4. Payments and Refunds',
         'payment_items' => [
-            'The Site offers a paid Premium subscription; pricing and contents are as described on the checkout page.',
-            'Payments are processed by a third-party payment provider (ECPay).',
-            'Premium is a digital content service that is delivered immediately upon successful payment and activation. Except where required by law, activated subscription periods are non-refundable.',
-            'If the service becomes unavailable due to a fault on our side, contact us to arrange compensation or a pro-rata refund.',
+            'The site offers a paid Premium subscription. Prices and inclusions are as stated on the payment page.',
+            'Payments are handled by a third-party payment provider, disclosed on the checkout page.',
+            'Premium is digital content not supplied on a tangible medium. Under Article 2 of Taiwan’s Regulations on Reasonable Exceptions to the Right of Rescission in Distance Sales, it begins immediately once you expressly consent at checkout, and the seven-day cooling-off period under Article 19 of the Consumer Protection Act does not apply. Checkout requires you to tick that consent; without it the payment cannot be completed.',
+            'Accordingly, an activated subscription period is non-refundable, except where mandatory law provides otherwise.',
+            'If the service is unusable due to reasons on our side, contact us and we will discuss compensation or a pro-rata refund.',
         ],
 
         'disclaimer_title' => '5. Disclaimer',

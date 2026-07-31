@@ -1348,3 +1348,18 @@ ul{list-style:none}
 .rw-status{min-height:1.4em;margin:14px 0;font-size:.86rem;color:var(--text-dim);
     font-variant-numeric:tabular-nums}
 .rw-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* 結帳前的猶豫期同意勾選(通訊交易解除權排除,法規要求事先明示同意) */
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: .8rem;
+  line-height: 1.5;
+  color: var(--text-dim, #9aa1b5);
+  text-align: left;
+  cursor: pointer;
+}
+.consent-row input[type="checkbox"] { margin-top: 3px; flex: none; }
+.consent-row a { color: var(--gold, #d9a441); text-decoration: underline; }

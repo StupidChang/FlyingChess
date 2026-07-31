@@ -99,6 +99,7 @@ class PricingAndHistoryTest extends TestCase
             'plan' => 'yearly',
             'amount' => 1,
             'price' => 1,
+            'consent' => '1',
         ])->assertOk();
 
         $order = PaymentOrder::where('user_id', $user->id)->firstOrFail();
@@ -109,12 +110,26 @@ class PricingAndHistoryTest extends TestCase
         $this->assertNotSame(1, $order->amount);
     }
 
+    public function test_checkout_is_refused_without_the_cooling_off_consent(): void
+    {
+        // 排除七日猶豫期的前提是「消費者事先明示同意」——前端的 required
+        // 擋不住直接送出的請求,所以伺服器端必須自己拒絕。
+        config()->set('premium.default_currency', 'TWD');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->submit('/tw/premium/checkout', ['plan' => 'yearly'])
+            ->assertSessionHasErrors('consent');
+
+        $this->assertNull(PaymentOrder::where('user_id', $user->id)->first());
+    }
+
     public function test_unknown_plan_falls_back_to_the_default_plan(): void
     {
         config()->set('premium.default_currency', 'TWD');
         $user = User::factory()->create();
 
-        $this->actingAs($user)->submit('/tw/premium/checkout', ['plan' => 'lifetime-free'])->assertOk();
+        $this->actingAs($user)->submit('/tw/premium/checkout', ['plan' => 'lifetime-free', 'consent' => '1'])->assertOk();
 
         $order = PaymentOrder::where('user_id', $user->id)->firstOrFail();
         $this->assertSame(Pricing::defaultPlan(), $order->plan);

@@ -54,6 +54,14 @@
                     @csrf
                     {{-- 只送方案代號,不送金額 —— 金額由後端查 config,前端改不動。 --}}
                     <input type="hidden" name="plan" value="{{ $plan['key'] }}">
+                    {{-- 通訊交易解除權的排除,法規要求「事先明示同意」——
+                         寫在條款裡不夠,結帳前必須實際取得勾選。 --}}
+                    <label class="consent-row">
+                        <input type="checkbox" name="consent" value="1" required>
+                        <span>{!! __('premium.consent_waive_cooling_off', [
+                            'terms' => '<a href="'.route('legal.terms').'" target="_blank" rel="noopener">'.__('premium.terms_link').'</a>',
+                        ]) !!}</span>
+                    </label>
                     <button type="submit" class="btn btn-gold btn-xl btn-full"
                         onclick="typeof gtag!=='undefined'&&gtag('event','checkout_started',{items:[{item_id:'{{ $plan['key'] }}'}],currency:'{{ $currency }}'})">
                         {{ $isPremium ? __('premium.cta_renew') : __('premium.cta_upgrade_now') }}

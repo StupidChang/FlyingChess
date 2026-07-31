@@ -48,6 +48,13 @@ class PremiumController extends Controller
         // redirect so a misconfigured deploy is loud instead of quietly free.
         abort_unless($this->gateway->isLive(), 503, __('premium.err_gateway_not_live'));
 
+        // 排除七日猶豫期的前提是「消費者事先明示同意」。前端的 required 只是
+        // 提示,真正的證明要靠伺服器端拒絕沒有同意的請求。
+        $request->validate(
+            ['consent' => 'accepted'],
+            ['consent.accepted' => __('premium.err_consent_required')],
+        );
+
         $user = $request->user();
 
         // 方案由表單送上來,但金額一律回頭查 config —— 絕不能相信前端送的價格。
@@ -69,6 +76,8 @@ class PremiumController extends Controller
             'currency' => $currency,
             'plan' => $planKey,
             'status' => 'pending',
+            // 存證用:排除猶豫期的前提是「事先同意」,要能舉證發生在付款之前。
+            'consented_at' => now(),
         ]);
 
         // 金額的幣別必須是這家金流真的能結算的,否則就是「顯示 US$34.99、實際

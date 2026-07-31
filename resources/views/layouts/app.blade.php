@@ -12,6 +12,10 @@
     <title>@yield('title', __('seo.home_title'))</title>
     <meta name="description" content="@yield('meta_description', __('seo.home_description'))">
     <meta name="robots" content="@yield('robots', 'index,follow')">
+    {{-- 限制級自我標示。RTA 是家長控管軟體與過濾服務讀取的業界標準標籤,
+         廣告聯播網審核成人站台時也會看。純標示,不影響一般瀏覽。 --}}
+    <meta name="rating" content="RTA-5042-1996-1400-1577-RTA">
+    <meta name="rating" content="adult">
     <link rel="canonical" href="@yield('canonical', LocaleHelper::localizedUrl($currentLocale, request()->path()))">
     @foreach (LocaleHelper::readyLocales() as $locale => $meta)
         <link rel="alternate" hreflang="{{ $meta['hreflang'] }}" href="{{ LocaleHelper::localizedUrl($locale, request()->path()) }}">

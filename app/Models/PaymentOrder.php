@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PaymentOrder extends Model
 {
     protected $fillable = [
-        'user_id', 'order_no', 'amount', 'currency', 'plan', 'status', 'trade_no',
+        'user_id', 'order_no', 'amount', 'currency', 'plan', 'status', 'trade_no', 'consented_at',
     ];
 
     protected $casts = [
         // amount 是「最小單位」(USD 用分、TWD/JPY 用元),不是元。
         // 要顯示給人看請走 Pricing::formatMinor($order->amount, $order->currency)。
         'amount' => 'integer',
+        'consented_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
