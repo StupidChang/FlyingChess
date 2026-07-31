@@ -14,13 +14,38 @@
 | www → 主網域 301 | ✅ 已完成 |
 | 四語系 SEO / GEO（sitemap 60 URL、hreflang、JSON-LD、llms.txt） | ✅ 已完成 |
 | AI 檢索爬蟲放行（ChatGPT / Perplexity / Claude） | ✅ 已驗證可取得內容 |
-| SMTP | ❌ **未設定** — 密碼重設與驗證信寄不出去，但畫面顯示成功 |
-| Cloudflare Email Routing | ❌ 未設定 — `support@pillownight.com` 收不到信 |
-| 廣告（ExoClick zone id、ads.txt） | ❌ 未設定 — **全站目前 0 個廣告版位，收入為零** |
-| 金流 | ❌ 仍是綠界 sandbox，且成人內容過不了綠界審核 |
-| Google 登入 / GA4 / Search Console | ❌ 三個 env 值未填 |
+| SMTP（Amazon SES） | ✅ 已完成 — 已實際寄出測試信，見下方 ⚠️ 連接埠陷阱 |
+| Cloudflare Email Routing | ✅ 已完成 — 根網域 MX 指向 Cloudflare |
+| SES production access | ❌ **未申請** — 仍在 sandbox，除已驗證地址外任何人註冊都收不到驗證信 |
+| 廣告（ExoClick zone id、ads.txt） | ❌ 未設定 — **全站目前 0 個廣告版位，收入為零**，`/ads.txt` 回 404 |
+| 金流 | ❌ 仍是綠界測試憑證，但**已加保險擋住結帳與回調**（見下方 § 金流保險） |
+| Google 登入 / GA4 / Search Console | ❌ 三個 env 值未填（Google 登入未填時路由 404、按鈕隱藏，不會壞） |
+| HSTS / 限制級標示 / Secure cookie | ✅ 已完成 |
+| 猶豫期排除條款與結帳同意存證 | ✅ 已完成 |
+| 異地備份 | ❌ **未設定** — 36 份備份全在本機 `/var/backups/sites/`，機器沒了就全沒 |
+| 外部監控 / 錯誤監控 | ❌ 未設定 — `/up` 端點現成可用 |
 
-**基礎建設（1、2）已完成，剩下的都是「有了才有收入或才收得到信」的項目。**
+**基礎建設與寄信已完成，剩下的是「有了才有收入」與「出事才知道」的項目。**
+
+### § 金流保險（2026-07-31 新增）
+
+`config/ecpay.php` 的預設值是綠界**公開的測試憑證**（商店代號 `3002607`、文件上
+公開的 HashKey/HashIV），而 `.env` 沒有覆寫。這代表兩件事：訪客可用測試卡拿到真的
+Premium；而且 HashKey 公開 → 任何人都能算出合法 CheckMacValue 直接 POST 到
+`/premium/callback` 幫自己開通。
+
+現在 `PaymentGateway::isLive()` 會在 production 判定這種情況並：
+- `checkout()` 回 503，付費頁改顯示「即將開放購買」
+- `callback()` 在讀取任何輸入前回 `0|ERR_GATEWAY`
+
+**填入正式憑證後這層保險會自動放行**，不需要改程式。
+
+### § 金流已可抽換（2026-07-31 新增）
+
+`app/Support/Payments/` 有 `PaymentGateway` 介面，ECPay 只是其中一個實作。換成
+CCBill / SegPay 的步驟是：寫一個新 class → 加進 `config/payments.php` → 改
+`PAYMENT_GATEWAY`。`PremiumController` 一行都不用動，幣別檢查也會自動改問新
+driver 的 `supportedCurrencies()`。
 
 ---
 
@@ -100,7 +125,32 @@ ss -lnt | grep -E ':80 |:443 '
 
 ---
 
-## ⭐ 4. SMTP / Email 服務 — 影響密碼重設、註冊驗證、時間膠囊
+## ⭐ 4. SMTP / Email 服務 — ✅ 已完成（2026-07-31），但仍在 SES sandbox
+
+### ⚠️ 這台主機的 SMTP 連接埠陷阱（踩過一次，會再踩）
+
+**對外 TCP 25 / 465 / 587 全部被主機商封鎖**，只有 SES 的備用埠 **2587** 通得。
+症狀是寄信無聲 timeout、沒有錯誤訊息，非常容易誤判成帳密錯誤或 DNS 問題。
+
+```
+MAIL_HOST=email-smtp.us-east-1.amazonaws.com
+MAIL_PORT=2587      # ← 不是 587
+MAIL_SCHEME=smtp    # ← 不是 tls，Laravel/Symfony 只接受 smtp / smtps
+```
+
+`MAIL_SCHEME=tls` 會直接丟 `UnsupportedSchemeException`。2587 是 SES 官方的備用
+STARTTLS 埠，加密與功能和 587 完全相同。
+
+驗證連線用：`timeout 8 bash -c "exec 3<>/dev/tcp/email-smtp.us-east-1.amazonaws.com/2587"`
+
+### ⚠️ 還沒做：申請脫離 sandbox
+
+**在核准之前，除了已驗證的地址，任何人註冊都收不到驗證信**，而 `User` 有
+`MustVerifyEmail` — 等於註冊流程是斷的，站不能開放註冊。
+
+Account dashboard → Request production access，Mail type 選 **Transactional**，
+用途說明要寫明：只寄交易信（註冊驗證、密碼重設、使用者自己填的膠囊提醒）、
+不做行銷、網域已完成 DKIM/SPF/DMARC、預估量 <200 封/日。
 
 ### 為什麼需要
 - 註冊驗證信目前可能寄不出去（Laravel 預設 `MAIL_MAILER=log` 只寫 log）
