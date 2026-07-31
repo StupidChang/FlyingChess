@@ -14,9 +14,27 @@
 --}}
 @extends('layouts.app')
 
-@section('title', __('games.pure_wheel') . ' — ' . __('ui.site_name'))
-@section('meta_description', __('games.desc_pure_wheel'))
+{{-- pure_wheel_seo_* 只用在 meta;頁面上的標題與提示仍用 pure_wheel /
+     desc_pure_wheel(那兩個 key 也被首頁、大廳、導覽列共用)。 --}}
+@section('title', __('games.pure_wheel_seo_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('games.pure_wheel_seo_meta'))
 @section('canonical', route('wheel.pure'))
+
+{{-- 純轉盤沒有人數上限:指針指向在座的任何一個人,程式不記錄玩家清單 --}}
+@section('schema')
+    @include('partials.game-schema', [
+        'gameName' => __('games.pure_wheel'),
+        'gameDescription' => __('games.desc_pure_wheel'),
+        'gamePath' => 'wheel',
+        'minPlayers' => 2,
+        'maxPlayers' => null,
+    ])
+    @include('partials.game-faq-schema', ['faqKey' => 'wheel'])
+@endsection
+
+@section('faq')
+    @include('partials.game-faq', ['faqKey' => 'wheel'])
+@endsection
 
 @php
     // 與 wheel-game/show.blade.php 的 COLORS 完全一致:[外緣深色, 中心淺色]
@@ -63,19 +81,26 @@
 .pw-plate{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;
     border-radius:50%;box-shadow:0 0 30px rgba(0,0,0,.4)}
 
-/* 指針正後方的底盤:深色圓盤 + 旋轉的七彩外緣。
-   目的是把指針從 12 色扇形上「墊」出來 —— 粉色指針直接壓在黃色或粉色扇形上
-   對比不足,加一層深底才看得清楚指向。
-   RGB 效果的做法:深色填在 padding-box、conic-gradient 填在 border-box,
-   圓盤本體是對稱的,所以旋轉整個元素時只有彩色邊緣看起來在轉。 */
+/* 中央軸座(原本是佔 68% 的深色底盤)。
+
+   為什麼縮小:那塊底盤原本是拿來墊高指針對比的 —— 粉色愛心壓在黃色扇形上看不
+   清楚,所以在底下鋪一層近黑色。副作用是盤面 68% 的面積都是黑的,顏色只剩外圈
+   一圈,整個轉盤看起來就是「黑底加彩邊」。
+
+   改法是把對比責任移回指針本身:金屬刀鋒有深色描邊與投影,壓在任何一個扇形上
+   都有邊界(這也是實體錶針在任何錶面上都看得見的原理)。底盤因此只需要留一個
+   收住軸心的小軸座,顏色就能鋪滿整個盤面。
+
+   RGB 效果的做法不變:深色填 padding-box、conic-gradient 填 border-box,圓盤
+   本體對稱,所以旋轉整個元素時只有彩色邊緣看起來在轉。 */
 .pw-inner{
     position:absolute;top:50%;left:50%;z-index:2;pointer-events:none;
-    width:68%;height:68%;border-radius:50%;
-    border:4px solid transparent;
+    width:23%;height:23%;border-radius:50%;
+    border:3px solid transparent;
     background:
-        radial-gradient(circle at 42% 34%, #2b3042 0%, #14161f 72%) padding-box,
+        radial-gradient(circle at 38% 30%, #39415a 0%, #1c2130 66%, #12151f 100%) padding-box,
         conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#1e88e5,#8e24aa,#f06292,#e53935) border-box;
-    box-shadow:0 0 18px rgba(0,0,0,.55), inset 0 2px 10px rgba(0,0,0,.5);
+    box-shadow:0 4px 16px rgba(0,0,0,.5), inset 0 1px 6px rgba(255,255,255,.10);
     transform:translate(-50%,-50%);
     animation:pw-inner-spin 6s linear infinite;
 }
@@ -84,11 +109,13 @@
     to  {transform:translate(-50%,-50%) rotate(360deg)}
 }
 
-/* 指針:整支跟著轉,尖端朝外 */
+/* 指針:整支跟著轉,尖端朝外。
+   兩層陰影:貼身的一層讓刀鋒與扇形之間有實體感的接縫,散開的一層做離盤的浮起。 */
 .pw-needle{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:4;
     transform:rotate(0deg);transform-origin:50% 50%;
     transition:transform 4.6s cubic-bezier(.16,.7,.06,1);
-    filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
+    filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45))
+           drop-shadow(0 6px 14px rgba(0,0,0,.42))}
 
 .pw-hint{margin:0;font-size:.82rem;color:var(--text-dim);text-align:center;max-width:22rem}
 .pw-actions .btn{min-width:min(260px,74vw)}
@@ -103,6 +130,8 @@
 
 @section('content')
 <div class="pw-page">
+    {{-- 整版轉盤,同 /play 的理由用 sr-only 補 H1。 --}}
+    <h1 class="sr-only">{{ __('games.pure_wheel') }}</h1>
 
     <div class="pw-stage" id="pw-stage" role="button" tabindex="0"
          aria-label="{{ __('games.pure_wheel') }}">
@@ -119,6 +148,16 @@
                         <stop offset="1"    stop-color="{{ $c[0] }}"/>
                     </radialGradient>
                 @endfor
+
+                {{-- 中心暈影。扇形的漸層是「內淺外深」,12 格的淺色端全部收在圓心,
+                     沒有東西壓的話中央會糊成一片亮色。這層由中心向外淡出的陰影
+                     把軸座坐進盤面裡,也順便給指針靠近圓心的那一段一點對比。
+                     最深只到 38% 黑,而且 26% 半徑就完全透明 —— 是陰影,不是底盤。 --}}
+                <radialGradient id="pwVignette" cx="50%" cy="50%" r="50%">
+                    <stop offset="0"    stop-color="#000" stop-opacity=".38"/>
+                    <stop offset=".13"  stop-color="#000" stop-opacity=".20"/>
+                    <stop offset=".26"  stop-color="#000" stop-opacity="0"/>
+                </radialGradient>
             </defs>
 
             @for ($i = 0; $i < $count; $i++)
@@ -135,6 +174,9 @@
                       stroke="rgba(255,255,255,.4)" stroke-width="1.4"/>
             @endfor
 
+            {{-- 畫在扇形之後、外框之前,才蓋得住 12 條分隔線在圓心的交會點 --}}
+            <circle cx="{{ $cx }}" cy="{{ $cy }}" r="{{ $r }}" fill="url(#pwVignette)"/>
+
             <circle cx="{{ $cx }}" cy="{{ $cy }}" r="{{ $r }}"
                     fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"/>
         </svg>
@@ -143,54 +185,92 @@
         <div class="pw-inner"></div>
 
         {{-- 旋轉指針:長端朝外,短端為配重 --}}
+        {{-- 指針:金屬刀鋒(錶針結構)。
+
+             為什麼不是平面色塊:單一填色的指針壓在 12 個彩色扇形上,總會有幾格
+             跟它撞色。錶針的解法是「結構」而不是「顏色」—— 沿中軸分成受光與
+             背光兩個切面,再加一圈深色描邊,於是在任何底色上都靠亮暗交界被辨識
+             出來,不依賴與底色的色相差。這也是把中央黑底盤拿掉之後,指針還看得
+             清楚的原因。
+
+             尖端一小段染 --accent 是為了標示「指的是這一頭」;--gold 依 CLAUDE.md
+             保留給 premium UI,所以這裡不用金色。 --}}
         <svg class="pw-needle" id="pw-needle" viewBox="0 0 200 200"
              aria-hidden="true" focusable="false">
             <defs>
-                {{-- 愛心指針:上淺下深的粉色漸層,做出圓潤的糖果感 --}}
-                <linearGradient id="pwTip" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0"   stop-color="#ffd6e6"/>
-                    <stop offset=".45" stop-color="#ff8fb8"/>
-                    <stop offset="1"   stop-color="#f43f5e"/>
+                {{-- 受光面(左):幾乎純白到淺鋼藍 --}}
+                <linearGradient id="pwFacetL" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0"   stop-color="#ffffff"/>
+                    <stop offset=".55" stop-color="#eef3fb"/>
+                    <stop offset="1"   stop-color="#cbd5e6"/>
                 </linearGradient>
-                {{-- 柄:與愛心同色系,略暗以拉出層次 --}}
-                <linearGradient id="pwStem" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0"   stop-color="#ff9ec4"/>
-                    <stop offset=".45" stop-color="#ffe2ee"/>
-                    <stop offset="1"   stop-color="#f8759c"/>
+                {{-- 背光面(右):中鋼藍到深鋼藍,與左面拉出明度差 --}}
+                <linearGradient id="pwFacetR" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0"   stop-color="#9da9c0"/>
+                    <stop offset=".6"  stop-color="#78849e"/>
+                    <stop offset="1"   stop-color="#5a6580"/>
                 </linearGradient>
-                {{-- 中心軸的珠光效果。SVG 的 fill 屬性不接受 CSS radial-gradient(),
+                {{-- 配重尾:同色系但整體更暗,視覺重量壓在後端 --}}
+                <linearGradient id="pwTail" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0"   stop-color="#dfe6f2"/>
+                    <stop offset=".5"  stop-color="#9aa6bd"/>
+                    <stop offset="1"   stop-color="#616c85"/>
+                </linearGradient>
+                {{-- 軸心:拋光鋼的珠光。SVG 的 fill 不吃 CSS radial-gradient(),
                      必須用 <radialGradient> 定義後以 url(#id) 引用。 --}}
-                <radialGradient id="pwHub" cx="38%" cy="34%" r="72%">
-                    <stop offset="0" stop-color="#ffffff"/>
-                    <stop offset="1" stop-color="#f2e3ea"/>
+                <radialGradient id="pwHub" cx="34%" cy="28%" r="76%">
+                    <stop offset="0"   stop-color="#ffffff"/>
+                    <stop offset=".45" stop-color="#dde4f0"/>
+                    <stop offset="1"   stop-color="#9ba7bd"/>
                 </radialGradient>
             </defs>
 
-            {{-- 配重尾端:圓球,比三角形柔和 --}}
-            <circle cx="100" cy="128" r="7.5" fill="rgba(255,255,255,.7)"
-                    stroke="rgba(0,0,0,.18)" stroke-width="1"/>
-
-            {{-- 圓潤的柄 --}}
-            <rect x="93.5" y="38" width="13" height="68" rx="6.5"
-                  fill="url(#pwStem)" stroke="rgba(0,0,0,.16)" stroke-width="1"/>
-
-            {{-- 愛心指針:尖端朝外。原始愛心路徑的尖端朝下,
-                 所以整組 transform 先歸心、放大,再 rotate(180) 讓尖端轉向外側。 --}}
-            <g transform="translate(100 31) rotate(180) scale(1.34) translate(-16 -16)"
-               stroke="rgba(0,0,0,.22)" stroke-width=".9" stroke-linejoin="round">
-                <path fill="url(#pwTip)"
-                      d="M16 28.4S3.2 20.9 3.2 12.3C3.2 7.9 6.7 4.6 10.9 4.6c2.5 0 4.3 1.2 5.1 2.6.8-1.4 2.6-2.6 5.1-2.6 4.2 0 7.7 3.3 7.7 7.7 0 8.6-12.8 16.1-12.8 16.1z"/>
-                {{-- 高光小點,增加立體感 --}}
-                <ellipse cx="10.6" cy="11.2" rx="2.7" ry="2" fill="rgba(255,255,255,.85)"
-                         stroke="none" transform="rotate(-18 10.6 11.2)"/>
+            {{-- 配重尾:與刀鋒反向,讓整支指針在視覺上是平衡的 --}}
+            <g stroke="rgba(9,12,20,.55)" stroke-width="1.1" stroke-linejoin="round">
+                <path fill="url(#pwTail)"
+                      d="M100 112 L103.4 114 C104.2 122 104.9 130 105 135.2
+                         C105.1 139.2 102.9 141.8 100 141.8
+                         C97.1 141.8 94.9 139.2 95 135.2
+                         C95.1 130 95.8 122 96.6 114 Z"/>
+                <circle cx="100" cy="133.5" r="5.6" fill="url(#pwHub)"/>
             </g>
 
-            {{-- 珠光軸心 + 中央小愛心 --}}
-            <circle cx="100" cy="100" r="15" fill="url(#pwHub)"
-                    stroke="var(--accent)" stroke-width="2.5"/>
-            <path fill="var(--accent)"
-                  transform="translate(100 100) scale(.30) translate(-16 -16)"
-                  d="M16 28.4S3.2 20.9 3.2 12.3C3.2 7.9 6.7 4.6 10.9 4.6c2.5 0 4.3 1.2 5.1 2.6.8-1.4 2.6-2.6 5.1-2.6 4.2 0 7.7 3.3 7.7 7.7 0 8.6-12.8 16.1-12.8 16.1z"/>
+            {{-- 刀鋒:整體輪廓先描一次深色邊,再用兩個切面填色。
+                 先畫輪廓再蓋切面,可以避免中軸那條分界線也被描到。 --}}
+            <path d="M100 13
+                     C101.7 34 104.7 62 105.3 84.5
+                     C105.5 91.5 103.1 96.5 100 96.5
+                     C96.9 96.5 94.5 91.5 94.7 84.5
+                     C95.3 62 98.3 34 100 13 Z"
+                  fill="none" stroke="rgba(9,12,20,.6)" stroke-width="2.2"
+                  stroke-linejoin="round"/>
+            {{-- 受光切面(左半) --}}
+            <path fill="url(#pwFacetL)"
+                  d="M100 13 C98.3 34 95.3 62 94.7 84.5
+                     C94.5 91.5 96.9 96.5 100 96.5 Z"/>
+            {{-- 背光切面(右半) --}}
+            <path fill="url(#pwFacetR)"
+                  d="M100 13 C101.7 34 104.7 62 105.3 84.5
+                     C105.5 91.5 103.1 96.5 100 96.5 Z"/>
+            {{-- 尖端染色段:標示指向的那一頭 --}}
+            <path fill="var(--accent)" fill-opacity=".92"
+                  stroke="rgba(9,12,20,.5)" stroke-width="1" stroke-linejoin="round"
+                  d="M100 13 C101.1 26 101.9 32.5 102.2 37.4
+                     L97.8 37.4 C98.1 32.5 98.9 26 100 13 Z"/>
+            {{-- 沿中軸的一道細高光,做出「折出稜線」的金屬感 --}}
+            <path d="M100 20 L100 92" stroke="rgba(255,255,255,.5)" stroke-width=".9"
+                  stroke-linecap="round" fill="none"/>
+
+            {{-- 拋光軸心:外圈深色壓邊,內圈 accent 細環,中央珠光 --}}
+            <circle cx="100" cy="100" r="16.5" fill="url(#pwHub)"
+                    stroke="rgba(9,12,20,.55)" stroke-width="1.6"/>
+            <circle cx="100" cy="100" r="11.5" fill="none"
+                    stroke="var(--accent)" stroke-width="2.2" stroke-opacity=".9"/>
+            <circle cx="100" cy="100" r="5" fill="url(#pwHub)"
+                    stroke="rgba(9,12,20,.35)" stroke-width="1"/>
+            {{-- 軸心左上的高光點,定住光源方向(與兩個切面的明暗一致) --}}
+            <ellipse cx="94.2" cy="93.6" rx="4.2" ry="2.8" fill="rgba(255,255,255,.75)"
+                     transform="rotate(-38 94.2 93.6)"/>
         </svg>
 
         <div class="pw-ring"></div>

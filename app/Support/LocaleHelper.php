@@ -55,9 +55,21 @@ class LocaleHelper
         return $masterValue;
     }
 
+    /**
+     * 站台的主語系(不是當前請求的語系 —— 那個要用 app()->getLocale())。
+     *
+     * 刻意不讀 config('app.locale'):App::setLocale() 會把那個設定值覆寫成當前
+     * 語系,所以中介層跑完之後它就不再是「預設」了。詳見 config/app.php 裡
+     * 'default_locale' 的說明。
+     *
+     * 退回 fallback_locale 是為了保險 —— 就算有人把 default_locale 從設定檔裡
+     * 拿掉,fallback_locale 同樣不會被 setLocale() 動到,語意也最接近。
+     */
     public static function defaultLocale(): string
     {
-        return config('app.locale', 'zh_TW');
+        return config('app.default_locale')
+            ?? config('app.fallback_locale')
+            ?? 'zh_TW';
     }
 
     public static function prefixToLocale(?string $prefix): ?string

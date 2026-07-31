@@ -11,6 +11,15 @@ return [
     'next_turn' => '下一位',
     'min_players_2' => '至少需要 2 位玩家',
     'go_premium' => '升级 Premium',
+
+    // 看广告解锁付费内容(partials/rewarded-unlock)
+    'rewarded_hint' => '不想付费也可以：看一段广告，就能解锁 :minutes 分钟的完整题库与无限回合。',
+    'rewarded_cta' => '看广告解锁 :minutes 分钟',
+    'rewarded_active' => '完整内容已解锁，剩余',
+    'rewarded_watching' => '广告播放中… :seconds 秒后可解锁',
+    'rewarded_claim' => '完成，解锁内容',
+    'rewarded_failed' => '解锁失败，请重看一次广告。',
+    'rewarded_close' => '关闭',
     'name_separator' => '、',
 
     // Round / turn UI
@@ -22,7 +31,9 @@ return [
 
     // Dice game
     'dice_title' => '骰子挑战',
-    'dice_meta' => '情侣骰子挑战！掷出动作＋部位＋时间的随机组合，轻松→中等→激烈三阶段升温，2-6 人同机畅玩。',
+    // *_seo_title 只喂 <title> / og:title;H1 仍用 *_title,版面不变。
+    'dice_seo_title' => '骰子挑战 — 同房游戏、2–6 人同玩',
+    'dice_meta' => '情侣骰子挑战！掷出动作＋部位＋时间的随机组合，轻松→中等→激烈三阶段升温，2-6 人同机畅玩，同房游戏与多P 情境皆可。',
     'dice_subtitle' => '掷出动作＋部位＋时间的随机组合，轮流挑战！',
     'dice_label_action' => '动作',
     'dice_label_part' => '部位',
@@ -58,7 +69,8 @@ return [
 
     // Card game
     'card_title' => '情侣扑克牌',
-    'card_meta' => '情侣扑克牌：抽牌配对，牌大的指挥、牌小的服从，2-6 人同机派对游戏。',
+    'card_seo_title' => '情侣扑克牌 — 2–6 人多人游戏',
+    'card_meta' => '情侣扑克牌：抽牌配对，牌大的指挥、牌小的服从。2-6 人同机派对游戏，多人游戏与多P 情境都适合。',
     'card_subtitle' => '抽牌配对，牌大的指挥、牌小的服从',
     'card_draw' => '🃏 抽牌',
     'card_reveal' => '揭晓',
@@ -80,7 +92,8 @@ return [
 
     // King game
     'king_title' => '国王游戏',
-    'king_meta' => '国王游戏：抽到国王号令全场，命令其他玩家完成任务，派对破冰首选。',
+    'king_seo_title' => '国王游戏 — 3–6 人多人游戏',
+    'king_meta' => '国王游戏：抽到国王号令全场，命令其他玩家完成任务。3–6 人多人游戏，派对破冰与同房互换情境的首选。',
     'king_subtitle' => '抽到国王的人可以指派任务给任何玩家',
     'king_draw' => '👑 抽号',
     'king_is_king' => '你是国王！',
@@ -102,7 +115,8 @@ return [
 
     // Wheel game
     'wheel_title' => '命运转盘',
-    'wheel_meta' => '命运转盘：自定义或使用内置选项，转动命运之轮，随机决定下一个任务或挑战。',
+    'wheel_seo_title' => '命运转盘 — 多人游戏随机挑战',
+    'wheel_meta' => '命运转盘：自定义或使用内置选项，转动命运之轮，随机决定下一个任务或挑战，双人到多人游戏都适用。',
     'wheel_subtitle' => '转动命运之轮，随机指定任务或惩罚',
     'wheel_spin' => '🎡 转动转盘',
     'wheel_segment' => '选项',
@@ -193,7 +207,8 @@ return [
 
     // Who's Most Likely To（谁最有可能）
     'wml_title' => '谁最有可能',
-    'wml_meta' => '谁最有可能大冒险 — 情侣、多人派对投票游戏，成人辣度题库，看看你们之中谁最骚、最主动、最忍不住！',
+    'wml_seo_title' => '谁最有可能 — 多人游戏投票',
+    'wml_meta' => '谁最有可能大冒险 — 情侣、多人游戏派对投票，成人辣度题库，多P 场合也玩得开，看看你们之中谁最骚、最主动、最忍不住！',
     'wml_subtitle' => '大家一起投票，看看谁最有可能做出这些事',
     'wml_setup' => '输入玩家（2–8 人）',
     'wml_lead' => '谁最有可能……',

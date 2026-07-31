@@ -101,30 +101,51 @@
     <section>
         <div class="section-head">
             <h2>{{ __('ui.play_history') }}</h2>
+            @if($totalPlays > 0)
+            <span class="history-total">{{ __('ui.history_total', ['total' => $totalPlays]) }}</span>
+            @endif
         </div>
         @if($playHistory->isEmpty())
         <div class="empty-notice">{{ __('ui.no_play_history') }}</div>
-        @else
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-            @foreach($playHistory as $entry)
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;flex-wrap:wrap;{{ $loop->last ? '' : 'border-bottom:1px solid var(--border);' }}">
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                    <strong>{{ $entry->game->game_type === 'truth_or_dare' ? __('games.truth_dare') : __('games.flying_chess') }}</strong>
-                    <span style="font-size:.82rem;color:var(--text-dim)">#{{ $entry->game->code }}</span>
-                    @if($entry->is_host)
-                    <span class="badge-squares">{{ __('ui.history_as_host') }}</span>
-                    @endif
+
+        @elseif($isPremium)
+        {{-- 付費會員:依日期分組的時間軸。同一天玩的幾場收在一個節點下,
+             比一長串沒有斷點的清單容易讀出「那天玩了什麼」。 --}}
+        <div class="history-timeline">
+            @foreach($timeline as $day => $entries)
+            <div class="tl-group">
+                <div class="tl-date">
+                    <span class="tl-dot"></span>
+                    {{ \Illuminate\Support\Carbon::parse($day)->isoFormat('LL') }}
+                    <span class="tl-count">{{ __('ui.history_total', ['total' => $entries->count()]) }}</span>
                 </div>
-                <div style="display:flex;align-items:center;gap:12px">
-                    <span style="font-size:.82rem;color:var(--text-dim)">{{ $entry->created_at->format('Y/m/d H:i') }}</span>
-                    @if($entry->game->status !== 'finished')
-                    <a href="{{ $entry->game->game_type === 'truth_or_dare' ? route('truth-dare.show', $entry->game->code) : route('games.show', $entry->game->code) }}"
-                       class="btn btn-sm btn-outline">{{ __('ui.play') }}</a>
-                    @endif
+                <div class="tl-items">
+                    @foreach($entries as $entry)
+                    @include('partials.history-entry', ['entry' => $entry])
+                    @endforeach
                 </div>
             </div>
             @endforeach
         </div>
+
+        @else
+        {{-- 免費會員:最近 N 場的平面清單 --}}
+        <div class="history-list">
+            @foreach($playHistory as $entry)
+            @include('partials.history-entry', ['entry' => $entry])
+            @endforeach
+        </div>
+
+        @if($hiddenPlays > 0)
+        {{-- 只在真的有東西被鎖住時才出現。玩過的場次還沒超過免費額度時
+             顯示升級提示,只會讓人覺得莫名其妙。 --}}
+        <div class="history-locked">
+            <p>{{ __('ui.history_locked', ['count' => $freeLimit, 'hidden' => $hiddenPlays]) }}</p>
+            <a href="{{ route('premium.index') }}" class="btn btn-gold btn-sm">
+                {{ __('ui.history_upgrade_cta') }}
+            </a>
+        </div>
+        @endif
         @endif
     </section>
 

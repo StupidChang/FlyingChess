@@ -1,10 +1,26 @@
 @extends('layouts.app')
 
-@section('title', __('games.fc_lobby_title') . ' — ' . __('ui.site_name'))
+{{-- fc_lobby_seo_title 只用在 meta;頁面上的 section-label 仍是 fc_lobby_title。 --}}
+@section('title', __('games.fc_lobby_seo_title') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('games.fc_lobby_meta'))
-@section('og_title', __('games.fc_lobby_title') . ' — ' . __('ui.site_name'))
+@section('og_title', __('games.fc_lobby_seo_title') . ' — ' . __('ui.site_name'))
 @section('og_description', __('games.fc_lobby_meta'))
 @section('canonical', route('games.lobby'))
+
+@section('schema')
+    @include('partials.game-schema', [
+        'gameName' => __('games.flying_chess'),
+        'gameDescription' => __('games.desc_flying_chess'),
+        'gamePath' => 'games',
+        'minPlayers' => 2,
+        'maxPlayers' => 4,
+    ])
+    @include('partials.game-faq-schema', ['faqKey' => 'games'])
+@endsection
+
+@section('faq')
+    @include('partials.game-faq', ['faqKey' => 'games'])
+@endsection
 
 @section('content')
 <div class="container" style="padding-top:32px;padding-bottom:32px;min-height:calc(100vh - 56px)">

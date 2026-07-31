@@ -1,9 +1,46 @@
 @extends('layouts.app')
-@section('title', __('seo.lobby_title') . ' — ' . __('ui.site_name'))
-@section('meta_description', __('seo.lobby_description'))
-@section('og_title', __('seo.lobby_title') . ' — ' . __('ui.site_name'))
-@section('og_description', __('seo.lobby_description'))
+{{-- game_hall_seo_* 只用在 meta;頁面上的 H1 與說明文字仍是 seo.lobby_title /
+     seo.lobby_description,所以關鍵字進得了搜尋結果而版面不變。 --}}
+@section('title', __('seo.game_hall_seo_title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('seo.game_hall_seo_description'))
+@section('og_title', __('seo.game_hall_seo_title') . ' — ' . __('ui.site_name'))
+@section('og_description', __('seo.game_hall_seo_description'))
 @section('canonical', route('game-hall.index'))
+
+{{-- 遊戲大廳是「站上有哪些遊戲」的權威清單,用 ItemList 讓生成式引擎一次拿到
+     全部項目與各自的網址,而不必自己爬卡片 HTML 猜。順序與畫面上的卡片一致。 --}}
+@section('schema')
+@php
+    use App\Support\LocaleHelper;
+    $hallLocale = app()->getLocale();
+    $hallGames = [
+        ['games', __('games.flying_chess'), __('games.desc_flying_chess')],
+        ['truth-dare', __('games.truth_dare'), __('games.desc_truth_dare')],
+        ['card-game', __('minigame.card_title'), __('games.desc_card')],
+        ['king-game', __('minigame.king_title'), __('games.desc_king')],
+        ['dice-game', __('minigame.dice_title'), __('games.desc_dice')],
+        ['wheel-game', __('minigame.wheel_title'), __('games.desc_wheel')],
+        ['wheel', __('games.pure_wheel'), __('games.desc_pure_wheel')],
+        ['who-most-likely', __('minigame.wml_title'), __('games.desc_wml')],
+    ];
+@endphp
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "ItemList",
+  "name": @json(__('seo.lobby_title')),
+  "numberOfItems": {{ count($hallGames) }},
+  "itemListElement": [
+@foreach($hallGames as $i => [$path, $name, $desc])
+    { "@@type": "ListItem", "position": {{ $i + 1 }},
+      "item": { "@@type": "VideoGame", "name": @json($name), "description": @json($desc),
+                "url": @json(LocaleHelper::localizedUrl($hallLocale, $path)) } }@if($i < count($hallGames) - 1),@endif
+
+@endforeach
+  ]
+}
+</script>
+@endsection
 @section('content')
 
 <section class="game-cards-section section">

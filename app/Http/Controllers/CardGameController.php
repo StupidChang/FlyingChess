@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\CardGameService;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 
 class CardGameController extends Controller
@@ -14,7 +15,8 @@ class CardGameController extends Controller
      */
     public function show(Request $request)
     {
-        $isPremium = $request->user()?->isPremium() ?? false;
+        // 看廣告解鎖的時限內,訪客也算有內容權限 —— 見 App\Support\PremiumAccess。
+        $isPremium = PremiumAccess::content($request->user());
         $activities = CardGameService::getActivityPools($isPremium);
 
         return view('cards.show', [

@@ -42,6 +42,10 @@ return [
     'desc_wml' => 'Everyone votes to reveal who\'s the naughtiest and boldest — bold adult question bank.',
     'desc_wheel' => 'Spin the wheel of fortune — let chance decide the next task.',
     'desc_pure_wheel' => 'Lay the phone flat, tap once, and let the needle pick someone',
+    'pure_wheel_seo_title' => 'Pure Wheel — random picker for same-room games',
+    'pure_wheel_seo_meta' => 'Lay the phone flat, tap once, and let the needle pick someone in the room. A random picker for same-room games and multiplayer parties.',
+    // Short label for /llms.txt link text — seo.templates_title is a full sentence.
+    'templates_short' => 'Board Templates',
 
     // Bucket list / time capsule
     'bucket_list' => 'Bucket list',
@@ -51,7 +55,11 @@ return [
 
     // Flying chess lobby
     'fc_lobby_title' => 'Flying Chess Lobby',
-    'fc_lobby_meta' => 'Browse flying-chess boards and pick the one you want to play. Classic Ludo, built for couples.',
+    // *_seo_title only feeds <title> and og:title — the on-page H1 and label keep
+    // using fc_lobby_title, so keywords land in meta without changing the layout.
+    // Same pattern on the other game pages.
+    'fc_lobby_seo_title' => 'Flying Chess Lobby — 2–4 player multiplayer',
+    'fc_lobby_meta' => 'Browse flying-chess boards and pick the one you want to play. Classic Ludo for 2–4 player multiplayer or against AI, built for couples.',
     'fc_lobby_h1' => 'Pick a board and start',
     'fc_lobby_desc' => 'Browse the templates and pick the one you like.',
     'no_boards' => 'No boards available yet.',

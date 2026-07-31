@@ -5,6 +5,21 @@
 @section('og_description', __('seo.truth_dare_description'))
 @section('canonical', route('truth-dare.lobby'))
 
+@section('schema')
+    @include('partials.game-schema', [
+        'gameName' => __('games.truth_dare'),
+        'gameDescription' => __('games.desc_truth_dare'),
+        'gamePath' => 'truth-dare',
+        'minPlayers' => 1,
+        'maxPlayers' => 6,
+    ])
+    @include('partials.game-faq-schema', ['faqKey' => 'truth-dare'])
+@endsection
+
+@section('faq')
+    @include('partials.game-faq', ['faqKey' => 'truth-dare'])
+@endsection
+
 @section('styles')
 <link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>

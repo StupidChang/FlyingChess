@@ -19,6 +19,7 @@ class AgeVerification
         'terms',
         'sitemap.xml',
         'robots.txt',
+        'llms.txt',
         'ads.txt',
         'premium/callback',
         'premium/result',
@@ -48,7 +49,31 @@ class AgeVerification
         'favicon',
     ];
 
+    /**
+     * Bots allowed past the age gate.
+     *
+     * Matched with a case-insensitive substring test against the UA, so entries
+     * must stay specific enough not to swallow each other — 'ClaudeBot' and
+     * 'Claude-User' are different products and only one of them is here.
+     *
+     * The split below is deliberate and is the whole GEO policy for this site:
+     *
+     *   Retrieval / citation bots fetch a page because a user just asked
+     *   something, and the answer links back here. They are the ones worth
+     *   letting in — without them the site cannot appear in ChatGPT, Perplexity
+     *   or Claude answers at all, because the age gate returns a 200 with no
+     *   game content and that is all they would ever see.
+     *
+     *   Training bots (GPTBot, ClaudeBot, CCBot, Bytespider, meta-externalagent,
+     *   Amazonbot …) take the content into a model and send nothing back. For an
+     *   adult site that is cost without return, so they stay gated, and
+     *   robots.txt disallows them as well.
+     *
+     * To let the training crawlers in too, move their tokens into this array —
+     * and update the matching Disallow block in the robots route.
+     */
     private const CRAWLER_PATTERNS = [
+        // Classic search + social preview
         'Googlebot',
         'Bingbot',
         'Slurp',
@@ -59,6 +84,14 @@ class AgeVerification
         'Twitterbot',
         'LinkedInBot',
         'Applebot',
+
+        // Generative-engine retrieval / citation (see note above)
+        'OAI-SearchBot',    // OpenAI's search index behind ChatGPT search
+        'ChatGPT-User',     // ChatGPT fetching a page for the user's current turn
+        'PerplexityBot',    // Perplexity's index
+        'Perplexity-User',  // Perplexity fetching on a user's request
+        'Claude-User',      // Claude fetching on a user's request
+        'Claude-SearchBot', // Anthropic's search index
     ];
 
     public function handle(Request $request, Closure $next): Response

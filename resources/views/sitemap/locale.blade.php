@@ -14,6 +14,8 @@ $paths = [
     ['path' => 'dice-game',       'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'king-game',       'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'wheel-game',      'priority' => '0.7', 'changefreq' => 'monthly'],
+    // 純轉盤。首頁與遊戲大廳各連了 4 次、回 200 可索引,但一直漏在 sitemap 外。
+    ['path' => 'wheel',           'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'who-most-likely', 'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'community',       'priority' => '0.7', 'changefreq' => 'daily'],

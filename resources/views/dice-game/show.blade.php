@@ -1,7 +1,23 @@
 @extends('layouts.app')
-@section('title', __('minigame.dice_title') . ' — ' . __('ui.site_name'))
+{{-- dice_seo_title 只用在 meta;頁面 H1 仍是 dice_title。 --}}
+@section('title', __('minigame.dice_seo_title') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('minigame.dice_meta'))
 @section('canonical', route('dice-game.show'))
+
+@section('schema')
+    @include('partials.game-schema', [
+        'gameName' => __('minigame.dice_title'),
+        'gameDescription' => __('games.desc_dice'),
+        'gamePath' => 'dice-game',
+        'minPlayers' => 2,
+        'maxPlayers' => 6,
+    ])
+    @include('partials.game-faq-schema', ['faqKey' => 'dice-game'])
+@endsection
+
+@section('faq')
+    @include('partials.game-faq', ['faqKey' => 'dice-game'])
+@endsection
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
@@ -184,6 +200,9 @@
     </div>
 </div>
 
+    {{-- 常駐的「看廣告解鎖」提示。刻意不做成彈窗:一群人圍著一台裝置玩的時候,
+         遊戲中跳出任何東西毀掉的是整場氣氛,不只是一個人的體驗。 --}}
+    @include('partials.rewarded-unlock')
 @endsection
 
 @section('scripts')

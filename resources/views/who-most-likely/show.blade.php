@@ -1,7 +1,23 @@
 @extends('layouts.app')
-@section('title', __('minigame.wml_title') . ' — ' . __('ui.site_name'))
+{{-- wml_seo_title 只用在 meta;頁面 H1 仍是 wml_title。 --}}
+@section('title', __('minigame.wml_seo_title') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('minigame.wml_meta'))
 @section('canonical', route('who-most-likely.show'))
+
+@section('schema')
+    @include('partials.game-schema', [
+        'gameName' => __('minigame.wml_title'),
+        'gameDescription' => __('games.desc_wml'),
+        'gamePath' => 'who-most-likely',
+        'minPlayers' => 2,
+        'maxPlayers' => 8,
+    ])
+    @include('partials.game-faq-schema', ['faqKey' => 'who-most-likely'])
+@endsection
+
+@section('faq')
+    @include('partials.game-faq', ['faqKey' => 'who-most-likely'])
+@endsection
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
@@ -98,6 +114,9 @@
     </div>
 </div>
 
+    {{-- 常駐的「看廣告解鎖」提示。刻意不做成彈窗:一群人圍著一台裝置玩的時候,
+         遊戲中跳出任何東西毀掉的是整場氣氛,不只是一個人的體驗。 --}}
+    @include('partials.rewarded-unlock')
 @endsection
 
 @section('scripts')

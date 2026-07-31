@@ -18,9 +18,27 @@
     $isKing = ($mode ?? 'card') === 'king';
 @endphp
 
-@section('title', ($isKing ? __('minigame.king_title') : __('minigame.card_title')) . ' — ' . __('ui.site_name'))
+{{-- *_seo_title 只用在 meta;下面的 H1 與分頁按鈕仍用 *_title。 --}}
+@section('title', ($isKing ? __('minigame.king_seo_title') : __('minigame.card_seo_title')) . ' — ' . __('ui.site_name'))
 @section('meta_description', $isKing ? __('minigame.king_meta') : __('minigame.card_meta'))
 @section('canonical', $isKing ? route('king-game.show') : route('card-game.show'))
+
+{{-- 同一個 view 服務兩條路由,schema 也要跟著 $isKing 分岔,否則國王遊戲頁會
+     宣告成撲克牌,連人數下限(3 vs 2)都是錯的。 --}}
+@section('schema')
+    @include('partials.game-schema', [
+        'gameName' => $isKing ? __('minigame.king_title') : __('minigame.card_title'),
+        'gameDescription' => $isKing ? __('games.desc_king') : __('games.desc_card'),
+        'gamePath' => $isKing ? 'king-game' : 'card-game',
+        'minPlayers' => $isKing ? 3 : 2,
+        'maxPlayers' => 6,
+    ])
+    @include('partials.game-faq-schema', ['faqKey' => $isKing ? 'king-game' : 'card-game'])
+@endsection
+
+@section('faq')
+    @include('partials.game-faq', ['faqKey' => $isKing ? 'king-game' : 'card-game'])
+@endsection
 
 @section('styles')
 {{-- 每個小遊戲頁都要自己引入 minigames.css(mg-page / mg-setup / mg-card-* 都在裡面) --}}
@@ -149,6 +167,9 @@ body[data-cm-mode="king"] .p-gender{display:none}
         </div>
     </div>
 </div>
+    {{-- 常駐的「看廣告解鎖」提示。刻意不做成彈窗:一群人圍著一台裝置玩的時候,
+         遊戲中跳出任何東西毀掉的是整場氣氛,不只是一個人的體驗。 --}}
+    @include('partials.rewarded-unlock')
 @endsection
 
 @section('scripts')

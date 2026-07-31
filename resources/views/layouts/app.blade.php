@@ -71,6 +71,10 @@
             document.documentElement.setAttribute('data-theme', t);
         })();
     </script>
+
+    {{-- 結構化資料:Organization 每頁都出,頁面自己的 schema 走 @yield('schema') --}}
+    @include('partials.schema-org')
+    @yield('schema')
 </head>
 <body>
 <header class="site-header">
@@ -182,6 +186,9 @@
     @endif
     <script>document.querySelectorAll('.toast').forEach(function(t){setTimeout(function(){t.remove()},3400)})</script>
     @yield('content')
+    {{-- 遊戲頁的 FAQ 區塊。放在這裡而不是各頁 content 尾端,是因為八個遊戲頁的
+         content 結構各不相同,集中在版型收尾才不會每頁插的位置都不一樣。 --}}
+    @yield('faq')
 </main>
 
 <footer class="site-footer">

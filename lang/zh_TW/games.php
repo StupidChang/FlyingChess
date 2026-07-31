@@ -42,6 +42,10 @@ return [
     'desc_wml' => '大家一起投票，看看你們之中誰最騷、最主動、最忍不住，成人辣度題庫',
     'desc_wheel' => '轉動命運之輪，隨機指定任務或懲罰，讓緣分來決定',
     'desc_pure_wheel' => '手機平放桌面，按一下讓指針隨機指向在座的某個人',
+    'pure_wheel_seo_title' => '純轉盤 — 同房遊戲隨機點名',
+    'pure_wheel_seo_meta' => '手機平放桌面，按一下讓指針隨機指向在座的某個人。同房遊戲、多人遊戲派對的隨機點名工具。',
+    // 短標籤,給 /llms.txt 當連結名稱用(seo.templates_title 是整句，當連結名太長)
+    'templates_short' => '棋盤模板',
 
     // Bucket list / time capsule
     'bucket_list' => '共同清單',
@@ -51,7 +55,10 @@ return [
 
     // Flying chess lobby
     'fc_lobby_title' => '飛行棋大廳',
-    'fc_lobby_meta' => '瀏覽各種飛行棋棋盤，選擇喜歡的棋盤開始遊戲！經典 Ludo 飛行棋，情侶必玩。',
+    // *_seo_title 只餵 <title> 與 og:title，頁面上的 H1/標籤仍用 fc_lobby_title，
+    // 這樣關鍵字進得了 meta 而版面不變。其他遊戲頁同一套做法。
+    'fc_lobby_seo_title' => '飛行棋大廳 — 2–4 人多人遊戲',
+    'fc_lobby_meta' => '瀏覽各種飛行棋棋盤，選擇喜歡的棋盤開始遊戲！經典 Ludo 飛行棋，2–4 人多人遊戲或 AI 對手，情侶必玩。',
     'fc_lobby_h1' => '選擇棋盤開始遊戲',
     'fc_lobby_desc' => '瀏覽各種棋盤模板，找到你喜歡的開始遊玩',
     'no_boards' => '目前沒有可用的棋盤',

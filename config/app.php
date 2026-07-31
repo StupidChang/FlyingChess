@@ -80,6 +80,23 @@ return [
 
     'locale' => env('APP_LOCALE', 'zh_TW'),
 
+    /*
+     * 站台的主語系 —— 「這個網站本來是什麼語言」,與「這個請求正在用什麼語言」
+     * 是兩件事。
+     *
+     * 為什麼不能直接用上面的 'locale':Laravel 的 App::setLocale() 內部會執行
+     * config(['app.locale' => $locale]),也就是**把這個設定值改掉**。SetLocale
+     * 中介層一跑,config('app.locale') 就變成當前請求的語系,再也讀不回原本的預設。
+     *
+     * 這個 bug 真的發生過,而且症狀很隱蔽:
+     *   - schema.org 的 Organization @id 四個語系各產生一個,同一個站被當成四個實體
+     *   - sitemap 的 x-default 指向當前語系而不是主語系
+     *   - LocaleHelper::pickTranslation() 的「當前語系就是主語系嗎」永遠成立,
+     *     於是資料庫裡的翻譯欄位從來沒有被讀出來過
+     * 三者都不會報錯,只是安靜地不對。
+     */
+    'default_locale' => env('APP_DEFAULT_LOCALE', 'zh_TW'),
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'zh_TW'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'zh_TW'),
@@ -104,8 +121,8 @@ return [
     'available_locales' => [
         'zh_TW' => ['name' => '繁體中文', 'native' => '繁體中文', 'prefix' => 'tw', 'hreflang' => 'zh-TW', 'ready' => true],
         'en' => ['name' => 'English',  'native' => 'English',  'prefix' => 'en', 'hreflang' => 'en',    'ready' => true],
-        'zh_CN' => ['name' => '簡體中文', 'native' => '简体中文', 'prefix' => 'cn', 'hreflang' => 'zh-CN', 'ready' => false],
-        'ja' => ['name' => '日本語',   'native' => '日本語',   'prefix' => 'jp', 'hreflang' => 'ja',    'ready' => false],
+        'zh_CN' => ['name' => '簡體中文', 'native' => '简体中文', 'prefix' => 'cn', 'hreflang' => 'zh-CN', 'ready' => true],
+        'ja' => ['name' => '日本語',   'native' => '日本語',   'prefix' => 'jp', 'hreflang' => 'ja',    'ready' => true],
     ],
 
     /*

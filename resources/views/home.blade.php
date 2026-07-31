@@ -373,7 +373,7 @@
             </details>
             <details class="faq-item">
                 <summary class="faq-question">{{ __('home.faq_q2') }}</summary>
-                <div class="faq-answer"><p>{{ __('home.faq_a2', ['price' => config('premium.price')]) }}</p></div>
+                <div class="faq-answer"><p>{{ __('home.faq_a2', ['price' => \App\Support\Pricing::entryPrice()]) }}</p></div>
             </details>
             <details class="faq-item">
                 <summary class="faq-question">{{ __('home.faq_q3') }}</summary>
@@ -453,6 +453,9 @@ function copyShareCode(el) {
   "url": @json(LocaleHelper::localizedUrl(app()->getLocale(), '')),
   "description": @json(__('home.schema_site_desc')),
   "inLanguage": @json(LocaleHelper::hreflang(app()->getLocale())),
+  {{-- 指回 partials/schema-org 的 Organization,讓 WebSite 與發布者是同一張圖
+       上的兩個節點,而不是兩個互不相干的宣告。 --}}
+  "publisher": { "@@id": @json(LocaleHelper::localizedUrl(LocaleHelper::defaultLocale(), '').'#organization') },
   "sameAs": []
 }
 </script>

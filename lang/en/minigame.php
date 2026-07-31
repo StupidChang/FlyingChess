@@ -10,6 +10,15 @@ return [
     'next_turn' => 'Next player',
     'min_players_2' => 'Need at least 2 players',
     'go_premium' => 'Go Premium',
+
+    // Watch-an-ad unlock (partials/rewarded-unlock)
+    'rewarded_hint' => 'Not ready to pay? Watch one ad to unlock the full decks and unlimited rounds for :minutes minutes.',
+    'rewarded_cta' => 'Watch an ad — :minutes min',
+    'rewarded_active' => 'Full content unlocked — time left',
+    'rewarded_watching' => 'Ad playing… unlock available in :seconds s',
+    'rewarded_claim' => 'Done — unlock',
+    'rewarded_failed' => 'Unlock failed. Please watch the ad again.',
+    'rewarded_close' => 'Close',
     'name_separator' => ', ',
 
     'round_n' => 'Round :n',
@@ -19,7 +28,9 @@ return [
     'tier_intense' => 'Intense',
 
     'dice_title' => 'Dice Challenge',
-    'dice_meta' => 'Roll the dice for couples — action × body part × duration, ramping from easy to intense. 2–6 local players.',
+    // *_seo_title only feeds <title> / og:title; the H1 keeps using *_title.
+    'dice_seo_title' => 'Dice Challenge — same-room game for 2–6',
+    'dice_meta' => 'Roll the dice for couples — action × body part × duration, ramping from easy to intense. 2–6 local players, suited to same-room games and group play.',
     'dice_subtitle' => 'Roll action × body part × duration — take turns and rise to the challenge.',
     'dice_label_action' => 'Action',
     'dice_label_part' => 'Body part',
@@ -54,7 +65,8 @@ return [
     'dice_premium_gate' => 'Free version caps at 6 rounds. Go Premium to unlock unlimited rounds and bolder dice!',
 
     'card_title' => 'Couple Card Game',
-    'card_meta' => 'Draw and pair up — higher card commands, lower card obeys. 2–6 local players, party mode.',
+    'card_seo_title' => 'Couple Card Game — 2–6 player multiplayer',
+    'card_meta' => 'Draw and pair up — higher card commands, lower card obeys. 2–6 local players in party mode, made for multiplayer and group play.',
     'card_subtitle' => 'Draw, pair up — higher card commands.',
     'card_draw' => '🃏 Draw',
     'card_reveal' => 'Reveal',
@@ -75,7 +87,8 @@ return [
     'card_resting' => ':names rest this round',
 
     'king_title' => "King's Game",
-    'king_meta' => "King's Game — whoever draws the King commands the rest. The classic ice-breaker, online.",
+    'king_seo_title' => "King's Game — 3–6 player multiplayer",
+    'king_meta' => "King's Game — whoever draws the King commands the rest. 3–6 player multiplayer, the classic ice-breaker for parties and same-room swap sessions.",
     'king_subtitle' => 'Whoever draws the King assigns tasks to anyone in the room.',
     'king_draw' => '👑 Draw',
     'king_is_king' => 'You are the King!',
@@ -96,7 +109,8 @@ return [
     'king_setup_players' => 'Players (3-6)',
 
     'wheel_title' => 'Wheel of Fortune',
-    'wheel_meta' => 'Wheel of Fortune — use the built-in options or add your own; spin to randomize the next task.',
+    'wheel_seo_title' => 'Wheel of Fortune — multiplayer random challenge',
+    'wheel_meta' => 'Wheel of Fortune — use the built-in options or add your own; spin to randomize the next task. Works for two players or full multiplayer.',
     'wheel_subtitle' => 'Spin the wheel to randomly assign a task or penalty.',
     'wheel_spin' => '🎡 Spin',
     'wheel_segment' => 'Option',
@@ -187,7 +201,8 @@ return [
 
     // Who's Most Likely To
     'wml_title' => 'Who\'s Most Likely To',
-    'wml_meta' => 'Who\'s Most Likely To — a couples & party voting game with a bold adult question bank. Find out who\'s the naughtiest, boldest and least able to resist!',
+    'wml_seo_title' => 'Who\'s Most Likely To — multiplayer voting game',
+    'wml_meta' => 'Who\'s Most Likely To — a couples & multiplayer party voting game with a bold adult question bank, great for group play. Find out who\'s the naughtiest, boldest and least able to resist!',
     'wml_subtitle' => 'Everyone votes to reveal who\'s most likely to do these things',
     'wml_setup' => 'Add players (2–8)',
     'wml_lead' => 'Who\'s most likely to…',

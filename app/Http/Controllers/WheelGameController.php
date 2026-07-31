@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Services\WheelGameService;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 
 class WheelGameController extends Controller
 {
     public function show(Request $request)
     {
-        $isPremium = $request->user()?->isPremium() ?? false;
+        // 看廣告解鎖的時限內,訪客也算有內容權限 —— 見 App\Support\PremiumAccess。
+        $isPremium = PremiumAccess::content($request->user());
         $segments = WheelGameService::getSegmentPools($isPremium);
 
         return view('wheel-game.show', compact('isPremium', 'segments'));
