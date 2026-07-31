@@ -51,6 +51,7 @@ class TimeCapsuleController extends Controller
                 'title' => $data['title'],
                 'open_at' => $data['open_at'],
                 'notify_email' => $data['notify_email'] ?? null,
+                'locale' => app()->getLocale(),
                 'owner_token' => $ownerToken,
             ]);
 

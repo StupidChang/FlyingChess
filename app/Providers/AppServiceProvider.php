@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Support\LocaleHelper;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -25,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        ResetPassword::createUrlUsing(function ($notifiable, string $token) {
+        $resetUrl = function ($notifiable, string $token) {
             $prefix = LocaleHelper::localeToPrefix(app()->getLocale())
                 ?? LocaleHelper::localeToPrefix(LocaleHelper::defaultLocale());
 
@@ -34,7 +35,9 @@ class AppServiceProvider extends ServiceProvider
                 'token' => $token,
                 'email' => $notifiable->getEmailForPasswordReset(),
             ], false));
-        });
+        };
+
+        ResetPassword::createUrlUsing($resetUrl);
 
         VerifyEmail::createUrlUsing(function ($notifiable) {
             $prefix = LocaleHelper::localeToPrefix(app()->getLocale())
@@ -49,6 +52,37 @@ class AppServiceProvider extends ServiceProvider
                     'hash' => sha1($notifiable->getEmailForVerification()),
                 ]
             );
+        });
+
+        /*
+         * Framework defaults are English-only. Both closures run inside
+         * Lang::withLocale($notifiable->preferredLocale()), so __() already
+         * resolves to the recipient's language — see User::preferredLocale().
+         */
+        VerifyEmail::toMailUsing(function ($notifiable, string $url) {
+            return (new MailMessage)
+                ->subject(__('mail.verify_subject'))
+                ->greeting(__('mail.verify_greeting', ['name' => $notifiable->name]))
+                ->line(__('mail.verify_line1'))
+                ->action(__('mail.verify_action'), $url)
+                ->line(__('mail.verify_line2'))
+                ->salutation(__('mail.salutation'));
+        });
+
+        // NOTE: this callback receives the raw token, not a URL — and setting it
+        // makes the framework skip resetUrl(), so createUrlUsing above never
+        // fires for mail. Build the link here with the same shared closure.
+        ResetPassword::toMailUsing(function ($notifiable, string $token) use ($resetUrl) {
+            $expire = config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60);
+
+            return (new MailMessage)
+                ->subject(__('mail.reset_subject'))
+                ->greeting(__('mail.reset_greeting', ['name' => $notifiable->name]))
+                ->line(__('mail.reset_line1'))
+                ->action(__('mail.reset_action'), $resetUrl($notifiable, $token))
+                ->line(__('mail.reset_line2', ['count' => $expire]))
+                ->line(__('mail.reset_line3'))
+                ->salutation(__('mail.salutation'));
         });
     }
 }

@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Support\LocaleHelper;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -22,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'locale',
         'password',
         'premium_expires_at',
         'is_admin',
@@ -54,6 +57,19 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_banned' => 'boolean',
             'banned_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Laravel wraps notification sending in Lang::withLocale() using this value,
+     * which also fixes the {locale} prefix on verification / reset links built
+     * in AppServiceProvider. Older rows have no locale, so fall back to the site
+     * default rather than whatever locale the sending process happens to be in.
+     */
+    public function preferredLocale(): string
+    {
+        return LocaleHelper::isSupported((string) $this->locale)
+            ? $this->locale
+            : LocaleHelper::defaultLocale();
     }
 
     public function boards(): HasMany

@@ -8,10 +8,13 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Traits\Localizable;
 use Throwable;
 
 class SendCapsuleReminders extends Command
 {
+    use Localizable;
+
     protected $signature = 'capsule:send-reminders';
 
     protected $description = 'Email capsule owners on the day their time capsule unlocks';
@@ -31,18 +34,27 @@ class SendCapsuleReminders extends Command
 
         foreach ($capsules as $capsule) {
             try {
-                $localePrefix = LocaleHelper::localeToPrefix(LocaleHelper::defaultLocale()) ?? 'tw';
+                // Capsules created before the locale column exists have none —
+                // fall back to the site default rather than the CLI locale.
+                $locale = LocaleHelper::isSupported((string) $capsule->locale)
+                    ? $capsule->locale
+                    : LocaleHelper::defaultLocale();
+                $localePrefix = LocaleHelper::localeToPrefix($locale) ?? 'tw';
+
                 $url = url(route('time-capsule.show', [
                     'locale' => $localePrefix,
                     'shareCode' => $capsule->share_code,
                 ], false));
-                $body = "你的時間膠囊「{$capsule->title}」今天可以開封了。\n\n"
-                      ."點開連結回去看看：\n{$url}\n\n"
-                      .'— 枕邊遊戲 PillowPlay';
 
-                Mail::raw($body, function ($message) use ($capsule) {
+                [$subject, $body] = $this->withLocale($locale, fn () => [
+                    __('mail.capsule_subject', ['title' => $capsule->title]),
+                    __('mail.capsule_body', ['title' => $capsule->title, 'url' => $url])
+                        ."\n\n".__('mail.salutation'),
+                ]);
+
+                Mail::raw($body, function ($message) use ($capsule, $subject) {
                     $message->to($capsule->notify_email)
-                        ->subject("📦 時間膠囊「{$capsule->title}」今天開封！");
+                        ->subject($subject);
                 });
 
                 $capsule->update(['reminder_sent' => true]);

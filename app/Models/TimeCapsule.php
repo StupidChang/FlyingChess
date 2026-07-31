@@ -13,7 +13,7 @@ class TimeCapsule extends Model
 {
     protected $fillable = [
         'share_code', 'title', 'open_at', 'sealed_at', 'opened_at',
-        'notify_email', 'owner_token', 'partner_token', 'reminder_sent',
+        'notify_email', 'locale', 'owner_token', 'partner_token', 'reminder_sent',
     ];
 
     protected $casts = [

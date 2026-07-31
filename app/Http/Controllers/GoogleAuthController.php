@@ -74,6 +74,7 @@ class GoogleAuthController extends Controller
         $user->name = $user->name ?: (Str::of((string) $g->getName())->trim()->limit(40, '')->toString()
             ?: Str::before($email, '@'));
         $user->email_verified_at = $user->email_verified_at ?: now();
+        $user->locale = $user->locale ?: app()->getLocale();
         $user->save();
 
         Auth::login($user, remember: true);
