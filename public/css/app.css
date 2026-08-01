@@ -1200,6 +1200,14 @@ select.admin-search-input{cursor:pointer;min-width:140px}
 .badge-tier--medium{background:#f59e0b;color:#000}
 .badge-tier--intense{background:#ef4444;color:#fff}
 .badge-tier--neutral{background:var(--surface2);color:var(--text-dim)}
+/* 適用人數。跟強度是不同的軸,所以刻意用外框而不是實心,兩欄擺在一起不會搞混。 */
+.badge-aud{
+  display:inline-block;padding:2px 8px;font-size:.75rem;font-weight:600;
+  border-radius:6px;white-space:nowrap;border:1px solid;
+}
+.badge-aud--both{color:var(--text-dim);border-color:var(--border);background:var(--surface2)}
+.badge-aud--couple{color:#f0a3bd;border-color:#a8446b;background:rgba(236,72,153,.12)}
+.badge-aud--party{color:#8fb8f5;border-color:#3f6ca8;background:rgba(59,130,246,.12)}
 
 /* ── Admin responsive ── */
 @media(max-width:600px){

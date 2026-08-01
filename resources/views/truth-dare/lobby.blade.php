@@ -33,11 +33,27 @@
 .td-start-form .form-group{margin-bottom:16px}
 .td-start-form .btn-submit{width:100%;font-size:1.1rem;padding:12px}
 
-.td-mode-toggle{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.td-mode-toggle label{flex:1;text-align:center;padding:10px 12px;cursor:pointer;font-size:.9rem;color:var(--text-dim);background:var(--bg);transition:background .2s,color .2s;user-select:none}
-.td-mode-toggle input{display:none}
-.td-mode-toggle input:checked + label{background:var(--gold);color:var(--bg);font-weight:600}
-.td-mode-toggle input#mode-adult:checked + label{background:var(--red,#f87171);color:#2a0a0a}
+/* 場合選擇。兩張卡片而不是下拉 —— 這是開局唯一要想一下的決定,
+   而且兩邊的差別要看得到,不能只是一個看不出後果的選項。 */
+.td-mode-pick{margin:20px 0 16px}
+.td-mode-pick-label{display:block;font-size:.85rem;color:var(--text-dim);margin-bottom:8px}
+.td-mode-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.td-mode-opt{position:relative;display:block;cursor:pointer}
+.td-mode-opt input{position:absolute;opacity:0;width:0;height:0}
+.td-mode-opt > span{
+  display:block;padding:12px;border-radius:10px;
+  background:var(--bg);border:1px solid var(--border);
+  transition:border-color .2s ease,background .2s ease,transform .2s ease;
+}
+.td-mode-opt strong{display:block;font-size:.95rem;color:var(--text);margin-bottom:3px}
+.td-mode-opt em{display:block;font-style:normal;font-size:.75rem;color:var(--text-dim);line-height:1.5}
+.td-mode-opt:hover > span{border-color:var(--text-dim)}
+.td-mode-opt input:checked + span{border-color:var(--gold);background:rgba(217,164,65,.08)}
+.td-mode-opt input:checked + span strong{color:var(--gold)}
+/* 鍵盤操作看得到焦點 —— 真正的 input 是藏起來的,焦點框要自己畫 */
+.td-mode-opt input:focus-visible + span{outline:2px solid var(--gold);outline-offset:2px}
+@media(max-width:420px){.td-mode-opts{grid-template-columns:1fr}}
+
 .td-mode-desc{font-size:.8rem;color:var(--text-dim);text-align:center;margin-top:-12px;margin-bottom:16px;min-height:1.2em}
 .td-mode-desc.adult-desc{color:var(--red,#f87171)}
 </style>
@@ -65,14 +81,6 @@
                 <svg class="mg-cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.467 5.99 5.99 0 0 0-1.925 3.546 5.974 5.974 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" /></svg>
                 <div class="label">{{ __('games.td_cat_dare_adult') }}</div>
             </div>
-            <div class="mg-cat-preview">
-                <svg class="mg-cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
-                <div class="label">{{ __('games.td_cat_couple_adult') }}</div>
-            </div>
-            <div class="mg-cat-preview">
-                <svg class="mg-cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.456-2.456L14.25 6l1.035-.259a3.375 3.375 0 0 0 2.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" /></svg>
-                <div class="label">{{ __('games.td_cat_party_adult') }}</div>
-            </div>
         </div>
 
         <form action="{{ route('truth-dare.create') }}" method="POST" id="td-create-form">
@@ -91,6 +99,29 @@
                     </div>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline mg-add-player" id="td-add-player" onclick="tdAddPlayer()">{{ __('minigame.add_player') }}</button>
+            </div>
+
+            {{-- 場合。題目池差在這裡:情侶場的大冒險指名「另一半」,多人場指名
+                 「在場的人」,混在一起就會抽到對不上場合的題目。預設跟著人數走,
+                 但兩個朋友(不是情侶)一起玩時要能自己改。 --}}
+            <div class="td-mode-pick">
+                <span class="td-mode-pick-label">{{ __('games.td_mode_label') }}</span>
+                <div class="td-mode-opts">
+                    <label class="td-mode-opt">
+                        <input type="radio" name="mode" value="couple" id="td-mode-couple" checked>
+                        <span>
+                            <strong>{{ __('games.td_mode_couple') }}</strong>
+                            <em>{{ __('games.td_mode_couple_desc') }}</em>
+                        </span>
+                    </label>
+                    <label class="td-mode-opt">
+                        <input type="radio" name="mode" value="party" id="td-mode-party">
+                        <span>
+                            <strong>{{ __('games.td_mode_party') }}</strong>
+                            <em>{{ __('games.td_mode_party_desc') }}</em>
+                        </span>
+                    </label>
+                </div>
             </div>
 
             {{-- 18+ only — normal mode removed; the whole site is adults-only --}}
@@ -120,6 +151,19 @@
     if (el) el.value = sessionStorage.getItem('tab_id');
 })();
 
+/* 人數決定預選哪一個場合。使用者一旦自己點過,就不再幫他改回去 ——
+   兩個朋友選了多人場,不該因為又加了一個人就被系統覆寫。 */
+var tdModeTouched = false;
+document.querySelectorAll('input[name=mode]').forEach(function(r){
+    r.addEventListener('change', function(){ tdModeTouched = true; });
+});
+function tdSyncMode(){
+    if (tdModeTouched) return;
+    var party = tdPlayerCount >= 3;
+    document.getElementById('td-mode-party').checked = party;
+    document.getElementById('td-mode-couple').checked = !party;
+}
+
 // Same-device player rows (2–6)
 var tdPlayerCount = 2;
 function escHtmlTd(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
@@ -133,11 +177,13 @@ window.tdAddPlayer = function(){
         '<button type="button" class="mg-player-remove" onclick="tdRemovePlayer(this)">✕</button>';
     document.getElementById('td-players-list').appendChild(row);
     if (tdPlayerCount >= 6) document.getElementById('td-add-player').style.display = 'none';
+    tdSyncMode();
 };
 window.tdRemovePlayer = function(btn){
     btn.closest('.mg-player-row').remove();
     tdPlayerCount--;
     document.getElementById('td-add-player').style.display = 'inline-block';
+    tdSyncMode();
 };
 </script>
 @endsection

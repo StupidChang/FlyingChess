@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Middleware\AgeVerification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -34,7 +35,7 @@ class AdminPagesRenderTest extends TestCase
         ];
     }
 
-    /** @dataProvider adminPages */
+    #[DataProvider('adminPages')]
     public function test_the_page_renders_for_an_admin(string $url): void
     {
         $this->withoutMiddleware(AgeVerification::class);

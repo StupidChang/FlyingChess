@@ -11,11 +11,27 @@ class TruthDareCard extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['category', 'content', 'content_translations', 'tier', 'machine_translated_at'];
+    protected $fillable = ['category', 'audience', 'content', 'content_translations', 'tier', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
     ];
+
+    /** 題目類型。後台下拉與驗證共用。 */
+    public const CATEGORIES = ['truth' => '真心話', 'dare' => '大冒險'];
+
+    /** 適用人數。跟類型是兩個獨立的軸,壓成一個就會抽到對不上場合的題目。 */
+    public const AUDIENCES = ['both' => '通用', 'couple' => '情侶', 'party' => '多人'];
+
+    /**
+     * 某個場合抽得到哪些 audience。
+     *
+     * 「通用」兩邊都出得來,所以情侶場永遠是 both + couple,多人場是 both + party。
+     */
+    public static function audiencesFor(string $mode): array
+    {
+        return $mode === 'party' ? ['both', 'party'] : ['both', 'couple'];
+    }
 
     public array $translatable = ['content_translations'];
 

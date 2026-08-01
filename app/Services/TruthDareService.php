@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class TruthDareService
 {
-    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false): array
+    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false, string $mode = 'couple'): array
     {
         $game = Game::create([
             'code' => $this->generateCode(),
@@ -23,6 +23,8 @@ class TruthDareService
                 'used_card_ids' => [],
                 'host_user_id' => $hostUserId,
                 'is_adult' => $isAdult,
+                // 情侶場還是多人場。題目池差在這裡,不是差在多一個分類按鈕。
+                'mode' => $mode === 'party' ? 'party' : 'couple',
             ],
         ]);
 
@@ -97,7 +99,10 @@ class TruthDareService
         $state = $game->game_state ?? [];
         $usedIds = $state['used_card_ids'] ?? [];
 
+        $mode = $state['mode'] ?? 'couple';
+
         $query = TruthDareCard::where('category', $category)
+            ->whereIn('audience', TruthDareCard::audiencesFor($mode))
             ->whereIn('tier', $tiers);
 
         if (! empty($usedIds)) {

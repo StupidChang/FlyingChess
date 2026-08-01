@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Models\WheelSegment;
 use App\Rules\NoBlockedWords;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -270,6 +269,9 @@ class AdminController extends Controller
         if ($category = $request->input('category')) {
             $query->where('category', $category);
         }
+        if ($audience = $request->input('audience')) {
+            $query->where('audience', $audience);
+        }
         if ($tier = $request->input('tier')) {
             $query->where('tier', $tier);
         }
@@ -291,7 +293,8 @@ class AdminController extends Controller
     public function storeCard(Request $request)
     {
         $data = $request->validate([
-            'category' => ['required', 'in:truth,dare,couple,party'],
+            'category' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::CATEGORIES))],
+            'audience' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::AUDIENCES))],
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
             'tier' => ['required', 'in:free,premium'],
         ]);
@@ -309,7 +312,8 @@ class AdminController extends Controller
     public function updateCard(Request $request, TruthDareCard $card)
     {
         $data = $request->validate([
-            'category' => ['required', 'in:truth,dare,couple,party'],
+            'category' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::CATEGORIES))],
+            'audience' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::AUDIENCES))],
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
             'tier' => ['required', 'in:free,premium'],
         ]);

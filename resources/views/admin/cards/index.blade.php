@@ -16,10 +16,16 @@
         <div class="admin-filters">
             <div class="admin-filter-tabs">
                 <a href="{{ route('admin.cards') }}"
-                   class="admin-filter-tab {{ !request('category') && !request('tier') ? 'active' : '' }}">全部</a>
-                @foreach(['truth' => '真心話', 'dare' => '大冒險', 'couple' => '情侶', 'party' => '派對'] as $k => $v)
-                <a href="{{ route('admin.cards', ['category' => $k]) }}"
+                   class="admin-filter-tab {{ !request('category') && !request('tier') && !request('audience') ? 'active' : '' }}">全部</a>
+                {{-- 類型與適用人數是兩個獨立的軸,篩選也要分兩排 --}}
+                @foreach(\App\Models\TruthDareCard::CATEGORIES as $k => $v)
+                <a href="{{ route('admin.cards', ['category' => $k, 'audience' => request('audience')]) }}"
                    class="admin-filter-tab {{ request('category') === $k ? 'active' : '' }}">{{ $v }}</a>
+                @endforeach
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
+                @foreach(\App\Models\TruthDareCard::AUDIENCES as $k => $v)
+                <a href="{{ route('admin.cards', ['audience' => $k, 'category' => request('category')]) }}"
+                   class="admin-filter-tab {{ request('audience') === $k ? 'active' : '' }}">{{ $v }}</a>
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 <a href="{{ route('admin.cards', ['tier' => 'free']) }}"
@@ -40,7 +46,8 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>分類</th>
+                        <th>類型</th>
+                        <th>適用</th>
                         <th>內容</th>
                         <th>等級</th>
                         <th>操作</th>
@@ -52,7 +59,12 @@
                         <td>{{ $card->id }}</td>
                         <td>
                             <span class="badge-{{ $card->category }}">
-                                {{ ['truth'=>'真心話','dare'=>'大冒險','couple'=>'情侶','party'=>'派對'][$card->category] ?? $card->category }}
+                                {{ \App\Models\TruthDareCard::CATEGORIES[$card->category] ?? $card->category }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-aud badge-aud--{{ $card->audience }}">
+                                {{ \App\Models\TruthDareCard::AUDIENCES[$card->audience] ?? $card->audience }}
                             </span>
                         </td>
                         <td style="max-width:400px">{{ Str::limit($card->content, 80) }}</td>
@@ -73,7 +85,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="5" style="text-align:center;padding:24px">沒有找到卡片</td></tr>
+                    <tr><td colspan="6" style="text-align:center;padding:24px">沒有找到卡片</td></tr>
                     @endforelse
                 </tbody>
             </table>

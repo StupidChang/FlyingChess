@@ -22,12 +22,25 @@
             @if($card) @method('PATCH') @endif
 
             <div class="form-group">
-                <label for="category">分類</label>
+                <label for="category">類型</label>
                 <select id="category" name="category" class="form-input" required>
-                    @foreach(['truth' => '真心話', 'dare' => '大冒險', 'couple' => '情侶', 'party' => '派對'] as $k => $v)
+                    @foreach(\App\Models\TruthDareCard::CATEGORIES as $k => $v)
                     <option value="{{ $k }}" {{ old('category', $card?->category) === $k ? 'selected' : '' }}>{{ $v }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label for="audience">適用人數</label>
+                <select id="audience" name="audience" class="form-input" required>
+                    @foreach(\App\Models\TruthDareCard::AUDIENCES as $k => $v)
+                    <option value="{{ $k }}" {{ old('audience', $card?->audience ?? 'both') === $k ? 'selected' : '' }}>{{ $v }}</option>
+                    @endforeach
+                </select>
+                <p style="font-size:.78rem;color:var(--text-dim);margin-top:6px;line-height:1.6">
+                    指名「另一半」的題目選<strong>情侶</strong>,指名「在場的人／右邊的人」的選<strong>多人</strong>,
+                    兩種場合都講得通的留<strong>通用</strong>。選錯的話,玩家會抽到對不上場合的題目。
+                </p>
             </div>
 
             <div class="form-group">

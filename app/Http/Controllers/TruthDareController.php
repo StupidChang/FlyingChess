@@ -37,6 +37,7 @@ class TruthDareController extends Controller
         $data = $request->validate([
             'players' => ['required', 'array', 'min:1', 'max:6'],
             'players.*' => ['nullable', 'string', 'max:20', new NoBlockedWords],
+            'mode' => ['nullable', 'in:couple,party'],
         ]);
 
         $names = array_values(array_filter(
@@ -51,8 +52,12 @@ class TruthDareController extends Controller
         $hostUserId = $request->user()?->id;
         $sessionId = $this->playerSessionId($request);
 
+        /* 情侶場還是多人場。預設看人數 —— 兩個人就是情侶場,三個人以上是多人場 ——
+           但表單可以覆寫:兩個朋友(不是情侶)一起玩,要的是多人場的題目。 */
+        $mode = $data['mode'] ?? (count($names) >= 3 ? 'party' : 'couple');
+
         // Adults-only site: every room is created in adult mode.
-        $result = $this->service->createGame($names[0], $sessionId, false, $hostUserId, true);
+        $result = $this->service->createGame($names[0], $sessionId, false, $hostUserId, true, $mode);
         $game = $result['game'];
 
         // Add the remaining local players. Each needs a DISTINCT session_id
@@ -100,9 +105,10 @@ class TruthDareController extends Controller
         // Host premium: stored in game_state (session-driver agnostic)
         $hostIsPremium = $this->resolveHostPremium($game);
         $isAdult = (bool) ($game->game_state['is_adult'] ?? false);
+        $mode = $game->game_state['mode'] ?? 'couple';
 
         return view('truth-dare.show', compact(
-            'game', 'myPlayer', 'playerName', 'hostIsPremium', 'isAdult'
+            'game', 'myPlayer', 'playerName', 'hostIsPremium', 'isAdult', 'mode'
         ));
     }
 
@@ -153,7 +159,8 @@ class TruthDareController extends Controller
     public function draw(Request $request, string $code)
     {
         $data = $request->validate([
-            'category' => 'required|string|in:truth,dare,couple,party',
+            // 只剩類型。情侶／多人是開局就決定的場合,不是抽牌時再選的分類。
+            'category' => 'required|string|in:truth,dare',
         ]);
 
         $game = Game::where('code', $code)

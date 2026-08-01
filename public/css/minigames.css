@@ -123,6 +123,9 @@
     background:rgba(255,255,255,.05);border-radius:8px;display:inline-block;
 }
 .mg-round-badge{text-align:center;color:var(--gold,#d9a441);font-size:1.15rem;margin-bottom:16px}
+/* 這一場是情侶場還是多人場。抽到的題目會指名誰,取決於它。 */
+.td-mode-tag{text-align:center;font-size:.75rem;color:var(--text-dim,#8b90a5);margin:-10px 0 14px;
+  letter-spacing:.04em}
 .mg-current-player{font-size:1.2rem;color:var(--gold,#d9a441);font-weight:700;text-align:center;margin-bottom:12px}
 .mg-action-btns{text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 /* 付費關卡的兩個出口:看廣告(主要)與升級(次要)。
