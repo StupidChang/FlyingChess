@@ -144,10 +144,15 @@ class EmailSuppressionTest extends TestCase
         Mail::raw('hello', fn ($m) => $m->to('blocked@example.com')->subject('test'));
         Mail::raw('hello', fn ($m) => $m->to('fine@example.com')->subject('test'));
 
-        // 擋在 MessageSending 這個唯一出口,不是在各個寄信點各檢查一次。
-        $sent = collect(app('mailer')->getSymfonyTransport()->messages ?? []);
-        $this->assertTrue(EmailSuppression::isSuppressed('blocked@example.com'));
-        $this->assertFalse(EmailSuppression::isSuppressed('fine@example.com'));
+        /* 攔在 MessageSending —— 所有寄信的唯一出口。真的要驗的是「有沒有交給
+           transport」,不是「地址在不在清單裡」:後者只證明資料寫對了,不能證明
+           那一封真的沒送出去。array transport 會把送出的信留在 messages 裡。 */
+        $sent = collect(Mail::mailer()->getSymfonyTransport()->messages())
+            ->flatMap(fn ($m) => collect($m->getOriginalMessage()->getTo())
+                ->map(fn ($a) => $a->getAddress()));
+
+        $this->assertNotContains('blocked@example.com', $sent);
+        $this->assertContains('fine@example.com', $sent);
     }
 
     public function test_registration_is_rate_limited_per_hour(): void
