@@ -79,6 +79,9 @@
   border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.45);
   animation:pa-in .14s ease-out;
 }
+/* hidden 屬性的 UA 樣式是 display:none,但它的優先權比上面那條 class 低,
+   所以一定要自己蓋回去 —— 少了這一行面板會一直開著,而且點什麼都收不起來。 */
+.pa-grid[hidden]{display:none}
 @keyframes pa-in{from{opacity:0;transform:translateY(-4px)}}
 .pa-opt{
   width:34px;height:34px;border-radius:8px;cursor:pointer;

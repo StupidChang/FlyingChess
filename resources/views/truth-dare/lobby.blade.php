@@ -139,6 +139,17 @@
     if (el) el.value = sessionStorage.getItem('tab_id');
 })();
 
+/* 這一頁是真的表單 POST,名字直接進資料庫,所以要在送出前把頭像併進去
+   (其他四個遊戲是前端自己收名字,不經過這一步)。
+   input 的 maxlength 留了兩格給「頭像+空格」,伺服器端仍然是 max:20。 */
+document.getElementById('td-create-form').addEventListener('submit', function(){
+    document.querySelectorAll('#td-players-list .mg-player-row').forEach(function(row){
+        var input = row.querySelector('.p-name');
+        var name = PlayerAvatar.displayName(row);
+        if (input && name) input.value = name;
+    });
+});
+
 // Same-device player rows (2–6)
 var tdPlayerCount = 2;
 function escHtmlTd(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}

@@ -51,4 +51,27 @@ class MinigameSetupTest extends TestCase
         $this->assertStringContainsString('displayName', $js);
         $this->assertStringContainsString('MutationObserver', $js);
     }
+
+    public function test_truth_dare_merges_the_avatar_into_the_posted_name(): void
+    {
+        $this->withoutMiddleware(AgeVerification::class);
+
+        /* 其他四個遊戲是前端自己收名字,只有這一頁是真的表單 POST,所以要多一段
+           送出前把頭像併進 input 的程式。那一段被順手刪掉的話,畫面上一切正常,
+           只有存進資料庫的名字沒有頭像 —— 沒有任何錯誤訊息。 */
+        $this->get('/tw/truth-dare')
+            ->assertOk()
+            ->assertSee("addEventListener('submit'", false)
+            ->assertSee('PlayerAvatar.displayName(row)', false);
+    }
+
+    public function test_the_avatar_picker_is_actually_hidden_when_closed(): void
+    {
+        /* .pa-grid 有 display:grid,而 hidden 屬性的 UA 樣式優先權比 class 低 ——
+           少了這條覆蓋,挑選面板會一直攤在畫面上而且怎麼點都收不起來。
+           JS 那邊完全正常,所以只有這條 CSS 擋得住。 */
+        $css = file_get_contents(public_path('css/minigames.css'));
+
+        $this->assertStringContainsString('.pa-grid[hidden]{display:none}', $css);
+    }
 }
