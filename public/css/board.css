@@ -358,12 +358,16 @@
   padding: 8px 16px;
   gap: 12px;
   flex-shrink: 0;
+  position: relative;   /* 手機版「玩法」按鈕的定位基準 */
 }
 .player-panel {
-  /* flex:1 1 0 —— 兩側等分剩餘空間,骰子區才會落在真正的正中央。
-     用 flex:1 讓中間區塊「填滿剩下的」的話,兩邊名字長度不同時中線就會偏
-     (實測差 45px)。min-width:0 讓長名字可以被截斷而不是把面板撐開。 */
-  flex: 1 1 0;
+  /* 固定佔一樣的寬度。兩側等寬,骰子區才會落在真正的正中央 —— 讓中間區塊
+     「填滿剩下的空間」的話,兩邊名字長度不同時中線就會偏(實測差 45px)。
+     用比例而不是 flex:1 1 0:後者會把剩下的寬度全部吃掉,兩個面板各佔快
+     四成,骰子與按鈕反而被擠在中間一小條。
+     clamp 的上下限:太窄放不下名字,太寬又回到原本的問題。
+     min-width:0 讓長名字可以被截斷,而不是把面板撐開。 */
+  flex: 0 0 clamp(72px, 26%, 160px);
   min-width: 0;
   display: flex;
   align-items: center;
@@ -933,7 +937,14 @@
 /* 手機:把邊距收緊,空間留給骰子與名字 */
 @media (max-width: 760px) {
   .player-bar { padding: 6px 8px; gap: 6px; }
-  .player-panel { padding: 4px 6px; gap: 5px; }
+  .player-panel { flex-basis: clamp(64px, 22%, 120px); padding: 4px 6px; gap: 5px; }
+  /* 「玩法」抽出版面流,「擲骰子」才會是中間唯一的元素、真正落在正中央。
+     並排的話置中的是「兩顆按鈕加起來」,骰子自己會偏掉(實測 28px)。
+
+     定位基準是整條 .player-bar 而不是中間那一欄 —— 中間欄的寬度是由內容
+     撐出來的(實測只有 103px),把按鈕貼在它右緣會直接壓在擲骰子上面。
+     bar 的右下角本來就空著(中間欄比兩側面板高),放這裡不多佔高度。 */
+  .btn-rules { position: absolute; right: 8px; bottom: 2px; padding: 2px 8px; font-size: .68rem; line-height: 1.5; }
   .pawn, .pawn svg { width: 1.05rem; height: 1.05rem; font-size: 1.05rem; }
   .pname { font-size: .8rem; }
   .ppos { font-size: .65rem; }
