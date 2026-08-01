@@ -464,6 +464,27 @@ function positionPieceOnWheel(el, wheelEl, board, index, total, sizeRef) {
   el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
 }
 
+/** 把棋子移到轉盤上某一個扇形的位置(擲出點數之後)。 */
+function positionPieceOnFace(el, wheelEl, board, face, sizeRef) {
+  const svg = wheelEl.querySelector('svg') || wheelEl;
+  const boardRect = board.getBoundingClientRect();
+  const rect = svg.getBoundingClientRect();
+  const sizeRect = (sizeRef || wheelEl).getBoundingClientRect();
+
+  const size = Math.max(10, Math.min(sizeRect.width, sizeRect.height) * 0.5);
+  el.style.width = size + 'px';
+  el.style.height = size + 'px';
+
+  // 扇形的中線。和 wheelSvg 用同一組算式:第一片從正上方開始,順時針每片 60 度。
+  const slice = Math.PI * 2 / 6;
+  const angle = -Math.PI / 2 + (face - 1) * slice + slice / 2;
+  const ring = Math.min(rect.width, rect.height) / 2 * 0.88;
+
+  const cx = (rect.left - boardRect.left) + rect.width / 2 + ring * Math.cos(angle);
+  const cy = (rect.top - boardRect.top) + rect.height / 2 + ring * Math.sin(angle);
+  el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
+}
+
 function renderPieces() {
   const board = document.getElementById('game-board');
   if (!board) return;
@@ -711,8 +732,7 @@ function rollDice() {
 
     /* Still off the track → the roll is read off the entry wheel, not walked. */
     if (!isOnTrack(player)) {
-      showWheelModal(roll);
-      state.rolling = false;
+      spinEntryWheel(player, roll).then(function () { state.rolling = false; });
       return;
     }
 
@@ -1032,66 +1052,85 @@ function gridSpecOverlaps(spec, from, to) {
   return a <= to && b >= from;
 }
 
-function showWheelModal(roll) {
-  const w      = startWheel();
-  const seg    = w[roll - 1];
-  const player = state.players[state.current];
-
-  state.pendingWheel = { roll: roll, seg: seg };
-
-  document.getElementById('wheel-graphic').innerHTML = wheelSvg(roll);
-  document.getElementById('wheel-player').textContent = player.name;
-  document.getElementById('wheel-text').textContent = seg.text || '';
-
-  const note = document.getElementById('wheel-note');
-  if (note) {
-    /* 進場那一格要講清楚會落到哪 —— 路徑可以依性別/座位分開設定,所以不同
-       玩家的第一格可能是不同的格子,只寫「進入棋盤」看不出自己要去哪。 */
-    note.textContent = seg.enter
-      ? tp('wheelEnter') + ' ' + entryHint(player)
-      : (seg.reroll ? tp('wheelReroll') : tp('wheelStay'));
-    note.className = 'wheel-note' + (seg.enter ? ' is-enter' : '');
-  }
-
-  openModal('wheel-modal');
-}
-
-/** 「→ 第 N 格:內容」。玩家進場後會停在自己路徑的第一格。 */
+/** 「→ 第 N 格:內容」。玩家進場後會停在自己路徑的第一格,而路徑可以依性別或
+    座位分開設定,所以不同玩家的第一格可能是不同的格子。 */
 function entryHint(player) {
   const pos = getEffectivePath(player.gender)[0];
-  const sq  = getSq(pos);
-  const text = String(sq.text || '').split('\n')[0];
+  const text = String(getSq(pos).text || '').split('\n')[0];
 
   return tp('wheelEnterAt', { '__N__': pos }) + (text ? '：' + text : '');
 }
 
-/** Resolve the wheel result: enter the track, roll again, or pass the turn. */
-function confirmWheel() {
-  const pending = state.pendingWheel;
-  closeModal('wheel-modal');
-  state.pendingWheel = null;
-  if (!pending) { advanceTurn(); return; }
+/**
+ * 擲出點數之後,棋子直接在轉盤上跑到那一片扇形。
+ *
+ * 之前是彈一個視窗、按「知道了」才繼續 —— 對一個「轉盤轉出結果」的動作來說,
+ * 彈窗把發生的事講了一遍,卻沒有讓人看到它發生。這裡改成看得見的版本:
+ * 扇形亮起來、棋子滑過去、標籤說明結果,停一下再結算。
+ *
+ * 停頓是必要的:結算會重畫棋子(進場的話要移到棋盤上),沒有停頓的話
+ * 滑過去的動畫還沒跑完就被下一次重畫蓋掉,看起來像瞬移。
+ */
+function spinEntryWheel(player, roll) {
+  return new Promise(function (resolve) {
+    const seg = (startWheel() || [])[roll - 1];
+    const board = document.getElementById('game-board');
+    const wheelEl = board ? board.querySelector('.board-entry-wheel') : null;
 
-  const player = state.players[state.current];
+    if (!seg || !wheelEl) { resolveWheel(seg, player); resolve(); return; }
 
-  if (pending.seg.enter) {
+    const graphic = wheelEl.querySelector('.bew-graphic');
+    const label = wheelEl.querySelector('.bew-label');
+    const piece = document.getElementById(`piece-${state.current + 1}`);
+
+    if (graphic) graphic.innerHTML = wheelSvg(roll);
+    if (piece) positionPieceOnFace(piece, wheelEl, board, roll, board.querySelector('.board-sq'));
+
+    if (label) {
+      label.classList.add('is-result');
+      label.textContent = seg.enter
+        ? `${seg.text} ${entryHint(player)}`
+        : (seg.reroll ? `${seg.text} ${tp('wheelReroll')}` : `${seg.text} ${tp('wheelStay')}`);
+    }
+
+    setTimeout(function () {
+      if (graphic) graphic.innerHTML = wheelSvg(null);
+      if (label) {
+        label.classList.remove('is-result');
+        label.textContent = tp('startWheel');
+      }
+      resolveWheel(seg, player);
+      resolve();
+    }, 1600);
+  });
+}
+
+/** 結算轉盤結果:進場、再擲一次,或換人。 */
+function resolveWheel(seg, player) {
+  if (!seg) { advanceTurn(); return; }
+
+  if (seg.enter) {
     player.entered = true;
     player.stepIndex = 0;
     renderPieces(); updatePosDisplay(); flashSquare(currentPos(player));
     /* Entering onto an occupied start square must not evict anyone — captureAt
        already ignores stepIndex 0, so nothing to do here. */
     advanceTurn();
+
     return;
   }
 
-  if (pending.seg.reroll) {
+  if (seg.reroll) {
     /* Same player rolls again — do not advance the turn. */
+    renderPieces();
     updateTurnUI();
     const rb = document.getElementById('roll-btn');
     if (rb) rb.disabled = false;
+
     return;
   }
 
+  renderPieces();   // 沒進場也沒重擲:棋子回到自己在盤緣的等待位置
   advanceTurn();
 }
 

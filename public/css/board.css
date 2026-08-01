@@ -985,12 +985,12 @@
 /* =====================================================
    ENTRY WHEEL — pre-board dice wheel (V8.0 corner wheels)
    ===================================================== */
-.wheel-box { text-align:center; max-width:340px; }
-.wheel-graphic { display:flex; justify-content:center; margin-bottom:10px; }
+
+
 .wheel-svg { width:160px; height:160px; }
-.wheel-player { font-size:.8rem; color:var(--text-dim,#9aa1b5); margin-bottom:2px; }
+
 .wheel-text { font-size:1.15rem; font-weight:700; margin-bottom:8px; line-height:1.4; }
-.wheel-note { font-size:.8rem; color:var(--text-dim,#9aa1b5); margin-bottom:14px; }
+
 .wheel-note.is-enter { color:var(--gold,#d9a441); font-weight:700; }
 /* A piece waiting to enter is kept off the track entirely. */
 .piece-token.piece-waiting { display:none; }
@@ -1031,4 +1031,12 @@
      六段文字仍然可以在擲骰後的轉盤彈窗看到 */
   .board-entry-wheel .bew-label { display:none; }
   .wheel-editor-tools { align-items:stretch; flex-direction:column; }
+}
+
+/* 轉盤結果的說明文字。平常標籤只有「進場轉盤」四個字所以 nowrap,
+   顯示結果時字比較長,要讓它換行,而且不能把轉盤擠小。 */
+.board-entry-wheel .bew-label.is-result {
+  white-space: normal; line-height: 1.35; text-align: center;
+  color: var(--gold, #d9a441); font-weight: 700;
+  max-height: 2.8em; overflow: hidden;
 }

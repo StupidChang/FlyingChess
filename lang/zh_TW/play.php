@@ -62,7 +62,6 @@ return [
     'move_steps_unit' => '格(正數前進、負數後退)',
     'skip_turn_effect' => '停一輪(下次不能擲骰)',
     'move_effect_help' => '填了就以這裡為準；留空則沿用舊的文字判讀（僅繁中有效）。',
-    'wheel_ok' => '知道了',
     'js_wheel_enter_at' => '→ 第 __N__ 格',
     'js_wheel_enter' => '進入棋盤！',
     'js_wheel_reroll' => '可以再擲一次',

@@ -62,7 +62,6 @@ return [
     'move_steps_unit' => 'マス（正の数で前進、負の数で後退）',
     'skip_turn_effect' => '1回休み（次のサイコロを振れない）',
     'move_effect_help' => '入力するとこちらが優先されます。空欄なら旧来のテキスト判定（繁体字のみ有効）。',
-    'wheel_ok' => 'OK',
     'js_wheel_enter_at' => '→ __N__ マス目',
     'js_wheel_enter' => 'ボードに入る！',
     'js_wheel_reroll' => 'もう一度振れます',

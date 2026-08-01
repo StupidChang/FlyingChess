@@ -116,19 +116,8 @@
 @include('partials.ad-unit', ['zone' => 'share'])
 
 {{-- Action Modal --}}
-{{-- 進場轉盤:棋子還沒上場時,骰子點數對照轉盤而不是走格 --}}
-@if($startWheel ?? null)
-<div id="wheel-modal" class="modal wheel-modal" role="dialog" aria-modal="true">
-    <div class="modal-overlay"></div>
-    <div class="modal-box wheel-box">
-        <div id="wheel-graphic" class="wheel-graphic"></div>
-        <div class="wheel-player"><span id="wheel-player"></span></div>
-        <div id="wheel-text" class="wheel-text"></div>
-        <div id="wheel-note" class="wheel-note"></div>
-        <button class="btn btn-gold" onclick="confirmWheel()">{{ __('play.wheel_ok') }}</button>
-    </div>
-</div>
-@endif
+{{-- 進場轉盤沒有彈窗:擲完點數之後棋子直接在棋盤上那顆轉盤裡移到對應的扇形,
+     結果寫在轉盤下方的標籤。見 board.js 的 spinEntryWheel。 --}}
 
 <div id="action-modal" class="modal action-modal" role="dialog" aria-modal="true">
     <div class="modal-overlay"></div>
