@@ -433,6 +433,37 @@ function positionPiece(el, target, board, offsetIndex, sizeRef = null) {
   el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
 }
 
+/**
+ * 還沒進場的棋子擺在轉盤上。
+ *
+ * 不是擺在圓心 —— 幾顆棋子疊在中間看起來像一坨,也看不出有幾個人在等。
+ * 沿著盤面繞一圈排開,每個人一個固定角度,才像「棋子站在轉盤上等著上場」。
+ *
+ * 半徑取在盤緣。棋子的直徑大約是轉盤的五分之一,擺在盤面內側不管放哪個半徑
+ * 都會蓋掉東西 —— 內圈是點數數字,中圈是扇形文字。擺在邊緣只會壓到扇形最外側
+ * 的空白處,數字與文字都還看得見,而且「站在轉盤邊上等著上場」也比較像那麼回事。
+ */
+function positionPieceOnWheel(el, wheelEl, board, index, total, sizeRef) {
+  const svg = wheelEl.querySelector('svg') || wheelEl;
+  const boardRect = board.getBoundingClientRect();
+  const rect = svg.getBoundingClientRect();
+  const sizeRect = (sizeRef || wheelEl).getBoundingClientRect();
+
+  const size = Math.max(10, Math.min(sizeRect.width, sizeRect.height) * 0.5);
+  el.style.width  = size + 'px';
+  el.style.height = size + 'px';
+
+  const wheelR = Math.min(rect.width, rect.height) / 2;
+  const ring = wheelR * 0.88;
+  /* 從正左方開始平均分配。從正上方起算的話,兩人時會落在十二點與六點,
+     而六點正好是「進場轉盤」那行標籤的位置。左右兩側是最空的地方。 */
+  const angle = Math.PI + (index / Math.max(1, total)) * Math.PI * 2;
+
+  const cx = (rect.left - boardRect.left) + rect.width / 2 + ring * Math.cos(angle);
+  const cy = (rect.top - boardRect.top) + rect.height / 2 + ring * Math.sin(angle);
+  el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
+}
+
 function renderPieces() {
   const board = document.getElementById('game-board');
   if (!board) return;
@@ -464,15 +495,19 @@ function renderPieces() {
     el.classList.remove('piece-waiting');
     el.classList.toggle('piece-on-wheel', waiting);
 
+    const place = () => waiting
+      ? positionPieceOnWheel(el, wheelEl, board, i, state.players.length, cellRef)
+      : positionPiece(el, target, board, i, cellRef);
+
     if (isNew) {
       // Snap into place on first placement (setup/reset/rebuild) instead
       // of visibly sliding in from the top-left corner.
       el.style.transition = 'none';
-      positionPiece(el, target, board, i, cellRef);
+      place();
       void el.offsetWidth; // force reflow so the transition-less transform commits
       el.style.transition = '';
     } else {
-      positionPiece(el, target, board, i, cellRef);
+      place();
     }
   });
 }
