@@ -47,6 +47,19 @@
             </div>
 
             <div class="form-group">
+                <label for="gender">限定對象</label>
+                <select id="gender" name="gender" class="form-input" required>
+                    @foreach(\App\Models\TruthDareCard::GENDERS as $k => $v)
+                    <option value="{{ $k }}" {{ old('gender', $card?->gender ?? 'any') === $k ? 'selected' : '' }}>{{ $v }}</option>
+                    @endforeach
+                </select>
+                <p style="font-size:.78rem;color:var(--text-dim);margin-top:6px;line-height:1.6">
+                    抽牌時看的是<strong>輪到的那個人</strong>的性別:男玩家只抽得到「不限」與「男」的題目。
+                    沒設定性別的玩家不受限,看得到全部。
+                </p>
+            </div>
+
+            <div class="form-group">
                 <label for="content">內容</label>
                 <textarea id="content" name="content" class="form-input" rows="4"
                           required maxlength="500">{{ old('content', $card?->content) }}</textarea>

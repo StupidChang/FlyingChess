@@ -416,6 +416,7 @@ class AdminController extends Controller
 
         $this->applyIn($query, $request, 'category', TruthDareCard::CATEGORIES);
         $this->applyIn($query, $request, 'audience', TruthDareCard::AUDIENCES);
+        $this->applyIn($query, $request, 'gender', TruthDareCard::GENDERS);
         $this->applyIn($query, $request, 'level', TruthDareCard::LEVELS);
         $this->applyBoolIn($query, $request, 'paid', 'is_paid');
         if ($search = $request->input('q')) {
@@ -426,6 +427,7 @@ class AdminController extends Controller
             'id' => 'id',
             'category' => ['category', array_keys(TruthDareCard::CATEGORIES)],
             'audience' => ['audience', array_keys(TruthDareCard::AUDIENCES)],
+            'gender' => ['gender', array_keys(TruthDareCard::GENDERS)],
             'content' => 'content',
             'level' => ['level', TruthDareCard::LEVEL_ORDER],
             'paid' => 'is_paid',
@@ -447,6 +449,7 @@ class AdminController extends Controller
         $data = $request->validate([
             'category' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::CATEGORIES))],
             'audience' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::AUDIENCES))],
+            'gender' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::GENDERS))],
             'level' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::LEVELS))],
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
         ]);
@@ -472,6 +475,7 @@ class AdminController extends Controller
         $data = $request->validate([
             'category' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::CATEGORIES))],
             'audience' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::AUDIENCES))],
+            'gender' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::GENDERS))],
             'level' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::LEVELS))],
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
         ]);

@@ -47,6 +47,7 @@ class AdminReturnToListTest extends TestCase
             ->patch("/tw/admin/cards/{$card->id}", [
                 'category' => 'truth',
                 'audience' => 'both',
+                'gender' => 'any',
                 'level' => 'mild',
                 'content' => '改過了',
                 'return' => 'level=mild&sort=content&dir=asc&page=3',
@@ -105,7 +106,8 @@ class AdminReturnToListTest extends TestCase
            少了那一步,設成付費的卡片就再也改不回免費了。 */
         $this->actingAs($this->admin())
             ->patch("/tw/admin/cards/{$card->id}", [
-                'category' => 'truth', 'audience' => 'both', 'level' => 'medium', 'content' => '一題',
+                'category' => 'truth', 'audience' => 'both', 'gender' => 'any',
+                'level' => 'medium', 'content' => '一題',
             ])
             ->assertRedirect();
 

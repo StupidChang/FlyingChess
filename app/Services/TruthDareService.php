@@ -108,14 +108,21 @@ class TruthDareService
            歷史地雷:原本這裡在 is_adult 的房間只抽 premium,而每一間房都是
            is_adult —— 結果是免費玩家照樣拿得到全部付費題目,曖昧級那批反而
            一張都抽不到,免費與付費之間根本沒有差別。 */
+        $playerGender = $this->currentPlayerGender($game, $state);
+
         $levels = $this->levelsAfterEscalation(
-            $this->reachableLevels($category, $audiences, $hasPremiumContent),
+            $this->reachableLevels($category, $audiences, $hasPremiumContent, $playerGender),
             $state
         );
 
         $query = TruthDareCard::where('category', $category)
             ->whereIn('audience', $audiences)
             ->whereIn('level', $levels);
+
+        /* 題目也分男／女／不限,看的是**輪到的那個人**。沒填性別的玩家不過濾。 */
+        if ($genders = TruthDareCard::gendersFor($playerGender)) {
+            $query->whereIn('gender', $genders);
+        }
 
         if (! $hasPremiumContent) {
             $query->freeToPlay();
@@ -148,20 +155,32 @@ class TruthDareService
         ];
     }
 
+    /** 輪到誰,那個人的性別是什麼。 */
+    private function currentPlayerGender(Game $game, array $state): ?string
+    {
+        $index = $state['current_player_index'] ?? 0;
+
+        return $game->players()->orderBy('id')->get()->values()->get($index)?->gender;
+    }
+
     /**
      * 這個人在這個場合真的抽得到哪幾級,由輕到重。
      *
      * 要先問過資料庫再決定升溫的階梯 —— 免費玩家如果「升」到一個整級都是付費
-     * 題目的等級,會直接抽不到東西。空的等級不進階梯,升溫就只會停在真的有題目
-     * 的最高一級。
+     * 題目的等級,會直接抽不到東西。性別同理:某一級只剩異性的題目時,那一級
+     * 對這個人來說也是空的。空的等級不進階梯,升溫就只會停在真的有題目的最高
+     * 一級。
      *
      * @return string[]
      */
-    private function reachableLevels(string $category, array $audiences, bool $hasPremiumContent): array
+    private function reachableLevels(string $category, array $audiences, bool $hasPremiumContent, ?string $playerGender = null): array
     {
+        $genders = TruthDareCard::gendersFor($playerGender);
+
         $present = TruthDareCard::where('category', $category)
             ->whereIn('audience', $audiences)
             ->when(! $hasPremiumContent, fn ($q) => $q->freeToPlay())
+            ->when($genders, fn ($q) => $q->whereIn('gender', $genders))
             ->distinct()
             ->pluck('level')
             ->all();

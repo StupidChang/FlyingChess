@@ -11,7 +11,7 @@ class TruthDareCard extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['category', 'audience', 'level', 'is_paid', 'content', 'content_translations', 'machine_translated_at'];
+    protected $fillable = ['category', 'audience', 'gender', 'level', 'is_paid', 'content', 'content_translations', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
@@ -54,6 +54,26 @@ class TruthDareCard extends Model
     public static function defaultIsPaid(?string $level): bool
     {
         return in_array($level, self::DEFAULT_PAID_LEVELS, true);
+    }
+
+    /** 這一題適合誰抽。 */
+    public const GENDERS = ['any' => '不限', 'male' => '男', 'female' => '女'];
+
+    /**
+     * 輪到的這個人抽得到哪些性別的題目。
+     *
+     * 沒填性別的玩家不過濾 —— 不指定的人應該看得到全部,而不是只剩「不限」。
+     *
+     * @param  string|null  $playerGender  game_players.gender
+     * @return string[]|null null 代表不用過濾
+     */
+    public static function gendersFor(?string $playerGender): ?array
+    {
+        if (! $playerGender || ! isset(self::GENDERS[$playerGender])) {
+            return null;
+        }
+
+        return ['any', $playerGender];
     }
 
     /**

@@ -15,7 +15,7 @@
 
         <div class="admin-filters">
             <div class="admin-filter-tabs">
-                @include('admin._filter-clear', ['params' => ['category', 'audience', 'level', 'paid']])
+                @include('admin._filter-clear', ['params' => ['category', 'audience', 'gender', 'level', 'paid']])
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\TruthDareCard::CATEGORIES as $k => $v)
                 @include('admin._filter-tab', ['param' => 'category', 'value' => $k, 'label' => $v])
@@ -23,6 +23,10 @@
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\TruthDareCard::AUDIENCES as $k => $v)
                 @include('admin._filter-tab', ['param' => 'audience', 'value' => $k, 'label' => $v])
+                @endforeach
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
+                @foreach(\App\Models\TruthDareCard::GENDERS as $k => $v)
+                @include('admin._filter-tab', ['param' => 'gender', 'value' => $k, 'label' => '限'.$v])
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\TruthDareCard::LEVELS as $k => $v)
@@ -39,6 +43,9 @@
                 @endforeach
                 @foreach((array) request('audience', []) as $v)
                 <input type="hidden" name="audience[]" value="{{ $v }}">
+                @endforeach
+                @foreach((array) request('gender', []) as $v)
+                <input type="hidden" name="gender[]" value="{{ $v }}">
                 @endforeach
                 @foreach((array) request('level', []) as $v)
                 <input type="hidden" name="level[]" value="{{ $v }}">
@@ -61,6 +68,7 @@
                         @include('admin._sort-header', ['key' => 'category', 'label' => '類型'])
                         @include('admin._sort-header', ['key' => 'audience', 'label' => '適用'])
                         @include('admin._sort-header', ['key' => 'content', 'label' => '內容'])
+                        @include('admin._sort-header', ['key' => 'gender', 'label' => '對象'])
                         @include('admin._sort-header', ['key' => 'level', 'label' => '尺度'])
                         @include('admin._sort-header', ['key' => 'paid', 'label' => '收費'])
                         <th>操作</th>
@@ -81,6 +89,13 @@
                             </span>
                         </td>
                         <td style="max-width:400px">{{ Str::limit($card->content, 80) }}</td>
+                        <td>
+                            @if($card->gender === 'any')
+                                <span style="color:var(--text-dim)">不限</span>
+                            @else
+                                <span class="mg-gender-tag mg-gender-{{ $card->gender }}" style="margin-left:0">{{ \App\Models\TruthDareCard::GENDERS[$card->gender] }}</span>
+                            @endif
+                        </td>
                         <td>
                             @include('admin._tier-badge', [
                                 'key' => $card->level,
@@ -105,7 +120,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" style="text-align:center;padding:24px">沒有找到卡片</td></tr>
+                    <tr><td colspan="8" style="text-align:center;padding:24px">沒有找到卡片</td></tr>
                     @endforelse
                 </tbody>
             </table>

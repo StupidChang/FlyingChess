@@ -324,6 +324,121 @@ class TruthDareModeTest extends TestCase
         ])->assertSessionHasErrors('genders.1');
     }
 
+    /** 開一間房並指定每個人的性別,回傳依序建立的玩家。 */
+    private function roomWithGenders(array $genders): Game
+    {
+        $service = app(TruthDareService::class);
+        $game = $service->createGame('第一位', 'sess-1', false, null, true, 'party', false, $genders[0])['game'];
+
+        foreach (array_slice($genders, 1) as $i => $gender) {
+            $game->players()->create([
+                'session_id' => 'sess-'.($i + 2), 'player_name' => '第'.($i + 2).'位',
+                'gender' => $gender, 'color' => 'none', 'is_host' => false,
+            ]);
+        }
+
+        return $game;
+    }
+
+    private function genderCard(string $gender, string $content): void
+    {
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'level' => 'mild',
+            'gender' => $gender, 'content' => $content, 'is_paid' => false,
+        ]);
+    }
+
+    public function test_a_male_player_only_draws_male_and_unrestricted_prompts(): void
+    {
+        $this->genderCard('any', '不限的');
+        $this->genderCard('male', '男生的');
+        $this->genderCard('female', '女生的');
+
+        $game = $this->roomWithGenders(['male', 'female']);
+        $service = app(TruthDareService::class);
+
+        $seen = [];
+        for ($i = 0; $i < 5; $i++) {
+            $result = $service->drawCard($game->fresh(), 'truth', true, true);
+            if (! $result['success']) {
+                break;
+            }
+            $seen[] = $result['card']['content'];
+        }
+
+        sort($seen);
+        $this->assertSame(['不限的', '男生的'], $seen);
+    }
+
+    public function test_the_filter_follows_whose_turn_it_is(): void
+    {
+        $this->genderCard('male', '男生的');
+        $this->genderCard('female', '女生的');
+
+        $game = $this->roomWithGenders(['male', 'female']);
+        $service = app(TruthDareService::class);
+
+        // 第一位是男生
+        $this->assertSame('男生的', $service->drawCard($game->fresh(), 'truth', true, true)['card']['content']);
+
+        // 換第二位(女生)之後,抽到的就該換一邊
+        $service->nextPlayer($game->fresh());
+        $this->assertSame('女生的', $service->drawCard($game->fresh(), 'truth', true, true)['card']['content']);
+    }
+
+    public function test_a_player_with_no_gender_sees_everything(): void
+    {
+        $this->genderCard('any', '不限的');
+        $this->genderCard('male', '男生的');
+        $this->genderCard('female', '女生的');
+
+        /* 沒填性別的人不該只剩「不限」—— 不指定的意思是不想標,不是要少玩。 */
+        $game = $this->roomWithGenders([null, null]);
+        $service = app(TruthDareService::class);
+
+        $seen = [];
+        for ($i = 0; $i < 5; $i++) {
+            $result = $service->drawCard($game->fresh(), 'truth', true, true);
+            if (! $result['success']) {
+                break;
+            }
+            $seen[] = $result['card']['content'];
+        }
+
+        $this->assertCount(3, $seen);
+    }
+
+    public function test_escalation_skips_a_level_that_only_has_the_other_gender(): void
+    {
+        $this->genderCard('any', '輕度不限');
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'level' => 'medium',
+            'gender' => 'female', 'content' => '中度只有女生的', 'is_paid' => false,
+        ]);
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'level' => 'intense',
+            'gender' => 'any', 'content' => '重度不限', 'is_paid' => false,
+        ]);
+
+        /* 某一級只剩異性的題目時,那一級對這個人來說就是空的,升溫要跳過它 ——
+           不然男玩家「升」到中度之後會抽不到任何東西。 */
+        $service = app(TruthDareService::class);
+        $game = $service->createGame('他', 'sess-1', false, null, true, 'couple', true, 'male')['game'];
+
+        $seen = [];
+        for ($turn = 0; $turn < 12; $turn++) {
+            $result = $service->drawCard($game->fresh(), 'truth', true, true);
+            if ($result['success']) {
+                $seen[$result['card']['content']] = true;
+            }
+            $service->nextPlayer($game->fresh());
+        }
+
+        $this->assertArrayHasKey('輕度不限', $seen);
+        $this->assertArrayHasKey('重度不限', $seen);
+        $this->assertArrayNotHasKey('中度只有女生的', $seen);
+    }
+
     public function test_the_lobby_offers_a_gender_for_each_player(): void
     {
         $this->withoutMiddleware(AgeVerification::class);
