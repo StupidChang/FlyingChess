@@ -1209,6 +1209,17 @@ select.admin-search-input{cursor:pointer;min-width:140px}
 .badge-aud--couple{color:#f0a3bd;border-color:#a8446b;background:rgba(236,72,153,.12)}
 .badge-aud--party{color:#8fb8f5;border-color:#3f6ca8;background:rgba(59,130,246,.12)}
 
+/* 場次列表的「開房者」欄 */
+.gh-name{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;vertical-align:bottom}
+a.gh-name{color:var(--accent)}
+.gh-tag{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:5px;
+  font-size:.68rem;font-weight:600;white-space:nowrap}
+.gh-tag--member{background:var(--gold);color:#241a08}
+.gh-tag--guest{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)}
+.gh-alias{display:block;font-size:.7rem;color:var(--text-dim);margin-top:2px}
+.gh-alias code{font-size:.7rem}
+
 /* ── Admin responsive ── */
 @media(max-width:600px){
   .admin-stats{grid-template-columns:repeat(2,1fr)}

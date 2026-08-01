@@ -39,7 +39,7 @@
             </div>
             <form action="{{ route('admin.games') }}" method="GET" class="admin-search">
                 <input type="hidden" name="status" value="{{ $status }}">
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋房間代碼…"
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋代碼／開房者…"
                        class="admin-search-input">
                 <button type="submit" class="btn btn-sm">搜尋</button>
             </form>
@@ -52,6 +52,7 @@
                     <tr>
                         <th>ID</th>
                         <th>代碼</th>
+                        <th>開房者</th>
                         <th>類型</th>
                         <th>狀態</th>
                         <th>玩家數</th>
@@ -65,6 +66,7 @@
                     <tr>
                         <td>{{ $game->id }}</td>
                         <td><code>{{ $game->code }}</code></td>
+                        <td>@include('admin.games._host', ['host' => $game->host, 'game' => $game])</td>
                         <td>{{ $game->game_type ?? '—' }}</td>
                         <td>
                             @if($game->status === 'waiting') <span class="badge-premium">等待中</span>
@@ -84,7 +86,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="8" style="text-align:center;padding:24px">沒有找到場次</td></tr>
+                    <tr><td colspan="9" style="text-align:center;padding:24px">沒有找到場次</td></tr>
                     @endforelse
                 </tbody>
             </table>

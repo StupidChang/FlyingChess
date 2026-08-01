@@ -624,7 +624,8 @@ class AdminController extends Controller
 
     public function games(Request $request)
     {
-        $query = Game::withCount('players');
+        // host.user 一起載進來,不然一頁 100 場就是 200 次查詢。
+        $query = Game::withCount('players')->with('host.user');
 
         $status = $request->input('status', 'all');
         if (in_array($status, ['waiting', 'playing', 'finished'], true)) {
@@ -632,7 +633,18 @@ class AdminController extends Controller
         }
 
         if ($search = $request->input('q')) {
-            $query->where('code', 'like', "%{$search}%");
+            /* 房間代碼、開房者的暱稱、註冊會員的帳號與 email 都能搜 ——
+               後台會想從「這個人開了哪些場」這個方向找,不是只有從代碼找。 */
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                    ->orWhereHas('host', function ($h) use ($search) {
+                        $h->where('player_name', 'like', "%{$search}%")
+                            ->orWhereHas('user', function ($u) use ($search) {
+                                $u->where('name', 'like', "%{$search}%")
+                                    ->orWhere('email', 'like', "%{$search}%");
+                            });
+                    });
+            });
         }
 
         $query->latest();
