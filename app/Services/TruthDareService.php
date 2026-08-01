@@ -161,7 +161,7 @@ class TruthDareService
         $remainingCount = $game->players()->count();
 
         if ($remainingCount === 0) {
-            $game->update(['status' => 'finished']);
+            $game->update(['status' => 'finished', 'finished_at' => now()]);
 
             return ['success' => true, 'message' => __('games.td_room_closed')];
         }

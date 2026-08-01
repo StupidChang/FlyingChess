@@ -29,7 +29,12 @@ class ProfileController extends Controller
         // 用 has('game') 在查詢層過濾,而不是撈回來再 filter:房間被刪掉的殘列
         // 不該算進總數,否則免費會員會看到「共 30 場」但升級後只有 12 場。
         $historyQuery = GamePlayer::has('game')
-            ->with('game:id,code,game_type,status,created_at')
+            /* 連參與者一起載入。少了這行,歷史清單每一列都會為了列出同場玩家
+               各發一次查詢(N+1);紀錄一多,個人頁就會明顯變慢。 */
+            ->with([
+                'game:id,code,game_type,status,created_at,finished_at',
+                'game.players:id,game_id,player_name,user_id',
+            ])
             ->where('user_id', $user->id)
             ->latest();
 

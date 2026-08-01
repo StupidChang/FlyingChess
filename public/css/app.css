@@ -1721,3 +1721,14 @@ ul{list-style:none}
     border-bottom:1px solid var(--border)}
   .pr-table td{border:0;padding:0}
 }
+
+/* ── 個人資料頁的自訂工具入口 ── */
+.profile-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.profile-tool{display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;
+  border:2px solid var(--border);background:var(--surface);transition:border-color .32s ease,
+  transform .32s cubic-bezier(.22,.61,.36,1),box-shadow .32s ease}
+.profile-tool:hover{transform:translateY(-4px);border-color:rgba(var(--glow-rgb),.5);
+  box-shadow:0 14px 30px -14px rgba(0,0,0,.6)}
+.profile-tool-icon{font-size:1.6rem;line-height:1;flex:none}
+.profile-tool strong{display:block;font-size:.95rem}
+.profile-tool em{display:block;font-style:normal;font-size:.78rem;color:var(--text-dim);margin-top:3px}

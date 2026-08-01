@@ -97,6 +97,30 @@
         </div>
     </section>
 
+    {{-- 自訂骰子與轉盤。功能本來就有(/my-dice、/my-wheels),但個人資料頁一直
+         沒有入口 —— 使用者只能靠記住網址進去,等於等於沒有。 --}}
+    <section style="margin-bottom:36px">
+        <div class="section-head">
+            <h2>{{ __('ui.my_dice') }} / {{ __('ui.my_wheels') }}</h2>
+        </div>
+        <div class="profile-tools">
+            <a href="{{ route('dice.index') }}" class="profile-tool">
+                <span class="profile-tool-icon" aria-hidden="true">🎲</span>
+                <span>
+                    <strong>{{ __('ui.my_dice') }}</strong>
+                    <em>{{ __('ui.my_dice_desc') }}</em>
+                </span>
+            </a>
+            <a href="{{ route('custom-wheel.index') }}" class="profile-tool">
+                <span class="profile-tool-icon" aria-hidden="true">🎡</span>
+                <span>
+                    <strong>{{ __('ui.my_wheels') }}</strong>
+                    <em>{{ __('ui.my_wheels_desc') }}</em>
+                </span>
+            </a>
+        </div>
+    </section>
+
     {{-- 遊玩紀錄 --}}
     <section>
         <div class="section-head">

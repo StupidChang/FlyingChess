@@ -275,7 +275,7 @@ class GameService
         // Check win
         if ($this->hasWon($state['pieces'][$color])) {
             $state['winner'] = $color;
-            $game->update(['status' => 'finished', 'game_state' => $state]);
+            $game->update(['status' => 'finished', 'game_state' => $state, 'finished_at' => now()]);
 
             return ['success' => true, 'winner' => $color, 'state' => $state];
         }
