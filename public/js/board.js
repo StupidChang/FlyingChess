@@ -355,13 +355,10 @@ function buildBoard() {
       return (i + 1) + '. ' + seg.text;
     }).join('\n');
 
-    const legend = segs.map(function (seg, i) {
-      return `<li><b>${i + 1}</b><span>${escHtml(seg.text)}</span></li>`;
-    }).join('');
-
+    // 文字直接畫在扇形裡(見 wheelSvg),所以不再需要另外一份圖例 —— 那份圖例
+    // 佔掉一半空間,轉盤反而被壓小,兩邊都看不清楚。
     wheelEl.innerHTML = `<div class="bew-graphic">${wheelSvg(null)}</div>`
-      + `<div class="bew-label">${escHtml(tp('startWheel'))}</div>`
-      + `<ol class="bew-legend">${legend}</ol>`;
+      + `<div class="bew-label">${escHtml(tp('startWheel'))}</div>`;
     board.appendChild(wheelEl);
   }
   const WHEEL_SPAN = wheelSpan;
@@ -867,6 +864,22 @@ function showActionModal(roll, pos) {
 /* ── Entry wheel ─────────────────────────────────────────────────────────
    Rendered as a six-slice SVG pie with the rolled slice pulled out, mirroring
    the wheel printed in each corner of the physical board. */
+/* 把一段文字切成最多 max 行、每行 per 個字,超出的用省略號收尾。
+   扇形裡塞不下整句是必然的 —— 格子文字上限 60 字 —— 所以這裡只求「看得出是什麼」,
+   完整內容在擲骰後的轉盤彈窗與 title 裡。 */
+function wrapWheelLabel(text, per, max) {
+  const clean = String(text || '').replace(/\s+/g, '');
+  const lines = [];
+
+  for (let i = 0; i < clean.length && lines.length < max; i += per) {
+    lines.push(clean.substr(i, per));
+  }
+  if (clean.length > per * max) {
+    lines[max - 1] = lines[max - 1].slice(0, per - 1) + '…';
+  }
+  return lines.length ? lines : [''];
+}
+
 function wheelSvg(activeFace) {
   const w = startWheel();
   if (!w) return '';
@@ -878,16 +891,38 @@ function wheelSvg(activeFace) {
     const a1 = a0 + slice;
     const active = (i + 1) === activeFace;
     const r = active ? R : R - 6;
+    /* 沒有人擲點數時(棋盤上那顆常駐轉盤)不該有「未中選」的暗色 —— 那個
+       .35 是用來反襯中選扇形的,六格全暗只會讓整顆轉盤發灰、字也看不清。 */
+    const dim = (activeFace == null) ? .92 : (active ? 1 : .35);
     const x0 = CX + r * Math.cos(a0), y0 = CY + r * Math.sin(a0);
     const x1 = CX + r * Math.cos(a1), y1 = CY + r * Math.sin(a1);
     out += `<path d="M${CX} ${CY} L${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1} Z"`
-        +  ` fill="${WHEEL_HEX[i]}" opacity="${active ? 1 : .35}"`
+        +  ` fill="${WHEEL_HEX[i]}" opacity="${dim}"`
         +  ` stroke="rgba(0,0,0,.35)" stroke-width="1"/>`;
 
-    const am = a0 + slice / 2, lr = r * .62;
-    out += `<text x="${CX + lr * Math.cos(am)}" y="${CY + lr * Math.sin(am)}"`
+    // 數字擺內圈,內容文字擺外圈 —— 兩者都在扇形裡,不用另外做圖例。
+    const am = a0 + slice / 2;
+    out += `<text x="${CX + 27 * Math.cos(am)}" y="${CY + 27 * Math.sin(am)}"`
         +  ` text-anchor="middle" dominant-baseline="middle"`
-        +  ` font-size="15" font-weight="700" fill="#fff">${i + 1}</text>`;
+        +  ` font-size="10" font-weight="800" fill="#fff" opacity=".9">${i + 1}</text>`;
+
+    /* 文字沿著弧的方向排,不是沿著半徑:半徑方向只有 40 幾單位可用(約 5 個字),
+       弧方向在 r=50 處有 50 幾單位,再拆兩行等於容得下 12 個字。
+       下半圈的扇形轉過來會上下顛倒,所以再轉 180 度。 */
+    const tx = CX + 50 * Math.cos(am), ty = CY + 50 * Math.sin(am);
+    let deg = am * 180 / Math.PI + 90;
+    const norm = ((deg % 360) + 360) % 360;
+    if (norm > 90 && norm < 270) deg += 180;
+
+    const lines = wrapWheelLabel(seg.text, 6, 2);
+    out += `<g transform="rotate(${deg.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})">`;
+    lines.forEach(function (ln, li) {
+      const dy = (li - (lines.length - 1) / 2) * 8;
+      out += `<text x="${tx.toFixed(1)}" y="${(ty + dy).toFixed(1)}"`
+          +  ` text-anchor="middle" dominant-baseline="middle"`
+          +  ` font-size="7" font-weight="600" fill="#fff">${escHtml(ln)}</text>`;
+    });
+    out += `</g>`;
   });
 
   // activeFace 為 null 時中間不寫字 —— 直接內插會印出字串 "null"。
