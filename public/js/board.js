@@ -334,25 +334,37 @@ function buildBoard() {
     board.appendChild(div);
   });
 
-  // 進場轉盤:佔 2×2 格,擺在離起點最近的空位。
-  const WHEEL_SPAN = 2;
-  let wheelSlot = null;
+  // 進場轉盤:優先佔 3×3 格(放得下六段文字),擠不下才退回 2×2 只放轉盤圖形。
+  // 自訂棋盤不保證有 3×3 的空白,所以要有退路。
+  let wheelSlot = null, wheelSpan = 0;
   if (!isEditMode && startWheel()) {
-    wheelSlot = findWheelSlot(sqData, rowOffset, colOffset, rows, cols, WHEEL_SPAN);
-    if (wheelSlot) {
-      const wheelEl = document.createElement('div');
-      wheelEl.className        = 'board-entry-wheel';
-      wheelEl.style.gridRow    = wheelSlot.r + ' / span ' + WHEEL_SPAN;
-      wheelEl.style.gridColumn = wheelSlot.c + ' / span ' + WHEEL_SPAN;
-      // 六段的文字放 title:2×2 格塞不下六行字,但滑過去要查得到。
-      wheelEl.title = startWheel().map(function (seg, i) {
-        return (i + 1) + '. ' + seg.text;
-      }).join('\n');
-      wheelEl.innerHTML = `<div class="bew-graphic">${wheelSvg(null)}</div>`
-        + `<div class="bew-label">${escHtml(tp('startWheel'))}</div>`;
-      board.appendChild(wheelEl);
-    }
+    [3, 2].some(function (size) {
+      const slot = findWheelSlot(sqData, rowOffset, colOffset, rows, cols, size);
+      if (slot) { wheelSlot = slot; wheelSpan = size; }
+      return !!slot;
+    });
   }
+  if (wheelSlot) {
+    const segs = startWheel();
+    const wheelEl = document.createElement('div');
+    wheelEl.className        = 'board-entry-wheel' + (wheelSpan < 3 ? ' bew-compact' : '');
+    wheelEl.style.gridRow    = wheelSlot.r + ' / span ' + wheelSpan;
+    wheelEl.style.gridColumn = wheelSlot.c + ' / span ' + wheelSpan;
+    // title 留著:文字長度上限是 60 字,格子裡放不下的部分靠它補完。
+    wheelEl.title = segs.map(function (seg, i) {
+      return (i + 1) + '. ' + seg.text;
+    }).join('\n');
+
+    const legend = segs.map(function (seg, i) {
+      return `<li><b>${i + 1}</b><span>${escHtml(seg.text)}</span></li>`;
+    }).join('');
+
+    wheelEl.innerHTML = `<div class="bew-graphic">${wheelSvg(null)}</div>`
+      + `<div class="bew-label">${escHtml(tp('startWheel'))}</div>`
+      + `<ol class="bew-legend">${legend}</ol>`;
+    board.appendChild(wheelEl);
+  }
+  const WHEEL_SPAN = wheelSpan;
 
   // Center banner + corner decos only on default 11×13 cross board
   const origRows = window.CANVAS_ROWS || 11;

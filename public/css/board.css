@@ -1004,17 +1004,30 @@
 .wheel-slot input[type="text"] { flex:1; min-width:0; }
 .wheel-slot label { display:flex; align-items:center; gap:4px; font-size:.72rem;
   color:var(--text-dim,#9aa1b5); font-weight:400; white-space:nowrap; }
-/* 進場轉盤畫在棋盤格線裡(落點由 board.js 的 findWheelSlot 算,佔 2×2 格)。
+/* 進場轉盤畫在棋盤格線裡(落點由 board.js 的 findWheelSlot 算,優先 3×3)。
    沒有底色與外框:它要看起來是畫在棋盤桌面上的一部分,而不是疊上去的元件。
-   min-width/height:0 是 grid 子項的老問題 —— 不寫的話 SVG 會把格子撐大,
+   min-width/height:0 是 grid 子項的老問題 —— 不寫的話 SVG 與文字會把格子撐大,
    整個棋盤的比例會跑掉。 */
 .board-entry-wheel { display:flex; flex-direction:column; align-items:center;
-  justify-content:center; gap:4px; min-width:0; min-height:0; padding:6%; }
-.board-entry-wheel .bew-graphic { flex:1; min-height:0; display:flex; align-items:center; }
-.board-entry-wheel .wheel-svg { width:100%; height:100%; max-height:100%;
+  gap:3px; min-width:0; min-height:0; padding:4%; overflow:hidden; }
+.board-entry-wheel .bew-graphic { flex:0 0 46%; min-height:0; display:flex;
+  align-items:center; justify-content:center; width:100%; }
+.board-entry-wheel .wheel-svg { height:100%; width:auto; max-width:100%;
   filter:drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
-.board-entry-wheel .bew-label { flex:none; font-size:clamp(.5rem,1.1vw,.72rem);
+.board-entry-wheel .bew-label { flex:none; font-size:clamp(.45rem,.85vw,.68rem);
   font-weight:700; letter-spacing:.5px; color:var(--text-dim,#9aa1b5); white-space:nowrap; }
+/* 六段文字:兩欄三列。每一格都可能是 60 字的長句,所以一律截斷,
+   完整內容留在 title 與擲骰後的轉盤彈窗裡。 */
+.board-entry-wheel .bew-legend { flex:1; min-height:0; width:100%; margin:0; padding:0;
+  list-style:none; display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-auto-rows:1fr; gap:1px 5px; font-size:clamp(.4rem,.72vw,.6rem); line-height:1.25; }
+.board-entry-wheel .bew-legend li { display:flex; align-items:center; gap:3px; min-width:0; }
+.board-entry-wheel .bew-legend b { flex:none; color:var(--gold,#d9a441); font-weight:800; }
+.board-entry-wheel .bew-legend span { min-width:0; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; color:var(--text-dim,#9aa1b5); }
+/* 退回 2×2 的棋盤:只放得下轉盤本身 */
+.board-entry-wheel.bew-compact .bew-legend { display:none; }
+.board-entry-wheel.bew-compact .bew-graphic { flex:1; }
 .wheel-editor-tools { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0; }
 .wheel-editor-preview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; flex:1; }
 .wheel-preview-segment { min-width:0; padding:6px 8px; border-left:4px solid var(--wheel-color);
@@ -1022,7 +1035,10 @@
 .wheel-preview-segment strong { margin-right:5px; color:var(--wheel-color); }
 .wheel-preview-segment span { overflow-wrap:anywhere; }
 @media(max-width:760px) {
-  /* 窄螢幕格子本來就小,再放字會擠成一團 —— 只留轉盤圖形 */
-  .board-entry-wheel .bew-label { display:none; }
+  /* 窄螢幕格子本來就小,再放字會擠成一團 —— 只留轉盤圖形,
+     六段文字仍然可以在擲骰後的轉盤彈窗看到 */
+  .board-entry-wheel .bew-label,
+  .board-entry-wheel .bew-legend { display:none; }
+  .board-entry-wheel .bew-graphic { flex:1; }
   .wheel-editor-tools { align-items:stretch; flex-direction:column; }
 }
