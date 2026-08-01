@@ -34,6 +34,7 @@
             </form>
         </div>
 
+        @include('admin._per-page', ['paginator' => $cards, 'location' => 'top', 'showLinks' => false])
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>
@@ -78,7 +79,7 @@
             </table>
         </div>
 
-        <div style="margin-top:16px">{{ $cards->links() }}</div>
+        @include('admin._per-page', ['paginator' => $cards])
     </div>
 </section>
 @endsection

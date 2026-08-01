@@ -9,6 +9,7 @@
         <span class="badge-squares">{{ $boards->total() }} 筆待審</span>
     </div>
 
+    @include('admin._per-page', ['paginator' => $boards, 'location' => 'top', 'showLinks' => false])
     @forelse($boards as $board)
     <article class="admin-card" style="margin-bottom:16px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
         <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start">
@@ -41,8 +42,6 @@
     <div class="empty-notice">目前沒有待審核的棋盤。</div>
     @endforelse
 
-    <div style="margin-top:24px">
-        {{ $boards->links() }}
-    </div>
+    @include('admin._per-page', ['paginator' => $boards])
 </div>
 @endsection

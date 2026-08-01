@@ -30,6 +30,7 @@
             </form>
         </div>
 
+        @include('admin._per-page', ['paginator' => $boards, 'location' => 'top', 'showLinks' => false])
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>
@@ -58,9 +59,7 @@
                         <td>{{ $board->created_at->format('Y-m-d') }}</td>
                         <td>
                             <a href="{{ route('admin.boards.edit', $board) }}" class="btn btn-sm">編輯</a>
-                            @if($board->user_id)
                             <a href="{{ route('boards.edit', $board) }}" class="btn btn-sm btn-outline" target="_blank">畫布</a>
-                            @endif
                         </td>
                     </tr>
                     @empty
@@ -70,7 +69,7 @@
             </table>
         </div>
 
-        <div style="margin-top:16px">{{ $boards->links() }}</div>
+        @include('admin._per-page', ['paginator' => $boards])
     </div>
 </section>
 @endsection

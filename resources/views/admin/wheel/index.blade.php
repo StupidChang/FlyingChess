@@ -29,6 +29,7 @@
             </form>
         </div>
 
+        @include('admin._per-page', ['paginator' => $segments, 'location' => 'top', 'showLinks' => false])
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>
@@ -65,7 +66,7 @@
             </table>
         </div>
 
-        <div style="margin-top:16px">{{ $segments->links() }}</div>
+        @include('admin._per-page', ['paginator' => $segments])
     </div>
 </section>
 @endsection

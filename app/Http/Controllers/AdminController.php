@@ -12,6 +12,19 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    private function perPage(Request $request, $query): int
+    {
+        $selected = $request->input('per_page', '20');
+
+        if ($selected === 'all') {
+            return max(1, (clone $query)->count());
+        }
+
+        $perPage = (int) $selected;
+
+        return in_array($perPage, [20, 50, 100, 200], true) ? $perPage : 20;
+    }
+
     // ── Dashboard ──
 
     public function dashboard()
@@ -82,7 +95,8 @@ class AdminController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $boards = $query->latest()->paginate(20)->withQueryString();
+        $query->latest();
+        $boards = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.boards.index', compact('boards', 'filter'));
     }
@@ -121,13 +135,13 @@ class AdminController extends Controller
 
     // ── Community publish review ──
 
-    public function boardReviews()
+    public function boardReviews(Request $request)
     {
-        $boards = Board::with('user:id,name,email')
+        $query = Board::with('user:id,name,email')
             ->withCount('squares')
             ->where('publish_status', Board::PUBLISH_PENDING)
-            ->oldest('updated_at')
-            ->paginate(20);
+            ->oldest('updated_at');
+        $boards = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.boards.reviews', compact('boards'));
     }
@@ -182,7 +196,8 @@ class AdminController extends Controller
             $query->where('content', 'like', "%{$search}%");
         }
 
-        $cards = $query->latest()->paginate(20)->withQueryString();
+        $query->latest();
+        $cards = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.cards.index', compact('cards'));
     }
@@ -243,7 +258,8 @@ class AdminController extends Controller
             $query->where('content', 'like', "%{$search}%");
         }
 
-        $segments = $query->latest()->paginate(20)->withQueryString();
+        $query->latest();
+        $segments = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.wheel.index', compact('segments'));
     }
@@ -341,7 +357,8 @@ class AdminController extends Controller
             });
         }
 
-        $users = $query->latest()->paginate(20)->withQueryString();
+        $query->latest();
+        $users = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.users.index', compact('users', 'filter'));
     }
@@ -405,7 +422,8 @@ class AdminController extends Controller
             $query->where('code', 'like', "%{$search}%");
         }
 
-        $games = $query->latest()->paginate(20)->withQueryString();
+        $query->latest();
+        $games = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.games.index', compact('games', 'status'));
     }
