@@ -109,4 +109,49 @@ class TrafficTrackingTest extends TestCase
             ->assertSee('/games')
             ->assertDontSee('/old');
     }
+
+    public function test_the_traffic_page_shows_every_locale_by_default(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        PageView::create(['path' => '/games', 'locale' => 'zh_TW', 'visitor_hash' => 'a']);
+        PageView::create(['path' => '/games', 'locale' => 'ja', 'visitor_hash' => 'b']);
+        PageView::create(['path' => '/games', 'locale' => 'en', 'visitor_hash' => 'c']);
+
+        /* 不篩語系時看到的是四站合計 —— 熱門頁面的 path 已經去掉語系前綴,
+           所以同一頁在四個語系的瀏覽會加在一起,不是只有目前所在的那一站。 */
+        $this->actingAs($admin)->withUnencryptedCookie('age_verified', '1')
+            ->get('/tw/admin/traffic')
+            ->assertOk()
+            ->assertViewHas('totalViews', 3)
+            ->assertViewHas('locales', fn ($rows) => $rows->count() === 3);
+    }
+
+    public function test_the_traffic_page_can_be_narrowed_to_one_locale(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        PageView::create(['path' => '/games', 'locale' => 'zh_TW', 'visitor_hash' => 'a']);
+        PageView::create(['path' => '/games', 'locale' => 'ja', 'visitor_hash' => 'b']);
+
+        $this->actingAs($admin)->withUnencryptedCookie('age_verified', '1')
+            ->get('/tw/admin/traffic?locale[]=ja')
+            ->assertOk()
+            ->assertViewHas('totalViews', 1);
+    }
+
+    public function test_the_locale_breakdown_ignores_the_locale_filter(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        PageView::create(['path' => '/games', 'locale' => 'zh_TW', 'visitor_hash' => 'a']);
+        PageView::create(['path' => '/games', 'locale' => 'ja', 'visitor_hash' => 'b']);
+
+        /* 「語系分佈」那張表的用途就是四站各佔多少。跟著篩選走的話,勾了日文
+           就只剩日文一列,那張表等於沒有用。 */
+        $this->actingAs($admin)->withUnencryptedCookie('age_verified', '1')
+            ->get('/tw/admin/traffic?locale[]=ja')
+            ->assertOk()
+            ->assertViewHas('locales', fn ($rows) => $rows->count() === 2);
+    }
 }

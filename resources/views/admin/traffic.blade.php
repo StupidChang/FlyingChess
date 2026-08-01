@@ -10,6 +10,14 @@
     <div class="tf-head">
         <div>
             <h1>流量分析</h1>
+            <div class="admin-filter-tabs" style="margin-top:12px">
+                {{-- 不勾就是四站合計。熱門頁面的 path 已經去掉語系前綴,
+                     所以合計看到的是同一頁在四個語系的總和,不是只有中文站。 --}}
+                @include('admin._filter-clear', ['params' => ['locale']])
+                @foreach(['zh_TW' => '繁體中文', 'zh_CN' => '簡體中文', 'ja' => '日本語', 'en' => 'English'] as $k => $v)
+                @include('admin._filter-tab', ['param' => 'locale', 'value' => $k, 'label' => $v])
+                @endforeach
+            </div>
             <p class="tf-sub">
                 自己記的站內瀏覽,不經過 Google Analytics。不存 IP 與 UA 原文,
                 訪客數是用「當天有效」的雜湊算的,隔天同一個人會被算成新訪客。
@@ -17,7 +25,7 @@
         </div>
         <div class="tf-range">
             @foreach([1 => '今天', 7 => '7 天', 30 => '30 天', 90 => '90 天'] as $d => $label)
-                <a href="{{ route('admin.traffic', ['days' => $d]) }}"
+                <a href="{{ request()->fullUrlWithQuery(['days' => $d]) }}"
                    class="tf-range-btn {{ $days === $d ? 'active' : '' }}">{{ $label }}</a>
             @endforeach
         </div>
@@ -112,12 +120,21 @@
 
             <section class="tf-card">
                 <h2 class="tf-card-title">語系分佈</h2>
+                {{-- 這一張刻意不吃上面的語系篩選 —— 它的用途就是「四站各佔多少」,
+                     跟著篩選走的話勾了日文就只剩一列,等於沒有用。 --}}
+                @php $names = ['zh_TW' => '繁體中文', 'zh_CN' => '簡體中文', 'ja' => '日本語', 'en' => 'English']; @endphp
                 <table class="tf-table">
+                    <thead><tr><th>語系</th><th>瀏覽</th><th>訪客</th><th>佔比</th></tr></thead>
                     <tbody>
                     @forelse($locales as $row)
-                        <tr><td class="tf-path">{{ $row->locale ?: '未知' }}</td><td>{{ number_format($row->views) }}</td></tr>
+                        <tr>
+                            <td class="tf-path">{{ $names[$row->locale] ?? ($row->locale ?: '未知') }}</td>
+                            <td>{{ number_format($row->views) }}</td>
+                            <td>{{ number_format($row->visitors) }}</td>
+                            <td>{{ $localeTotal ? round($row->views / $localeTotal * 100) : 0 }}%</td>
+                        </tr>
                     @empty
-                        <tr><td colspan="2" class="tf-none">尚無資料</td></tr>
+                        <tr><td colspan="4" class="tf-none">尚無資料</td></tr>
                     @endforelse
                     </tbody>
                 </table>

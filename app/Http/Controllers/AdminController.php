@@ -14,6 +14,14 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    /** 流量頁的語系篩選。四個語系各自是一個站。 */
+    private const TRAFFIC_LOCALES = [
+        'zh_TW' => '繁體中文',
+        'zh_CN' => '簡體中文',
+        'ja' => '日本語',
+        'en' => 'English',
+    ];
+
     private function perPage(Request $request, $query): int
     {
         $selected = $request->input('per_page', '20');
@@ -163,7 +171,22 @@ class AdminController extends Controller
         $days = in_array($days, [1, 7, 30, 90], true) ? $days : 7;
         $since = now()->subDays($days - 1)->startOfDay();
 
-        $base = fn () => PageView::where('created_at', '>=', $since);
+        /* 語系篩選。預設不選 = 全部語系一起看 —— 熱門頁面與漏斗的 path 是去掉
+           語系前綴之後才存的(四個語系是同一個頁面),所以不篩的時候看到的是
+           四站合計,不是只有中文站。要單看某一站再把它勾起來。 */
+        $locales = array_values(array_intersect(
+            array_map('strval', (array) $request->input('locale', [])),
+            array_keys(self::TRAFFIC_LOCALES)
+        ));
+
+        $base = fn () => PageView::where('created_at', '>=', $since)
+            ->when($locales, fn ($q) => $q->whereIn('locale', $locales));
+
+        /* 語系分佈刻意**不吃**語系篩選 —— 那張表的用途就是「四站各佔多少」,
+           跟著篩選走的話勾了日文就只剩日文一列,等於沒有用。 */
+        $localeBreakdown = PageView::where('created_at', '>=', $since)
+            ->selectRaw('locale, count(*) as views, count(distinct visitor_hash) as visitors')
+            ->groupBy('locale')->orderByDesc('views')->get();
 
         // 每日趨勢。補上沒有任何瀏覽的日子,不然圖表會把空日直接跳過,
         // 看起來像那天流量正常。
@@ -189,14 +212,11 @@ class AdminController extends Controller
             ->selectRaw('referer_host, count(*) as views')
             ->groupBy('referer_host')->orderByDesc('views')->limit(15)->get();
 
-        $locales = $base()
-            ->selectRaw('locale, count(*) as views')
-            ->groupBy('locale')->orderByDesc('views')->get();
-
         // 動線漏斗。每一階算的是「不重複訪客」而不是瀏覽數 —— 同一個人重整
         // 十次不該讓那一階看起來比較好。
-        $reach = function (array $paths) use ($since) {
+        $reach = function (array $paths) use ($since, $locales) {
             return PageView::where('created_at', '>=', $since)
+                ->when($locales, fn ($q) => $q->whereIn('locale', $locales))
                 ->where(function ($q) use ($paths) {
                     foreach ($paths as $p) {
                         $q->orWhere('path', 'like', $p);
@@ -217,7 +237,8 @@ class AdminController extends Controller
             'trend' => $trend,
             'topPaths' => $topPaths,
             'referrers' => $referrers,
-            'locales' => $locales,
+            'locales' => $localeBreakdown,
+            'localeTotal' => $localeBreakdown->sum('views'),
             'funnel' => $funnel,
             'totalViews' => $base()->count(),
             'totalVisitors' => (clone $base())->distinct()->count('visitor_hash'),
