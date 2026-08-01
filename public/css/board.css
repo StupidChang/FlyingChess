@@ -991,7 +991,6 @@
 
 .wheel-text { font-size:1.15rem; font-weight:700; margin-bottom:8px; line-height:1.4; }
 
-.wheel-note.is-enter { color:var(--gold,#d9a441); font-weight:700; }
 /* A piece waiting to enter is kept off the track entirely. */
 .piece-token.piece-waiting { display:none; }
 /* 還沒進場的棋子停在進場轉盤上。畫一圈白邊把它從轉盤的彩色扇形裡拉出來,
