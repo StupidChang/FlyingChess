@@ -85,13 +85,32 @@ class PlayHistoryDetailTest extends TestCase
 
     public function test_the_profile_links_to_custom_dice_and_wheels(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['email_verified_at' => now()]);
 
         // 功能一直都在,但個人頁沒有入口等於沒有。
         $this->actingAs($user)->withUnencryptedCookie('age_verified', '1')
             ->get('/tw/profile')
             ->assertOk()
             ->assertSee(route('dice.index'))
-            ->assertSee(route('custom-wheel.index'));
+            ->assertSee(route('wheel-game.show'));
+    }
+
+    public function test_those_links_open_a_page_and_not_a_json_api(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        /* 只斷言「頁面上有這串網址」是不夠的 —— 轉盤原本連到 custom-wheel.index,
+           那是給編輯器 fetch 用的 JSON API,點下去使用者看到的是一坨 JSON。
+           真正要驗的是點下去會拿到一頁 HTML。 */
+        foreach (['/tw/my-dice', '/tw/wheel-game'] as $url) {
+            $response = $this->actingAs($user)->withUnencryptedCookie('age_verified', '1')->get($url);
+
+            $response->assertOk();
+            $this->assertStringContainsString(
+                'text/html',
+                (string) $response->headers->get('content-type'),
+                $url.' 不是一個頁面'
+            );
+        }
     }
 }

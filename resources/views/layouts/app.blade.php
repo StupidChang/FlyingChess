@@ -108,20 +108,35 @@
             @auth
                 <div class="nav-dropdown nav-account">
                     <button type="button" class="nav-link nav-dropdown-toggle nav-account-toggle" aria-haspopup="true">
+                        {{-- 名字的第一個字當頭像。純文字,不用等任何圖片載入,
+                             CJK 與拉丁字母都吃得下。 --}}
+                        <span class="nav-avatar" aria-hidden="true">{{ mb_substr(Auth::user()->name, 0, 1) }}</span>
                         <span class="nav-account-name">{{ Auth::user()->name }}</span>
                         @if(Auth::user()->isPremium())
                             <span class="nav-premium">Premium</span>
                         @endif
                     </button>
                     <div class="nav-dropdown-menu nav-account-menu">
-                        <a href="{{ route('profile.index') }}">{{ __('ui.profile') }}</a>
+                        <a href="{{ route('profile.index') }}">
+                            <svg class="nav-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clip-rule="evenodd"/></svg>
+                            <span>{{ __('ui.profile') }}</span>
+                        </a>
                         @if(Auth::user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" style="color:var(--accent)">{{ __('ui.admin') }}</a>
+                            <a href="{{ route('admin.dashboard') }}" style="color:var(--accent)">
+                                <svg class="nav-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/></svg>
+                                <span>{{ __('ui.admin') }}</span>
+                            </a>
                         @endif
-                        <a href="{{ route('premium.index') }}">{{ __('premium.page_title') }}</a>
+                        <a href="{{ route('premium.index') }}">
+                            <svg class="nav-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clip-rule="evenodd"/></svg>
+                            <span>{{ __('premium.page_title') }}</span>
+                        </a>
                         <form action="{{ route('logout') }}" method="POST" class="nav-account-logout">
                             @csrf
-                            <button type="submit">{{ __('auth.logout') }}</button>
+                            <button type="submit">
+                                <svg class="nav-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 006 5.25v13.5a1.5 1.5 0 001.5 1.5h6a1.5 1.5 0 001.5-1.5V15a.75.75 0 011.5 0v3.75a3 3 0 01-3 3h-6a3 3 0 01-3-3V5.25a3 3 0 013-3h6a3 3 0 013 3V9A.75.75 0 0115 9V5.25a1.5 1.5 0 00-1.5-1.5h-6zm10.72 4.72a.75.75 0 011.06 0l3 3a.75.75 0 010 1.06l-3 3a.75.75 0 11-1.06-1.06l1.72-1.72H9a.75.75 0 010-1.5h10.94l-1.72-1.72a.75.75 0 010-1.06z" clip-rule="evenodd"/></svg>
+                                <span>{{ __('auth.logout') }}</span>
+                            </button>
                         </form>
                     </div>
                 </div>

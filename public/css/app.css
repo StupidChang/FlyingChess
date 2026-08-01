@@ -87,26 +87,71 @@ ul{list-style:none}
 .nav-dropdown{position:relative}
 .nav-dropdown-toggle{cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none;font:inherit;border:none}
 .nav-dropdown-toggle::after{content:'▾';font-size:.65rem;opacity:.6;transition:transform .2s}
-.nav-dropdown:hover .nav-dropdown-toggle::after{transform:rotate(180deg)}
+.nav-dropdown:is(:hover,:focus-within) .nav-dropdown-toggle::after{transform:rotate(180deg)}
+/* 收合用 visibility 而不是 display:none —— display 沒有中間值,無法轉場。
+   visibility 會等 opacity 跑完才切掉(transition 的 delay 只加在關閉那一側),
+   pointer-events 則負責不讓看不見的選單擋住底下的東西。 */
 .nav-dropdown-menu{
-  display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  position:absolute;top:100%;left:50%;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transform:translateX(-50%) translateY(-6px) scale(.97);transform-origin:top center;
+  transition:opacity .18s ease,transform .2s cubic-bezier(.2,.8,.3,1),visibility 0s linear .2s;
   min-width:160px;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   padding:6px 0;padding-top:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:110;
 }
-.nav-dropdown:hover .nav-dropdown-menu,
-.nav-dropdown:focus-within .nav-dropdown-menu{display:block}
+.nav-dropdown:is(:hover,:focus-within) .nav-dropdown-menu{
+  opacity:1;visibility:visible;pointer-events:auto;
+  transform:translateX(-50%) translateY(0) scale(1);
+  transition-delay:0s;
+}
 .nav-dropdown-menu a{display:block;padding:8px 16px;font-size:.85rem;color:var(--text-dim);transition:background .15s,color .15s;white-space:nowrap}
 .nav-dropdown-menu a:hover{background:var(--surface2);color:var(--text)}
 
 /* Account dropdown (authenticated user cluster: profile / admin / premium / logout) */
-.nav-account-toggle{display:flex;align-items:center;gap:6px;max-width:180px;background:none;font:inherit;cursor:pointer}
+.nav-account-toggle{display:flex;align-items:center;gap:6px;max-width:200px;background:none;font:inherit;cursor:pointer}
 .nav-account-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
-.nav-account-menu{left:auto;right:0;transform:none;min-width:170px}
+.nav-avatar{
+  flex:none;width:24px;height:24px;border-radius:50%;
+  display:grid;place-items:center;
+  font-size:.72rem;font-weight:700;line-height:1;color:#1a0d12;
+  background:linear-gradient(135deg,var(--gold),var(--accent));
+  box-shadow:0 0 0 0 transparent;
+  transition:transform .2s cubic-bezier(.2,.8,.3,1),box-shadow .3s ease;
+}
+/* 兩套主題的 --accent 不同色,所以光暈用 color-mix 從主題色算;
+   不支援的瀏覽器吃上面那行金色的 rgba。 */
+.nav-account:is(:hover,:focus-within) .nav-avatar{
+  transform:scale(1.08);
+  box-shadow:0 0 0 4px rgba(217,164,65,.18);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 20%,transparent);
+}
+/* 選單本身是 right 對齊的,transform-origin 要跟著換邊,不然會從錯的角落展開 */
+.nav-account-menu{left:auto;right:0;min-width:190px;transform-origin:top right;
+  transform:translateY(-6px) scale(.97)}
+.nav-account:is(:hover,:focus-within) .nav-account-menu{transform:translateY(0) scale(1)}
+/* 每一列再各自淡入,依序錯開 —— 一次全部出現會有點呆板 */
+.nav-account-menu > *{opacity:0;transform:translateY(-4px);transition:opacity .16s ease,transform .16s ease}
+.nav-account:is(:hover,:focus-within) .nav-account-menu > *{opacity:1;transform:none}
+.nav-account:is(:hover,:focus-within) .nav-account-menu > :nth-child(1){transition-delay:.05s}
+.nav-account:is(:hover,:focus-within) .nav-account-menu > :nth-child(2){transition-delay:.09s}
+.nav-account:is(:hover,:focus-within) .nav-account-menu > :nth-child(3){transition-delay:.13s}
+.nav-account:is(:hover,:focus-within) .nav-account-menu > :nth-child(4){transition-delay:.17s}
+.nav-account-menu a,
+.nav-account-logout button{display:flex;align-items:center;gap:10px}
+.nav-ico{width:16px;height:16px;flex:none;opacity:.6;transition:opacity .15s ease,transform .15s ease}
+.nav-account-menu a:hover .nav-ico,
+.nav-account-logout button:hover .nav-ico{opacity:1;transform:scale(1.12)}
 .nav-account-logout{margin:6px 8px 2px;border-top:1px solid var(--border);padding-top:8px}
-.nav-account-logout button{display:block;width:100%;text-align:left;background:none;border:none;cursor:pointer;
+.nav-account-logout button{width:100%;text-align:left;background:none;border:none;cursor:pointer;
   padding:8px 8px;font:inherit;font-size:.85rem;color:var(--text-dim);border-radius:var(--radius);transition:background .15s,color .15s}
 .nav-account-logout button:hover{background:var(--surface2);color:var(--text)}
+
+@media (prefers-reduced-motion:reduce){
+  .nav-dropdown-menu,.nav-account-menu > *,.nav-avatar,.nav-ico{
+    transition-duration:.01ms !important;transition-delay:0s !important;
+  }
+}
 
 /* Mobile nav collapsible games section */
 .nav-mobile-games-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;color:inherit;font:inherit;cursor:pointer}
