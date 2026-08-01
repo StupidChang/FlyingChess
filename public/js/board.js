@@ -407,38 +407,44 @@ function buildBoard() {
    and repositioned with a CSS transform, so moving from square to square
    is a smooth slide (with a slight overshoot/bounce from the transition
    easing) instead of a DOM teardown + rebuild on every step. */
-function positionPiece(el, sqEl, board, offsetIndex) {
+
+/* 四個角落。之前只分「第一個」與「其他」,三、四號棋子會完全疊在一起。 */
+const PIECE_NUDGE = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+
+/** 把棋子放到任何一個目標元素的中心(格子,或還沒進場時的進場轉盤)。 */
+function positionPiece(el, target, board, offsetIndex) {
   const boardRect = board.getBoundingClientRect();
-  const sqRect    = sqEl.getBoundingClientRect();
-  const size = Math.max(10, Math.min(sqRect.width, sqRect.height) * 0.5);
+  const rect      = target.getBoundingClientRect();
+  const size = Math.max(10, Math.min(rect.width, rect.height) * 0.5);
   el.style.width  = size + 'px';
   el.style.height = size + 'px';
-  // Small per-player offset so two pieces sharing a square stay visible
-  // instead of fully overlapping (mirrors the previous top-left/bottom-right layout).
+
+  const [ox, oy] = PIECE_NUDGE[offsetIndex % PIECE_NUDGE.length];
   const nudge = size * 0.28;
-  const dx = offsetIndex === 0 ? -nudge : nudge;
-  const dy = offsetIndex === 0 ? -nudge : nudge;
-  const cx = (sqRect.left - boardRect.left) + sqRect.width  / 2 + dx;
-  const cy = (sqRect.top  - boardRect.top)  + sqRect.height / 2 + dy;
+  const cx = (rect.left - boardRect.left) + rect.width  / 2 + ox * nudge;
+  const cy = (rect.top  - boardRect.top)  + rect.height / 2 + oy * nudge;
   el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
 }
 
 function renderPieces() {
   const board = document.getElementById('game-board');
   if (!board) return;
+  const wheelEl = board.querySelector('.board-entry-wheel');
+
   state.players.forEach((p, i) => {
     let el = document.getElementById(`piece-${i+1}`);
 
-    /* Not on the track yet (entry wheel) → keep the piece off the board. */
-    if (!isOnTrack(p)) {
+    /* 還沒進場的棋子擺在進場轉盤上 —— 它們確實「在轉盤那邊等著」,
+       藏起來的話玩家看不出自己還沒上場,也看不出還有誰在等。
+       沒有轉盤可停(理論上不會發生:沒轉盤就不會有人未進場)才藏。 */
+    const waiting = !isOnTrack(p);
+    if (waiting && !wheelEl) {
       if (el) el.classList.add('piece-waiting');
       return;
     }
-    el?.classList.remove('piece-waiting');
 
-    const pos  = currentPos(p);
-    const sqEl = document.getElementById(`sq-${pos}`);
-    if (!sqEl) return;
+    const target = waiting ? wheelEl : document.getElementById(`sq-${currentPos(p)}`);
+    if (!target) return;
     const isNew = !el;
     if (isNew) {
       el = document.createElement('div');
@@ -446,15 +452,18 @@ function renderPieces() {
       el.id        = `piece-${i+1}`;
       board.appendChild(el);
     }
+    el.classList.remove('piece-waiting');
+    el.classList.toggle('piece-on-wheel', waiting);
+
     if (isNew) {
       // Snap into place on first placement (setup/reset/rebuild) instead
       // of visibly sliding in from the top-left corner.
       el.style.transition = 'none';
-      positionPiece(el, sqEl, board, i);
+      positionPiece(el, target, board, i);
       void el.offsetWidth; // force reflow so the transition-less transform commits
       el.style.transition = '';
     } else {
-      positionPiece(el, sqEl, board, i);
+      positionPiece(el, target, board, i);
     }
   });
 }
@@ -992,11 +1001,24 @@ function showWheelModal(roll) {
 
   const note = document.getElementById('wheel-note');
   if (note) {
-    note.textContent = seg.enter ? tp('wheelEnter') : (seg.reroll ? tp('wheelReroll') : tp('wheelStay'));
+    /* 進場那一格要講清楚會落到哪 —— 路徑可以依性別/座位分開設定,所以不同
+       玩家的第一格可能是不同的格子,只寫「進入棋盤」看不出自己要去哪。 */
+    note.textContent = seg.enter
+      ? tp('wheelEnter') + ' ' + entryHint(player)
+      : (seg.reroll ? tp('wheelReroll') : tp('wheelStay'));
     note.className = 'wheel-note' + (seg.enter ? ' is-enter' : '');
   }
 
   openModal('wheel-modal');
+}
+
+/** 「→ 第 N 格:內容」。玩家進場後會停在自己路徑的第一格。 */
+function entryHint(player) {
+  const pos = getEffectivePath(player.gender)[0];
+  const sq  = getSq(pos);
+  const text = String(sq.text || '').split('\n')[0];
+
+  return tp('wheelEnterAt', { '__N__': pos }) + (text ? '：' + text : '');
 }
 
 /** Resolve the wheel result: enter the track, roll again, or pass the turn. */

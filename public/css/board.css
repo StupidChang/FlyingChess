@@ -994,6 +994,10 @@
 .wheel-note.is-enter { color:var(--gold,#d9a441); font-weight:700; }
 /* A piece waiting to enter is kept off the track entirely. */
 .piece-token.piece-waiting { display:none; }
+/* 還沒進場的棋子停在進場轉盤上。畫一圈白邊把它從轉盤的彩色扇形裡拉出來,
+   並稍微縮小,跟已經在格子上的棋子分得開。 */
+.piece-token.piece-on-wheel { box-shadow:0 0 0 2px rgba(255,255,255,.85), 0 2px 6px rgba(0,0,0,.6);
+  transform-origin:center; z-index:6; }
 
 /* Wheel editor (board edit page) */
 .wheel-slots { display:flex; flex-direction:column; gap:8px; }

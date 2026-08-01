@@ -63,6 +63,7 @@ return [
     'skip_turn_effect' => 'Skip a turn (miss the next roll)',
     'move_effect_help' => 'When set, this wins. Leave blank to fall back to the old text parsing (Traditional Chinese only).',
     'wheel_ok' => 'Got it',
+    'js_wheel_enter_at' => '→ square __N__',
     'js_wheel_enter' => 'You are on the board!',
     'js_wheel_reroll' => 'Roll again',
     'js_wheel_stay' => 'Do it, then pass the turn',

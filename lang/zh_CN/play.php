@@ -63,6 +63,7 @@ return [
     'skip_turn_effect' => '停一轮(下次不能掷骰)',
     'move_effect_help' => '填了就以这里为准；留空则沿用旧的文字判读（仅繁中有效）。',
     'wheel_ok' => '知道了',
+    'js_wheel_enter_at' => '→ 第 __N__ 格',
     'js_wheel_enter' => '进入棋盘！',
     'js_wheel_reroll' => '可以再掷一次',
     'js_wheel_stay' => '完成后换下一位',

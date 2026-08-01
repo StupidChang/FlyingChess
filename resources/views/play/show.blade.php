@@ -299,6 +299,7 @@
         'bonusText'    => __('play.bonus_text'),
         // 進場轉盤
         'wheelEnter'   => __('play.js_wheel_enter'),
+        'wheelEnterAt' => __('play.js_wheel_enter_at'),
         'wheelReroll'  => __('play.js_wheel_reroll'),
         'wheelStay'    => __('play.js_wheel_stay'),
         'wheelWaiting' => __('play.js_wheel_waiting'),
