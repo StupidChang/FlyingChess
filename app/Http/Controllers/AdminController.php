@@ -422,6 +422,32 @@ class AdminController extends Controller
         ]);
     }
 
+    public function createPrompt(Request $request)
+    {
+        $game = $request->input('game', 'who_most_likely');
+        if (! isset(GamePrompt::GAMES[$game])) {
+            $game = 'who_most_likely';
+        }
+
+        $pool = $request->input('pool');
+
+        return view('admin.prompts.form', [
+            'prompt' => null,
+            'game' => $game,
+            // 從列表帶過來的分類要能當預設值,但只在它屬於這個遊戲的時候。
+            'pool' => isset(GamePrompt::POOLS[$game][$pool]) ? $pool : null,
+        ]);
+    }
+
+    public function editPrompt(GamePrompt $prompt)
+    {
+        return view('admin.prompts.form', [
+            'prompt' => $prompt,
+            'game' => $prompt->game,
+            'pool' => $prompt->pool,
+        ]);
+    }
+
     public function storePrompt(Request $request)
     {
         $data = $this->validatePrompt($request);

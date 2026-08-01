@@ -5,10 +5,11 @@
 
 @include('admin._nav')
 
-<div class="container" style="padding:28px 20px 60px">
+<section class="section section--sm">
+<div class="container">
     <div class="tf-head">
         <div>
-            <h1 class="section-title" style="font-size:1.3rem;text-align:left">流量分析</h1>
+            <h1>流量分析</h1>
             <p class="tf-sub">
                 自己記的站內瀏覽,不經過 Google Analytics。不存 IP 與 UA 原文,
                 訪客數是用「當天有效」的雜湊算的,隔天同一個人會被算成新訪客。
@@ -124,4 +125,5 @@
         </div>
     </div>
 </div>
+</section>
 @endsection

@@ -3,7 +3,8 @@
 @section('robots', 'noindex,nofollow')
 @section('content')
 @include('admin._nav')
-<div class="container" style="padding-top:24px;padding-bottom:48px">
+<section class="section section--sm">
+<div class="container">
     <div class="section-head">
         <h1>發佈審核</h1>
         <span class="badge-squares">{{ $boards->total() }} 筆待審</span>
@@ -44,4 +45,5 @@
 
     @include('admin._per-page', ['paginator' => $boards])
 </div>
+</section>
 @endsection

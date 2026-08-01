@@ -1139,7 +1139,7 @@ ul{list-style:none}
   background:var(--accent);color:#fff;
   border-color:var(--accent);font-weight:600;
 }
-.admin-search{display:flex;gap:8px}
+.admin-search{display:flex;gap:8px;flex-wrap:wrap}
 .admin-search-input{
   padding:6px 12px;font-size:.85rem;
   background:var(--surface2);color:var(--text);
@@ -1147,6 +1147,7 @@ ul{list-style:none}
   min-width:180px;
 }
 .admin-search-input::placeholder{color:var(--text-dim)}
+select.admin-search-input{cursor:pointer;min-width:140px}
 
 /* ── Admin Form ── */
 .admin-form .form-group{margin-bottom:16px}
@@ -1188,6 +1189,17 @@ ul{list-style:none}
   display:inline-block;padding:2px 8px;font-size:.75rem;font-weight:600;
   border-radius:6px;background:#f59e0b;color:#000;
 }
+/* 強度。三個等級一組固定顏色,後台每一頁都用同一組 —— 原本轉盤後台輸出的是
+   .badge-mild / .badge-medium / .badge-intense,那三個 class 從來沒有樣式,
+   所以強度欄一直是沒有顏色的純文字。 */
+.badge-tier{
+  display:inline-block;padding:2px 8px;font-size:.75rem;font-weight:600;
+  border-radius:6px;white-space:nowrap;
+}
+.badge-tier--mild{background:#10b981;color:#04231a}
+.badge-tier--medium{background:#f59e0b;color:#000}
+.badge-tier--intense{background:#ef4444;color:#fff}
+.badge-tier--neutral{background:var(--surface2);color:var(--text-dim)}
 
 /* ── Admin responsive ── */
 @media(max-width:600px){
@@ -1735,36 +1747,13 @@ ul{list-style:none}
 @keyframes modal-fade { from { opacity: 0; } }
 @keyframes modal-rise { from { opacity: 0; transform: translateY(10px) scale(.97); } }
 
-/* ── 後台題庫 ────────────────────────────────────── */
-.pr-sub{color:var(--text-dim);font-size:.82rem;line-height:1.7;margin:6px 0 18px;max-width:640px}
-.pr-flash{margin-bottom:16px;padding:10px 14px;border-radius:8px;font-size:.85rem;
-  border:1px solid var(--gold);color:var(--gold);background:rgba(217,164,65,.08)}
-.pr-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.pr-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--border);
-  font-size:.82rem;color:var(--text-dim)}
-.pr-tab.active{border-color:var(--gold);color:var(--gold);font-weight:700}
-.pr-empty{padding:16px;border:1px dashed var(--border);border-radius:10px;margin-bottom:18px;
-  color:var(--text-dim);font-size:.85rem;line-height:1.7}
-.pr-empty p{margin-bottom:10px}
-.pr-filters,.pr-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-.pr-filters .form-control,.pr-add .form-control{width:auto;min-width:120px}
-.pr-add input[name=content]{flex:1;min-width:200px}
-.pr-add .pr-order{width:80px;min-width:0}
-.pr-error{color:var(--accent);font-size:.8rem;margin:-8px 0 12px}
-.pr-table{width:100%;border-collapse:collapse;font-size:.85rem}
-.pr-table th{text-align:left;color:var(--text-dim);font-size:.75rem;font-weight:600;
-  padding:8px;border-bottom:1px solid var(--border)}
-.pr-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
-.pr-table .form-control{width:100%}
-.pr-actions{display:flex;gap:6px;align-items:center}
-.pr-actions form{display:inline}
-.pr-del{color:var(--accent);border-color:var(--accent)}
-.pr-none{color:var(--text-dim);text-align:center;padding:20px}
-@media(max-width:760px){
-  .pr-table thead{display:none}
-  .pr-table tr{display:grid;grid-template-columns:1fr;gap:6px;padding:10px 0;
-    border-bottom:1px solid var(--border)}
-  .pr-table td{border:0;padding:0}
+/* 後台的說明／提示區塊。題庫沒匯入時的提示用它,之後別頁要放說明也共用。 */
+.admin-note{
+  padding:16px;margin-bottom:18px;
+  border:1px dashed var(--border);border-radius:10px;
+  color:var(--text-dim);font-size:.85rem;line-height:1.7;
+}
+.admin-note p{margin-bottom:10px}
 }
 
 /* ── 個人資料頁的自訂工具入口 ── */

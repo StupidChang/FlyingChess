@@ -408,8 +408,10 @@ Route::prefix('{locale}')
             Route::delete('/games/{game}', [AdminController::class, 'destroyGame'])->name('games.destroy');
             // 四個小遊戲的題庫(誰最有可能 / 撲克牌 / 國王 / 骰子)
             Route::get('/prompts', [AdminController::class, 'prompts'])->name('prompts');
+            Route::get('/prompts/create', [AdminController::class, 'createPrompt'])->name('prompts.create');
             Route::post('/prompts', [AdminController::class, 'storePrompt'])->name('prompts.store');
             Route::post('/prompts/import', [AdminController::class, 'importPrompts'])->name('prompts.import');
+            Route::get('/prompts/{prompt}/edit', [AdminController::class, 'editPrompt'])->name('prompts.edit');
             Route::patch('/prompts/{prompt}', [AdminController::class, 'updatePrompt'])->name('prompts.update');
             Route::delete('/prompts/{prompt}', [AdminController::class, 'destroyPrompt'])->name('prompts.destroy');
 

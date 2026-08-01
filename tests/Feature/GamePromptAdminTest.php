@@ -97,6 +97,51 @@ class GamePromptAdminTest extends TestCase
         $this->assertSame(0, GamePrompt::count());
     }
 
+    public function test_the_list_colour_codes_the_intensity(): void
+    {
+        GamePrompt::create(['game' => 'who_most_likely', 'pool' => 'intense', 'content' => '重度題']);
+
+        /* 強度靠顏色分辨。轉盤後台原本輸出的是沒有樣式的 .badge-mild,所以這裡
+           驗的是有樣式的那組 class,不是「畫面上有出現分類名稱」。 */
+        $this->actingAs($this->admin())->withUnencryptedCookie('age_verified', '1')
+            ->get('/tw/admin/prompts?game=who_most_likely')
+            ->assertOk()
+            ->assertSee('badge-tier--intense');
+    }
+
+    public function test_dice_pools_map_onto_the_same_three_levels(): void
+    {
+        // 骰子的池是「類別.強度」,詞彙不同但要落在同一組顏色上。
+        GamePrompt::create(['game' => 'dice_game', 'pool' => 'action.wild', 'content' => '狂野']);
+
+        $this->actingAs($this->admin())->withUnencryptedCookie('age_verified', '1')
+            ->get('/tw/admin/prompts?game=dice_game')
+            ->assertOk()
+            ->assertSee('badge-tier--intense');
+    }
+
+    public function test_prompts_are_edited_on_their_own_page_like_the_other_admin_sections(): void
+    {
+        $prompt = GamePrompt::create(['game' => 'king_game', 'pool' => 'mild', 'content' => '原本的題目']);
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->withUnencryptedCookie('age_verified', '1')
+            ->get('/tw/admin/prompts/create?game=king_game')->assertOk();
+
+        $this->actingAs($admin)->withUnencryptedCookie('age_verified', '1')
+            ->get("/tw/admin/prompts/{$prompt->id}/edit")
+            ->assertOk()
+            ->assertSee('原本的題目');
+
+        $this->actingAs($admin)->withUnencryptedCookie('age_verified', '1')
+            ->patch("/tw/admin/prompts/{$prompt->id}", [
+                'game' => 'king_game', 'pool' => 'medium', 'content' => '改過的題目', 'sort_order' => 3,
+            ])->assertRedirect();
+
+        $this->assertSame('改過的題目', $prompt->fresh()->content);
+        $this->assertSame('medium', $prompt->fresh()->pool);
+    }
+
     public function test_the_page_is_admin_only(): void
     {
         $this->withUnencryptedCookie('age_verified', '1')->get('/tw/admin/prompts')->assertRedirect();

@@ -45,9 +45,10 @@
                     <tr>
                         <td>{{ $segment->id }}</td>
                         <td>
-                            <span class="badge-{{ $segment->tier }}">
-                                {{ ['mild'=>'輕鬆','medium'=>'親密','intense'=>'大膽'][$segment->tier] ?? $segment->tier }}
-                            </span>
+                            @include('admin._tier-badge', [
+                                'key' => $segment->tier,
+                                'label' => ['mild'=>'輕鬆','medium'=>'親密','intense'=>'大膽'][$segment->tier] ?? $segment->tier,
+                            ])
                         </td>
                         <td style="max-width:400px">{{ Str::limit($segment->content, 80) }}</td>
                         <td style="white-space:nowrap">
