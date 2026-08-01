@@ -256,10 +256,18 @@ ul{list-style:none}
 .form-error{color:#f5a3b3;font-size:.82rem;margin-top:4px}
 
 /* Modal */
-.modal{display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center}
+/* padding 給在容器上而不是在 .modal-box 上加 margin:box 是 width:100%,
+   在窄螢幕會一路貼到左右兩邊。容器有內距之後,box 再怎麼滿也留得住邊。
+   dvh 而不是 vh:手機瀏覽器的網址列會伸縮,vh 算的是最大高度,彈窗底部
+   會被工具列蓋住。 */
+.modal{display:none;position:fixed;inset:0;z-index:300;align-items:center;
+  justify-content:center;padding:20px}
 .modal.open{display:flex}
 .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7)}
-.modal-box{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:420px;z-index:1;box-shadow:0 20px 48px rgba(0,0,0,.5)}
+.modal-box{position:relative;background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:28px;width:100%;max-width:420px;z-index:1;
+  max-height:calc(100dvh - 40px);overflow-y:auto;
+  box-shadow:0 20px 48px rgba(0,0,0,.5)}
 .modal-box h2{margin-bottom:20px;font-size:1.2rem;color:var(--text)}
 .modal-close{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-dim);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:4px}
 .modal-close:hover{background:var(--surface2);color:var(--text)}

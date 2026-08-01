@@ -360,6 +360,11 @@
   flex-shrink: 0;
 }
 .player-panel {
+  /* flex:1 1 0 —— 兩側等分剩餘空間,骰子區才會落在真正的正中央。
+     用 flex:1 讓中間區塊「填滿剩下的」的話,兩邊名字長度不同時中線就會偏
+     (實測差 45px)。min-width:0 讓長名字可以被截斷而不是把面板撐開。 */
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -381,7 +386,7 @@
 .pname { font-weight:700; font-size:.9rem; display:block; color: var(--text, #e9ebf2); }
 .ppos  { font-size:.72rem; color:var(--text-dim); }
 
-.turn-center { text-align:center; flex:1; }
+.turn-center { text-align:center; flex:0 0 auto; }
 .turn-label  { font-size:.85rem; color:var(--gold); font-weight:600; margin-bottom:4px; }
 .dice-display { margin-bottom:4px; }
 .dice {
@@ -919,6 +924,21 @@
 }
 .pawn-3 { color: var(--green, #4ade80); }
 .pawn-4 { color: var(--yellow, #facc15); }
+
+/* 右側的面板靠右,左側靠左,中線才對稱 */
+.player-panel.p2, .player-panel.p4 { justify-content: flex-end; }
+.player-info { min-width: 0; }
+.pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 手機:把邊距收緊,空間留給骰子與名字 */
+@media (max-width: 760px) {
+  .player-bar { padding: 6px 8px; gap: 6px; }
+  .player-panel { padding: 4px 6px; gap: 5px; }
+  .pawn, .pawn svg { width: 1.05rem; height: 1.05rem; font-size: 1.05rem; }
+  .pname { font-size: .8rem; }
+  .ppos { font-size: .65rem; }
+  .turn-label { font-size: .78rem; margin-bottom: 2px; }
+}
 
 /* 同組標示(設定視窗) */
 .setup-team{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;
