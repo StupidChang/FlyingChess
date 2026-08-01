@@ -14,6 +14,7 @@ return [
 
     // 広告視聴で有料コンテンツを解放（partials/rewarded-unlock）
     'rewarded_hint' => '課金しなくても大丈夫：広告を1本見れば :minutes 分間、全お題と無制限ラウンドが解放されます。',
+    'rewarded_ad_blocked' => 'ブラウザが広告をブロックしました。解錠はそのまま有効です。広告はこのサイト唯一の収入源です。',
     'rewarded_cta' => '広告を見て :minutes 分解放',
     'rewarded_active' => '全コンテンツ解放中 — 残り',
     'rewarded_watching' => '広告を再生中… あと :seconds 秒で解放できます',

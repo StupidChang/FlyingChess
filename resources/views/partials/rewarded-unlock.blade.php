@@ -39,9 +39,24 @@
     <div class="rw-dialog" role="dialog" aria-modal="true" aria-labelledby="rw-title">
         <h3 id="rw-title">{{ __('minigame.rewarded_cta', ['minutes' => $rwMinutes]) }}</h3>
 
-        {{-- 廣告版位。沒有設定聯播網時 ad-unit 什麼都不輸出,流程仍然可以走完,
-             這樣過審前也能測整條路徑。 --}}
-        @include('partials.ad-unit', ['zone' => 'game_end'])
+        {{-- 廣告要等彈窗打開才投放。之前直接 @include ad-unit,結果 ExoClick 在
+             頁面載入時就對一個 hidden(0×0)的容器投放,永遠是空的 —— 使用者
+             盯著空白等 15 秒,以為壞掉。所以這裡只放容器,ins 由 openModal()
+             在彈窗顯示之後才插入。
+             非 exoclick 的 adapter 沒有這個問題(也沒有延後載入的實作),
+             維持原本的 include。 --}}
+        @php
+            $rwZone = config('ads.adapter', 'exoclick') === 'exoclick'
+                ? config('ads.exoclick.zone_game_end')
+                : null;
+        @endphp
+        @if($rwZone)
+            <div class="ad-unit ad-unit--banner" id="rw-ad"
+                 data-zoneid="{{ $rwZone }}" aria-label="{{ __('ui.ad_label') }}"></div>
+            <script async src="https://a.magsrv.com/ad-provider.js"></script>
+        @else
+            @include('partials.ad-unit', ['zone' => 'game_end'])
+        @endif
 
         <p class="rw-status" id="rw-status"></p>
         <div class="rw-actions">
@@ -102,10 +117,35 @@
         });
     }
 
+    var adBox = document.getElementById('rw-ad');
+
+    // 彈窗顯示之後才插入 ins:容器要先有實際尺寸,聯播網才知道要投多大的素材。
+    // 只做一次 —— 每開一次就投一次會重複計曝光。
+    function serveAd(){
+        if(!adBox || adBox.dataset.served) return;
+        adBox.dataset.served = '1';
+
+        var ins = document.createElement('ins');
+        ins.className = 'eas6a97888e2';
+        ins.dataset.zoneid = adBox.dataset.zoneid;
+        adBox.appendChild(ins);
+        (AdProvider = window.AdProvider || []).push({"serve": {}});
+
+        // 廣告攔截器擋掉的話這裡永遠不會有 iframe。與其讓人盯著空白等 15 秒,
+        // 不如直說 —— 解鎖照給,擋廣告的人本來就不會有收益,刁難他沒有意義。
+        setTimeout(function(){
+            if(!adBox.querySelector('iframe')){
+                adBox.innerHTML = '<p class="rw-ad-blocked">'
+                    + @json(__('minigame.rewarded_ad_blocked')) + '</p>';
+            }
+        }, 2500);
+    }
+
     function openModal(){
         modal.hidden = false;
         claimB.disabled = true;
         status.textContent = '';
+        serveAd();
 
         post(@json(route('rewarded.start'))).then(function(r){ return r.json(); }).then(function(d){
             if(!d.token) return;

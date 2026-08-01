@@ -1619,3 +1619,5 @@ ul{list-style:none}
 .tf-table tr:last-child td{border-bottom:0}
 .tf-path{word-break:break-all;color:var(--text-dim)}
 .tf-none{color:var(--text-dim);text-align:center;padding:16px 8px;line-height:1.6}
+/* 廣告被攔截器擋掉時的說明。不是錯誤,所以用一般說明色而不是紅字。 */
+.rw-ad-blocked{padding:18px 14px;color:var(--text-dim);font-size:.8rem;line-height:1.7;text-align:center}

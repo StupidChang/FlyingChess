@@ -13,6 +13,7 @@ return [
 
     // Watch-an-ad unlock (partials/rewarded-unlock)
     'rewarded_hint' => 'Not ready to pay? Watch one ad to unlock the full decks and unlimited rounds for :minutes minutes.',
+    'rewarded_ad_blocked' => 'Your browser blocked the ad. You still get the unlock — ads are just how this site pays for itself.',
     'rewarded_cta' => 'Watch an ad — :minutes min',
     'rewarded_active' => 'Full content unlocked — time left',
     'rewarded_watching' => 'Ad playing… unlock available in :seconds s',

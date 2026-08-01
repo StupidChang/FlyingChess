@@ -457,6 +457,26 @@ class BoardController extends Controller
     /** 一眼看得出調性、但看不完 —— 付費範本預覽開放的格數。 */
     private const PREVIEW_OPEN_SQUARES = 8;
 
+    /**
+     * 預覽要開放哪幾格。散在整張棋盤上而不是集中在開頭 —— 前八格通常都是暖身,
+     * 只看那幾格會以為整張棋盤都很溫和,反而讓人覺得不值得解鎖。
+     *
+     * ⚠ 這個選擇必須**對同一張棋盤永遠一樣**。用真的亂數的話,重新整理幾次
+     * 就能把整張棋盤看完,等於沒鎖。所以用 (棋盤 id + 格號 + APP_KEY) 的雜湊
+     * 排序來挑:看起來是隨機的,但同一張棋盤每次都得到同一批,而且加了
+     * APP_KEY 之後外人也算不出下一次會開哪幾格。
+     */
+    private function previewOpenPositions(Board $board): array
+    {
+        return $board->squares
+            ->pluck('position')
+            ->sortBy(fn ($p) => crc32($board->id.':'.$p.':'.config('app.key')))
+            ->take(self::PREVIEW_OPEN_SQUARES)
+            ->sort()
+            ->values()
+            ->all();
+    }
+
     public function templatePreview(Request $request, Board $board)
     {
         if (! $board->is_template) {
@@ -465,7 +485,7 @@ class BoardController extends Controller
 
         $board->load('squares');
 
-        // 付費範本沒有權限時只開頭幾格。遮住的格子**根本不會送出文字**,
+        // 付費範本沒有權限時只開一部分。遮住的格子**根本不會送出文字**,
         // 不是用 CSS 糊掉 —— 糊的那種打開開發者工具就看完了,等於沒鎖。
         $canSeeAll = ! $board->is_premium_template
             || PremiumAccess::content($request->user());
@@ -473,6 +493,7 @@ class BoardController extends Controller
         return view('boards.template-preview', [
             'board' => $board,
             'canSeeAll' => $canSeeAll,
+            'openPositions' => $canSeeAll ? [] : $this->previewOpenPositions($board),
             'previewOpenSquares' => self::PREVIEW_OPEN_SQUARES,
         ]);
     }

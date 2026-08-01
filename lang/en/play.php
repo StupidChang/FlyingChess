@@ -32,7 +32,7 @@ return [
     'use_this_template' => 'Use this template',
     'upgrade_to_unlock' => 'Upgrade to unlock',
     'register_to_use' => 'Sign up to use',
-    'preview_locked_note' => 'Only the first :open squares are shown. Watch one ad to unlock the full board for :minutes minutes, or go Premium to keep it.',
+    'preview_locked_note' => 'Only :open squares are revealed, spread across the board. Watch one ad to unlock everything for :minutes minutes, or go Premium to keep it.',
     'back_to_templates' => 'Back to templates',
     'template_preview' => 'Board template preview',
 

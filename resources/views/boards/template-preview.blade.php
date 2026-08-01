@@ -48,7 +48,7 @@
                 @for($c = 1; $c <= $board->canvas_cols; $c++)
                     @php $sq = $squareMap->get("$r-$c"); @endphp
                     @if($sq)
-                        @php $locked = ! $canSeeAll && $sq->position >= $previewOpenSquares; @endphp
+                        @php $locked = ! $canSeeAll && ! in_array($sq->position, $openPositions, true); @endphp
                         <div class="tpv-sq{{ $locked ? ' tpv-sq--locked' : '' }}" data-c="{{ $sq->color }}">
                             <span class="tpv-num">{{ $sq->position }}</span>
                             {{-- 鎖住的格子連文字都不輸出,不是用 CSS 遮 --}}
