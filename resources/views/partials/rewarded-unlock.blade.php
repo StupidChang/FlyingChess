@@ -57,6 +57,8 @@
                      比廣告本身更尷尬,想聽的人自己按喇叭。 --}}
                 <video id="rw-video" class="rw-video" playsinline muted preload="auto" hidden></video>
                 <button type="button" id="rw-unmute" class="rw-unmute" hidden>🔇</button>
+                {{-- 自動播放被瀏覽器拒絕時才出現 --}}
+                <button type="button" id="rw-play" class="rw-play" hidden>▶</button>
                 {{-- 沒有影片可播時的退路:原本那顆 banner --}}
                 <div class="ad-unit ad-unit--banner" id="rw-ad"
                      data-zoneid="{{ $rwZone }}" aria-label="{{ __('ui.ad_label') }}" hidden></div>
@@ -96,9 +98,8 @@
     var minWatchDone = false, secondsLeft = 0;
 
     var T = {
-        watching:   @json(__('minigame.rewarded_watching', ['seconds' => '__S__'])),
-        watchToEnd: @json(__('minigame.rewarded_watch_to_end')),
-        failed:     @json(__('minigame.rewarded_failed'))
+        watching: @json(__('minigame.rewarded_watching', ['seconds' => '__S__'])),
+        failed:   @json(__('minigame.rewarded_failed'))
     };
 
     function mmss(s){
@@ -131,6 +132,7 @@
     var adBox   = document.getElementById('rw-ad');
     var video   = document.getElementById('rw-video');
     var unmuteB = document.getElementById('rw-unmute');
+    var playB   = document.getElementById('rw-play');
 
     // 影片播完了沒。有影片時「完成」按鈕要等它播完,不能只看秒數 ——
     // 不然「看廣告解鎖」跟「等 15 秒解鎖」沒有差別。
@@ -151,13 +153,17 @@
         adBox.appendChild(ins);
         (AdProvider = window.AdProvider || []).push({"serve": {}});
 
-        // 廣告攔截器擋掉的話這裡永遠不會有 iframe。與其讓人盯著空白等 15 秒,
-        // 不如直說 —— 解鎖照給,擋廣告的人本來就不會有收益,刁難他沒有意義。
+        // 沒東西可看的時候要說對原因。兩種情況長得一樣(空容器)但意思完全不同:
+        // AdProvider 還是原本那個陣列 → 聯播網的 script 根本沒載入 → 被攔截器擋了。
+        // 已經被真正的 script 換掉 → 載入正常,只是這次沒有廣告可投。
+        // 講錯的話,自己站上沒填充會被誤會成使用者裝了擋廣告工具。
         setTimeout(function(){
-            if(!adBox.querySelector('iframe')){
-                adBox.innerHTML = '<p class="rw-ad-blocked">'
-                    + @json(__('minigame.rewarded_ad_blocked')) + '</p>';
-            }
+            if(adBox.querySelector('iframe')) return;
+
+            var blocked = !window.AdProvider || Array.isArray(window.AdProvider);
+            adBox.innerHTML = '<p class="rw-ad-blocked">'
+                + (blocked ? @json(__('minigame.rewarded_ad_blocked'))
+                           : @json(__('minigame.rewarded_ad_no_fill'))) + '</p>';
         }, 2500);
     }
 
@@ -220,6 +226,7 @@
         video.addEventListener('playing', function(){ fire('start'); }, {once: true});
 
         video.addEventListener('timeupdate', function(){
+            refreshClaim();
             if(!video.duration) return;
             var p = video.currentTime / video.duration;
             if(p >= .25) fire('firstQuartile');
@@ -227,28 +234,41 @@
             if(p >= .75) fire('thirdQuartile');
         });
 
+        // 拿到長度就立刻把倒數換成影片的秒數,不要先顯示 15 再跳成 23
+        video.addEventListener('loadedmetadata', refreshClaim);
+
         video.addEventListener('ended', function(){
             fire('complete');
             videoDone = true;
             refreshClaim();
         });
 
-        // 播不動(格式、網路、自動播放被擋)就退回 banner,不要卡住使用者。
-        video.addEventListener('error', function(){
+        // 播不動(格式、網路)就退回 banner,不要卡住使用者。
+        video.addEventListener('error', function(){ giveUpOnVideo(); });
+
+        function giveUpOnVideo(){
+            if(!needVideo) return;
             needVideo = false;
             video.hidden = true;
             unmuteB.hidden = true;
+            playB.hidden = true;
             serveBanner();
             refreshClaim();
+        }
+
+        // 靜音自動播放通常是允許的,但不保證(瀏覽器設定、省電模式、無使用者手勢
+        // 的情境都可能被拒)。被拒的時候不要直接放棄影片 —— 影片已經下載好了,
+        // 給一顆播放鍵讓使用者自己按,那一下就是明確的手勢,一定播得起來。
+        video.play().catch(function(){
+            playB.hidden = false;
+
+            // 但也不能無限等:沒人按就退回 banner,總比停在一張靜止畫面好。
+            setTimeout(function(){ if(video.paused) giveUpOnVideo(); }, 10000);
         });
 
-        video.play().catch(function(){
-            // 靜音自動播放幾乎不會被擋,真的被擋就當作沒有影片。
-            needVideo = false;
-            video.hidden = true;
-            unmuteB.hidden = true;
-            serveBanner();
-            refreshClaim();
+        playB.addEventListener('click', function(){
+            playB.hidden = true;
+            video.play().catch(giveUpOnVideo);
         });
 
         unmuteB.addEventListener('click', function(){
@@ -293,14 +313,30 @@
 
     /* 兩個條件都成立才准領:伺服器規定的最短秒數已過,而且(有影片的話)影片
        播完了。伺服器只驗得到秒數,所以「播完」這一條目前只擋得住隨手點的人 ——
-       真正要擋得住的做法是聯播網的 server-to-server callback,見 PremiumAccess。 */
-    function refreshClaim(){
-        var ok = minWatchDone && (!needVideo || videoDone);
-        claimB.disabled = !ok;
+       真正要擋得住的做法是聯播網的 server-to-server callback,見 PremiumAccess。
 
-        if(ok)                status.textContent = '';
-        else if(!minWatchDone) status.textContent = T.watching.replace('__S__', secondsLeft);
-        else                   status.textContent = T.watchToEnd;
+       畫面上只顯示**一個**倒數,取兩者的較大值。分開顯示的話會出現「倒數歸零
+       但按鈕還是灰的」——使用者只會覺得壞掉,不會想到還有第二個條件。
+       影片暫停時 currentTime 不動,倒數就跟著停住,這是對的:沒在看就不算。 */
+    function remainingSeconds(){
+        var byServer = minWatchDone ? 0 : secondsLeft;
+        var byVideo  = 0;
+
+        if(needVideo && !videoDone){
+            byVideo = (video.duration && isFinite(video.duration))
+                ? Math.ceil(video.duration - video.currentTime)
+                : secondsLeft;   // 影片長度還不知道時,先用伺服器那個數字頂著
+        }
+
+        return Math.max(0, byServer, byVideo);
+    }
+
+    function refreshClaim(){
+        var left = remainingSeconds();
+        var ok = left === 0 && minWatchDone && (!needVideo || videoDone);
+
+        claimB.disabled = !ok;
+        status.textContent = ok ? '' : T.watching.replace('__S__', left);
     }
 
     function openModal(){

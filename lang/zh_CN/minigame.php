@@ -15,7 +15,7 @@ return [
     // 看广告解锁付费内容(partials/rewarded-unlock)
     'rewarded_hint' => '不想付费也可以：看一段广告，就能解锁 :minutes 分钟的完整题库与无限回合。',
     'rewarded_ad_blocked' => '你的浏览器挡掉了广告。解锁照样给你,不过广告是这个站唯一的收入来源。',
-    'rewarded_watch_to_end' => '视频播完就可以解锁。',
+    'rewarded_ad_no_fill' => '目前没有可播的广告。解锁直接给你。',
     'rewarded_cta' => '看广告解锁 :minutes 分钟',
     'rewarded_active' => '完整内容已解锁，剩余',
     'rewarded_watching' => '广告播放中… :seconds 秒后可解锁',

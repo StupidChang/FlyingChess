@@ -15,7 +15,7 @@ return [
     // 看廣告解鎖付費內容(partials/rewarded-unlock)
     'rewarded_hint' => '不想付費也可以：看一段廣告，就能解鎖 :minutes 分鐘的完整題庫與無限回合。',
     'rewarded_ad_blocked' => '你的瀏覽器擋掉了廣告。解鎖照樣給你,不過廣告是這個站唯一的收入來源。',
-    'rewarded_watch_to_end' => '影片播完就可以解鎖。',
+    'rewarded_ad_no_fill' => '目前沒有可播的廣告。解鎖直接給你。',
     'rewarded_cta' => '看廣告解鎖 :minutes 分鐘',
     'rewarded_active' => '完整內容已解鎖，剩餘',
     'rewarded_watching' => '廣告播放中… :seconds 秒後可解鎖',

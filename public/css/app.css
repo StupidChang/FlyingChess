@@ -1627,3 +1627,7 @@ ul{list-style:none}
 .rw-video{max-width:100%;max-height:250px;width:auto;border-radius:8px;background:#000}
 .rw-unmute{position:absolute;right:8px;bottom:8px;width:34px;height:34px;border-radius:50%;
   border:0;background:rgba(0,0,0,.6);color:#fff;font-size:1rem;cursor:pointer;line-height:1}
+/* 自動播放被拒時的播放鍵。壓在影片正中央,大到不會按不到。 */
+.rw-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:64px;height:64px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(0,0,0,.65);color:#fff;font-size:1.6rem;line-height:1}
