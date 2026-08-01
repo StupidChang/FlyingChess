@@ -173,14 +173,12 @@ class TruthDareModeTest extends TestCase
         $service = app(TruthDareService::class);
 
         $seen = [];
-        for ($drawn = 0; $drawn < 10; $drawn++) {
+        for ($turn = 0; $turn < 20; $turn++) {
             $result = $service->drawCard($game->fresh(), 'truth', false, true);
             if ($result['success']) {
                 $seen[$result['card']['content']] = true;
             }
-            $state = $game->fresh()->game_state;
-            $state['used_card_ids'] = array_merge($state['used_card_ids'] ?? [], [-$drawn]);
-            $game->update(['game_state' => $state]);
+            $service->nextPlayer($game->fresh());
         }
 
         $this->assertArrayHasKey('輕度', $seen);
@@ -223,35 +221,51 @@ class TruthDareModeTest extends TestCase
         $this->assertSame('露骨級', $result['card']['content']);
     }
 
-    public function test_escalation_climbs_one_level_at_a_time(): void
+    public function test_escalation_climbs_one_level_per_few_rounds(): void
     {
         foreach (['mild', 'medium', 'intense'] as $level) {
             TruthDareCard::create([
-                'category' => 'truth', 'audience' => 'both', 'content' => $level, 'level' => $level,
+                'category' => 'truth', 'audience' => 'both', 'content' => $level,
+                'level' => $level, 'is_paid' => false,
             ]);
         }
 
         $game = $this->room('couple', escalate: true);
         $service = app(TruthDareService::class);
 
-        /* 開頭只會是最輕的一級,即使有付費權限也一樣 —— 那正是升溫的重點。
-           抽掉幾張之後才往上開放,一次一級。 */
+        /* 一回合是「每個人都玩過一輪」,所以進度靠 nextPlayer 繞回第一個人來推,
+           不是靠抽掉幾張卡。開頭只會是最輕的一級,即使有付費權限也一樣。 */
         $seen = [];
-        for ($drawn = 0; $drawn < 12; $drawn++) {
+        for ($turn = 0; $turn < 24; $turn++) {
             $result = $service->drawCard($game->fresh(), 'truth', true, true);
             if ($result['success']) {
-                $seen[$result['card']['level']] = $drawn;
+                $seen[$result['card']['level']] ??= $game->fresh()->game_state['round'] ?? 1;
             }
-
-            // 湊出「已經玩了幾張」,不用真的把題庫抽光
-            $state = $game->fresh()->game_state;
-            $state['used_card_ids'] = array_merge($state['used_card_ids'] ?? [], [-$drawn]);
-            $game->update(['game_state' => $state]);
+            $service->nextPlayer($game->fresh());
         }
 
-        $this->assertSame(0, $seen['mild'] ?? null, '第一張就該是輕度');
-        $this->assertGreaterThan(0, $seen['medium'] ?? -1, '中度不該一開始就出現');
-        $this->assertGreaterThan($seen['medium'], $seen['intense'] ?? -1, '重度要比中度更晚出現');
+        $this->assertSame(1, $seen['mild'] ?? null, '第一回合就該是輕度');
+        $this->assertGreaterThan(1, $seen['medium'] ?? -1, '中度不該第一回合就出現');
+        $this->assertGreaterThan($seen['medium'], $seen['intense'] ?? -1, '重度要比中度更晚');
+    }
+
+    public function test_a_round_is_everyone_taking_one_turn(): void
+    {
+        $game = $this->room('couple', escalate: true);
+        $service = app(TruthDareService::class);
+
+        // 兩位玩家:第二個人玩完才算一回合結束。
+        $game->players()->create([
+            'session_id' => 'sess-2', 'player_name' => '另一位', 'color' => 'none', 'is_host' => false,
+        ]);
+
+        $this->assertSame(1, $game->fresh()->game_state['round']);
+
+        $service->nextPlayer($game->fresh());
+        $this->assertSame(1, $game->fresh()->game_state['round'], '才輪到第二個人,還沒滿一回合');
+
+        $service->nextPlayer($game->fresh());
+        $this->assertSame(2, $game->fresh()->game_state['round'], '繞回第一個人才算下一回合');
     }
 
     public function test_without_escalation_everything_is_in_play_from_the_start(): void

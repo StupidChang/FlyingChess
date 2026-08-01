@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class TruthDareService
 {
-    /** 開了升溫時,每抽掉這麼多張往上開放一級。 */
+    /** 開了升溫時,每這麼多回合往上開放一級。與 escalation.js 的 STEP 同步。 */
     private const ESCALATE_AFTER = 4;
 
     public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false, string $mode = 'couple', bool $escalate = false): array
@@ -28,8 +28,9 @@ class TruthDareService
                 'is_adult' => $isAdult,
                 // 情侶場還是多人場。題目池差在這裡,不是差在多一個分類按鈕。
                 'mode' => $mode === 'party' ? 'party' : 'couple',
-                // 逐漸升溫:前幾張只出免費的曖昧題,之後才放行付費的露骨題。
+                // 逐漸升溫:前幾回合只出輕的,之後才往上開放。
                 'escalate' => $escalate,
+                'round' => 1,
             ],
         ]);
 
@@ -173,8 +174,12 @@ class TruthDareService
     /**
      * 開了「逐漸升溫」的房間,這時候開放到第幾級。
      *
-     * 進度用「已經抽掉幾張」算,與前端那五個遊戲用回合數是同一個意思
-     * (一輪大約就是幾張),階梯的節奏也刻意跟 public/js/escalation.js 一致。
+     * 進度是**回合數**,而一回合是「每個人都玩過一輪」—— 跟其他四個遊戲一致
+     * (轉盤與骰子是所有人輪完才 +1;撲克牌與誰最有可能的一回合本來就是全體
+     * 一起進行的一題)。原本這裡算的是「抽掉幾張卡」,也就是每個人自己的一次
+     * 就算一回合,人多的時候會升得比別的遊戲快好幾倍。
+     *
+     * 節奏刻意跟 public/js/escalation.js 的 STEP 一致。
      *
      * 拿不到的等級本來就不在 $levels 裡,所以升溫只會停在拿得到的最高一級,
      * 不會出現「升到一級之後永遠抽不到東西」。
@@ -185,8 +190,8 @@ class TruthDareService
             return $levels;
         }
 
-        $drawn = count($state['used_card_ids'] ?? []);
-        $step = intdiv($drawn, self::ESCALATE_AFTER) + 1;
+        $round = max(1, (int) ($state['round'] ?? 1));
+        $step = intdiv($round - 1, self::ESCALATE_AFTER) + 1;
 
         return array_slice($levels, 0, min($step, count($levels)));
     }
@@ -203,6 +208,12 @@ class TruthDareService
         $state['current_player_index'] = ($currentIndex + 1) % $playerCount;
         $state['last_card_id'] = null;
         $state['last_category'] = null;
+
+        /* 繞回第一個人 = 一回合結束。升溫用的就是這個數字,不是抽掉幾張卡 ——
+           一回合是「每個人都玩過一輪」,人多的時候一輪本來就比較長。 */
+        if ($state['current_player_index'] === 0) {
+            $state['round'] = ($state['round'] ?? 1) + 1;
+        }
 
         $game->update(['game_state' => $state]);
 
