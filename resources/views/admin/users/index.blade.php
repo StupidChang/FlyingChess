@@ -44,12 +44,13 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>名稱</th>
-                        <th>Email</th>
-                        <th>棋盤數</th>
+                        @include('admin._sort-header', ['key' => 'id', 'label' => 'ID'])
+                        @include('admin._sort-header', ['key' => 'name', 'label' => '名稱'])
+                        @include('admin._sort-header', ['key' => 'email', 'label' => 'Email'])
+                        @include('admin._sort-header', ['key' => 'boards', 'label' => '棋盤數'])
                         <th>狀態</th>
-                        <th>註冊時間</th>
+                        @include('admin._sort-header', ['key' => 'created_at', 'label' => '註冊時間'])
+
                         <th>操作</th>
                     </tr>
                 </thead>

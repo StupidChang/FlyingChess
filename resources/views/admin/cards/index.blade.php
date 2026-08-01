@@ -45,11 +45,11 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>類型</th>
-                        <th>適用</th>
-                        <th>內容</th>
-                        <th>等級</th>
+                        @include('admin._sort-header', ['key' => 'id', 'label' => 'ID'])
+                        @include('admin._sort-header', ['key' => 'category', 'label' => '類型'])
+                        @include('admin._sort-header', ['key' => 'audience', 'label' => '適用'])
+                        @include('admin._sort-header', ['key' => 'content', 'label' => '內容'])
+                        @include('admin._sort-header', ['key' => 'tier', 'label' => '等級'])
                         <th>操作</th>
                     </tr>
                 </thead>

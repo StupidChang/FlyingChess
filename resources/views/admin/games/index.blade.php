@@ -50,14 +50,15 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>代碼</th>
+                        @include('admin._sort-header', ['key' => 'id', 'label' => 'ID'])
+                        @include('admin._sort-header', ['key' => 'code', 'label' => '代碼'])
                         <th>開房者</th>
-                        <th>類型</th>
-                        <th>狀態</th>
-                        <th>玩家數</th>
-                        <th>建立時間</th>
-                        <th>最後更新</th>
+                        @include('admin._sort-header', ['key' => 'game_type', 'label' => '類型'])
+                        @include('admin._sort-header', ['key' => 'status', 'label' => '狀態'])
+                        @include('admin._sort-header', ['key' => 'players', 'label' => '玩家數'])
+                        @include('admin._sort-header', ['key' => 'created_at', 'label' => '建立時間'])
+                        @include('admin._sort-header', ['key' => 'updated_at', 'label' => '最後更新'])
+
                         <th>操作</th>
                     </tr>
                 </thead>

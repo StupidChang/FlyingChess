@@ -27,6 +27,40 @@ class AdminController extends Controller
         return in_array($perPage, [20, 50, 100, 200], true) ? $perPage : 20;
     }
 
+    /**
+     * 後台列表的欄位排序。
+     *
+     * $allowed 是白名單,鍵是網址上的 sort 值,值有兩種寫法:
+     *   'created_at'                          直接照欄位排
+     *   ['tier', ['mild','medium','intense']]  照指定順序排
+     *
+     * 第二種是給分級這類欄位用的 —— 直接照字串排的話「大膽 intense」會排在
+     * 「輕鬆 mild」前面,那不是任何人想看到的順序。CASE 的值走 binding,
+     * 而且欄位名只從白名單來,網址上的參數不會進到 SQL 裡。
+     */
+    private function applySort($query, Request $request, array $allowed, string $default, string $defaultDir = 'desc'): void
+    {
+        $sort = (string) $request->input('sort');
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        if (! isset($allowed[$sort])) {
+            $sort = $default;
+            $dir = $defaultDir;
+        }
+
+        $spec = $allowed[$sort];
+
+        if (is_array($spec)) {
+            [$column, $order] = $spec;
+            $cases = implode(' ', array_map(fn ($i) => 'WHEN ? THEN '.$i, array_keys($order)));
+            $query->orderByRaw("CASE {$column} {$cases} ELSE ".count($order)." END {$dir}", $order);
+
+            return;
+        }
+
+        $query->orderBy($spec, $dir);
+    }
+
     // ── Traffic ──
 
     /**
@@ -175,7 +209,13 @@ class AdminController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $query->latest();
+        $this->applySort($query, $request, [
+            'id' => 'id',
+            'name' => 'name',
+            'squares' => 'squares_count',
+            'created_at' => 'created_at',
+        ], 'created_at');
+
         $boards = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.boards.index', compact('boards', 'filter'));
@@ -279,7 +319,15 @@ class AdminController extends Controller
             $query->where('content', 'like', "%{$search}%");
         }
 
-        $query->latest();
+        $this->applySort($query, $request, [
+            'id' => 'id',
+            'category' => ['category', array_keys(TruthDareCard::CATEGORIES)],
+            'audience' => ['audience', array_keys(TruthDareCard::AUDIENCES)],
+            'content' => 'content',
+            'tier' => ['tier', ['free', 'premium']],
+            'created_at' => 'created_at',
+        ], 'created_at');
+
         $cards = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.cards.index', compact('cards'));
@@ -343,7 +391,13 @@ class AdminController extends Controller
             $query->where('content', 'like', "%{$search}%");
         }
 
-        $query->latest();
+        $this->applySort($query, $request, [
+            'id' => 'id',
+            'tier' => ['tier', ['mild', 'medium', 'intense']],
+            'content' => 'content',
+            'created_at' => 'created_at',
+        ], 'created_at');
+
         $segments = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.wheel.index', compact('segments'));
@@ -414,7 +468,14 @@ class AdminController extends Controller
             $query->where('content', 'like', "%{$search}%");
         }
 
-        $query->orderBy('pool')->orderBy('sort_order')->orderBy('id');
+        $this->applySort($query, $request, [
+            'id' => 'id',
+            'pool' => ['pool', array_keys(GamePrompt::POOLS[$game])],
+            'content' => 'content',
+            'sort_order' => 'sort_order',
+        ], 'pool', 'asc');
+        $query->orderBy('sort_order')->orderBy('id');
+
         $prompts = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.prompts.index', [
@@ -570,7 +631,14 @@ class AdminController extends Controller
             });
         }
 
-        $query->latest();
+        $this->applySort($query, $request, [
+            'id' => 'id',
+            'name' => 'name',
+            'email' => 'email',
+            'boards' => 'boards_count',
+            'created_at' => 'created_at',
+        ], 'created_at');
+
         $users = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.users.index', compact('users', 'filter'));
@@ -647,7 +715,16 @@ class AdminController extends Controller
             });
         }
 
-        $query->latest();
+        $this->applySort($query, $request, [
+            'id' => 'id',
+            'code' => 'code',
+            'game_type' => 'game_type',
+            'status' => ['status', ['waiting', 'playing', 'finished']],
+            'players' => 'players_count',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+        ], 'created_at');
+
         $games = $query->paginate($this->perPage($request, $query))->withQueryString();
 
         return view('admin.games.index', compact('games', 'status'));

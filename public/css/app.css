@@ -1121,6 +1121,19 @@ ul{list-style:none}
 .admin-table tbody tr:hover{background:var(--surface)}
 
 /* ── Admin Filters ── */
+/* 可排序的表頭。整格都可以點,不是只有那幾個字。 */
+.admin-th-sort{padding:0 !important}
+.admin-th-sort a{
+  display:flex;align-items:center;gap:5px;padding:10px 12px;
+  color:inherit;font:inherit;white-space:nowrap;
+  transition:color .15s ease,background .15s ease;
+}
+.admin-th-sort a:hover{color:var(--text);background:var(--surface2)}
+.admin-sort-arrow{font-size:.62rem;opacity:.35;transition:opacity .15s ease}
+.admin-th-sort a:hover .admin-sort-arrow{opacity:.7}
+.admin-th-sort.is-sorted a{color:var(--gold)}
+.admin-th-sort.is-sorted .admin-sort-arrow{opacity:1}
+
 .admin-filters{
   display:flex;flex-wrap:wrap;
   justify-content:space-between;align-items:center;

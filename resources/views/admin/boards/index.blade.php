@@ -35,12 +35,13 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>名稱</th>
+                        @include('admin._sort-header', ['key' => 'id', 'label' => 'ID'])
+                        @include('admin._sort-header', ['key' => 'name', 'label' => '名稱'])
                         <th>建立者</th>
                         <th>屬性</th>
-                        <th>格子數</th>
-                        <th>建立時間</th>
+                        @include('admin._sort-header', ['key' => 'squares', 'label' => '格子數'])
+                        @include('admin._sort-header', ['key' => 'created_at', 'label' => '建立時間'])
+
                         <th>操作</th>
                     </tr>
                 </thead>

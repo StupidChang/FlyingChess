@@ -55,10 +55,10 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>分類</th>
-                        <th>內容</th>
-                        <th>排序</th>
+                        @include('admin._sort-header', ['key' => 'id', 'label' => 'ID'])
+                        @include('admin._sort-header', ['key' => 'pool', 'label' => '分類'])
+                        @include('admin._sort-header', ['key' => 'content', 'label' => '內容'])
+                        @include('admin._sort-header', ['key' => 'sort_order', 'label' => '排序'])
                         <th>操作</th>
                     </tr>
                 </thead>

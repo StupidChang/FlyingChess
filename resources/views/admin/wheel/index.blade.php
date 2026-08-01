@@ -34,9 +34,9 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>強度</th>
-                        <th>內容</th>
+                        @include('admin._sort-header', ['key' => 'id', 'label' => 'ID'])
+                        @include('admin._sort-header', ['key' => 'tier', 'label' => '強度'])
+                        @include('admin._sort-header', ['key' => 'content', 'label' => '內容'])
                         <th>操作</th>
                     </tr>
                 </thead>
