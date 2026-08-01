@@ -80,20 +80,8 @@
         @endif
     </div>
 
-    @if($startWheel ?? null)
-    <section class="entry-wheel-card" aria-labelledby="entry-wheel-heading">
-        <div>
-            <h2 id="entry-wheel-heading">{{ __('play.start_wheel') }}</h2>
-            <p>{{ __('play.start_wheel_help') }}</p>
-        </div>
-        <div id="entry-wheel-preview-graphic" class="entry-wheel-preview-graphic"></div>
-        <ol class="entry-wheel-legend">
-            @foreach($startWheel as $i => $segment)
-                <li><span class="entry-wheel-number">{{ $i + 1 }}</span>{{ $segment['text'] }}</li>
-            @endforeach
-        </ol>
-    </section>
-    @endif
+    {{-- 進場轉盤畫在棋盤格線裡(見 board.js 的 findWheelSlot),不再獨立成一張
+         橫跨版面的卡片 —— 它是棋盤的一部分,棋子從它決定的位置進場。 --}}
 
     {{-- 棋盤 + 玩法側欄 --}}
     <div class="play-body">
@@ -278,6 +266,7 @@
     // Runtime strings consumed by board.js's tp() helper (camelCase keys
     // matching the JS side, mapped to the existing play.* translations).
     $playI18n = [
+        'startWheel'   => __('play.start_wheel'),
         'centerTitle'  => __('play.js_center_title'),
         'centerRules'  => __('play.js_center_rules'),
         'corner1'      => __('play.js_corner_1'),

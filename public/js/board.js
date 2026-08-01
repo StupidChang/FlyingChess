@@ -334,6 +334,26 @@ function buildBoard() {
     board.appendChild(div);
   });
 
+  // 進場轉盤:佔 2×2 格,擺在離起點最近的空位。
+  const WHEEL_SPAN = 2;
+  let wheelSlot = null;
+  if (!isEditMode && startWheel()) {
+    wheelSlot = findWheelSlot(sqData, rowOffset, colOffset, rows, cols, WHEEL_SPAN);
+    if (wheelSlot) {
+      const wheelEl = document.createElement('div');
+      wheelEl.className        = 'board-entry-wheel';
+      wheelEl.style.gridRow    = wheelSlot.r + ' / span ' + WHEEL_SPAN;
+      wheelEl.style.gridColumn = wheelSlot.c + ' / span ' + WHEEL_SPAN;
+      // 六段的文字放 title:2×2 格塞不下六行字,但滑過去要查得到。
+      wheelEl.title = startWheel().map(function (seg, i) {
+        return (i + 1) + '. ' + seg.text;
+      }).join('\n');
+      wheelEl.innerHTML = `<div class="bew-graphic">${wheelSvg(null)}</div>`
+        + `<div class="bew-label">${escHtml(tp('startWheel'))}</div>`;
+      board.appendChild(wheelEl);
+    }
+  }
+
   // Center banner + corner decos only on default 11×13 cross board
   const origRows = window.CANVAS_ROWS || 11;
   const origCols = window.CANVAS_COLS || 13;
@@ -355,6 +375,12 @@ function buildBoard() {
       {row:'8/12',col:'8/14',icon:'trophy',sub:tp('corner4')},
     ];
     cornerData.forEach(c => {
+      // 轉盤佔到的那一角就不畫裝飾,兩個疊在一起會糊成一團。
+      if (wheelSlot
+          && gridSpecOverlaps(c.row, wheelSlot.r, wheelSlot.r + WHEEL_SPAN - 1)
+          && gridSpecOverlaps(c.col, wheelSlot.c, wheelSlot.c + WHEEL_SPAN - 1)) {
+        return;
+      }
       const el = document.createElement('div');
       el.className = 'board-corner-deco';
       el.style.gridRow    = c.row;
@@ -852,9 +878,58 @@ function wheelSvg(activeFace) {
         +  ` font-size="15" font-weight="700" fill="#fff">${i + 1}</text>`;
   });
 
+  // activeFace 為 null 時中間不寫字 —— 直接內插會印出字串 "null"。
+  // 棋盤上那顆常駐的轉盤就是用 null 呼叫的(還沒有人擲出點數)。
+  const face = (activeFace == null) ? '' : activeFace;
+
   return out + `<circle cx="${CX}" cy="${CY}" r="20" fill="rgba(0,0,0,.55)"/>`
     + `<text x="${CX}" y="${CY}" text-anchor="middle" dominant-baseline="middle"`
-    + ` font-size="20" font-weight="800" fill="#fff">${activeFace}</text></svg>`;
+    + ` font-size="20" font-weight="800" fill="#fff">${face}</text></svg>`;
+}
+
+/* ── 進場轉盤在棋盤上的落點 ──
+   轉盤是棋盤的一部分(棋子由它決定從哪裡進場),所以畫在格線裡而不是版面上方。
+   找一塊 size×size 的空格,取離起點最近的那塊 —— 起點旁邊才看得出兩者的關係。
+   棋盤形狀是使用者自訂的,不能寫死座標;找不到空位就回 null,那時不畫。 */
+function findWheelSlot(sqData, rowOffset, colOffset, rows, cols, size) {
+  const occupied = new Set();
+  let start = null;
+
+  Object.entries(sqData).forEach(function (entry) {
+    const sq = entry[1];
+    if (!sq.grid_row || !sq.grid_col) return;
+    const r = sq.grid_row - rowOffset, c = sq.grid_col - colOffset;
+    occupied.add(r + ',' + c);
+    if (parseInt(entry[0], 10) === 0) start = { r: r, c: c };
+  });
+
+  if (!start) start = { r: (rows + 1) / 2, c: (cols + 1) / 2 };
+
+  let best = null;
+  for (let r = 1; r + size - 1 <= rows; r++) {
+    for (let c = 1; c + size - 1 <= cols; c++) {
+      let free = true;
+      for (let dr = 0; dr < size && free; dr++) {
+        for (let dc = 0; dc < size && free; dc++) {
+          if (occupied.has((r + dr) + ',' + (c + dc))) free = false;
+        }
+      }
+      if (!free) continue;
+
+      const cr = r + (size - 1) / 2, cc = c + (size - 1) / 2;
+      const d = (cr - start.r) * (cr - start.r) + (cc - start.c) * (cc - start.c);
+      if (!best || d < best.d) best = { r: r, c: c, d: d };
+    }
+  }
+  return best;
+}
+
+/* grid-area 的 '1/5' 表示 1..4。判斷裝飾方塊會不會壓到轉盤。 */
+function gridSpecOverlaps(spec, from, to) {
+  const parts = String(spec).split('/');
+  const a = parseInt(parts[0], 10);
+  const b = parts[1] ? parseInt(parts[1], 10) - 1 : a;
+  return a <= to && b >= from;
 }
 
 function showWheelModal(roll) {
@@ -1111,8 +1186,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof window.EDIT_MODE === 'undefined') window.EDIT_MODE = false;
   buildBoard();
   build3dCube();
-  const entryPreview = document.getElementById('entry-wheel-preview-graphic');
-  if (entryPreview) entryPreview.innerHTML = wheelSvg(null);
   const sqText = document.getElementById('sq-text');
   if (sqText) sqText.addEventListener('input', () => {
     document.getElementById('sq-char').textContent = sqText.value.length;

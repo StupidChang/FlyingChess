@@ -1004,18 +1004,17 @@
 .wheel-slot input[type="text"] { flex:1; min-width:0; }
 .wheel-slot label { display:flex; align-items:center; gap:4px; font-size:.72rem;
   color:var(--text-dim,#9aa1b5); font-weight:400; white-space:nowrap; }
-.entry-wheel-card { display:grid; grid-template-columns:minmax(150px,.7fr) 170px minmax(260px,1.4fr);
-  align-items:center; gap:18px; max-width:1120px; margin:14px auto; padding:14px 18px;
-  border:1px solid var(--border); border-radius:16px; background:var(--surface); }
-.entry-wheel-card h2 { margin:0 0 4px; font-size:1rem; }
-.entry-wheel-card p { margin:0; color:var(--text-dim); font-size:.78rem; }
-.entry-wheel-preview-graphic { display:flex; justify-content:center; }
-.entry-wheel-preview-graphic .wheel-svg { width:140px; height:140px; }
-.entry-wheel-legend { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 12px;
-  margin:0; padding:0; list-style:none; font-size:.8rem; }
-.entry-wheel-legend li { display:flex; align-items:center; gap:7px; min-width:0; }
-.entry-wheel-number { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
-  flex:none; border-radius:50%; background:var(--surface2); font-weight:800; }
+/* 進場轉盤畫在棋盤格線裡(落點由 board.js 的 findWheelSlot 算,佔 2×2 格)。
+   沒有底色與外框:它要看起來是畫在棋盤桌面上的一部分,而不是疊上去的元件。
+   min-width/height:0 是 grid 子項的老問題 —— 不寫的話 SVG 會把格子撐大,
+   整個棋盤的比例會跑掉。 */
+.board-entry-wheel { display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:4px; min-width:0; min-height:0; padding:6%; }
+.board-entry-wheel .bew-graphic { flex:1; min-height:0; display:flex; align-items:center; }
+.board-entry-wheel .wheel-svg { width:100%; height:100%; max-height:100%;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+.board-entry-wheel .bew-label { flex:none; font-size:clamp(.5rem,1.1vw,.72rem);
+  font-weight:700; letter-spacing:.5px; color:var(--text-dim,#9aa1b5); white-space:nowrap; }
 .wheel-editor-tools { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0; }
 .wheel-editor-preview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; flex:1; }
 .wheel-preview-segment { min-width:0; padding:6px 8px; border-left:4px solid var(--wheel-color);
@@ -1023,7 +1022,7 @@
 .wheel-preview-segment strong { margin-right:5px; color:var(--wheel-color); }
 .wheel-preview-segment span { overflow-wrap:anywhere; }
 @media(max-width:760px) {
-  .entry-wheel-card { grid-template-columns:1fr; text-align:center; margin:10px; }
-  .entry-wheel-legend { text-align:left; }
+  /* 窄螢幕格子本來就小,再放字會擠成一團 —— 只留轉盤圖形 */
+  .board-entry-wheel .bew-label { display:none; }
   .wheel-editor-tools { align-items:stretch; flex-direction:column; }
 }
