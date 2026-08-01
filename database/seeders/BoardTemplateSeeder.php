@@ -93,8 +93,8 @@ class BoardTemplateSeeder extends Seeder
         );
 
         $this->createTemplate(
-            '校園回憶版',
-            '重溫校園時光，適合學生或想回味青春的人',
+            '初戀重溫版',
+            '成人情侶重溫第一次心動、接吻與親密升溫的過程',
             false,
             [
                 [0, 'start', '起點\n上課鐘響！'],
@@ -125,8 +125,8 @@ class BoardTemplateSeeder extends Seeder
         );
 
         $this->createTemplate(
-            '運動健身版',
-            '結合運動挑戰的趣味棋盤，在家也能動起來',
+            '健身後升溫版',
+            '成人情侶從貼身伸展、擦汗按摩一路慢慢升溫',
             false,
             [
                 [0, 'start', '起點\n暖身開始！'],
@@ -159,8 +159,8 @@ class BoardTemplateSeeder extends Seeder
         // ── Rectangle layout templates ──
 
         $this->createTemplate(
-            '朋友聚會版',
-            '適合朋友之間的趣味互動，不含飲酒任務',
+            '成人派對互動版',
+            '成人聚會用的曖昧挑戰，從放電、貼近到大膽互動',
             false,
             [
                 [0, 'start', '起點\n出發！'],
@@ -223,8 +223,8 @@ class BoardTemplateSeeder extends Seeder
         );
 
         $this->createTemplate(
-            '旅行探索版',
-            '適合旅途中的車上、飯店或等待時間玩的互動遊戲',
+            '旅館升溫版',
+            '成人情侶旅行入住後玩的漸進式親密任務',
             false,
             [
                 [0, 'start', '起點\n旅程開始！'],
@@ -289,8 +289,8 @@ class BoardTemplateSeeder extends Seeder
         // ── Cross layout templates (11x13) ──
 
         $this->createTemplate(
-            '甜蜜告白版',
-            '適合曖昧期或想表白的情侶，充滿心動時刻',
+            '曖昧升溫版',
+            '從告白、貼近、接吻一路升溫的成人情侶版',
             false,
             [
                 [0, 'start', '起點\n心動開始！'],
@@ -447,6 +447,124 @@ class BoardTemplateSeeder extends Seeder
             ],
             'cross'
         );
+
+        $this->createReferenceTemplate(
+            '情侶互換飛行棋 V8.0（四人版）',
+            '依參考圖製作的 18+ 四人互換版本；由輕度互動逐步進入交換伴侶與大尺度挑戰。所有玩家均須同意，任何任務皆可跳過。',
+            'images/board-references/couples-flying-chess-v8.jpg',
+            [
+                ['start', '起點\n四人確認界線後開始'],
+                ['action', '和自己的伴侶擁抱 30 秒'],
+                ['drink', '喝一口並說出今晚的期待'],
+                ['action', '親自己的伴侶 20 秒'],
+                ['truth', '說出最吸引你的另一位玩家'],
+                ['move', '前進 2 格'],
+                ['action', '和自己的伴侶舌吻 30 秒'],
+                ['dare', '由伴侶指定一位玩家牽手 20 秒'],
+                ['action', '隔著衣服按摩伴侶肩背 30 秒'],
+                ['drink', '用嘴餵自己的伴侶喝一口'],
+                ['truth', '四人各說一項不能接受的事'],
+                ['action', '親另一位同意玩家的臉頰或脖子'],
+                ['dare', '和另一位玩家貼身跳舞 30 秒'],
+                ['strip', '自己慢慢脫一件外層衣物'],
+                ['action', '隔著衣服摸另一位玩家胸口 20 秒'],
+                ['drink', '兩對伴侶交換位置並喝一口'],
+                ['action', '與另一位玩家舌吻 30 秒'],
+                ['truth', '說出想和另一對嘗試的互動'],
+                ['strip', '由自己的伴侶幫你再脫一件衣物'],
+                ['action', '按摩另一位玩家大腿內側 30 秒'],
+                ['dare', '四人依序親吻一個彼此同意的部位'],
+                ['move', '後退 2 格\n再抱緊另一位玩家'],
+                ['action', '隔著內褲摸另一位玩家私密處 30 秒'],
+                ['strip', '交換伴侶互相脫掉一件衣物'],
+                ['action', '用嘴挑逗另一位玩家胸口 30 秒'],
+                ['drink', '四人乾杯後交換伴侶坐在腿上'],
+                ['dare', '由另一位玩家指定你摸一個部位'],
+                ['action', '交換伴侶以手刺激私密處 1 分鐘'],
+                ['truth', '說出最想看的交換互動畫面'],
+                ['action', '兩對同時口交 1 分鐘，可降級替代'],
+                ['strip', '四人脫到彼此同意的程度'],
+                ['dare', '抽籤決定交換伴侶的成人任務'],
+                ['action', '與交換伴侶嘗試一個同意的體位'],
+                ['drink', '喝一口後依交換體位互動 1 分鐘'],
+                ['action', '讓自己的伴侶指揮交換互動節奏'],
+                ['truth', '四人確認是否要繼續提高尺度'],
+                ['action', '交換伴侶從後方互動 30 秒'],
+                ['dare', '四人自由選擇一組合共同互動 1 分鐘'],
+                ['action', '回到自己的伴侶身邊親吻 30 秒'],
+                ['end', '終點\n四人表決下一輪玩法'],
+            ],
+            Board::DEFAULT_START_WHEEL,
+        );
+
+        $this->createReferenceTemplate(
+            '情侶／炮友飛行棋 V1.0',
+            '依參考圖製作的 18+ 雙人版本；從親吻、撫摸、逐件脫衣一路循序升溫。所有內容均以雙方同意為前提。',
+            'images/board-references/couples-flying-chess-v1.jpg',
+            [
+                ['start', '起點\n先說好界線再開始'],
+                ['action', '對視 20 秒，靠近但先不親'],
+                ['drink', '喝半杯或用無酒精飲料替代'],
+                ['action', '親吻對方耳朵 20 秒'],
+                ['truth', '說出最想被親的地方'],
+                ['move', '前進 2 格'],
+                ['action', '舌吻對方 30 秒'],
+                ['action', '從脖子親到鎖骨 30 秒'],
+                ['dare', '跨坐在對方腿上 30 秒'],
+                ['drink', '用嘴餵對方喝一口'],
+                ['truth', '說出第一次想和對方上床的時刻'],
+                ['action', '隔著衣服摸胸口或屁股 30 秒'],
+                ['strip', '慢慢脫掉一件外層衣物'],
+                ['action', '按摩大腿內側 30 秒'],
+                ['dare', '用最撩人的姿勢坐到對方面前'],
+                ['action', '手伸進衣襬撫摸胸口 30 秒'],
+                ['drink', '喝一口並讓對方親敏感部位'],
+                ['action', '隔著衣物磨蹭 1 分鐘'],
+                ['strip', '由對方幫你再脫一件衣物'],
+                ['truth', '告訴對方喜歡輕一點還是重一點'],
+                ['action', '隔著內褲刺激私密處 30 秒'],
+                ['dare', '跪坐替對方脫掉最後一件外層衣物'],
+                ['action', '親吻對方大腿內側 30 秒'],
+                ['strip', '脫到只剩內衣褲，或停在同意程度'],
+                ['action', '用手刺激對方私密處 1 分鐘'],
+                ['drink', '喝半杯，再深吻對方 30 秒'],
+                ['truth', '說出最想嘗試的成人玩法'],
+                ['action', '舔吻對方胸口 1 分鐘'],
+                ['dare', '由對方指定一個私密部位挑逗'],
+                ['action', '為對方口交 1 分鐘，可降級替代'],
+                ['strip', '脫掉內褲，或喝一口作為替代'],
+                ['action', '讓對方用手或嘴刺激 1 分鐘'],
+                ['truth', '說出最想嘗試的體位'],
+                ['dare', '選一個雙方同意的體位準備好'],
+                ['action', '依選定體位互動 1 分鐘'],
+                ['drink', '喝一口後換一個體位'],
+                ['action', '由下方的人控制速度 1 分鐘'],
+                ['action', '從後方互動 30 下或隨時喊停'],
+                ['dare', '由對方決定最後 1 分鐘的玩法'],
+                ['end', '終點\n抱緊對方，接下來自己決定'],
+            ],
+            [
+                ['text' => '喝半杯', 'enter' => false, 'reroll' => false],
+                ['text' => '再擲一次', 'enter' => false, 'reroll' => true],
+                ['text' => '親吻一次', 'enter' => false, 'reroll' => false],
+                ['text' => '喝一杯', 'enter' => false, 'reroll' => false],
+                ['text' => '再擲一次', 'enter' => false, 'reroll' => true],
+                ['text' => '進入棋盤', 'enter' => true, 'reroll' => false],
+            ],
+        );
+
+        // Remove retired all-ages/duplicate system templates. User boards are
+        // never touched; the standalone 40-square premium board is retained.
+        Board::whereNull('user_id')
+            ->where('is_template', true)
+            ->whereNotIn('name', [
+                '情侶飛行棋 V2.0', '輕度暖身版', '飲酒派對版', '初戀重溫版',
+                '健身後升溫版', '成人派對互動版', '居家放鬆版', '旅館升溫版',
+                '角色扮演版', '曖昧升溫版', '情侶深度互動版', '極限派對挑戰版',
+                '新婚之夜版', '感官覺醒版',
+                '情侶互換飛行棋 V8.0（四人版）', '情侶／炮友飛行棋 V1.0',
+            ])
+            ->delete();
     }
 
     // Cross layout (11x13) — same as original
@@ -457,8 +575,58 @@ class BoardTemplateSeeder extends Seeder
         [8, 7], [9, 7], [10, 7], [11, 7], [11, 6],
     ];
 
+    // Full 40-square cross used by both uploaded physical-board references.
+    private const REFERENCE_POS = [
+        [1, 6], [1, 7], [2, 7], [3, 7], [4, 7], [5, 8], [5, 9], [5, 10], [5, 11], [5, 12],
+        [5, 13], [6, 13], [7, 13], [7, 12], [7, 11], [7, 10], [7, 9], [7, 8], [8, 7], [9, 7],
+        [10, 7], [11, 7], [11, 6], [11, 5], [10, 5], [9, 5], [8, 5], [7, 4], [7, 3], [7, 2],
+        [7, 1], [6, 1], [5, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 5],
+    ];
+
+    private function createReferenceTemplate(
+        string $name,
+        string $description,
+        string $referenceImage,
+        array $squares,
+        array $wheel,
+    ): void {
+        $board = Board::updateOrCreate(
+            ['name' => $name, 'is_template' => true],
+            [
+                'description' => $description,
+                'is_template' => true,
+                'is_premium_template' => true,
+                'canvas_rows' => 11,
+                'canvas_cols' => 13,
+                'path_data' => ['all' => range(0, count($squares) - 1), 'male' => null, 'female' => null],
+                'reference_image' => $referenceImage,
+                'start_wheel' => ['enabled' => true, 'segments' => $wheel],
+            ],
+        );
+
+        foreach ($squares as $position => [$color, $text]) {
+            [$row, $col] = self::REFERENCE_POS[$position];
+            BoardSquare::updateOrCreate(
+                ['board_id' => $board->id, 'position' => $position],
+                [
+                    'text' => str_replace('\\n', "\n", $text),
+                    'color' => $color,
+                    'grid_row' => $row,
+                    'grid_col' => $col,
+                ],
+            );
+        }
+
+        $board->squares()->where('position', '>=', count($squares))->delete();
+    }
+
     private function createTemplate(string $name, string $desc, bool $isPremium, array $squares, string $shape = 'cross'): void
     {
+        if (!$isPremium) {
+            $squares = $this->adultFreeSquares($squares);
+            $desc = '成人漸進版｜'.$desc;
+        }
+
         $gridPos = match ($shape) {
             'square' => self::SQUARE_POS,
             'rect' => self::RECT_POS,
@@ -487,6 +655,9 @@ class BoardTemplateSeeder extends Seeder
                 'canvas_cols' => $canvasCols,
                 'path_data' => ['all' => range(0, count($squares) - 1), 'male' => null, 'female' => null],
                 'reference_image' => $referenceImage,
+                'start_wheel' => in_array($name, ['飲酒派對版', '角色扮演版', '極限派對挑戰版'], true)
+                    ? ['enabled' => true, 'segments' => Board::DEFAULT_START_WHEEL]
+                    : null,
             ]
         );
 
@@ -504,5 +675,44 @@ class BoardTemplateSeeder extends Seeder
                 ]
             );
         }
+
+        $board->squares()->where('position', '>=', count($squares))->delete();
+    }
+
+    private function adultFreeSquares(array $squares): array
+    {
+        $pools = [
+            1 => ['對視放電15秒', '牽手貼近說一句撩人的話', '親臉頰再慢慢靠近耳邊', '從背後抱緊20秒'],
+            2 => ['舌吻30秒', '坐到對方腿上貼緊20秒', '隔著衣服摸胸口20秒', '從脖子親到鎖骨'],
+            3 => ['幫對方脫一件外層衣物', '按摩大腿內側30秒', '手伸進衣襬摸腰30秒', '隔著衣物磨蹭30秒'],
+            4 => ['再脫一件衣物，不用一次脫光', '隔著內褲摸私密處20秒', '親大腿內側30秒', '手伸進內褲挑逗20秒'],
+        ];
+        $last = count($squares) - 1;
+
+        foreach ($squares as $position => &$square) {
+            if ($position === 0) {
+                $square[1] = 'start';
+                $square[2] = '起點\n先從調情慢慢來';
+                continue;
+            }
+
+            if ($position === $last) {
+                $square[1] = 'end';
+                $square[2] = '終點\n抱緊對方，接下來自己決定';
+                continue;
+            }
+
+            $stage = min(4, max(1, (int) ceil($position / max(1, $last) * 4)));
+            $adult = $pools[$stage][($position - 1) % count($pools[$stage])];
+            if (in_array($square[1], ['move', 'drink'], true)) {
+                $square[2] .= '\n再做：'.$adult;
+            } else {
+                $square[2] = $adult;
+            }
+        }
+
+        unset($square);
+
+        return $squares;
     }
 }

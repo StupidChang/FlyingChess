@@ -53,6 +53,14 @@ class WheelGameService
         '用嘴含住對方最敏感的位置 30 秒',
         '一個人決定快慢，另一個人決定深淺，互動 1 分鐘',
         '各說一個界線和一個想玩的項目，選共同項目進行',
+        '挑一個你們都想玩的體位，直接試 2 分鐘',
+        '選前面還是後面，進去後跟著對方的節奏來 1 分鐘',
+        '用手指幫對方，進去後快慢都聽對方的 1 分鐘',
+        '幫對方口交，做到對方喊停或 2 分鐘',
+        '挑一樣情趣玩具，玩在彼此都說可以的地方 2 分鐘',
+        '戴好保險套，挑個兩人都想玩的體位來 3 分鐘',
+        '一個人選姿勢，另一個人說要多快、多深',
+        '先玩一輪都說好的前戲，還想繼續就自己決定',
     ];
 
     public static function getSegmentPools(bool $isPremium = false): array
@@ -69,9 +77,9 @@ class WheelGameService
             'medium' => self::SEGMENTS_MEDIUM,
         ];
 
-        $pools['intense'] = $isPremium
-            ? self::SEGMENTS_INTENSE
-            : array_slice(self::SEGMENTS_INTENSE, 0, intdiv(count(self::SEGMENTS_INTENSE), 2));
+        if ($isPremium) {
+            $pools['intense'] = self::SEGMENTS_INTENSE;
+        }
 
         return $pools;
     }
@@ -91,12 +99,8 @@ class WheelGameService
             $pools[$tier] = $items->pluck('content')->toArray();
         }
 
-        if (! $isPremium && ! empty($pools['intense'])) {
-            $pools['intense'] = array_slice(
-                $pools['intense'],
-                0,
-                intdiv(count($pools['intense']), 2),
-            );
+        if (! $isPremium) {
+            unset($pools['intense']);
         }
 
         return $pools;

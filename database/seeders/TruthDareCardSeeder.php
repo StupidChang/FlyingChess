@@ -31,6 +31,12 @@ class TruthDareCardSeeder extends Seeder
             ['truth', '你有什麼穿著打扮特別容易被撩到？', 'premium'],
             ['truth', '你對角色扮演有興趣嗎？最想扮演什麼？', 'premium'],
             ['truth', '你覺得另一半做什麼動作最性感？', 'premium'],
+            ['truth', '你最喜歡哪一種體位？為什麼？', 'premium'],
+            ['truth', '你更喜歡口交、手玩還是插入？', 'premium'],
+            ['truth', '你最想嘗試哪一種情趣玩具？', 'premium'],
+            ['truth', '你敢不敢試肛交或後庭玩具？', 'premium'],
+            ['truth', '你喜歡多快、多用力、多深？', 'premium'],
+            ['truth', '你最想成真的性愛幻想是什麼？', 'premium'],
 
             // ── Dare (大冒險) — Free（成人向、曖昧級）──
             ['dare', '在另一半耳邊吹一口氣，再說一句最撩的話', 'free'],
@@ -53,6 +59,12 @@ class TruthDareCardSeeder extends Seeder
             ['dare', '用冰塊沿著對方的鎖骨慢慢滑動', 'premium'],
             ['dare', '選一首歌，對另一半跳一段性感的舞', 'premium'],
             ['dare', '幫另一半脫掉一件衣物（外套、襪子等皆可）', 'premium'],
+            ['dare', '幫另一半口交 1 分鐘', 'premium'],
+            ['dare', '用手刺激另一半的私密處 1 分鐘', 'premium'],
+            ['dare', '挑一個你們都想玩的體位，直接試 2 分鐘', 'premium'],
+            ['dare', '用手指幫另一半，進去後快慢都聽對方的', 'premium'],
+            ['dare', '挑一樣情趣玩具，陪另一半玩 1 分鐘', 'premium'],
+            ['dare', '從後面進入另一半，照對方喜歡的節奏來', 'premium'],
 
             // ── Couple (情侶題) — Free（成人向、曖昧級）──
             ['couple', '說出你們第一次親熱時最難忘的細節', 'free'],
@@ -75,6 +87,11 @@ class TruthDareCardSeeder extends Seeder
             ['couple', '和對方面對面坐在腿上，凝視 1 分鐘不能笑', 'premium'],
             ['couple', '說出你最喜歡對方在親密時的一個小動作', 'premium'],
             ['couple', '用身體語言向對方表達你現在想做什麼，不能說話', 'premium'],
+            ['couple', '互相口交或輪流服務對方各 1 分鐘', 'premium'],
+            ['couple', '挑一個最想玩的體位，直接試 2 分鐘', 'premium'],
+            ['couple', '一個人選姿勢，另一個人說要多快、多深', 'premium'],
+            ['couple', '挑一樣情趣玩具，輪流陪對方玩', 'premium'],
+            ['couple', '各講一個不行、一個想玩，再挑共同的直接做', 'premium'],
 
             // ── Party (派對題) — Free（成人向、曖昧級）──
             ['party', '讓右邊的人在你耳邊說一句最撩的話', 'free'],
@@ -97,6 +114,10 @@ class TruthDareCardSeeder extends Seeder
             ['party', '和左邊的人身體貼緊維持 30 秒', 'premium'],
             ['party', '模仿一段浮誇的撒嬌，讓全場投票過不過關', 'premium'],
             ['party', '輸的人要做 5 下性感深蹲，其他人打分數', 'premium'],
+            ['party', '說出最喜歡的體位並用動作示範姿勢', 'premium'],
+            ['party', '抽一人回答最想嘗試的成人玩法', 'premium'],
+            ['party', '讓指定的人隔著衣物撫摸私密處 20 秒', 'premium'],
+            ['party', '展示最喜歡的情趣道具，沒有就描述用途', 'premium'],
         ];
 
         foreach ($cards as [$category, $content, $tier]) {

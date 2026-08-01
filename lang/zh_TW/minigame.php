@@ -39,6 +39,7 @@ return [
     'dice_label_part' => '部位',
     'dice_label_time' => '時間',
     'dice_label_prop' => '道具',
+    'dice_label_play' => '玩法',
     'dice_roll' => '🎲 擲骰子',
     'dice_pick_tier' => '選擇要用的骰子',
     'dice_need_one' => '至少要保留一顆骰子',

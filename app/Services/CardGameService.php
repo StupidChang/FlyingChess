@@ -75,12 +75,20 @@ class CardGameService
         '牌小的人用嘴含住對方最敏感的位置 30 秒',
         '牌大的人決定快或慢，牌小的人決定深或淺，互動 1 分鐘',
         '兩個人各說一個界線和一個想嘗試的玩法，再選共同項目進行',
+        '牌大的人挑一個體位，兩個人直接試 2 分鐘',
+        '牌小的人選前面還是後面，牌大的人照他的節奏來 1 分鐘',
+        '牌大的人用手指幫對方，進去後快慢都聽對方的 1 分鐘',
+        '牌小的人幫對方口交，做到對方喊停或 2 分鐘',
+        '兩個人挑一樣情趣玩具，玩在彼此都說可以的地方 2 分鐘',
+        '牌大的人戴好保險套，挑個兩人都想玩的體位來 3 分鐘',
+        '牌小的人說要多快、多深，牌大的人乖乖照做 2 分鐘',
+        '兩個人先玩一輪都說好的前戲，還想繼續就自己決定',
     ];
 
     /**
      * Return activity pools for client-side use.
-     * Everyone can reach the intense tier. Free users receive a stable half
-     * of the pool; premium users receive the complete library.
+     * Mild and medium are free. Explicit intense activities are only returned
+     * after the caller has established premium content access.
      */
     public static function getActivityPools(bool $isPremium = false): array
     {
@@ -89,9 +97,9 @@ class CardGameService
             'medium' => self::MEDIUM_ACTIVITIES,
         ];
 
-        $pools['intense'] = $isPremium
-            ? self::INTENSE_ACTIVITIES
-            : array_slice(self::INTENSE_ACTIVITIES, 0, intdiv(count(self::INTENSE_ACTIVITIES), 2));
+        if ($isPremium) {
+            $pools['intense'] = self::INTENSE_ACTIVITIES;
+        }
 
         return $pools;
     }

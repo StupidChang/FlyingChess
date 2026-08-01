@@ -39,6 +39,7 @@ return [
     'dice_label_part' => '部位',
     'dice_label_time' => '時間',
     'dice_label_prop' => '道具',
+    'dice_label_play' => 'プレイ',
     'dice_roll' => '🎲 サイコロを振る',
     'dice_pick_tier' => '使うサイコロを選ぶ',
     'dice_need_one' => 'サイコロは最低1つ必要です',

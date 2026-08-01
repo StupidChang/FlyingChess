@@ -36,6 +36,7 @@ return [
     'dice_label_part' => 'Body part',
     'dice_label_time' => 'Duration',
     'dice_label_prop' => 'Prop',
+    'dice_label_play' => 'Play',
     'dice_roll' => '🎲 Roll',
     'dice_pick_tier' => 'Choose which dice to use',
     'dice_need_one' => 'Keep at least one die',

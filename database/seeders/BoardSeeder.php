@@ -28,45 +28,45 @@ class BoardSeeder extends Seeder
        ======================================================== */
     private const DEFAULT_SQUARES = [
         0 => ['text' => "起點\n擲骰子出發！",                  'color' => 'start'],
-        1 => ['text' => '前進2格',                              'color' => 'move'],
-        2 => ['text' => '喝一口',                               'color' => 'drink'],
-        3 => ['text' => '舔對方耳根10秒',                       'color' => 'action'],
-        4 => ['text' => "後退2格\n並脫一件衣物",               'color' => 'move'],
-        5 => ['text' => "大冒險！\n由對方出題",                 'color' => 'dare'],
-        6 => ['text' => "為對方口交\n至流水或堅挺10秒",         'color' => 'strip',  'fly_to' => 10],
-        7 => ['text' => "真心話\n說出最近的秘密幻想",           'color' => 'truth'],
+        1 => ['text' => '牽手對視20秒',                         'color' => 'move'],
+        2 => ['text' => '喝一口再抱一下',                       'color' => 'drink'],
+        3 => ['text' => '親對方耳朵10秒',                       'color' => 'action'],
+        4 => ['text' => "後退2格\n說一句撩人的話",              'color' => 'move'],
+        5 => ['text' => "大冒險！\n讓對方指定親哪裡",           'color' => 'dare'],
+        6 => ['text' => "從嘴唇一路親到\n對方的鎖骨",            'color' => 'strip',  'fly_to' => 10],
+        7 => ['text' => "真心話\n第一次想睡對方是何時",         'color' => 'truth'],
         8 => ['text' => "用嘴餵對方\n喝一口酒",                 'color' => 'drink'],
-        9 => ['text' => "咬吸對方脖子\n種一顆草莓",             'color' => 'action', 'fly_to' => 12],
+        9 => ['text' => "親脖子種草莓\n再前進3格",               'color' => 'action', 'fly_to' => 12],
         10 => ['text' => "下一輪休息\n跳過下次擲骰",             'color' => 'move'],
-        11 => ['text' => "與對方舌吻\n整整1分鐘",                'color' => 'action'],
-        12 => ['text' => '大冒險！',                             'color' => 'dare'],
-        13 => ['text' => '♀ 女生拍一張性感照片',                'color' => 'female'],
-        14 => ['text' => "手伸對方內褲裡\n隨意發揮30秒",         'color' => 'action'],
-        15 => ['text' => "真心話\n說出最想讓對方做的事",         'color' => 'truth'],
-        16 => ['text' => '喝半杯',                               'color' => 'drink'],
-        17 => ['text' => "♂ 男生停留此格\n後插對方1分鐘",       'color' => 'male'],
-        18 => ['text' => "為對方擋管或\n指逼1分鐘",              'color' => 'action', 'fly_to' => 22],
-        19 => ['text' => "選一個姿勢\n讓對方插至少10下",         'color' => 'strip'],
-        20 => ['text' => "對方口交\n1分鐘",                      'color' => 'action'],
-        21 => ['text' => "打對方屁股\n3下",                      'color' => 'dare'],
-        22 => ['text' => "終點\n恭喜！為愛鼓掌！",              'color' => 'end'],
-        23 => ['text' => "後退3格\n並脫一件衣物",               'color' => 'move'],
-        24 => ['text' => "露出私處\n允許對方拍照一張",           'color' => 'strip'],
-        25 => ['text' => "從背後抱住\n隨意撫摸1分鐘",            'color' => 'action'],
-        26 => ['text' => "舔對方大腿內側\n對方若笑則罰喝半杯",  'color' => 'action'],
-        27 => ['text' => "對方乳交\n1分鐘",                      'color' => 'action'],
-        28 => ['text' => "♀ 女生坐在\n男生臉上摩擦",             'color' => 'female'],
-        29 => ['text' => '喝一口',                               'color' => 'drink'],
-        30 => ['text' => "和對方用觀音坐蓮\n自己動至少10下",     'color' => 'action'],
-        31 => ['text' => "大冒險！\n由對方出題",                 'color' => 'dare'],
-        32 => ['text' => "為對方口交\n3分鐘",                    'color' => 'action'],
-        33 => ['text' => "真心話\n說出最喜歡的體位",             'color' => 'truth'],
-        34 => ['text' => "讓對方從耳根\n舔到胸口",               'color' => 'action'],
-        35 => ['text' => "手伸對方內褲裡\n隨意發揮30秒",         'color' => 'action'],
-        36 => ['text' => '喝半杯',                               'color' => 'drink'],
-        37 => ['text' => '前進2格',                              'color' => 'move'],
-        38 => ['text' => '自己脫一件衣物',                       'color' => 'strip'],
-        39 => ['text' => "嚼對方口水\n喝下",                     'color' => 'dare'],
+        11 => ['text' => "舌吻對方\n整整1分鐘",                 'color' => 'action'],
+        12 => ['text' => "大冒險！\n脫掉一件衣物",               'color' => 'dare'],
+        13 => ['text' => '♀ 拍一張性感照片給對方',              'color' => 'female'],
+        14 => ['text' => "隔著內褲摸對方\n30秒",                'color' => 'action'],
+        15 => ['text' => "真心話\n最想被對方怎麼玩",             'color' => 'truth'],
+        16 => ['text' => '喝半杯再脫一件',                       'color' => 'drink'],
+        17 => ['text' => "♂ 貼著對方熱舞\n1分鐘",               'color' => 'male'],
+        18 => ['text' => "手伸進衣服裡\n摸胸或屁股1分鐘",          'color' => 'action', 'fly_to' => 22],
+        19 => ['text' => "坐到對方腿上\n磨蹭30秒",                'color' => 'strip'],
+        20 => ['text' => "用嘴挑逗對方\n隔著內褲30秒",            'color' => 'action'],
+        21 => ['text' => "打屁股5下\n力道讓對方選",              'color' => 'dare'],
+        22 => ['text' => "把對方壓在床上\n深吻1分鐘",             'color' => 'action'],
+        23 => ['text' => "後退3格\n幫對方脫掉內褲",              'color' => 'move'],
+        24 => ['text' => "露出私處\n讓對方看30秒",               'color' => 'strip'],
+        25 => ['text' => "用手幫對方刺激\n1分鐘",                'color' => 'action'],
+        26 => ['text' => "舔大腿內側直到\n對方喊停",               'color' => 'action'],
+        27 => ['text' => "幫對方乳交\n1分鐘",                    'color' => 'action'],
+        28 => ['text' => "♀ 坐到對方臉上\n磨蹭30秒",              'color' => 'female'],
+        29 => ['text' => '喝一口再口交30秒',                     'color' => 'drink'],
+        30 => ['text' => "幫對方口交\n2分鐘",                    'color' => 'action'],
+        31 => ['text' => "大冒險！\n用手指進去玩1分鐘",           'color' => 'dare'],
+        32 => ['text' => "挑一樣情趣玩具\n玩2分鐘",              'color' => 'action'],
+        33 => ['text' => "真心話\n說出最想玩的體位",             'color' => 'truth'],
+        34 => ['text' => "戴好保險套\n由對方選體位",              'color' => 'action'],
+        35 => ['text' => "照選好的體位\n進去動1分鐘",              'color' => 'action'],
+        36 => ['text' => '換個體位再做1分鐘',                    'color' => 'drink'],
+        37 => ['text' => '從後面做30下',                         'color' => 'move'],
+        38 => ['text' => '對方說多快多深都照做',                 'color' => 'strip'],
+        39 => ['text' => "終點\n想怎麼做就做3分鐘",             'color' => 'end'],
     ];
 
     /* ========================================================
@@ -95,7 +95,7 @@ class BoardSeeder extends Seeder
         19 => ['text' => "互相對視\n10秒不說話",                 'color' => 'action'],
         20 => ['text' => "拿手機\n選一張最喜歡的合照",           'color' => 'action'],
         21 => ['text' => "大冒險！\n扮鬼臉逗對方笑",            'color' => 'dare'],
-        22 => ['text' => "終點\n你們真甜蜜！",                   'color' => 'end'],
+        22 => ['text' => "坐到對方腿上\n貼緊30秒",                'color' => 'action'],
         23 => ['text' => '後退2格',                              'color' => 'move'],
         24 => ['text' => '說出對方最可愛的小習慣',               'color' => 'truth'],
         25 => ['text' => '幫對方整理頭髮',                       'color' => 'action'],
@@ -112,7 +112,7 @@ class BoardSeeder extends Seeder
         36 => ['text' => '前進1格',                              'color' => 'move'],
         37 => ['text' => "說出一個\n約會夢想清單",               'color' => 'truth'],
         38 => ['text' => "對方親你\n一下",                       'color' => 'action'],
-        39 => ['text' => "大冒險！\n一起做個鬼臉自拍",           'color' => 'dare'],
+        39 => ['text' => "終點\n抱著對方說今晚還想繼續",         'color' => 'end'],
     ];
 
     /* ========================================================
@@ -141,7 +141,7 @@ class BoardSeeder extends Seeder
         19 => ['text' => "喝一口\n說出一個秘密",                 'color' => 'drink'],
         20 => ['text' => '前進1格',                              'color' => 'move'],
         21 => ['text' => "大冒險！\n兩人輪流喝",                 'color' => 'dare'],
-        22 => ['text' => "終點\n勝者今晚不用洗碗！",            'color' => 'end'],
+        22 => ['text' => "坐到對方腿上\n喝一口再親20秒",           'color' => 'action'],
         23 => ['text' => '後退2格',                              'color' => 'move'],
         24 => ['text' => '喝兩口',                               'color' => 'drink'],
         25 => ['text' => '前進2格',                              'color' => 'move'],
@@ -158,7 +158,7 @@ class BoardSeeder extends Seeder
         36 => ['text' => '後退1格',                              'color' => 'move'],
         37 => ['text' => '喝一口',                               'color' => 'drink'],
         38 => ['text' => "大冒險！\n連說5個繞口令",              'color' => 'dare'],
-        39 => ['text' => "罰喝1杯\n快到了別掛！",               'color' => 'drink'],
+        39 => ['text' => "終點\n喝一口再抱緊對方",              'color' => 'end'],
     ];
 
     private function seedBoard(
@@ -167,24 +167,51 @@ class BoardSeeder extends Seeder
         bool $isDefault,
         array $squares,
         ?string $referenceImage = null,
+        bool $isPremium = false,
+        bool $hasStartWheel = false,
     ): void {
+        if (!$isPremium) {
+            $squares = $this->adultFreeSquares($squares);
+        }
+
         $board = Board::firstOrCreate(
             ['name' => $name],
             [
                 'description' => $description,
                 'reference_image' => $referenceImage,
                 'is_default' => $isDefault,
+                'is_template' => $isPremium,
+                'is_premium_template' => $isPremium,
                 'canvas_rows' => 11,
                 'canvas_cols' => 13,
-                'path_data' => ['all' => range(0, 22), 'male' => null, 'female' => null],
+                'path_data' => ['all' => range(0, count($squares) - 1), 'male' => null, 'female' => null],
+                'start_wheel' => $hasStartWheel
+                    ? ['enabled' => true, 'segments' => Board::DEFAULT_START_WHEEL]
+                    : null,
                 'user_id' => null,
             ]
         );
         if ($referenceImage && $board->reference_image !== $referenceImage) {
             $board->update(['reference_image' => $referenceImage]);
         }
+        if ($board->is_default !== $isDefault
+            || $board->is_template !== $isPremium
+            || $board->is_premium_template !== $isPremium) {
+            $board->update([
+                'is_default' => $isDefault,
+                'is_template' => $isPremium,
+                'is_premium_template' => $isPremium,
+            ]);
+        }
+        $board->update([
+            'path_data' => ['all' => range(0, count($squares) - 1), 'male' => null, 'female' => null],
+            'start_wheel' => $hasStartWheel
+                ? ['enabled' => true, 'segments' => Board::DEFAULT_START_WHEEL]
+                : null,
+        ]);
 
-        // Only seed squares if this was just created (no squares yet)
+        // Create a missing board once; otherwise keep the existing geometry and
+        // effects intact while synchronising editorial content.
         if ($board->squares()->count() === 0) {
             foreach ($squares as $pos => $data) {
                 [$row, $col] = self::GRID_POS[$pos];
@@ -198,7 +225,68 @@ class BoardSeeder extends Seeder
                     'grid_col' => $col,
                 ]);
             }
+        } else {
+            foreach ($squares as $pos => $data) {
+                $board->squares()
+                    ->where('position', $pos)
+                    ->update([
+                        'text' => $data['text'],
+                        'color' => $data['color'],
+                    ]);
+            }
         }
+
+        $board->squares()->whereNotIn('position', array_keys($squares))->delete();
+    }
+
+    /** Give every free system board an adult tone that rises gradually. */
+    private function adultFreeSquares(array $squares): array
+    {
+        $pools = [
+            1 => [
+                '盯著對方放電15秒', '牽手貼近說一句撩人的話', '從臉頰慢慢親到耳邊',
+                '從背後抱緊對方20秒', '親對方脖子10秒', '說出對方最性感的地方',
+            ],
+            2 => [
+                '舌吻對方30秒', '坐到對方腿上貼緊20秒', '隔著衣服摸胸口20秒',
+                '從肩膀摸到腰30秒', '親到鎖骨再停10秒', '幫對方脫一件外層衣物',
+            ],
+            3 => [
+                '慢慢脫掉自己一件衣物', '按摩大腿內側30秒', '手伸進衣襬摸腰30秒',
+                '隔著衣物磨蹭30秒', '讓對方親一個敏感部位20秒', '貼著耳朵說今晚最想做什麼',
+            ],
+            4 => [
+                '再脫一件衣物，不用一次脫光', '隔著內褲摸私密處30秒', '親大腿內側30秒',
+                '手伸進內褲挑逗20秒', '跨坐磨蹭30秒', '互相說出一個想玩的成人任務',
+            ],
+        ];
+
+        $last = array_key_last($squares);
+
+        foreach ($squares as $position => &$square) {
+            if ($position === 0) {
+                $square['text'] = "起點\n先從調情慢慢升溫";
+                $square['color'] = 'start';
+                continue;
+            }
+
+            if ($position === $last) {
+                $square['text'] = "終點\n抱緊對方，接下來自己決定";
+                $square['color'] = 'end';
+                continue;
+            }
+
+            $stage = min(4, max(1, (int) ceil($position / max(1, $last) * 4)));
+            $adult = $pools[$stage][($position - 1) % count($pools[$stage])];
+            $original = $square['text'];
+            $square['text'] = in_array($square['color'], ['move', 'drink'], true)
+                ? $original."\n再做：".$adult
+                : $adult;
+        }
+
+        unset($square);
+
+        return $squares;
     }
 
     public function run(): void
@@ -206,23 +294,31 @@ class BoardSeeder extends Seeder
         $this->seedBoard(
             '情侶飛行棋 V2.0',
             '雙人同機情趣版（十字棋盤 40格）——起點在頂端，終點在底端，支援飛行格、男女專屬格',
-            true,
+            false,
             self::DEFAULT_SQUARES,
             'images/board-references/couples-flying-chess-v8.jpg',
+            true,
+            true,
         );
 
         $this->seedBoard(
             '輕度暖身版',
             '溫馨甜蜜風格，適合剛開始約會或想來點浪漫互動的情侶（40格，十字棋盤）',
+            true,
+            self::WARMUP_SQUARES,
+            null,
             false,
-            self::WARMUP_SQUARES
+            false,
         );
 
         $this->seedBoard(
             '飲酒開嗨版',
             '以喝酒罰則為主題，歡樂派對必備！適合多人聚會或好友一起玩（40格，十字棋盤）',
             false,
-            self::DRINKING_SQUARES
+            self::DRINKING_SQUARES,
+            null,
+            false,
+            true,
         );
     }
 }

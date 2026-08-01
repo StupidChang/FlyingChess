@@ -41,6 +41,7 @@
 .dg-die-part .dg-dice-face{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
 .dg-die-time .dg-dice-face{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
 .dg-die-prop .dg-dice-face{background:linear-gradient(135deg,#0d9488,#0f766e)}
+.dg-die-play .dg-dice-face{background:linear-gradient(135deg,#db2777,#9d174d)}
 .dg-die-custom .dg-dice-face{background:linear-gradient(135deg,#d9a441,#b8860b)}
 
 /* Result glow — one-shot pulse on the settled dice */
@@ -72,7 +73,7 @@
 #mg-page-root{max-width:1000px}
 .dg-play{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
     align-items:start;gap:20px;margin-top:8px}
-.dg-picker{grid-column:1;justify-self:start;width:210px;text-align:left}
+.dg-picker{grid-column:1;justify-self:start;width:210px;text-align:left;transform:translateY(-72px)}
 .dg-main{grid-column:2;width:100%;max-width:488px;min-width:0}
 .dg-stage{width:100%;min-width:0}
 /* 頁面加寬後,標題與玩家設定表單不要跟著被拉長 */
@@ -98,6 +99,7 @@
 .dg-picker-dot-part{background:#2563eb}
 .dg-picker-dot-time{background:#7c3aed}
 .dg-picker-dot-prop{background:#0d9488}
+.dg-picker-dot-play{background:#db2777}
 .dg-picker-dot-custom{background:#d9a441}
 .dg-picker-name{flex:1;white-space:nowrap}
 .dg-picker-check{width:16px;text-align:center;color:var(--accent);font-weight:800;opacity:0;transition:opacity .15s}
@@ -111,7 +113,7 @@
 @media(max-width:1024px){
   #mg-page-root{max-width:640px}
   .dg-play{grid-template-columns:1fr}
-  .dg-picker{grid-column:1;justify-self:center;width:100%;max-width:360px;margin:0 auto 22px}
+  .dg-picker{grid-column:1;justify-self:center;width:100%;max-width:360px;margin:0 auto 22px;transform:none}
   .dg-picker-list{max-width:360px;margin:0 auto}
   .dg-stage{grid-column:1}
   .dg-main{grid-column:1;max-width:none;margin:0 auto}
@@ -251,12 +253,13 @@
 
     // Each category offers gentle/bold/wild variants (wild = premium); the player
     // picks which dice to include. Custom account dice are grouped under 我的骰子.
-    var CAT_ORDER = ['action','part','time','prop','custom'];
+    var CAT_ORDER = ['action','part','time','prop','play','custom'];
     var CAT_LABELS = {
         action: @json(__('minigame.dice_label_action')),
         part:   @json(__('minigame.dice_label_part')),
         time:   @json(__('minigame.dice_label_time')),
         prop:   @json(__('minigame.dice_label_prop')),
+        play:   @json(__('minigame.dice_label_play')),
         custom: @json(__('minigame.dice_my'))
     };
     var INT_LABELS = {

@@ -21,6 +21,15 @@ class AdultBoardContentSeeder extends Seeder
 {
     public function run(): void
     {
+        // Legacy deployment entry point: canonical seeders now enforce the
+        // free/premium boundary by board identity instead of fragile numeric IDs.
+        $this->call([
+            BoardSeeder::class,
+            BoardTemplateSeeder::class,
+        ]);
+
+        return;
+
         $updated = 0;
 
         foreach ($this->content() as $boardId => $squares) {

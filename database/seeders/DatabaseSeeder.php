@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BoardSeeder::class,
             TruthDareCardSeeder::class,
+            WheelSegmentSeeder::class,
             BoardTemplateSeeder::class,
             DevAccountSeeder::class,
         ]);

@@ -12,16 +12,26 @@ class DiceGameService
 
     private const PARTS_MEDIUM = ['嘴唇', '脖子', '耳垂', '鎖骨', '腰', '胸口'];
 
-    private const ACTIONS_INTENSE = ['深吻', '舔', '吸吮', '輕咬', '愛撫', '挑逗'];
+    private const ACTIONS_INTENSE = ['口交', '手交', '舔弄', '吸吮', '插入', '使用玩具'];
 
-    private const PARTS_INTENSE = ['嘴唇', '耳垂', '脖子', '鎖骨', '大腿內側', '腰際'];
+    private const PARTS_INTENSE = ['陰莖', '陰蒂', '陰道', '肛門', '乳頭', '大腿內側'];
 
     private const DURATIONS = ['3 秒', '5 秒', '10 秒', '15 秒', '30 秒', '1 分鐘'];
 
     // 道具骰（成人情趣道具，Premium 解鎖更大膽的）
     private const PROPS_FREE = ['冰塊', '羽毛', '絲巾', '眼罩', '精油', '低溫蠟燭'];
 
-    private const PROPS_INTENSE = ['手銬', '跳蛋', '項圈', '按摩棒', '口枷', '拍子'];
+    private const PROPS_INTENSE = ['手銬', '跳蛋', '震動棒', '按摩棒', '後庭塞', '拍子'];
+
+    // 完整句型的玩法骰，避免「動作＋部位」自由組合出現不自然結果。
+    private const PLAYS_INTENSE = [
+        '口交1分鐘',
+        '手指進去玩1分鐘',
+        '後入30下',
+        '換兩種體位',
+        '玩具刺激2分鐘',
+        '對方決定快慢深淺',
+    ];
 
     /**
      * Built-in dice as a flat list. Each category (action / part / prop) offers
@@ -43,6 +53,7 @@ class DiceGameService
             ['part',   'wild',   true,  self::PARTS_INTENSE],
             ['prop',   'gentle', false, self::PROPS_FREE],
             ['prop',   'wild',   true,  self::PROPS_INTENSE],
+            ['play',   'wild',   true,  self::PLAYS_INTENSE],
             ['time',   null,     false, self::DURATIONS],
         ];
 
