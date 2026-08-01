@@ -938,13 +938,12 @@
 @media (max-width: 760px) {
   .player-bar { padding: 6px 8px; gap: 6px; }
   .player-panel { flex-basis: clamp(64px, 22%, 120px); padding: 4px 6px; gap: 5px; }
-  /* 「玩法」抽出版面流,「擲骰子」才會是中間唯一的元素、真正落在正中央。
-     並排的話置中的是「兩顆按鈕加起來」,骰子自己會偏掉(實測 28px)。
-
-     定位基準是整條 .player-bar 而不是中間那一欄 —— 中間欄的寬度是由內容
-     撐出來的(實測只有 103px),把按鈕貼在它右緣會直接壓在擲骰子上面。
-     bar 的右下角本來就空著(中間欄比兩側面板高),放這裡不多佔高度。 */
-  .btn-rules { position: absolute; right: 8px; bottom: 2px; padding: 2px 8px; font-size: .68rem; line-height: 1.5; }
+  /* 「玩法」自己一行,擺在擲骰子正下方。
+     和擲骰子並排的話,置中的是「兩顆按鈕加起來」,骰子本身會偏掉(實測 28px);
+     改貼到 bar 的角落雖然不佔高度,但看起來像掉出去的零件。堆疊多花約 20px,
+     換到的是兩顆都在中線上、而且一眼看得出是同一組。 */
+  .turn-center { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .btn-rules { margin-top: 0; padding: 2px 10px; font-size: .68rem; line-height: 1.5; }
   .pawn, .pawn svg { width: 1.05rem; height: 1.05rem; font-size: 1.05rem; }
   .pname { font-size: .8rem; }
   .ppos { font-size: .65rem; }

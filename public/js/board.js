@@ -193,24 +193,28 @@ function roll3dDice() {
     cube.className = 'dice-cube rolling';
     cube.style.transform = '';
 
+    /* 時間點要跟 board.css 的 .dice-cube.rolling / .landing 對齊:
+       翻滾 1.4s → 落面 0.68s(1400 起算)→ 觸地彈跳 → 收掉。
+       改 CSS 的秒數就要一起改這裡,不然會在動畫還沒跑完時切到下一段。 */
+
     // Stage 2: land on result face (overshoot bezier transition)
     setTimeout(function() {
       cube.className = 'dice-cube landing';
       cube.style.transform = FACE_ROTATIONS[result];
-    }, 900);
+    }, 1400);
 
     // Stage 3: squash & stretch bounce on touchdown
     setTimeout(function() {
       if (scene) scene.classList.add('dice-landed');
-    }, 1450);
+    }, 2080);
 
-    // Hide overlay after landing
+    // Hide overlay after landing — 多留 500ms 讓人看清楚停在幾點
     setTimeout(function() {
       overlay.classList.remove('active');
       cube.className = 'dice-cube';
       if (scene) scene.classList.remove('dice-landed');
       resolve(result);
-    }, 1950);
+    }, 2600);
   });
 }
 
