@@ -465,7 +465,12 @@ ul{list-style:none}
    金色描邊,仍然好看,只是不會跑。
 
    ::before 是實線的光,::after 是同一道光模糊後的暈,兩層疊起來才有厚度;
-   單一層的純線條會很「網頁範例」,少了質感。                          */
+   單一層的純線條會很「網頁範例」,少了質感。
+
+   ⚠ 圓角要自己算,兩層不能共用同一個值:挖空之後「洞」的半徑 = 自己的
+   border-radius − padding。要跟卡片貼合,洞的半徑就得等於卡片的 12px,
+   所以 1px 的環寫 13px 會差 1px、8px 的環要寫 20px。共用 13px 的話直邊看起來
+   還好,四個角會整個歪掉 —— 這是最容易漏掉的地方。                    */
 @property --beam-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
 
 .game-card--featured{position:relative;isolation:isolate}
@@ -473,7 +478,6 @@ ul{list-style:none}
 .game-card--featured::after{
   content:'';
   position:absolute;
-  border-radius:13px;
   pointer-events:none;
   background:conic-gradient(from var(--beam-angle),
     rgba(var(--glow-rgb),0)    0deg,
@@ -486,10 +490,12 @@ ul{list-style:none}
     rgba(var(--glow-rgb),0)  360deg);
   animation:card-beam 5.5s linear infinite;
 }
-/* 實線那層:padding + mask-composite 做出中空的環 */
+/* 實線那層:inset:0 讓這 1px 正好疊在卡片自己的邊框上,而不是浮在外面 1px。
+   光沒經過的地方仍然看得到原本的 --border 顏色,等於光在既有的框上滑過。 */
 .game-card--featured::before{
-  inset:-1px;
+  inset:0;
   padding:1px;
+  border-radius:12px;
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
@@ -503,6 +509,7 @@ ul{list-style:none}
 .game-card--featured::after{
   inset:-8px;
   padding:8px;
+  border-radius:20px; /* 20 − 8 = 12,洞剛好貼齊卡片外緣 */
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
