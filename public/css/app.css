@@ -461,11 +461,11 @@ ul{list-style:none}
 .game-card{
   position:relative;
   background:var(--surface);
-  /* 邊框 2px、圓角 10px。
-     ⚠ 這兩個值各有三個地方要同步 —— 這裡、hover 漸層框、招牌卡片的跑馬光條。
-     圓角尤其不能只改一邊:光環和卡片共用同一個外框,光環的圓角只要比卡片大,
-     卡片較方的那個角就會從亮線外面凸出來,反而更像沒對齊。 */
-  border:2px solid var(--border);
+  /* --card-edge 是給 hover 漸層框與跑馬光條用的:兩者都要跟邊框一樣粗,
+     不一致的話 hover 瞬間會看到線條變粗變細。圓角那邊走 border-radius:inherit,
+     所以只有這一個地方需要維護。 */
+  --card-edge:2px;
+  border:var(--card-edge) solid var(--border);
   border-radius:10px;
   padding:28px 22px;
   text-align:center;
@@ -481,16 +481,25 @@ ul{list-style:none}
   box-shadow:0 14px 30px -14px rgba(0,0,0,.6),
              0 0 24px -10px rgba(var(--glow-rgb),.5);
 }
-/* hover 的框:漸層而不是單一顏色的 rgba。
+/* ── 卡片 hover 的漸層框(全站共用)────────────────────────
    一條從玫瑰紅過渡到暖金再收回玫瑰紅的線,看起來像有光從某個角度掃過,
    而不是整條線一起變色 —— 這是「有質感」和「換個顏色」的差別。
-   招牌卡片排除在外,它自己那圈跑馬光條已經在做同一件事。               */
-.game-card:not(.game-card--featured)::after{
+
+   用 border-radius:inherit 與 --card-edge,所以套到新的卡片元件時只要把
+   選擇器加進下面的清單,不用抄圓角與邊框寬度 —— 那兩個值抄錯的話直邊看起來
+   還好,四個角會歪(這個坑在首頁的跑馬光條上踩過一次)。
+
+   首頁的招牌卡片排除在外:它那圈跑馬光條已經在做同一件事。            */
+.game-card:not(.game-card--featured),
+.board-card{position:relative}
+
+.game-card:not(.game-card--featured)::after,
+.board-card::after{
   content:'';
   position:absolute;
   inset:0;
-  padding:2px;        /* 與 .game-card 的邊框同寬 */
-  border-radius:10px; /* 與 .game-card 的圓角同值 —— 不同值角落會凸出 */
+  padding:var(--card-edge,1px);
+  border-radius:inherit;
   pointer-events:none;
   background:linear-gradient(145deg,
     rgba(var(--glow-rgb),.9)  0%,
@@ -505,9 +514,11 @@ ul{list-style:none}
   opacity:0;
   transition:opacity .32s ease;
 }
-.game-card:not(.game-card--featured):hover::after{opacity:1}
+.game-card:not(.game-card--featured):hover::after,
+.board-card:hover::after{opacity:1}
 /* 讓漸層框接手,底下那條純色邊框同時淡出,免得兩條線在圓角上打架 */
-.game-card:not(.game-card--featured):hover{border-color:transparent}
+.game-card:not(.game-card--featured):hover,
+.board-card:hover{border-color:transparent}
 
 /* ── 招牌卡片的跑馬光條(首頁飛行棋)──────────────────────────
    一道彗星狀的光沿著外框跑:conic-gradient 轉角度,再用 mask 把中間挖空,
@@ -543,8 +554,8 @@ ul{list-style:none}
   position:absolute;
   pointer-events:none;
   inset:0;
-  padding:2px;        /* 與 .game-card 的邊框同寬 */
-  border-radius:10px; /* 與 .game-card 的圓角同值 */
+  padding:var(--card-edge,2px);
+  border-radius:inherit;
   /* 上層是跑動的光,下層是靜態底色:光沒經過的地方就是原本那條邊框 */
   background:
     conic-gradient(from var(--beam-angle),
@@ -621,8 +632,13 @@ ul{list-style:none}
 .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px}
 .section-head h2{font-size:1.35rem;color:var(--text);font-weight:700}
 .boards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.board-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease;display:flex;flex-direction:column}
-.board-card:hover{border-color:rgba(var(--glow-rgb),.5);transform:translateY(-2px);box-shadow:0 8px 20px -8px rgba(0,0,0,.4)}
+.board-card{--card-edge:2px;background:var(--surface);
+  border:var(--card-edge) solid var(--border);border-radius:10px;overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:border-color .32s ease,box-shadow .32s ease,
+             transform .32s cubic-bezier(.22,.61,.36,1)}
+.board-card:hover{transform:translateY(-4px);
+  box-shadow:0 14px 30px -14px rgba(0,0,0,.6),0 0 24px -10px rgba(var(--glow-rgb),.5)}
 .board-card-body{padding:18px;flex:1;display:flex;flex-direction:column}
 .board-card-body h3{margin-bottom:6px;font-size:1rem;font-weight:600;color:var(--text)}
 .board-card-body p{font-size:.85rem;color:var(--text-dim);margin-bottom:8px;flex:1}
@@ -899,8 +915,6 @@ ul{list-style:none}
 .td-player{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;font-size:.88rem}
 .td-player.active{border-color:var(--accent);color:var(--accent);font-weight:600}
 .td-categories{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
-.td-cat-btn{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s,color .15s;font-size:1rem;font-weight:600;color:var(--text)}
-.td-cat-btn:hover{border-color:var(--accent);color:var(--accent)}
 .td-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 28px;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
 .td-card-category{font-size:.82rem;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
 .td-card-content{font-size:1.3rem;font-weight:600;line-height:1.6}
@@ -911,10 +925,6 @@ ul{list-style:none}
 .lobby-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
 .lobby-header h1{font-size:1.5rem;color:var(--text)}
 .room-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.room-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color .15s}
-.room-card:hover{border-color:rgba(var(--glow-rgb),.5)}
-.room-card h3{color:var(--text);font-size:1rem;margin-bottom:8px}
-.room-card-info{font-size:.85rem;color:var(--text-dim);margin-bottom:12px}
 
 /* Template lock overlay */
 .template-lock{position:relative}
