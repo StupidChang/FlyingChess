@@ -411,11 +411,18 @@ function buildBoard() {
 /* 四個角落。之前只分「第一個」與「其他」,三、四號棋子會完全疊在一起。 */
 const PIECE_NUDGE = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
 
-/** 把棋子放到任何一個目標元素的中心(格子,或還沒進場時的進場轉盤)。 */
-function positionPiece(el, target, board, offsetIndex) {
+/**
+ * 把棋子放到任何一個目標元素的中心(格子,或還沒進場時的進場轉盤)。
+ *
+ * sizeRef 決定棋子畫多大,跟「放在哪」分開:等待中的棋子停在 3×3 的轉盤上,
+ * 拿轉盤的邊長去算會得到三倍大的棋子。棋子的大小應該一直是「一格」的大小,
+ * 不管它現在停在什麼東西上面。
+ */
+function positionPiece(el, target, board, offsetIndex, sizeRef = null) {
   const boardRect = board.getBoundingClientRect();
   const rect      = target.getBoundingClientRect();
-  const size = Math.max(10, Math.min(rect.width, rect.height) * 0.5);
+  const sizeRect  = (sizeRef || target).getBoundingClientRect();
+  const size = Math.max(10, Math.min(sizeRect.width, sizeRect.height) * 0.5);
   el.style.width  = size + 'px';
   el.style.height = size + 'px';
 
@@ -430,6 +437,8 @@ function renderPieces() {
   const board = document.getElementById('game-board');
   if (!board) return;
   const wheelEl = board.querySelector('.board-entry-wheel');
+  // 棋子一律用格子的尺寸;沒有格子可量(理論上不會發生)才退回目標元素。
+  const cellRef = board.querySelector('.board-sq');
 
   state.players.forEach((p, i) => {
     let el = document.getElementById(`piece-${i+1}`);
@@ -459,11 +468,11 @@ function renderPieces() {
       // Snap into place on first placement (setup/reset/rebuild) instead
       // of visibly sliding in from the top-left corner.
       el.style.transition = 'none';
-      positionPiece(el, target, board, i);
+      positionPiece(el, target, board, i, cellRef);
       void el.offsetWidth; // force reflow so the transition-less transform commits
       el.style.transition = '';
     } else {
-      positionPiece(el, target, board, i);
+      positionPiece(el, target, board, i, cellRef);
     }
   });
 }
