@@ -1148,6 +1148,8 @@ ul{list-style:none}
   transition:all .15s;
 }
 .admin-filter-tab:hover{color:var(--text);border-color:var(--text-dim)}
+/* 複選:選起來的籤前面加一個勾,一眼看得出「有幾個開著」而不只是顏色差異 */
+.admin-filter-tab.active::before{content:'✓ ';font-size:.7rem}
 .admin-filter-tab.active{
   background:var(--accent);color:#fff;
   border-color:var(--accent);font-weight:600;

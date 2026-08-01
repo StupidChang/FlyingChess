@@ -15,31 +15,37 @@
 
         <div class="admin-filters">
             <div class="admin-filter-tabs">
-                <a href="{{ route('admin.cards') }}"
-                   class="admin-filter-tab {{ !request('category') && !request('level') && !request('audience') && request('paid') === null ? 'active' : '' }}">全部</a>
-                {{-- 類型與適用人數是兩個獨立的軸,篩選也要分兩排 --}}
+                @include('admin._filter-clear', ['params' => ['category', 'audience', 'level', 'paid']])
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\TruthDareCard::CATEGORIES as $k => $v)
-                <a href="{{ route('admin.cards', ['category' => $k, 'audience' => request('audience')]) }}"
-                   class="admin-filter-tab {{ request('category') === $k ? 'active' : '' }}">{{ $v }}</a>
+                @include('admin._filter-tab', ['param' => 'category', 'value' => $k, 'label' => $v])
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\TruthDareCard::AUDIENCES as $k => $v)
-                <a href="{{ route('admin.cards', ['audience' => $k, 'category' => request('category')]) }}"
-                   class="admin-filter-tab {{ request('audience') === $k ? 'active' : '' }}">{{ $v }}</a>
+                @include('admin._filter-tab', ['param' => 'audience', 'value' => $k, 'label' => $v])
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\TruthDareCard::LEVELS as $k => $v)
-                <a href="{{ route('admin.cards', ['level' => $k, 'category' => request('category'), 'audience' => request('audience')]) }}"
-                   class="admin-filter-tab {{ request('level') === $k ? 'active' : '' }}">{{ $v }}</a>
+                @include('admin._filter-tab', ['param' => 'level', 'value' => $k, 'label' => $v])
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
-                {{-- 收費是每張卡片自己的欄位,跟尺度是兩件事,所以自成一排篩選。 --}}
-                @foreach(['0' => '免費', '1' => '付費'] as $k => $v)
-                <a href="{{ route('admin.cards', ['paid' => $k, 'level' => request('level'), 'category' => request('category'), 'audience' => request('audience')]) }}"
-                   class="admin-filter-tab {{ request('paid') === $k ? 'active' : '' }}">{{ $v }}</a>
-                @endforeach
+                @include('admin._filter-tab', ['param' => 'paid', 'value' => '0', 'label' => '免費'])
+                @include('admin._filter-tab', ['param' => 'paid', 'value' => '1', 'label' => '付費'])
             </div>
             <form action="{{ route('admin.cards') }}" method="GET" class="admin-search">
+                {{-- 搜尋時把目前的篩選一起帶走,不然搜一次篩選就沒了 --}}
+                @foreach((array) request('category', []) as $v)
+                <input type="hidden" name="category[]" value="{{ $v }}">
+                @endforeach
+                @foreach((array) request('audience', []) as $v)
+                <input type="hidden" name="audience[]" value="{{ $v }}">
+                @endforeach
+                @foreach((array) request('level', []) as $v)
+                <input type="hidden" name="level[]" value="{{ $v }}">
+                @endforeach
+                @foreach((array) request('paid', []) as $v)
+                <input type="hidden" name="paid[]" value="{{ $v }}">
+                @endforeach
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋卡片內容…"
                        class="admin-search-input">
                 <button type="submit" class="btn btn-sm">搜尋</button>

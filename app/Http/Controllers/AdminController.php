@@ -62,6 +62,76 @@ class AdminController extends Controller
     }
 
     /**
+     * 可複選的篩選。
+     *
+     * 網址上是 ?level[]=mild&level[]=medium,一個值也吃(舊連結、手打的網址)。
+     * 值一律先跟白名單取交集才進 SQL —— 篩選參數是使用者給的。
+     * 一個都沒選就是不過濾,不是「什麼都不顯示」。
+     *
+     * @param  array  $allowed  合法值;關聯陣列則取它的鍵
+     */
+    private function applyIn($query, Request $request, string $param, array $allowed, ?string $column = null): void
+    {
+        if (array_is_list($allowed) === false) {
+            $allowed = array_keys($allowed);
+        }
+
+        $values = array_values(array_intersect(
+            array_map('strval', (array) $request->input($param, [])),
+            array_map('strval', $allowed)
+        ));
+
+        if ($values) {
+            $query->whereIn($column ?? $param, $values);
+        }
+    }
+
+    /**
+     * 「免費／付費」這種是非篩選。
+     *
+     * 兩個都選等於沒篩選,所以只有剛好選一個的時候才過濾 —— 不特別處理的話
+     * whereIn(['0','1']) 在 SQLite 與 MySQL 對 boolean 欄位的行為並不一致。
+     */
+    private function applyBoolIn($query, Request $request, string $param, string $column): void
+    {
+        $values = array_values(array_intersect(
+            array_map('strval', (array) $request->input($param, [])),
+            ['0', '1']
+        ));
+
+        if (count($values) === 1) {
+            $query->where($column, $values[0] === '1');
+        }
+    }
+
+    /**
+     * 每個選項是一組條件而不是同一欄的值(付費會員、管理員、已封鎖…)。
+     *
+     * 複選時把它們 OR 起來,而且整組包在一個 where 閉包裡 —— 沒有包起來的話
+     * orWhere 會跟前面的搜尋條件平輩,變成「符合任一篩選 或 名字含關鍵字」,
+     * 搜尋就等於失效了。
+     *
+     * @param  array<string, callable>  $predicates
+     */
+    private function applyAnyOf($query, Request $request, string $param, array $predicates): void
+    {
+        $selected = array_values(array_intersect(
+            array_map('strval', (array) $request->input($param, [])),
+            array_keys($predicates)
+        ));
+
+        if (! $selected) {
+            return;
+        }
+
+        $query->where(function ($outer) use ($selected, $predicates) {
+            foreach ($selected as $key) {
+                $outer->orWhere(fn ($q) => $predicates[$key]($q));
+            }
+        });
+    }
+
+    /**
      * 回到列表時要帶回去的篩選、排序與頁碼。
      *
      * 列表頁的網址帶著一堆狀態(第 7 頁、只看重度、依尺度排序…),點進去編輯
@@ -210,16 +280,13 @@ class AdminController extends Controller
     {
         $query = Board::with('user');
 
-        // Filter
-        $filter = $request->input('filter', 'all');
-        match ($filter) {
-            'template' => $query->where('is_template', true),
-            'default' => $query->where('is_default', true),
-            'user' => $query->where('is_template', false)->whereNotNull('user_id'),
-            'pending' => $query->where('publish_status', Board::PUBLISH_PENDING),
-            'published' => $query->where('publish_status', Board::PUBLISH_APPROVED),
-            default => null,
-        };
+        $this->applyAnyOf($query, $request, 'filter', [
+            'template' => fn ($q) => $q->where('is_template', true),
+            'default' => fn ($q) => $q->where('is_default', true),
+            'user' => fn ($q) => $q->where('is_template', false)->whereNotNull('user_id'),
+            'pending' => fn ($q) => $q->where('publish_status', Board::PUBLISH_PENDING),
+            'published' => fn ($q) => $q->where('publish_status', Board::PUBLISH_APPROVED),
+        ]);
 
         // Search
         if ($search = $request->input('q')) {
@@ -235,7 +302,7 @@ class AdminController extends Controller
 
         $boards = $query->paginate($this->perPage($request, $query))->withQueryString();
 
-        return view('admin.boards.index', compact('boards', 'filter'));
+        return view('admin.boards.index', compact('boards'));
     }
 
     public function editBoard(Request $request, Board $board)
@@ -326,18 +393,10 @@ class AdminController extends Controller
     {
         $query = TruthDareCard::query();
 
-        if ($category = $request->input('category')) {
-            $query->where('category', $category);
-        }
-        if ($audience = $request->input('audience')) {
-            $query->where('audience', $audience);
-        }
-        if ($level = $request->input('level')) {
-            $query->where('level', $level);
-        }
-        if (($paid = $request->input('paid')) !== null && $paid !== '') {
-            $query->where('is_paid', $paid === '1');
-        }
+        $this->applyIn($query, $request, 'category', TruthDareCard::CATEGORIES);
+        $this->applyIn($query, $request, 'audience', TruthDareCard::AUDIENCES);
+        $this->applyIn($query, $request, 'level', TruthDareCard::LEVELS);
+        $this->applyBoolIn($query, $request, 'paid', 'is_paid');
         if ($search = $request->input('q')) {
             $query->where('content', 'like', "%{$search}%");
         }
@@ -419,16 +478,12 @@ class AdminController extends Controller
     {
         $query = WheelSegment::query();
 
-        if ($tier = $request->input('tier')) {
-            $query->where('tier', $tier);
-        }
+        $this->applyIn($query, $request, 'tier', WheelSegment::TIERS);
         if ($search = $request->input('q')) {
             $query->where('content', 'like', "%{$search}%");
         }
 
-        if (($paid = $request->input('paid')) !== null && $paid !== '') {
-            $query->where('is_paid', $paid === '1');
-        }
+        $this->applyBoolIn($query, $request, 'paid', 'is_paid');
 
         $this->applySort($query, $request, [
             'id' => 'id',
@@ -515,15 +570,11 @@ class AdminController extends Controller
 
         $query = GamePrompt::where('game', $game);
 
-        if (($pool = $request->input('pool')) && isset(GamePrompt::POOLS[$game][$pool])) {
-            $query->where('pool', $pool);
-        }
+        $this->applyIn($query, $request, 'pool', GamePrompt::POOLS[$game]);
         if ($search = $request->input('q')) {
             $query->where('content', 'like', "%{$search}%");
         }
-        if (($paid = $request->input('paid')) !== null && $paid !== '') {
-            $query->where('is_paid', $paid === '1');
-        }
+        $this->applyBoolIn($query, $request, 'paid', 'is_paid');
 
         $this->applySort($query, $request, [
             'id' => 'id',
@@ -539,7 +590,11 @@ class AdminController extends Controller
         return view('admin.prompts.index', [
             'prompts' => $prompts,
             'game' => $game,
-            'pool' => $request->input('pool'),
+            /* 「新增題目」要帶一個預設分類過去。篩選現在是複選,只有剛好選一個
+               的時候才拿它當預設 —— 選了三個分類還幫他挑一個當預設是猜的。 */
+            'pool' => count($selectedPools = (array) $request->input('pool', [])) === 1
+                ? reset($selectedPools)
+                : null,
             // 這個遊戲還沒匯入過預設題目時,頁面要提示可以一鍵匯入。
             'isEmpty' => ! GamePrompt::where('game', $game)->exists(),
         ]);
@@ -679,14 +734,12 @@ class AdminController extends Controller
     {
         $query = User::withCount('boards');
 
-        $filter = $request->input('filter', 'all');
-        match ($filter) {
-            'premium' => $query->whereNotNull('premium_expires_at')
+        $this->applyAnyOf($query, $request, 'filter', [
+            'premium' => fn ($q) => $q->whereNotNull('premium_expires_at')
                 ->where('premium_expires_at', '>', now()),
-            'admin' => $query->where('is_admin', true),
-            'banned' => $query->where('is_banned', true),
-            default => null,
-        };
+            'admin' => fn ($q) => $q->where('is_admin', true),
+            'banned' => fn ($q) => $q->where('is_banned', true),
+        ]);
 
         if ($search = $request->input('q')) {
             $query->where(function ($q) use ($search) {
@@ -705,7 +758,7 @@ class AdminController extends Controller
 
         $users = $query->paginate($this->perPage($request, $query))->withQueryString();
 
-        return view('admin.users.index', compact('users', 'filter'));
+        return view('admin.users.index', compact('users'));
     }
 
     public function banUser(Request $request, User $user)
@@ -759,10 +812,7 @@ class AdminController extends Controller
         // host.user 一起載進來,不然一頁 100 場就是 200 次查詢。
         $query = Game::withCount('players')->with('host.user');
 
-        $status = $request->input('status', 'all');
-        if (in_array($status, ['waiting', 'playing', 'finished'], true)) {
-            $query->where('status', $status);
-        }
+        $this->applyIn($query, $request, 'status', ['waiting', 'playing', 'finished']);
 
         if ($search = $request->input('q')) {
             /* 房間代碼、開房者的暱稱、註冊會員的帳號與 email 都能搜 ——
@@ -791,7 +841,7 @@ class AdminController extends Controller
 
         $games = $query->paginate($this->perPage($request, $query))->withQueryString();
 
-        return view('admin.games.index', compact('games', 'status'));
+        return view('admin.games.index', compact('games'));
     }
 
     public function destroyGame(Game $game)

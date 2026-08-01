@@ -28,17 +28,15 @@
 
         <div class="admin-filters">
             <div class="admin-filter-tabs">
-                <a href="{{ route('admin.games', ['status' => 'all']) }}"
-                   class="admin-filter-tab {{ $status === 'all' ? 'active' : '' }}">全部</a>
-                <a href="{{ route('admin.games', ['status' => 'waiting']) }}"
-                   class="admin-filter-tab {{ $status === 'waiting' ? 'active' : '' }}">等待中</a>
-                <a href="{{ route('admin.games', ['status' => 'playing']) }}"
-                   class="admin-filter-tab {{ $status === 'playing' ? 'active' : '' }}">進行中</a>
-                <a href="{{ route('admin.games', ['status' => 'finished']) }}"
-                   class="admin-filter-tab {{ $status === 'finished' ? 'active' : '' }}">已結束</a>
+                @include('admin._filter-clear', ['params' => ['status']])
+                @include('admin._filter-tab', ['param' => 'status', 'value' => 'waiting', 'label' => '等待中'])
+                @include('admin._filter-tab', ['param' => 'status', 'value' => 'playing', 'label' => '進行中'])
+                @include('admin._filter-tab', ['param' => 'status', 'value' => 'finished', 'label' => '已結束'])
             </div>
             <form action="{{ route('admin.games') }}" method="GET" class="admin-search">
-                <input type="hidden" name="status" value="{{ $status }}">
+                @foreach((array) request('status', []) as $st)
+                <input type="hidden" name="status[]" value="{{ $st }}">
+                @endforeach
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋代碼／開房者…"
                        class="admin-search-input">
                 <button type="submit" class="btn btn-sm">搜尋</button>

@@ -15,20 +15,23 @@
 
         <div class="admin-filters">
             <div class="admin-filter-tabs">
-                <a href="{{ route('admin.wheel-segments') }}"
-                   class="admin-filter-tab {{ !request('tier') ? 'active' : '' }}">全部</a>
+                @include('admin._filter-clear', ['params' => ['tier', 'paid']])
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\WheelSegment::TIERS as $k => $v)
-                <a href="{{ route('admin.wheel-segments', ['tier' => $k]) }}"
-                   class="admin-filter-tab {{ request('tier') === $k ? 'active' : '' }}">{{ $v }}</a>
+                @include('admin._filter-tab', ['param' => 'tier', 'value' => $k, 'label' => $v])
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
-                {{-- 收費是每一題自己的欄位,跟尺度是兩件事,所以自成一排。 --}}
-                @foreach(['0' => '免費', '1' => '付費'] as $k => $v)
-                <a href="{{ request()->fullUrlWithQuery(['paid' => $k, 'page' => null]) }}"
-                   class="admin-filter-tab {{ request('paid') === $k ? 'active' : '' }}">{{ $v }}</a>
-                @endforeach
+                @include('admin._filter-tab', ['param' => 'paid', 'value' => '0', 'label' => '免費'])
+                @include('admin._filter-tab', ['param' => 'paid', 'value' => '1', 'label' => '付費'])
             </div>
             <form action="{{ route('admin.wheel-segments') }}" method="GET" class="admin-search">
+                {{-- 搜尋時把目前的篩選一起帶走,不然搜一次篩選就沒了 --}}
+                @foreach((array) request('tier', []) as $v)
+                <input type="hidden" name="tier[]" value="{{ $v }}">
+                @endforeach
+                @foreach((array) request('paid', []) as $v)
+                <input type="hidden" name="paid[]" value="{{ $v }}">
+                @endforeach
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋任務內容…"
                        class="admin-search-input">
                 <button type="submit" class="btn btn-sm">搜尋</button>

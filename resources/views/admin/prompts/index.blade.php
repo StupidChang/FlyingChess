@@ -24,20 +24,23 @@
                    class="admin-filter-tab {{ $game === $key ? 'active' : '' }}">{{ $label }}</a>
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
-                {{-- 收費是每一題自己的欄位,跟尺度是兩件事,所以自成一排。 --}}
-                @foreach(['0' => '免費', '1' => '付費'] as $k => $v)
-                <a href="{{ request()->fullUrlWithQuery(['paid' => $k, 'page' => null]) }}"
-                   class="admin-filter-tab {{ request('paid') === $k ? 'active' : '' }}">{{ $v }}</a>
+                {{-- 分類與收費可以複選;遊戲只能單選 —— 分類的合法值取決於遊戲。 --}}
+                @foreach(\App\Models\GamePrompt::POOLS[$game] as $k => $v)
+                @include('admin._filter-tab', ['param' => 'pool', 'value' => $k, 'label' => $v])
                 @endforeach
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
+                @include('admin._filter-tab', ['param' => 'paid', 'value' => '0', 'label' => '免費'])
+                @include('admin._filter-tab', ['param' => 'paid', 'value' => '1', 'label' => '付費'])
+                @include('admin._filter-clear', ['params' => ['pool', 'paid']])
             </div>
             <form action="{{ route('admin.prompts') }}" method="GET" class="admin-search">
                 <input type="hidden" name="game" value="{{ $game }}">
-                <select name="pool" class="admin-search-input">
-                    <option value="">全部分類</option>
-                    @foreach(\App\Models\GamePrompt::POOLS[$game] as $key => $label)
-                    <option value="{{ $key }}" @selected($pool === $key)>{{ $label }}</option>
-                    @endforeach
-                </select>
+                @foreach((array) request('pool', []) as $v)
+                <input type="hidden" name="pool[]" value="{{ $v }}">
+                @endforeach
+                @foreach((array) request('paid', []) as $v)
+                <input type="hidden" name="paid[]" value="{{ $v }}">
+                @endforeach
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋題目內容…"
                        class="admin-search-input">
                 <button type="submit" class="btn btn-sm">搜尋</button>

@@ -21,18 +21,16 @@
 
         <div class="admin-filters">
             <div class="admin-filter-tabs">
-                @php $f = request('filter', 'all'); @endphp
-                <a href="{{ route('admin.users', ['filter' => 'all']) }}"
-                   class="admin-filter-tab {{ $f === 'all' ? 'active' : '' }}">全部</a>
-                <a href="{{ route('admin.users', ['filter' => 'premium']) }}"
-                   class="admin-filter-tab {{ $f === 'premium' ? 'active' : '' }}">付費會員</a>
-                <a href="{{ route('admin.users', ['filter' => 'admin']) }}"
-                   class="admin-filter-tab {{ $f === 'admin' ? 'active' : '' }}">管理員</a>
-                <a href="{{ route('admin.users', ['filter' => 'banned']) }}"
-                   class="admin-filter-tab {{ $f === 'banned' ? 'active' : '' }}">已封鎖</a>
+                @include('admin._filter-clear', ['params' => ['filter']])
+                @include('admin._filter-tab', ['param' => 'filter', 'value' => 'premium', 'label' => '付費會員'])
+                @include('admin._filter-tab', ['param' => 'filter', 'value' => 'admin', 'label' => '管理員'])
+                @include('admin._filter-tab', ['param' => 'filter', 'value' => 'banned', 'label' => '已封鎖'])
             </div>
             <form action="{{ route('admin.users') }}" method="GET" class="admin-search">
-                <input type="hidden" name="filter" value="{{ $f }}">
+                {{-- 篩選現在是複選,搜尋時要把整組帶著走 --}}
+                @foreach((array) request('filter', []) as $f)
+                <input type="hidden" name="filter[]" value="{{ $f }}">
+                @endforeach
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋名稱或 Email…"
                        class="admin-search-input">
                 <button type="submit" class="btn btn-sm">搜尋</button>
