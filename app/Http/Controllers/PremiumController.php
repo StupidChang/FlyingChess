@@ -44,9 +44,10 @@ class PremiumController extends Controller
 
     public function checkout(Request $request)
     {
-        // Refuse to start a payment we cannot verify. 503 rather than a silent
-        // redirect so a misconfigured deploy is loud instead of quietly free.
-        abort_unless($this->gateway->isLive(), 503, __('premium.err_gateway_not_live'));
+        // 沒有金流時這條路由等同不存在 —— 404 而不是 503。站上目前沒有任何
+        // 付款入口(見 config/payments.php),所以打到這裡的只會是舊書籤、
+        // 爬蟲、或手動送的表單;回 404 才不會讓人以為「暫時壞掉,等等再試」。
+        abort_unless($this->gateway->isLive(), 404);
 
         // 排除七日猶豫期的前提是「消費者事先明示同意」。前端的 required 只是
         // 提示,真正的證明要靠伺服器端拒絕沒有同意的請求。

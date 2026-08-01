@@ -18,7 +18,7 @@
 | Cloudflare Email Routing | ✅ 已完成 — 根網域 MX 指向 Cloudflare |
 | SES production access | ❌ **未申請** — 仍在 sandbox，除已驗證地址外任何人註冊都收不到驗證信 |
 | 廣告（ExoClick） | ✅ 七個 zone 投放中（2026-08-01）— 但 `ADS_TXT_LINES` 仍空、`/ads.txt` 回 404 |
-| 金流 | ❌ 仍是綠界測試憑證，但**已加保險擋住結帳與回調**（見下方 § 金流保險） |
+| 金流 | ⛔ **綠界已整份移除、全站沒有任何付款入口**（2026-08-01,刻意的,見下方 § 金流已停用） |
 | Google 登入 / GA4 / Search Console | ❌ 三個 env 值未填（Google 登入未填時路由 404、按鈕隱藏，不會壞） |
 | HSTS / 限制級標示 / Secure cookie | ✅ 已完成 |
 | 猶豫期排除條款與結帳同意存證 | ✅ 已完成 |
@@ -27,25 +27,29 @@
 
 **基礎建設與寄信已完成，剩下的是「有了才有收入」與「出事才知道」的項目。**
 
-### § 金流保險（2026-07-31 新增）
+### § 金流已停用（2026-08-01）
 
-`config/ecpay.php` 的預設值是綠界**公開的測試憑證**（商店代號 `3002607`、文件上
-公開的 HashKey/HashIV），而 `.env` 沒有覆寫。這代表兩件事：訪客可用測試卡拿到真的
-Premium；而且 HashKey 公開 → 任何人都能算出合法 CheckMacValue 直接 POST 到
-`/premium/callback` 幫自己開通。
+**綠界的 driver 與 `config/ecpay.php` 已經整份刪掉**，預設 driver 換成
+`DisabledGateway`（`isLive()` 永遠 false）。原因有二:綠界的特約商店條款排除
+情色類、本站過不了審;而先前留在設定裡的是綠界**公開的測試憑證**,任何人都能
+算出合法簽章直接 POST 到 callback 幫自己開通。
 
-現在 `PaymentGateway::isLive()` 會在 production 判定這種情況並：
-- `checkout()` 回 503，付費頁改顯示「即將開放購買」
-- `callback()` 在讀取任何輸入前回 `0|ERR_GATEWAY`
+現在的狀態是「站上不存在付款入口」,不是「按了會失敗」:
 
-**填入正式憑證後這層保險會自動放行**，不需要改程式。
+- `/premium` 沒有任何按鈕,只有一行說明文字（disabled 的按鈕還是會被誤觸）
+- `premium.checkout` 路由回 **404**（不是 503 —— 這不是暫時故障）
+- 付費棋盤範本的卡片只顯示「看廣告解鎖」,升級連結整個不出現
+- 所有付款入口都掛在 `$purchaseEnabled`（AppServiceProvider 的 view composer
+  問 gateway 的 `isLive()`）,接上新金流後會自己回來,不用逐頁改
 
-### § 金流已可抽換（2026-07-31 新增）
+### § 金流已可抽換
 
-`app/Support/Payments/` 有 `PaymentGateway` 介面，ECPay 只是其中一個實作。換成
-CCBill / SegPay 的步驟是：寫一個新 class → 加進 `config/payments.php` → 改
-`PAYMENT_GATEWAY`。`PremiumController` 一行都不用動，幣別檢查也會自動改問新
-driver 的 `supportedCurrencies()`。
+`app/Support/Payments/` 有 `PaymentGateway` 介面。接 CCBill / SegPay 的步驟是：
+寫一個新 class → 加進 `config/payments.php` → 改 `PAYMENT_GATEWAY`。
+`PremiumController` 一行都不用動,幣別檢查也會自動改問新 driver 的
+`supportedCurrencies()`,付款按鈕與結帳路由也會一起回來。
+
+測試不依賴任何廠商的沙箱憑證:結帳規則的測試自己綁 `Tests\Support\FakeLiveGateway`。
 
 ---
 

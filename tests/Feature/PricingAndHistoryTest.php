@@ -7,7 +7,9 @@ use App\Models\GamePlayer;
 use App\Models\PaymentOrder;
 use App\Models\User;
 use App\Support\Pricing;
+use App\Support\Payments\PaymentGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\FakeLiveGateway;
 use Tests\TestCase;
 
 /**
@@ -89,8 +91,19 @@ class PricingAndHistoryTest extends TestCase
             '語言檔不該寫死幣別符號,價格請用 :price 佔位符並由 Pricing 帶入');
     }
 
+    /**
+     * 站上預設是 DisabledGateway,結帳路由會 404。這幾條測的是結帳的規則本身
+     * (金額由後端決定、同意條款必填、未知方案退回預設),跟用哪家金流無關,
+     * 所以綁一個假的「已接上」driver 進去。
+     */
+    private function withLiveGateway(): void
+    {
+        $this->app->instance(PaymentGateway::class, new FakeLiveGateway);
+    }
+
     public function test_checkout_prices_from_config_not_from_the_request(): void
     {
+        $this->withLiveGateway();
         config()->set('premium.default_currency', 'TWD');
         $user = User::factory()->create();
 
@@ -112,6 +125,7 @@ class PricingAndHistoryTest extends TestCase
 
     public function test_checkout_is_refused_without_the_cooling_off_consent(): void
     {
+        $this->withLiveGateway();
         // 排除七日猶豫期的前提是「消費者事先明示同意」——前端的 required
         // 擋不住直接送出的請求,所以伺服器端必須自己拒絕。
         config()->set('premium.default_currency', 'TWD');
@@ -126,6 +140,7 @@ class PricingAndHistoryTest extends TestCase
 
     public function test_unknown_plan_falls_back_to_the_default_plan(): void
     {
+        $this->withLiveGateway();
         config()->set('premium.default_currency', 'TWD');
         $user = User::factory()->create();
 

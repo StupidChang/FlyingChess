@@ -23,9 +23,12 @@ class PlayController extends Controller
             }
         }
 
-        // Premium templates require premium membership
+        // 付費範本:會員或「看廣告解鎖」時效內都可以玩。
+        // 用 PremiumAccess::content() 而不是 isPremium() —— 這裡談的是「現在能不能
+        // 玩到這張棋盤」,不是「這張棋盤屬不屬於你」。存一份到自己的收藏
+        // (BoardController::cloneTemplate)仍然只認會員資格。
         if ($board->is_premium_template) {
-            if (! auth()->check() || ! auth()->user()->isPremium()) {
+            if (! \App\Support\PremiumAccess::content(auth()->user())) {
                 return redirect()->route('premium.index')
                     ->with('error', __('play.err_premium_template_play'));
             }

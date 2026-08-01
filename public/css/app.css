@@ -840,6 +840,10 @@ ul{list-style:none}
   pointer-events:none;
 }
 .premium-price{font-size:2.5rem;font-weight:900;color:var(--gold);margin:16px 0 8px;position:relative}
+/* 沒有金流時的說明文字。刻意不是按鈕、也不是 disabled 的按鈕 —— 長得像按鈕
+   的東西就會被點,在手機上更容易誤觸。 */
+.premium-unavailable{margin-top:8px;padding:12px;border:1px dashed var(--border);
+  border-radius:10px;color:var(--text-dim);font-size:.85rem;text-align:center}
 .premium-period{color:var(--text-dim);font-size:.95rem;margin-bottom:24px}
 .premium-features{text-align:left;margin-bottom:28px;position:relative}
 .premium-features li{padding:6px 0;color:var(--text);font-size:.92rem;display:flex;align-items:center;gap:8px}

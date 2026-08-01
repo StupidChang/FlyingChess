@@ -45,10 +45,10 @@
             </ul>
 
             @if(! $gatewayLive)
-                {{-- 金流尚未接上正式憑證:顯示提示而不是一顆會噴 503 的按鈕 --}}
-                <button type="button" class="btn btn-outline btn-xl btn-full" disabled>
-                    {{ __('premium.cta_coming_soon') }}
-                </button>
+                {{-- 沒有金流時連「像按鈕的東西」都不要放:disabled 的按鈕還是會被
+                     點,點了沒反應比一開始就沒有更讓人困惑,而且在觸控裝置上很容易
+                     誤觸。這裡只留一句說明。 --}}
+                <p class="premium-unavailable">{{ __('premium.cta_coming_soon') }}</p>
             @elseif(auth()->check())
                 <form action="{{ route('premium.checkout') }}" method="POST">
                     @csrf
