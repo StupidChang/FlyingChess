@@ -33,15 +33,17 @@ return [
     //
     // ExoClick 的 zone 是固定尺寸的，所以「同一個版位、不同螢幕寬度」必須是兩個
     // 不同的 zone。基準值（zone_*）是窄版 300x250，桌機用的寬版放在
-    // zone_*_desktop；只有滿版容器的版位需要寬版，側欄與彈窗塞不下。
-    // 沒有設定 _desktop 的版位就所有裝置共用同一個 zone。
+    // zone_*_desktop；彈窗(game_end)容器本來就窄,不需要寬版。
+    // 沒有設定 _desktop 的版位就所有裝置共用同一個 zone,填了就自動生效。
     'exoclick' => [
         'zone_home_banner' => env('EXOCLICK_ZONE_HOME_BANNER'),
         'zone_home_banner_desktop' => env('EXOCLICK_ZONE_HOME_BANNER_DESKTOP'),
         'zone_home_mid' => env('EXOCLICK_ZONE_HOME_MID'),
         'zone_home_mid_desktop' => env('EXOCLICK_ZONE_HOME_MID_DESKTOP'),
         'zone_lobby_side' => env('EXOCLICK_ZONE_LOBBY_SIDE'),
+        'zone_lobby_side_desktop' => env('EXOCLICK_ZONE_LOBBY_SIDE_DESKTOP'),
         'zone_game_end' => env('EXOCLICK_ZONE_GAME_END'),
         'zone_share' => env('EXOCLICK_ZONE_SHARE'),
+        'zone_share_desktop' => env('EXOCLICK_ZONE_SHARE_DESKTOP'),
     ],
 ];
