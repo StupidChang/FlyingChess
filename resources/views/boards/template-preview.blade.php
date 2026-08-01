@@ -4,7 +4,7 @@
 @section('robots', 'noindex,follow')
 @section('content')
 
-<div class="container" style="max-width:800px;padding:40px 20px">
+<div class="container tpv-page">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
         <div>
             <h1 style="color:var(--gold);font-size:1.4rem">{{ $board->name }}</h1>
@@ -63,6 +63,16 @@
             @endfor
         </div>
     </div>
+
+    {{-- 窄螢幕用的清單:格子小到放不下字的時候,棋盤只負責顯示形狀,
+         內容改用這份清單讀。資料跟上面同一份,只是排版不同。 --}}
+    <ol class="tpv-list">
+        @foreach($board->squares->sortBy('position') as $sq)
+            @if($canSeeAll || in_array($sq->position, $openPositions, true))
+                <li><span class="tpv-list-num">{{ $sq->position }}</span>{{ $sq->text }}</li>
+            @endif
+        @endforeach
+    </ol>
 
     @unless($canSeeAll)
         {{-- 預覽開頭幾格就好:看得出調性,但看不完。兩條解鎖路徑並排。 --}}
