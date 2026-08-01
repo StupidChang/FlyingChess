@@ -17,13 +17,10 @@
             @if($board->is_premium_template)
                 <span class="template-lock-badge">{{ __('play.premium_template') }}</span>
             @endif
-            @if($board->reference_image)
-                <a href="{{ asset($board->reference_image) }}" target="_blank" rel="noopener"
-                   style="display:block;aspect-ratio:16/9;overflow:hidden;background:var(--surface2)">
-                    <img src="{{ asset($board->reference_image) }}" alt="{{ $board->name }} 參考棋盤"
-                         loading="lazy" style="width:100%;height:100%;object-fit:cover">
-                </a>
-            @endif
+            {{-- 參考圖不再輸出到任何頁面。那兩個檔案是完整的棋盤設計稿,四十格
+                 內容全在上面,而使用到它們的八張棋盤**全部是付費範本** —— 只要
+                 網址出現在 HTML 裡,檢視原始碼就能拿到原圖,付費牆等於不存在。
+                 檔案也一併移出 public/,見 storage/app/board-references/。 --}}
             <div class="board-card-body">
                 <h3>{{ $board->name }}</h3>
                 @if($board->description)<p>{{ $board->description }}</p>@endif

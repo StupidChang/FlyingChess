@@ -22,20 +22,6 @@
         </div>
     </div>
 
-    {{-- 原始設計參考圖整張棋盤都看得到,等於把付費內容送出去。鎖住時直接不輸出:
-         用 CSS 糊掉沒有意義,圖檔還是下載到瀏覽器了,右鍵就能看原圖。 --}}
-    @if($board->reference_image && $canSeeAll)
-        <figure style="margin:0 0 24px">
-            <a href="{{ asset($board->reference_image) }}" target="_blank" rel="noopener">
-                <img src="{{ asset($board->reference_image) }}" alt="{{ $board->name }} 原始設計參考圖"
-                     style="display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border)">
-            </a>
-            <figcaption style="color:var(--text-dim);font-size:.8rem;margin-top:8px;text-align:center">
-                原始設計參考圖（點擊可查看完整尺寸）
-            </figcaption>
-        </figure>
-    @endif
-
     {{-- 預覽棋盤。每一格都是正方形(aspect-ratio),行高不會被文字撐開 ——
          之前用 min-height 讓格子高度隨內容跑,同一列的格子高高低低,不成形。
          配色沿用真實棋盤那套 --sq-* 變數,預覽看起來才是同一張棋盤的縮小版。 --}}
