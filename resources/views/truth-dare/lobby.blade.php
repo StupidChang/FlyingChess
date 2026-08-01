@@ -33,26 +33,14 @@
 .td-start-form .form-group{margin-bottom:16px}
 .td-start-form .btn-submit{width:100%;font-size:1.1rem;padding:12px}
 
-/* 場合選擇。兩張卡片而不是下拉 —— 這是開局唯一要想一下的決定,
-   而且兩邊的差別要看得到,不能只是一個看不出後果的選項。 */
-.td-mode-pick{margin:20px 0 16px}
-.td-mode-pick-label{display:block;font-size:.85rem;color:var(--text-dim);margin-bottom:8px}
-.td-mode-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.td-mode-opt{position:relative;display:block;cursor:pointer}
-.td-mode-opt input{position:absolute;opacity:0;width:0;height:0}
-.td-mode-opt > span{
-  display:block;padding:12px;border-radius:10px;
-  background:var(--bg);border:1px solid var(--border);
-  transition:border-color .2s ease,background .2s ease,transform .2s ease;
-}
-.td-mode-opt strong{display:block;font-size:.95rem;color:var(--text);margin-bottom:3px}
-.td-mode-opt em{display:block;font-style:normal;font-size:.75rem;color:var(--text-dim);line-height:1.5}
-.td-mode-opt:hover > span{border-color:var(--text-dim)}
-.td-mode-opt input:checked + span{border-color:var(--gold);background:rgba(217,164,65,.08)}
-.td-mode-opt input:checked + span strong{color:var(--gold)}
-/* 鍵盤操作看得到焦點 —— 真正的 input 是藏起來的,焦點框要自己畫 */
-.td-mode-opt input:focus-visible + span{outline:2px solid var(--gold);outline-offset:2px}
-@media(max-width:420px){.td-mode-opts{grid-template-columns:1fr}}
+/* 開局前的兩則提示。人數那則會跟著玩家列增減改字,付費那則只在還沒解鎖時出現。 */
+.td-hint{font-size:.8rem;line-height:1.6;color:var(--text-dim);margin:14px 0}
+.td-hint-mode{padding:10px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border)}
+.td-hint-tier{padding:12px;border-radius:8px;
+  background:rgba(217,164,65,.07);border:1px solid rgba(217,164,65,.35)}
+.td-hint-tier p{margin-bottom:10px;color:var(--text)}
+.td-hint-tier .btn{width:100%}
+.td-hint-unlocked{color:var(--gold);text-align:center}
 
 .td-mode-desc{font-size:.8rem;color:var(--text-dim);text-align:center;margin-top:-12px;margin-bottom:16px;min-height:1.2em}
 .td-mode-desc.adult-desc{color:var(--red,#f87171)}
@@ -101,28 +89,23 @@
                 <button type="button" class="btn btn-sm btn-outline mg-add-player" id="td-add-player" onclick="tdAddPlayer()">{{ __('minigame.add_player') }}</button>
             </div>
 
-            {{-- 場合。題目池差在這裡:情侶場的大冒險指名「另一半」,多人場指名
-                 「在場的人」,混在一起就會抽到對不上場合的題目。預設跟著人數走,
-                 但兩個朋友(不是情侶)一起玩時要能自己改。 --}}
-            <div class="td-mode-pick">
-                <span class="td-mode-pick-label">{{ __('games.td_mode_label') }}</span>
-                <div class="td-mode-opts">
-                    <label class="td-mode-opt">
-                        <input type="radio" name="mode" value="couple" id="td-mode-couple" checked>
-                        <span>
-                            <strong>{{ __('games.td_mode_couple') }}</strong>
-                            <em>{{ __('games.td_mode_couple_desc') }}</em>
-                        </span>
-                    </label>
-                    <label class="td-mode-opt">
-                        <input type="radio" name="mode" value="party" id="td-mode-party">
-                        <span>
-                            <strong>{{ __('games.td_mode_party') }}</strong>
-                            <em>{{ __('games.td_mode_party_desc') }}</em>
-                        </span>
-                    </label>
-                </div>
+            {{-- 場合不另外問 —— 玩家名字本來就要一個一個加,人數已經知道了。
+                 這裡只提示人數會影響題目,不然使用者不會知道加一個人題目就換了一套。 --}}
+            <p class="td-hint td-hint-mode" id="td-mode-hint"></p>
+
+            {{-- 免費與付費的差別。放在開局前而不是抽到鎖住的題目才說 ——
+                 玩到一半被擋下來,毀掉的是整場氣氛。 --}}
+            @if(! \App\Support\PremiumAccess::content(auth()->user()))
+            <div class="td-hint td-hint-tier">
+                <p>{{ __('games.td_tier_hint') }}</p>
+                <button type="button" class="btn btn-sm btn-gold"
+                        onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
+                    {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
+                </button>
             </div>
+            @else
+            <p class="td-hint td-hint-unlocked">{{ __('games.td_tier_unlocked') }}</p>
+            @endif
 
             {{-- 18+ only — normal mode removed; the whole site is adults-only --}}
             <p class="td-mode-desc adult-desc" id="mode-desc">{{ __('games.td_mode_adult_desc') }}</p>
@@ -139,6 +122,7 @@
 </div>
 
 @include('partials.ad-unit', ['zone' => 'lobby_side'])
+@include('partials.rewarded-unlock', ['barHidden' => true])
 @endsection
 
 @section('scripts')
@@ -151,17 +135,14 @@
     if (el) el.value = sessionStorage.getItem('tab_id');
 })();
 
-/* 人數決定預選哪一個場合。使用者一旦自己點過,就不再幫他改回去 ——
-   兩個朋友選了多人場,不該因為又加了一個人就被系統覆寫。 */
-var tdModeTouched = false;
-document.querySelectorAll('input[name=mode]').forEach(function(r){
-    r.addEventListener('change', function(){ tdModeTouched = true; });
-});
+/* 人數決定題目池,所以人數一變,提示也要跟著變。 */
+var TD_MODE_HINT = {
+    couple: @json(__('games.td_mode_hint_couple')),
+    party:  @json(__('games.td_mode_hint_party'))
+};
 function tdSyncMode(){
-    if (tdModeTouched) return;
-    var party = tdPlayerCount >= 3;
-    document.getElementById('td-mode-party').checked = party;
-    document.getElementById('td-mode-couple').checked = !party;
+    var el = document.getElementById('td-mode-hint');
+    if (el) el.textContent = TD_MODE_HINT[tdPlayerCount >= 3 ? 'party' : 'couple'];
 }
 
 // Same-device player rows (2–6)
@@ -179,6 +160,8 @@ window.tdAddPlayer = function(){
     if (tdPlayerCount >= 6) document.getElementById('td-add-player').style.display = 'none';
     tdSyncMode();
 };
+tdSyncMode();
+
 window.tdRemovePlayer = function(btn){
     btn.closest('.mg-player-row').remove();
     tdPlayerCount--;

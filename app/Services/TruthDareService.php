@@ -84,16 +84,19 @@ class TruthDareService
         return ['success' => true];
     }
 
-    public function drawCard(Game $game, string $category, bool $hostIsPremium, bool $isAdult = false): array
+    /**
+     * @param  bool  $hasPremiumContent  現在抽不抽得到付費題目 —— 房主是付費會員,
+     *                                   或這台裝置在看廣告解鎖的時限內。
+     */
+    public function drawCard(Game $game, string $category, bool $hasPremiumContent, bool $isAdult = false): array
     {
-        if ($isAdult) {
-            // 18+ mode: only show adult (premium) cards
-            $tiers = ['premium'];
-        } else {
-            $tiers = ['free'];
-            if ($hostIsPremium) {
-                $tiers[] = 'premium';
-            }
+        /* 免費題目是「成人向、曖昧級」,付費題目是 18+ 露骨級(見 TruthDareCardSeeder
+           的分段)。原本這裡在 is_adult 的房間只抽 premium,而每一間房都是
+           is_adult —— 結果是免費玩家照樣拿得到全部付費題目,那 40 張免費題目
+           反而一張都抽不到,免費與付費之間根本沒有差別。 */
+        $tiers = ['free'];
+        if ($hasPremiumContent) {
+            $tiers[] = 'premium';
         }
 
         $state = $game->game_state ?? [];

@@ -6,6 +6,7 @@ use App\Models\Game;
 use App\Models\User;
 use App\Rules\NoBlockedWords;
 use App\Services\TruthDareService;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 
 class TruthDareController extends Controller
@@ -180,10 +181,14 @@ class TruthDareController extends Controller
 
         // Same-device play: one device controls every player's turn, so we don't
         // gate the draw on "is it your turn" — being in the room is enough.
-        $hostIsPremium = $this->resolveHostPremium($game);
+        /* 房主是付費會員,或這台裝置剛看完廣告 —— 兩者都算抽得到付費題目。
+           同機遊玩是這個遊戲的主要玩法(一台裝置輪流傳),所以看廣告解鎖
+           在這裡跟其他四個小遊戲一致。 */
+        $hasPremiumContent = $this->resolveHostPremium($game)
+            || PremiumAccess::content($request->user());
         $isAdult = (bool) ($game->game_state['is_adult'] ?? false);
 
-        $result = $this->service->drawCard($game, $data['category'], $hostIsPremium, $isAdult);
+        $result = $this->service->drawCard($game, $data['category'], $hasPremiumContent, $isAdult);
 
         return response()->json($result);
     }

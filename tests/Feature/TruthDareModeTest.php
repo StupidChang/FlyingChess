@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Middleware\AgeVerification;
 use App\Models\Game;
 use App\Models\TruthDareCard;
+use App\Models\User;
 use App\Services\TruthDareService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -48,13 +49,16 @@ class TruthDareModeTest extends TestCase
         $service = app(TruthDareService::class);
 
         // 抽到牌庫見底,確認一路上都沒有摸到多人場的題目。
+        $drawn = 0;
         for ($i = 0; $i < 5; $i++) {
-            $result = $service->drawCard($game->fresh(), 'dare', false, true);
+            $result = $service->drawCard($game->fresh(), 'dare', true, true);
             if (! $result['success']) {
                 break;
             }
+            $drawn++;
             $this->assertStringNotContainsString('在場', $result['card']['content']);
         }
+        $this->assertSame(1, $drawn, '情侶場應該剛好抽得到那一張情侶題');
     }
 
     public function test_a_group_room_never_draws_a_partner_prompt(): void
@@ -65,13 +69,16 @@ class TruthDareModeTest extends TestCase
         $game = $this->room('party');
         $service = app(TruthDareService::class);
 
+        $drawn = 0;
         for ($i = 0; $i < 5; $i++) {
-            $result = $service->drawCard($game->fresh(), 'dare', false, true);
+            $result = $service->drawCard($game->fresh(), 'dare', true, true);
             if (! $result['success']) {
                 break;
             }
+            $drawn++;
             $this->assertStringNotContainsString('另一半', $result['card']['content']);
         }
+        $this->assertSame(1, $drawn, '多人場應該剛好抽得到那一張多人題');
     }
 
     public function test_neutral_prompts_come_up_in_both_modes(): void
@@ -80,7 +87,7 @@ class TruthDareModeTest extends TestCase
 
         foreach (['couple', 'party'] as $mode) {
             $result = app(TruthDareService::class)
-                ->drawCard($this->room($mode), 'truth', false, true);
+                ->drawCard($this->room($mode), 'truth', true, true);
 
             $this->assertTrue($result['success'], "{$mode} 抽不到通用題目");
         }
@@ -109,10 +116,68 @@ class TruthDareModeTest extends TestCase
         $this->assertSame('party', Game::latest('id')->first()->game_state['mode']);
     }
 
+    public function test_a_free_player_only_draws_free_prompts(): void
+    {
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '曖昧級', 'tier' => 'free']);
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'tier' => 'premium']);
+
+        /* 這裡守的是原本壞掉的地方:每一間房都是 is_adult,而 is_adult 的分支只抽
+           premium,所以免費玩家照樣拿得到全部付費題目,那些免費題目反而一張都
+           抽不到 —— 免費與付費之間根本沒有差別。 */
+        $game = $this->room('couple');
+        $service = app(TruthDareService::class);
+
+        $drawn = 0;
+        for ($i = 0; $i < 3; $i++) {
+            $result = $service->drawCard($game->fresh(), 'truth', false, true);
+            if (! $result['success']) {
+                break;
+            }
+            $drawn++;
+            $this->assertSame('曖昧級', $result['card']['content']);
+        }
+
+        $this->assertSame(1, $drawn, '免費玩家應該剛好抽得到那一張免費題目');
+    }
+
+    public function test_premium_access_adds_the_paid_prompts(): void
+    {
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'tier' => 'premium']);
+
+        $result = app(TruthDareService::class)
+            ->drawCard($this->room('couple'), 'truth', true, true);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('露骨級', $result['card']['content']);
+    }
+
+    public function test_the_lobby_offers_the_ad_unlock_to_a_free_visitor(): void
+    {
+        $this->withoutMiddleware(AgeVerification::class);
+
+        // 開局前就要知道免費與付費的差別 —— 玩到一半才被擋下來毀掉的是整場氣氛。
+        $this->get('/tw/truth-dare')
+            ->assertOk()
+            ->assertSee(__('games.td_tier_hint'))
+            ->assertSee('rewardedUnlockOpen', false);
+    }
+
+    public function test_the_lobby_does_not_nag_someone_who_already_has_access(): void
+    {
+        $this->withoutMiddleware(AgeVerification::class);
+        $member = User::factory()->create(['premium_expires_at' => now()->addYear()]);
+
+        $this->actingAs($member)->get('/tw/truth-dare')
+            ->assertOk()
+            ->assertDontSee(__('games.td_tier_hint'))
+            ->assertSee(__('games.td_tier_unlocked'));
+    }
+
     public function test_the_old_audience_values_are_no_longer_accepted_as_a_category(): void
     {
         $this->withoutMiddleware(AgeVerification::class);
         $game = $this->room('couple');
+        // 這一條驗的是驗證規則,不是房間成員,所以 422 會比 403 先發生。
 
         /* couple / party 以前是 category 的合法值。留著的話,前端只要有一顆沒清乾淨的
            舊按鈕就會送上來,而它現在永遠抽不到東西 —— 寧可直接擋掉。 */
