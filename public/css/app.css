@@ -1211,7 +1211,8 @@ ul{list-style:none}
      若改回較矮的數值,300x250 的素材載入時一樣會把下方內容推開。          */
 .ad-unit{contain:layout}
 .ad-unit--banner{min-height:250px}
-.ad-unit--banner > ins,.ad-unit--banner iframe{max-width:100%!important}
+/* 後代選擇器而非子選擇器:雙尺寸版位的 ins 是 JS 插進 .ad-slot 裡的,不是直接子層。 */
+.ad-unit--banner ins,.ad-unit--banner iframe{max-width:100%!important}
 /* .closing-cta-section::after 是 700px 寬的裝飾光暈,父層原本沒有裁切,
    在窄螢幕會逸出容器撐出橫向捲軸。 */
 .closing-cta-section{position:relative;overflow:hidden}

@@ -17,7 +17,7 @@
 | SMTP（Amazon SES） | ✅ 已完成 — 已實際寄出測試信，見下方 ⚠️ 連接埠陷阱 |
 | Cloudflare Email Routing | ✅ 已完成 — 根網域 MX 指向 Cloudflare |
 | SES production access | ❌ **未申請** — 仍在 sandbox，除已驗證地址外任何人註冊都收不到驗證信 |
-| 廣告（ExoClick zone id、ads.txt） | ❌ 未設定 — **全站目前 0 個廣告版位，收入為零**，`/ads.txt` 回 404 |
+| 廣告（ExoClick） | ✅ 七個 zone 投放中（2026-08-01）— 但 `ADS_TXT_LINES` 仍空、`/ads.txt` 回 404 |
 | 金流 | ❌ 仍是綠界測試憑證，但**已加保險擋住結帳與回調**（見下方 § 金流保險） |
 | Google 登入 / GA4 / Search Console | ❌ 三個 env 值未填（Google 登入未填時路由 404、按鈕隱藏，不會壞） |
 | HSTS / 限制級標示 / Secure cookie | ✅ 已完成 |
@@ -254,12 +254,49 @@ GOOGLE_REDIRECT_URI=https://pillownight.com/auth/google/callback
 
 ---
 
-## 6. 廣告網路註冊 — 影響 E 主題（廣告投放）
+## 6. 廣告網路 — ✅ 已上線（2026-08-01）
 
-### ⚠ 前置條件
-- 網域已上線
-- 流量穩定（建議 ≥ 1000 daily UV 才申請，不然多半被拒）
-- 內容已上幾篇 SEO 文章（landing page、規則頁、教學頁）
+ExoClick 已過審並投放中。網站驗證檔是 `public/31e11d6b2ba10a4e7666452a52016dbd.html`
+（**在版控裡，不要刪**：`deploy.sh` 會 `reset --hard`，而 ExoClick 之後會複驗；
+另外每個路由都有 `/{locale}` 前綴，根目錄不存在的路徑會 301 到 `/tw` 而不是 404，
+所以驗證檔一定要是 `public/` 底下的實體檔案，靠 nginx `try_files` 先攔下來）。
+
+### 目前的 zone
+
+| env | zone id | 尺寸 | 位置 |
+|---|---|---|---|
+| `EXOCLICK_ZONE_HOME_BANNER` | 5992252 | 300x250 | 首頁首屏下方（窄螢幕） |
+| `EXOCLICK_ZONE_HOME_BANNER_DESKTOP` | 5992304 | 900x250 | 同上（≥940px） |
+| `EXOCLICK_ZONE_HOME_MID` | 5992270 | 300x250 | 首頁中段（窄螢幕） |
+| `EXOCLICK_ZONE_HOME_MID_DESKTOP` | 5992306 | 900x250 | 同上（≥940px） |
+| `EXOCLICK_ZONE_LOBBY_SIDE` | 5992276 | 300x250 | 大廳／遊戲設定側欄 |
+| `EXOCLICK_ZONE_GAME_END` | 5992278 | 300x250 | 「看廣告解鎖」彈窗 |
+| `EXOCLICK_ZONE_SHARE` | 5992280 | 300x250 | 分享頁 |
+
+雙尺寸只有滿版的兩個版位需要；側欄與彈窗容器本來就窄，塞寬版會被裁切。
+斷點在 `partials/ad-unit.blade.php`（940px = 900 素材 + 邊距，平板落到窄版）。
+
+### 還沒完成的
+
+- **`ADS_TXT_LINES` 仍是空的 → `/ads.txt` 回 404。** ExoClick 的公開文件沒有 ads.txt
+  這一節，後台也不好找；要開 ticket 跟 support 要，記得問「including any reseller
+  lines」——通常不只 DIRECT 那一行。**不要自己編 seller id 填進去**，錯的比沒有更糟。
+  沒有它不影響投放，只是部分 RTB 需求方不出價。
+- **素材分級**：`game_end` 只擋了視訊/約砲/成人影音三類，其餘保留（整組擋掉 Adult
+  會讓這個 Adult 分類站台的填充率崩掉，代價不成比例）。實際跑出來的素材要定期自己
+  點開看，不能接受的用「封鎖廣告主」逐個處理。目前觀察到首頁常出現 Stripchat 類
+  視訊廣告——要不要全帳號擋掉是定位問題，擋了會少賺。
+- **「看廣告解鎖」仍是純前端計時**，掛上 banner 也不會驗證真的看完。要真的擋得換成
+  有 server-to-server reward callback 的獎勵式廣告。
+
+### 兩週後要看的數據
+
+各 zone 的 eCPM 與填充率。桌機/手機分開的 zone 就是為了這個——確認寬版桌機是否真的
+比較賺，以及要不要對 `home_*` 設價格地板（目前五個 zone 都是 Floor 0 + Soft floor）。
+
+---
+
+## 6b. 廣告網路註冊流程（存查）
 
 ### ⚠️ 程式只支援三種 adapter
 

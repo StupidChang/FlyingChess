@@ -16,6 +16,9 @@
     if ($showAds) {
         if ($adapter === 'exoclick') {
             $zoneId = config("ads.exoclick.zone_{$zone}");
+            // 寬螢幕專用 zone（選配）。ExoClick 的 zone 尺寸是固定的,滿版容器
+            // 用 300x250 會兩側大片留白,所以桌機另開一個大尺寸 zone。
+            $zoneIdWide = config("ads.exoclick.zone_{$zone}_desktop");
             $hasEC = (bool) $zoneId;
         } elseif ($adapter === 'trafficjunky') {
             $siteId = config('ads.trafficjunky.site_id');
@@ -32,8 +35,30 @@
 @if($showAds && $hasEC)
 <div class="ad-unit ad-unit--banner" aria-label="{{ __('ui.ad_label') }}" data-zone="{{ $zone }}">
     <script async src="https://a.magsrv.com/ad-provider.js"></script>
-    <ins class="eas6a97888e2" data-zoneid="{{ $zoneId }}"></ins>
-    <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+    @if($zoneIdWide)
+        {{-- 兩個尺寸擇一插入。刻意不用「兩個都輸出、CSS 藏掉一個」的作法:
+             被 display:none 的那個一樣會載入並計曝光,可視率被拉低會壓低單價,
+             聯播網也可能判定為無效流量。斷點 940px = 900px 素材 + 左右邊距,
+             平板落到窄版,避免寬素材被 iframe 裁掉右半邊。
+             只在載入時判斷一次 —— 事後改變視窗寬度不會重抓,重抓等於再計一次
+             曝光,那比尺寸不完美更糟。 --}}
+        <div class="ad-slot" data-zoneid-narrow="{{ $zoneId }}" data-zoneid-wide="{{ $zoneIdWide }}"></div>
+        <script>
+        (function () {
+            var slot = document.currentScript.previousElementSibling;
+            var ins = document.createElement('ins');
+            ins.className = 'eas6a97888e2';
+            ins.dataset.zoneid = window.matchMedia('(min-width: 940px)').matches
+                ? slot.dataset.zoneidWide
+                : slot.dataset.zoneidNarrow;
+            slot.appendChild(ins);
+            (AdProvider = window.AdProvider || []).push({"serve": {}});
+        })();
+        </script>
+    @else
+        <ins class="eas6a97888e2" data-zoneid="{{ $zoneId }}"></ins>
+        <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+    @endif
 </div>
 @elseif($showAds && $hasTJ)
 <div class="ad-unit ad-unit--banner" aria-label="{{ __('ui.ad_label') }}" data-zone="{{ $zone }}">
