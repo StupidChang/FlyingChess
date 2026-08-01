@@ -189,10 +189,12 @@ class TruthDareModeTest extends TestCase
     {
         $this->withoutMiddleware(AgeVerification::class);
 
-        // 開局前就要知道免費與付費的差別 —— 玩到一半才被擋下來毀掉的是整場氣氛。
+        /* 開局前就要知道免費與付費的差別 —— 玩到一半才被擋下來毀掉的是整場氣氛。
+           而且要講清楚露骨到什麼程度,不能只說「更直接」讓人自己猜。 */
         $this->get('/tw/truth-dare')
             ->assertOk()
-            ->assertSee(__('games.td_tier_hint'))
+            ->assertSee(__('games.td_scale_summary'))
+            ->assertSee(__('games.td_scale_paid_desc'))
             ->assertSee('rewardedUnlockOpen', false);
     }
 
@@ -203,7 +205,9 @@ class TruthDareModeTest extends TestCase
 
         $this->actingAs($member)->get('/tw/truth-dare')
             ->assertOk()
-            ->assertDontSee(__('games.td_tier_hint'))
+            // 尺度說明對誰都要看得到,但已經有權限的人不該再被推銷一次。
+            ->assertSee(__('games.td_scale_summary'))
+            ->assertDontSee('rewardedUnlockOpen', false)
             ->assertSee(__('games.td_tier_unlocked'));
     }
 

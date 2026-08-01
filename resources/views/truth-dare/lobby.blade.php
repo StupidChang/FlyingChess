@@ -33,14 +33,34 @@
 .td-start-form .form-group{margin-bottom:16px}
 .td-start-form .btn-submit{width:100%;font-size:1.1rem;padding:12px}
 
-/* 開局前的兩則提示。人數那則會跟著玩家列增減改字,付費那則只在還沒解鎖時出現。 */
-.td-hint{font-size:.8rem;line-height:1.6;color:var(--text-dim);margin:14px 0}
-.td-hint-mode{padding:10px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border)}
-.td-hint-tier{padding:12px;border-radius:8px;
-  background:rgba(217,164,65,.07);border:1px solid rgba(217,164,65,.35)}
-.td-hint-tier p{margin-bottom:10px;color:var(--text)}
-.td-hint-tier .btn{width:100%}
-.td-hint-unlocked{color:var(--gold);text-align:center}
+/* 人數提示。一句話不給框 —— 一句話配一個框,幾塊疊起來整頁就變擠。 */
+.td-note{font-size:.8rem;line-height:1.6;color:var(--text-dim);margin:14px 2px}
+
+/* 題目尺度說明。收合起來只佔一行,展開才長出內容。 */
+.td-scale{margin:14px 0;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.td-scale summary{
+  list-style:none;cursor:pointer;padding:11px 14px;
+  font-size:.82rem;color:var(--text-dim);display:flex;align-items:center;gap:8px;
+  transition:color .15s ease;
+}
+.td-scale summary::-webkit-details-marker{display:none}
+.td-scale summary::before{
+  content:'';width:0;height:0;flex:none;
+  border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;
+  transition:transform .18s ease;
+}
+.td-scale[open] summary::before{transform:rotate(90deg)}
+.td-scale summary:hover{color:var(--text)}
+.td-scale-body{padding:2px 14px 14px;border-top:1px solid var(--border)}
+.td-scale-row{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
+.td-scale-tag{
+  flex:none;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:600;white-space:nowrap;
+}
+.td-scale-tag--free{background:rgba(52,211,153,.14);color:#5fd08a;border:1px solid rgba(52,211,153,.4)}
+.td-scale-tag--paid{background:rgba(244,63,94,.14);color:#f5a3b3;border:1px solid rgba(244,63,94,.45)}
+.td-scale-row p{font-size:.78rem;line-height:1.65;color:var(--text-dim);margin:0}
+.td-scale-unlock{width:100%;margin-top:14px}
+.td-scale-unlocked{margin-top:12px;font-size:.78rem;color:var(--gold);text-align:center}
 
 .td-mode-desc{font-size:.8rem;color:var(--text-dim);text-align:center;margin-top:-12px;margin-bottom:16px;min-height:1.2em}
 .td-mode-desc.adult-desc{color:var(--red,#f87171)}
@@ -90,24 +110,39 @@
             </div>
 
             {{-- 場合不另外問 —— 玩家名字本來就要一個一個加,人數已經知道了。
-                 這裡只提示人數會影響題目,不然使用者不會知道加一個人題目就換了一套。 --}}
-            <p class="td-hint td-hint-mode">{{ __('games.td_mode_hint') }}</p>
+                 純文字不加框:一句話配一個框,四塊疊起來就是現在這麼擠。 --}}
+            <p class="td-note">{{ __('games.td_mode_hint') }}</p>
 
             @include('partials.escalate-toggle')
 
-            {{-- 免費與付費的差別。放在開局前而不是抽到鎖住的題目才說 ——
-                 玩到一半被擋下來,毀掉的是整場氣氛。 --}}
-            @if(! \App\Support\PremiumAccess::content(auth()->user()))
-            <div class="td-hint td-hint-tier">
-                <p>{{ __('games.td_tier_hint') }}</p>
-                <button type="button" class="btn btn-sm btn-gold"
-                        onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
-                    {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
-                </button>
-            </div>
-            @else
-            <p class="td-hint td-hint-unlocked">{{ __('games.td_tier_unlocked') }}</p>
-            @endif
+            {{-- 尺度說明 + 解鎖。
+                 收合起來只佔一行 —— 原本這裡是一段說明加一顆滿版金色按鈕,
+                 跟下面的「開始遊戲」互相搶,兩顆一樣醒目反而不知道要按哪個。
+                 解鎖按鈕放進來也比較合理:玩家是讀完「露骨到什麼程度」之後
+                 才決定要不要解鎖,資訊跟決策點在同一個地方。
+                 用 <details> 而不是自己寫開合 —— 不靠 JS,鍵盤與螢幕閱讀器都吃得到。 --}}
+            <details class="td-scale">
+                <summary>{{ __('games.td_scale_summary') }}</summary>
+                <div class="td-scale-body">
+                    <div class="td-scale-row">
+                        <span class="td-scale-tag td-scale-tag--free">{{ __('games.td_scale_free_label') }}</span>
+                        <p>{{ __('games.td_scale_free_desc') }}</p>
+                    </div>
+                    <div class="td-scale-row">
+                        <span class="td-scale-tag td-scale-tag--paid">{{ __('games.td_scale_paid_label') }}</span>
+                        <p>{{ __('games.td_scale_paid_desc') }}</p>
+                    </div>
+
+                    @if(! \App\Support\PremiumAccess::content(auth()->user()))
+                    <button type="button" class="btn btn-sm btn-outline-gold td-scale-unlock"
+                            onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
+                        {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
+                    </button>
+                    @else
+                    <p class="td-scale-unlocked">{{ __('games.td_tier_unlocked') }}</p>
+                    @endif
+                </div>
+            </details>
 
             {{-- 18+ only — normal mode removed; the whole site is adults-only --}}
             <p class="td-mode-desc adult-desc" id="mode-desc">{{ __('games.td_mode_adult_desc') }}</p>
