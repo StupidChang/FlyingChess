@@ -380,7 +380,31 @@ ul{list-style:none}
 .section-divider{border:none;height:1px;background:var(--border)}
 
 /* ── Game Cards ── */
-.game-cards-section{background:var(--bg)}
+/* ── 「選擇你的玩法」區塊:漸層底 + 呼吸光暈 ──────────────────
+   底色從 --bg 微微提到 --surface 再收回去,讓這一段從上下兩塊平面裡浮出來。
+   上方再疊一層 radial 光暈做緩慢呼吸(9 秒一個來回,比心跳慢,不會催促人)。
+   overflow:hidden 是必要的 —— 光暈左右各溢出 5%,不裁掉會撐出橫向捲軸。
+   幅度刻意壓得很小(透明度 .5→1、放大 4%),要的是「有在動」而不是閃爍;
+   減少動態偏好由全域的 prefers-reduced-motion 規則接手停掉。            */
+.game-cards-section{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(180deg,var(--bg) 0%,var(--surface) 48%,var(--bg) 100%);
+}
+.game-cards-section::before{
+  content:'';
+  position:absolute;
+  top:-12%;left:-5%;right:-5%;height:78%;
+  background:radial-gradient(58% 52% at 50% 0%,rgba(var(--glow-rgb),.13),transparent 72%);
+  animation:section-breathe 9s ease-in-out infinite;
+  pointer-events:none;
+  z-index:0;
+}
+.game-cards-section > .container{position:relative;z-index:1}
+@keyframes section-breathe{
+  0%,100%{opacity:.5;transform:scale(1)}
+  50%    {opacity:1;transform:scale(1.04)}
+}
 .game-cards-grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
@@ -431,6 +455,64 @@ ul{list-style:none}
   transform:translateY(-2px);
   box-shadow:0 8px 20px -8px rgba(0,0,0,.4);
 }
+
+/* ── 招牌卡片的跑馬光條(首頁飛行棋)──────────────────────────
+   一道彗星狀的光沿著外框跑:conic-gradient 轉角度,再用 mask 把中間挖空,
+   只留下 1px 的環。挖空是關鍵 —— 否則整張卡片會被漸層蓋住。
+
+   角度用 @property 註冊成 <angle> 才能補間;沒註冊的話瀏覽器把它當字串,
+   動畫會變成起點直接跳終點。不支援 @property 的舊瀏覽器會退化成一圈靜態的
+   金色描邊,仍然好看,只是不會跑。
+
+   ::before 是實線的光,::after 是同一道光模糊後的暈,兩層疊起來才有厚度;
+   單一層的純線條會很「網頁範例」,少了質感。                          */
+@property --beam-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+
+.game-card--featured{position:relative;isolation:isolate}
+.game-card--featured::before,
+.game-card--featured::after{
+  content:'';
+  position:absolute;
+  border-radius:13px;
+  pointer-events:none;
+  background:conic-gradient(from var(--beam-angle),
+    rgba(var(--glow-rgb),0)    0deg,
+    rgba(var(--glow-rgb),0)  195deg,
+    rgba(var(--glow-rgb),.30) 285deg,
+    var(--gold) 338deg,
+    var(--gold2) 350deg,
+    #fff4dd 355deg,
+    var(--gold2) 358deg,
+    rgba(var(--glow-rgb),0)  360deg);
+  animation:card-beam 5.5s linear infinite;
+}
+/* 實線那層:padding + mask-composite 做出中空的環 */
+.game-card--featured::before{
+  inset:-1px;
+  padding:1px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  z-index:1;
+}
+/* 暈開那層:同樣要挖空,只是環厚一點再模糊。
+   不能用實心的一片去模糊 —— 負 z-index 的偽元素只會墊在卡片「內容」下面,
+   不會墊在卡片背景下面,實心那片會直接糊在卡片正面。挖空成 8px 的環之後,
+   模糊出來的是貼著邊框的光暈,中間永遠是乾淨的。                      */
+.game-card--featured::after{
+  inset:-8px;
+  padding:8px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  filter:blur(7px);
+  opacity:.5;
+  z-index:-1;
+}
+@keyframes card-beam{to{--beam-angle:360deg}}
+
 .game-card-icon{
   color:var(--accent);
   background:var(--surface2);

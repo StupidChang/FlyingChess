@@ -64,8 +64,8 @@
             <p class="section-desc" style="max-width:520px;margin-left:auto;margin-right:auto">{{ __('home.modes_desc') }}</p>
         </div>
         <div class="game-cards-grid">
-            {{-- 飛行棋 --}}
-            <article class="game-card">
+            {{-- 飛行棋 —— 招牌玩法,用跑馬光條把視線帶到這張(樣式見 app.css) --}}
+            <article class="game-card game-card--featured">
                 <div class="game-card-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
                         <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6Z" clip-rule="evenodd"/>
