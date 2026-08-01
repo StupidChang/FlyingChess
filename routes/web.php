@@ -368,6 +368,7 @@ Route::prefix('{locale}')
         // Admin
         Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
             Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+            Route::get('/traffic', [AdminController::class, 'traffic'])->name('traffic');
             Route::get('/boards', [AdminController::class, 'boards'])->name('boards');
             Route::get('/board-reviews', [AdminController::class, 'boardReviews'])->name('boards.reviews');
             Route::post('/boards/{board}/approve', [AdminController::class, 'approveBoard'])->name('boards.approve');

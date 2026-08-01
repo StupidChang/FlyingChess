@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureNotBanned;
 use App\Http\Middleware\EnsurePremium;
 use App\Http\Middleware\RedirectUnprefixedUrl;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrackPageView;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -49,6 +50,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // before AgeVerification renders the age gate, avoiding wasted renders.
         $middleware->prepend(RedirectUnprefixedUrl::class);
         $middleware->append(AgeVerification::class);
+
+        // 流量紀錄排在年齡閘之後:被年齡閘擋下的那一次不是真的看到內容,
+        // 記了會讓每個新訪客的第一次都變成兩筆。
+        $middleware->append(TrackPageView::class);
 
         // SetLocale must run before Authenticate / EnsureEmailIsVerified:
         // their guest/unverified redirects call route('login') /

@@ -1572,3 +1572,50 @@ ul{list-style:none}
 }
 .consent-row input[type="checkbox"] { margin-top: 3px; flex: none; }
 .consent-row a { color: var(--gold, #d9a441); text-decoration: underline; }
+
+/* ── 後台流量分析 ──────────────────────────────────
+   圖表是純 CSS 的長條與進度條,刻意不引入圖表函式庫:後台只有我自己在看,
+   多一份 JS 依賴要維護、要升級,不值得。 */
+.tf-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  flex-wrap:wrap;margin-bottom:20px}
+.tf-sub{color:var(--text-dim);font-size:.8rem;margin-top:6px;max-width:560px;line-height:1.6}
+.tf-range{display:flex;gap:6px;flex-wrap:wrap}
+.tf-range-btn{padding:6px 14px;border-radius:999px;border:1px solid var(--border);
+  font-size:.8rem;color:var(--text-dim)}
+.tf-range-btn.active{border-color:var(--gold);color:var(--gold);font-weight:700}
+.tf-empty{padding:16px;border:1px dashed var(--border);border-radius:10px;
+  color:var(--text-dim);font-size:.85rem;line-height:1.7;margin-bottom:20px}
+.tf-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;margin-bottom:20px}
+.tf-kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:16px;text-align:center}
+.tf-kpi-n{display:block;font-size:1.6rem;font-weight:900;color:var(--gold)}
+.tf-kpi-l{display:block;font-size:.75rem;color:var(--text-dim);margin-top:4px}
+.tf-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:18px;margin-bottom:16px}
+.tf-card-title{font-size:.95rem;margin-bottom:4px}
+.tf-note{color:var(--text-dim);font-size:.75rem;margin-bottom:12px;line-height:1.6}
+/* 長條圖:高度用百分比,容器固定高,所以資料多寡不會改變版面高度 */
+.tf-chart{display:flex;align-items:flex-end;gap:3px;height:160px;margin-top:12px;
+  overflow-x:auto;padding-bottom:2px}
+.tf-bar-col{flex:1;min-width:14px;height:100%;display:flex;flex-direction:column;
+  justify-content:flex-end;align-items:center;gap:4px}
+.tf-bar{width:100%;border-radius:4px 4px 0 0;
+  background:linear-gradient(180deg,var(--gold2,#e8bd70),var(--gold,#d9a441))}
+.tf-bar-x{font-size:.55rem;color:var(--text-dim);white-space:nowrap}
+.tf-funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tf-funnel-label{flex:0 0 84px;font-size:.8rem}
+.tf-funnel-track{flex:1;height:22px;border-radius:6px;background:var(--surface2);overflow:hidden}
+.tf-funnel-fill{height:100%;background:linear-gradient(90deg,
+  rgba(var(--glow-rgb),.75),var(--gold,#d9a441))}
+.tf-funnel-val{flex:0 0 96px;text-align:right;font-size:.8rem;font-weight:700}
+.tf-funnel-val em{font-style:normal;color:var(--text-dim);font-weight:400;margin-left:5px}
+.tf-cols{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:start}
+@media(max-width:860px){.tf-cols{grid-template-columns:1fr}}
+.tf-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.tf-table th{text-align:left;color:var(--text-dim);font-weight:600;font-size:.72rem;
+  padding:6px 8px;border-bottom:1px solid var(--border)}
+.tf-table td{padding:6px 8px;border-bottom:1px solid var(--border)}
+.tf-table tr:last-child td{border-bottom:0}
+.tf-path{word-break:break-all;color:var(--text-dim)}
+.tf-none{color:var(--text-dim);text-align:center;padding:16px 8px;line-height:1.6}

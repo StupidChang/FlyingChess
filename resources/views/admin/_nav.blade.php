@@ -14,5 +14,7 @@
            class="admin-nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">會員</a>
         <a href="{{ route('admin.games') }}"
            class="admin-nav-link {{ request()->routeIs('admin.games*') ? 'active' : '' }}">遊戲</a>
+        <a href="{{ route('admin.traffic') }}"
+           class="admin-nav-link {{ request()->routeIs('admin.traffic') ? 'active' : '' }}">流量</a>
     </div>
 </nav>

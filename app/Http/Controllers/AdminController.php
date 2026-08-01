@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Board;
 use App\Models\Game;
+use App\Models\PageView;
 use App\Models\TruthDareCard;
 use App\Models\User;
 use App\Models\WheelSegment;
 use App\Rules\NoBlockedWords;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -23,6 +25,84 @@ class AdminController extends Controller
         $perPage = (int) $selected;
 
         return in_array($perPage, [20, 50, 100, 200], true) ? $perPage : 20;
+    }
+
+    // ── Traffic ──
+
+    /**
+     * 站內流量。回答的是「人進來之後往哪裡去、在哪一步不見了」,
+     * 資料來源是自己的 page_views(見 TrackPageView),不是 GA4。
+     *
+     * 所有查詢都限定在選定天數內並且走 created_at 的索引;這張表會長很快,
+     * 沒有時間範圍的 group by 遲早會把這頁拖垮。
+     */
+    public function traffic(Request $request)
+    {
+        $days = (int) $request->input('days', 7);
+        $days = in_array($days, [1, 7, 30, 90], true) ? $days : 7;
+        $since = now()->subDays($days - 1)->startOfDay();
+
+        $base = fn () => PageView::where('created_at', '>=', $since);
+
+        // 每日趨勢。補上沒有任何瀏覽的日子,不然圖表會把空日直接跳過,
+        // 看起來像那天流量正常。
+        $daily = $base()
+            ->selectRaw('date(created_at) as d, count(*) as views, count(distinct visitor_hash) as visitors')
+            ->groupBy('d')->orderBy('d')->get()->keyBy('d');
+
+        $trend = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $key = now()->subDays($i)->toDateString();
+            $trend[] = [
+                'date' => $key,
+                'views' => (int) ($daily[$key]->views ?? 0),
+                'visitors' => (int) ($daily[$key]->visitors ?? 0),
+            ];
+        }
+
+        $topPaths = $base()
+            ->selectRaw('path, count(*) as views, count(distinct visitor_hash) as visitors')
+            ->groupBy('path')->orderByDesc('views')->limit(25)->get();
+
+        $referrers = $base()->whereNotNull('referer_host')
+            ->selectRaw('referer_host, count(*) as views')
+            ->groupBy('referer_host')->orderByDesc('views')->limit(15)->get();
+
+        $locales = $base()
+            ->selectRaw('locale, count(*) as views')
+            ->groupBy('locale')->orderByDesc('views')->get();
+
+        // 動線漏斗。每一階算的是「不重複訪客」而不是瀏覽數 —— 同一個人重整
+        // 十次不該讓那一階看起來比較好。
+        $reach = function (array $paths) use ($since) {
+            return PageView::where('created_at', '>=', $since)
+                ->where(function ($q) use ($paths) {
+                    foreach ($paths as $p) {
+                        $q->orWhere('path', 'like', $p);
+                    }
+                })
+                ->distinct()->count('visitor_hash');
+        };
+
+        $funnel = [
+            ['label' => '首頁', 'value' => $reach(['/'])],
+            ['label' => '遊戲大廳', 'value' => $reach(['/games', '/game-hall'])],
+            ['label' => '實際開局', 'value' => $reach(['/play%'])],
+            ['label' => '付費頁', 'value' => $reach(['/premium'])],
+        ];
+
+        return view('admin.traffic', [
+            'days' => $days,
+            'trend' => $trend,
+            'topPaths' => $topPaths,
+            'referrers' => $referrers,
+            'locales' => $locales,
+            'funnel' => $funnel,
+            'totalViews' => $base()->count(),
+            'totalVisitors' => (clone $base())->distinct()->count('visitor_hash'),
+            'loggedInViews' => $base()->whereNotNull('user_id')->count(),
+            'oldestRecord' => PageView::min('created_at'),
+        ]);
     }
 
     // ── Dashboard ──
