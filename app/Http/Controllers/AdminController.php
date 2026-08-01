@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Board;
 use App\Models\Game;
+use App\Models\GamePrompt;
 use App\Models\PageView;
 use App\Models\TruthDareCard;
 use App\Models\User;
@@ -383,6 +384,108 @@ class AdminController extends Controller
         $wheelSegment->delete();
 
         return redirect()->route('admin.wheel-segments')->with('success', '轉盤任務已刪除');
+    }
+
+    // ── Game prompts(四個小遊戲的題庫)──
+
+    /**
+     * 誰最有可能 / 撲克牌 / 國王 / 骰子 的題目。
+     *
+     * 四個遊戲共用一頁而不是各給一頁:欄位一模一樣(遊戲、分級、內容),
+     * 拆開只會複製四份相同的 CRUD,以後改一個欄位要改四個地方。
+     */
+    public function prompts(Request $request)
+    {
+        $game = $request->input('game', 'who_most_likely');
+        if (! isset(GamePrompt::GAMES[$game])) {
+            $game = 'who_most_likely';
+        }
+
+        $query = GamePrompt::where('game', $game);
+
+        if (($pool = $request->input('pool')) && isset(GamePrompt::POOLS[$game][$pool])) {
+            $query->where('pool', $pool);
+        }
+        if ($search = $request->input('q')) {
+            $query->where('content', 'like', "%{$search}%");
+        }
+
+        $query->orderBy('pool')->orderBy('sort_order')->orderBy('id');
+        $prompts = $query->paginate($this->perPage($request, $query))->withQueryString();
+
+        return view('admin.prompts.index', [
+            'prompts' => $prompts,
+            'game' => $game,
+            'pool' => $request->input('pool'),
+            // 這個遊戲還沒匯入過預設題目時,頁面要提示可以一鍵匯入。
+            'isEmpty' => ! GamePrompt::where('game', $game)->exists(),
+        ]);
+    }
+
+    public function storePrompt(Request $request)
+    {
+        $data = $this->validatePrompt($request);
+        GamePrompt::create($data);
+
+        return redirect()->route('admin.prompts', ['game' => $data['game']])
+            ->with('success', '題目已新增');
+    }
+
+    public function updatePrompt(Request $request, GamePrompt $prompt)
+    {
+        $data = $this->validatePrompt($request);
+        $prompt->update($data);
+
+        return redirect()->route('admin.prompts', ['game' => $data['game']])
+            ->with('success', '題目已更新');
+    }
+
+    public function destroyPrompt(GamePrompt $prompt)
+    {
+        $game = $prompt->game;
+        $prompt->delete();
+
+        return redirect()->route('admin.prompts', ['game' => $game])
+            ->with('success', '題目已刪除');
+    }
+
+    /**
+     * 把程式碼裡的預設題庫匯進資料表,好讓管理員有東西可以改。
+     *
+     * 只在該遊戲一題都沒有時才做 —— 否則重複點就會把題庫灌成兩份。
+     */
+    public function importPrompts(Request $request)
+    {
+        $game = $request->input('game');
+        abort_unless(isset(GamePrompt::GAMES[$game]), 404);
+
+        if (GamePrompt::where('game', $game)->exists()) {
+            return redirect()->route('admin.prompts', ['game' => $game])
+                ->with('success', '這個遊戲已經有題目了,沒有重複匯入');
+        }
+
+        GamePrompt::importDefaults($game);
+
+        return redirect()->route('admin.prompts', ['game' => $game])
+            ->with('success', '預設題目已匯入,現在可以編輯了');
+    }
+
+    private function validatePrompt(Request $request): array
+    {
+        $data = $request->validate([
+            'game' => ['required', 'in:'.implode(',', array_keys(GamePrompt::GAMES))],
+            'content' => ['required', 'string', 'max:200', new NoBlockedWords],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+        ]);
+
+        // pool 的合法值取決於 game,所以不能寫死在上面那組規則裡。
+        $data['pool'] = $request->validate([
+            'pool' => ['required', 'in:'.implode(',', array_keys(GamePrompt::POOLS[$data['game']]))],
+        ])['pool'];
+
+        $data['sort_order'] = $data['sort_order'] ?? 0;
+
+        return $data;
     }
 
     // ── Users ──

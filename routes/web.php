@@ -406,6 +406,13 @@ Route::prefix('{locale}')
             Route::get('/games', [AdminController::class, 'games'])->name('games');
             Route::post('/games/cleanup', [AdminController::class, 'cleanupGames'])->name('games.cleanup');
             Route::delete('/games/{game}', [AdminController::class, 'destroyGame'])->name('games.destroy');
+            // 四個小遊戲的題庫(誰最有可能 / 撲克牌 / 國王 / 骰子)
+            Route::get('/prompts', [AdminController::class, 'prompts'])->name('prompts');
+            Route::post('/prompts', [AdminController::class, 'storePrompt'])->name('prompts.store');
+            Route::post('/prompts/import', [AdminController::class, 'importPrompts'])->name('prompts.import');
+            Route::patch('/prompts/{prompt}', [AdminController::class, 'updatePrompt'])->name('prompts.update');
+            Route::delete('/prompts/{prompt}', [AdminController::class, 'destroyPrompt'])->name('prompts.destroy');
+
             Route::get('/wheel-segments', [AdminController::class, 'wheelSegments'])->name('wheel-segments');
             Route::get('/wheel-segments/create', [AdminController::class, 'createWheelSegment'])->name('wheel-segments.create');
             Route::post('/wheel-segments', [AdminController::class, 'storeWheelSegment'])->name('wheel-segments.store');

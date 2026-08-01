@@ -8,6 +8,8 @@
            class="admin-nav-link {{ request()->routeIs('admin.boards.reviews') ? 'active' : '' }}">發佈審核</a>
         <a href="{{ route('admin.cards') }}"
            class="admin-nav-link {{ request()->routeIs('admin.cards*') ? 'active' : '' }}">卡片</a>
+        <a href="{{ route('admin.prompts') }}"
+           class="admin-nav-link {{ request()->routeIs('admin.prompts*') ? 'active' : '' }}">題庫</a>
         <a href="{{ route('admin.wheel-segments') }}"
            class="admin-nav-link {{ request()->routeIs('admin.wheel-segments*') ? 'active' : '' }}">轉盤</a>
         <a href="{{ route('admin.users') }}"

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\GamePrompt;
+
 class KingGameService
 {
     private const COMMANDS_MILD = [
@@ -45,15 +47,27 @@ class KingGameService
         '{A} 和 {B} 各講一個不行、一個想玩，再挑共同的直接做',
     ];
 
-    public static function getCommandPools(bool $isPremium = false): array
+    /** 程式碼裡的預設題庫。資料表空的時候用它,也是後台第一次匯入的來源。 */
+    public static function defaultPools(): array
     {
-        $pools = [
+        return [
             'mild' => self::COMMANDS_MILD,
             'medium' => self::COMMANDS_MEDIUM,
+            'intense' => self::COMMANDS_INTENSE,
+        ];
+    }
+
+    public static function getCommandPools(bool $isPremium = false): array
+    {
+        $all = GamePrompt::poolsFor('king_game') ?: self::defaultPools();
+
+        $pools = [
+            'mild' => $all['mild'] ?? [],
+            'medium' => $all['medium'] ?? [],
         ];
 
-        if ($isPremium) {
-            $pools['intense'] = self::COMMANDS_INTENSE;
+        if ($isPremium && ! empty($all['intense'])) {
+            $pools['intense'] = $all['intense'];
         }
 
         return $pools;

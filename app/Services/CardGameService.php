@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\GamePrompt;
+
 class CardGameService
 {
     private const MILD_ACTIVITIES = [
@@ -90,15 +92,27 @@ class CardGameService
      * Mild and medium are free. Explicit intense activities are only returned
      * after the caller has established premium content access.
      */
-    public static function getActivityPools(bool $isPremium = false): array
+    /** 程式碼裡的預設題庫。資料表空的時候用它,也是後台第一次匯入的來源。 */
+    public static function defaultPools(): array
     {
-        $pools = [
+        return [
             'mild' => self::MILD_ACTIVITIES,
             'medium' => self::MEDIUM_ACTIVITIES,
+            'intense' => self::INTENSE_ACTIVITIES,
+        ];
+    }
+
+    public static function getActivityPools(bool $isPremium = false): array
+    {
+        $all = GamePrompt::poolsFor('card_game') ?: self::defaultPools();
+
+        $pools = [
+            'mild' => $all['mild'] ?? [],
+            'medium' => $all['medium'] ?? [],
         ];
 
-        if ($isPremium) {
-            $pools['intense'] = self::INTENSE_ACTIVITIES;
+        if ($isPremium && ! empty($all['intense'])) {
+            $pools['intense'] = $all['intense'];
         }
 
         return $pools;

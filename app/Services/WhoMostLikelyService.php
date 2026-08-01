@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\GamePrompt;
+
 class WhoMostLikelyService
 {
     // 內容一律成人向（情侶/派對），與 KingGameService / DiceGameService 相同：硬寫繁中，不隨語系翻譯。
@@ -61,15 +63,28 @@ class WhoMostLikelyService
         '玩到一半還想解鎖更刺激的玩法',
     ];
 
-    public static function getPromptPools(bool $isPremium = false): array
+    /** 程式碼裡的預設題庫。資料表空的時候用它,也是後台第一次匯入的來源。 */
+    public static function defaultPools(): array
     {
-        $pools = [
+        return [
             'mild' => self::PROMPTS_MILD,
             'medium' => self::PROMPTS_MEDIUM,
+            'intense' => self::PROMPTS_INTENSE,
+        ];
+    }
+
+    public static function getPromptPools(bool $isPremium = false): array
+    {
+        // 後台改過就以資料表為準;沒有資料就用程式碼裡的預設。
+        $all = GamePrompt::poolsFor('who_most_likely') ?: self::defaultPools();
+
+        $pools = [
+            'mild' => $all['mild'] ?? [],
+            'medium' => $all['medium'] ?? [],
         ];
 
-        if ($isPremium) {
-            $pools['intense'] = self::PROMPTS_INTENSE;
+        if ($isPremium && ! empty($all['intense'])) {
+            $pools['intense'] = $all['intense'];
         }
 
         return $pools;

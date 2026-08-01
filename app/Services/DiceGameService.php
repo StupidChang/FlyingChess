@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\GamePrompt;
+
 class DiceGameService
 {
     private const ACTIONS_MILD = ['親', '摸', '吹氣', '輕咬', '愛撫', '舔'];
@@ -42,20 +44,48 @@ class DiceGameService
      * so paid content never ships to the client. Each entry:
      *   id, cat, intensity(null|gentle|bold|wild), premium(bool), locked(bool), faces[]
      */
+    /* 有哪些骰子、各自的類別與強度。內容(骰面)另外從資料表或預設值拿 ——
+       這裡只描述結構,改題目不該動到這份清單。 */
+    private const DICE_DEFS = [
+        ['action', 'gentle', false],
+        ['action', 'bold',   false],
+        ['action', 'wild',   true],
+        ['part',   'gentle', false],
+        ['part',   'bold',   false],
+        ['part',   'wild',   true],
+        ['prop',   'gentle', false],
+        ['prop',   'wild',   true],
+        ['play',   'wild',   true],
+        ['time',   null,     false],
+    ];
+
+    /** 程式碼裡的預設骰面,鍵是「類別.強度」(時間骰沒有強度)。 */
+    public static function defaultPools(): array
+    {
+        return [
+            'action.gentle' => self::ACTIONS_MILD,
+            'action.bold' => self::ACTIONS_MEDIUM,
+            'action.wild' => self::ACTIONS_INTENSE,
+            'part.gentle' => self::PARTS_MILD,
+            'part.bold' => self::PARTS_MEDIUM,
+            'part.wild' => self::PARTS_INTENSE,
+            'prop.gentle' => self::PROPS_FREE,
+            'prop.wild' => self::PROPS_INTENSE,
+            'play.wild' => self::PLAYS_INTENSE,
+            'time' => self::DURATIONS,
+        ];
+    }
+
     public static function getBuiltInDice(bool $isPremium = false): array
     {
-        $defs = [
-            ['action', 'gentle', false, self::ACTIONS_MILD],
-            ['action', 'bold',   false, self::ACTIONS_MEDIUM],
-            ['action', 'wild',   true,  self::ACTIONS_INTENSE],
-            ['part',   'gentle', false, self::PARTS_MILD],
-            ['part',   'bold',   false, self::PARTS_MEDIUM],
-            ['part',   'wild',   true,  self::PARTS_INTENSE],
-            ['prop',   'gentle', false, self::PROPS_FREE],
-            ['prop',   'wild',   true,  self::PROPS_INTENSE],
-            ['play',   'wild',   true,  self::PLAYS_INTENSE],
-            ['time',   null,     false, self::DURATIONS],
-        ];
+        // 後台改過就以資料表為準;沒有資料就用程式碼裡的預設。
+        $pools = GamePrompt::poolsFor('dice_game') ?: self::defaultPools();
+
+        $defs = [];
+        foreach (self::DICE_DEFS as [$cat, $intensity, $premium]) {
+            $key = $cat.($intensity ? '.'.$intensity : '');
+            $defs[] = [$cat, $intensity, $premium, $pools[$key] ?? []];
+        }
 
         $out = [];
         foreach ($defs as [$cat, $intensity, $premium, $faces]) {
