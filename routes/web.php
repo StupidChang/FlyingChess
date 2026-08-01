@@ -17,6 +17,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlayController;
 use App\Http\Controllers\PremiumController;
+use App\Http\Controllers\SesFeedbackController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RewardedUnlockController;
 use App\Http\Controllers\SitemapController;
@@ -166,6 +167,18 @@ Route::get('/robots.txt', function () {
 // Premium gateway callbacks: URLs are pinned by the payment provider — adding
 // a locale prefix would break the contract. The view handler picks language
 // from cookie / Accept-Language internally.
+/*
+ * SES 的退信／客訴回饋(SNS webhook)。
+ *
+ * 不在語系前綴底下:通知是 AWS 送來的,沒有語系可言,而且網址填進 SNS 之後
+ * 不該因為前綴調整而失效。CSRF 也要排除(bootstrap/app.php),AWS 不會帶 token。
+ *
+ * 端點是公開的,安全性全靠 SNS 的簽章驗證,見 App\Support\SnsMessage。
+ */
+Route::post('/ses/feedback', SesFeedbackController::class)
+    ->name('ses.feedback')
+    ->middleware('throttle:120,1');
+
 Route::post('/premium/callback', [PremiumController::class, 'callback'])
     ->name('premium.callback')
     ->withoutMiddleware([VerifyCsrfToken::class]);
@@ -312,7 +325,10 @@ Route::prefix('{locale}')
         // Time Capsule
         Route::prefix('time-capsule')->name('time-capsule.')->group(function () {
             Route::get('/', [TimeCapsuleController::class, 'lobby'])->name('lobby');
-            Route::post('/', [TimeCapsuleController::class, 'create'])->name('create');
+            /* 膠囊會在指定日期寄一封信到使用者自己填的地址 —— 不需要登入、
+               地址不需要驗證,等於一個延遲發信的管道。限制建立頻率。 */
+            Route::post('/', [TimeCapsuleController::class, 'create'])->name('create')
+                ->middleware('throttle:6,60');
             Route::get('/{shareCode}', [TimeCapsuleController::class, 'show'])->name('show')
                 ->middleware('throttle:60,1');
             Route::post('/{shareCode}/answers', [TimeCapsuleController::class, 'saveAnswers'])->name('answers');

@@ -31,17 +31,24 @@ class PasswordResetController extends Controller
             'email.email' => __('auth.email_invalid'),
         ]);
 
-        // Rate limit: 3 attempts per hour per IP+email composite key.
-        // Prevents email enumeration via differential responses and reset-link spam.
-        $key = 'password-reset:'.$request->ip().':'.strtolower($request->input('email'));
-        if (RateLimiter::tooManyAttempts($key, 3)) {
-            $seconds = RateLimiter::availableIn($key);
+        /* 兩把鎖。IP+email 的複合鍵擋「對同一個信箱狂發重設信」,但只有它的話,
+           換一個 email 就重新計算 —— 一個 IP 可以無限量地叫站上寄信。所以再加
+           一把純 IP 的鎖。兩者都是每小時。 */
+        $perTarget = 'password-reset:'.$request->ip().':'.strtolower($request->input('email'));
+        $perIp = 'password-reset-ip:'.$request->ip();
 
-            return back()->withErrors([
-                'email' => __('auth.reset_throttle', ['seconds' => $seconds]),
-            ])->withInput();
+        foreach ([[$perTarget, 3], [$perIp, 10]] as [$key, $max]) {
+            if (RateLimiter::tooManyAttempts($key, $max)) {
+                return back()->withErrors([
+                    'email' => __('auth.reset_throttle', [
+                        'seconds' => RateLimiter::availableIn($key),
+                    ]),
+                ])->withInput();
+            }
         }
-        RateLimiter::hit($key, 3600);
+
+        RateLimiter::hit($perTarget, 3600);
+        RateLimiter::hit($perIp, 3600);
 
         Password::sendResetLink($request->only('email'));
 

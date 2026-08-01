@@ -23,6 +23,9 @@ class AgeVerification
         'ads.txt',
         'premium/callback',
         'premium/result',
+        // 機器對機器的端點。AWS 的 SNS 不會帶 cookie,也讀不懂年齡確認頁 ——
+        // 沒放行的話 webhook 拿到的是一頁 HTML 加 200,退信通知會全部靜靜掉光。
+        'ses/feedback',
         'up',
         // Auth flows — allow access before age-gate so users can manage account
         'login',

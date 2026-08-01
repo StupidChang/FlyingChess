@@ -46,6 +46,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // so the front end can read it via document.cookie for the language switcher.
         $middleware->encryptCookies(except: ['locale']);
 
+        // AWS 的 SNS 通知不會帶 CSRF token。這條路由的安全性靠 SNS 簽章驗證,
+        // 不是靠 session。
+        $middleware->validateCsrfTokens(except: ['ses/feedback']);
+
         // Order matters: RedirectUnprefixedUrl 301s legacy non-prefixed URLs
         // before AgeVerification renders the age gate, avoiding wasted renders.
         $middleware->prepend(RedirectUnprefixedUrl::class);
