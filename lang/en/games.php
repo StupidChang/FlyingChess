@@ -108,7 +108,7 @@ return [
     'td_scale_mild_desc' => 'Confessions, crushes, teasing, intimate imagination. Bodies and desire come up; sex acts are not described.',
     'td_scale_medium_desc' => 'Explicit body talk and intimate interaction — erogenous zones, preferences, who leads.',
     'td_scale_intense_desc' => 'Sex acts described directly — positions, oral, penetration, toys.',
-    'td_scale_paywall' => 'Mild and medium are open to everyone. Intense needs an ad or a membership. Skip it if it is not for you — the first two levels last a full session.',
+    'td_scale_paywall' => 'Mild is all free; most of medium is free with a few locked; intense needs an ad or a membership. Skip the unlock if it is not for you — the free prompts last a full session.',
     'td_tier_unlocked' => 'Paid deck unlocked — every prompt is in play this round.',
     'td_mode_adult_desc' => 'Includes intimate and adult prompts — 18+ only.',
     'td_start_button' => '🎲 Start',

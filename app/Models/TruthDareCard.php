@@ -11,10 +11,11 @@ class TruthDareCard extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['category', 'audience', 'level', 'content', 'content_translations', 'machine_translated_at'];
+    protected $fillable = ['category', 'audience', 'level', 'is_paid', 'content', 'content_translations', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
+        'is_paid' => 'boolean',
     ];
 
     /** 題目類型。後台下拉與驗證共用。 */
@@ -34,19 +35,17 @@ class TruthDareCard extends Model
     /** 由輕到重的順序。升溫的階梯與後台排序都靠它。 */
     public const LEVEL_ORDER = ['mild', 'medium', 'intense'];
 
-    /** 要付費或看廣告才抽得到的等級。付費界線只寫在這裡。 */
-    public const PAID_LEVELS = ['intense'];
-
     /**
-     * 現在抽得到哪幾級。
+     * 新增卡片時預設要不要收費。
      *
-     * @param  bool  $hasPaidAccess  房主是會員,或這台裝置在看廣告解鎖的時限內
+     * 只是後台表單與匯入的預設值 —— 真正的界線是每張卡片自己的 is_paid,
+     * 尺度與收費是兩件事:中度裡也會有想留給付費的題目。
      */
-    public static function levelsFor(bool $hasPaidAccess): array
+    public const DEFAULT_PAID_LEVELS = ['intense'];
+
+    public static function defaultIsPaid(?string $level): bool
     {
-        return $hasPaidAccess
-            ? self::LEVEL_ORDER
-            : array_values(array_diff(self::LEVEL_ORDER, self::PAID_LEVELS));
+        return in_array($level, self::DEFAULT_PAID_LEVELS, true);
     }
 
     /**
@@ -79,8 +78,9 @@ class TruthDareCard extends Model
         );
     }
 
-    public function isPaid(): bool
+    /** 沒有權限的人抽得到的那些。 */
+    public function scopeFreeToPlay($query)
     {
-        return in_array($this->level, self::PAID_LEVELS, true);
+        return $query->where('is_paid', false);
     }
 }

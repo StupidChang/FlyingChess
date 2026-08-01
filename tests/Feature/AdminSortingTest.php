@@ -39,6 +39,7 @@ class AdminSortingTest extends TestCase
             '卡片・類型' => ['/tw/admin/cards', 'category'],
             '卡片・適用' => ['/tw/admin/cards', 'audience'],
             '卡片・尺度' => ['/tw/admin/cards', 'level'],
+            '卡片・收費' => ['/tw/admin/cards', 'paid'],
             '卡片・內容' => ['/tw/admin/cards', 'content'],
             '題庫・分類' => ['/tw/admin/prompts', 'pool'],
             '題庫・排序' => ['/tw/admin/prompts', 'sort_order'],

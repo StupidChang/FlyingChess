@@ -116,39 +116,82 @@ class TruthDareModeTest extends TestCase
         $this->assertSame('party', Game::latest('id')->first()->game_state['mode']);
     }
 
-    public function test_the_paid_boundary_is_the_intense_level_only(): void
+    public function test_a_paid_card_inside_a_free_level_stays_locked(): void
     {
-        foreach (['mild', 'medium', 'intense'] as $level) {
-            TruthDareCard::create([
-                'category' => 'truth', 'audience' => 'both', 'content' => $level, 'level' => $level,
-            ]);
-        }
-
-        /* 分級與付費界線是兩回事:輕度與中度人人抽得到,只有重度要付費。
-           界線寫在 TruthDareCard::PAID_LEVELS,這一條就是它的合約。 */
-        $this->assertSame(['mild', 'medium'], TruthDareCard::levelsFor(false));
-        $this->assertSame(['mild', 'medium', 'intense'], TruthDareCard::levelsFor(true));
+        /* 收費是每張卡片自己的欄位,不是由尺度推導 —— 中度裡也能有付費題目,
+           不用把整級變成付費。這一條就是那個界線的合約。 */
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'content' => '中度免費', 'level' => 'medium', 'is_paid' => false,
+        ]);
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'content' => '中度付費', 'level' => 'medium', 'is_paid' => true,
+        ]);
 
         $game = $this->room('couple');
         $service = app(TruthDareService::class);
 
-        $levels = [];
-        for ($i = 0; $i < 5; $i++) {
+        $seen = [];
+        for ($i = 0; $i < 4; $i++) {
             $result = $service->drawCard($game->fresh(), 'truth', false, true);
             if (! $result['success']) {
                 break;
             }
-            $levels[] = $result['card']['level'];
+            $seen[] = $result['card']['content'];
         }
 
-        sort($levels);
-        $this->assertSame(['medium', 'mild'], $levels);
+        $this->assertSame(['中度免費'], $seen);
+    }
+
+    public function test_paid_access_reaches_the_locked_card_in_that_level(): void
+    {
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'content' => '中度付費', 'level' => 'medium', 'is_paid' => true,
+        ]);
+
+        $result = app(TruthDareService::class)
+            ->drawCard($this->room('couple'), 'truth', true, true);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('中度付費', $result['card']['content']);
+    }
+
+    public function test_escalation_skips_a_level_the_player_cannot_reach(): void
+    {
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'content' => '輕度', 'level' => 'mild', 'is_paid' => false,
+        ]);
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'content' => '中度全付費', 'level' => 'medium', 'is_paid' => true,
+        ]);
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'content' => '重度免費', 'level' => 'intense', 'is_paid' => false,
+        ]);
+
+        /* 中度整級都要付費的話,免費玩家的階梯要直接跳過它 —— 「升」到一個
+           抽不到東西的等級,畫面上看到的就是沒有題目了。 */
+        $game = $this->room('couple', escalate: true);
+        $service = app(TruthDareService::class);
+
+        $seen = [];
+        for ($drawn = 0; $drawn < 10; $drawn++) {
+            $result = $service->drawCard($game->fresh(), 'truth', false, true);
+            if ($result['success']) {
+                $seen[$result['card']['content']] = true;
+            }
+            $state = $game->fresh()->game_state;
+            $state['used_card_ids'] = array_merge($state['used_card_ids'] ?? [], [-$drawn]);
+            $game->update(['game_state' => $state]);
+        }
+
+        $this->assertArrayHasKey('輕度', $seen);
+        $this->assertArrayHasKey('重度免費', $seen);
+        $this->assertArrayNotHasKey('中度全付費', $seen);
     }
 
     public function test_a_free_player_only_draws_free_prompts(): void
     {
-        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '曖昧級', 'level' => 'mild']);
-        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'level' => 'intense']);
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '曖昧級', 'level' => 'mild', 'is_paid' => false]);
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'level' => 'intense', 'is_paid' => true]);
 
         /* 這裡守的是原本壞掉的地方:每一間房都是 is_adult,而 is_adult 的分支只抽
            premium,所以免費玩家照樣拿得到全部付費題目,那些免費題目反而一張都
@@ -171,7 +214,7 @@ class TruthDareModeTest extends TestCase
 
     public function test_premium_access_adds_the_paid_prompts(): void
     {
-        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'level' => 'intense']);
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'level' => 'intense', 'is_paid' => true]);
 
         $result = app(TruthDareService::class)
             ->drawCard($this->room('couple'), 'truth', true, true);

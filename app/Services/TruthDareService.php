@@ -99,18 +99,25 @@ class TruthDareService
         $usedIds = $state['used_card_ids'] ?? [];
         $mode = $state['mode'] ?? 'couple';
 
-        /* 抽得到哪幾級。付費界線寫在 TruthDareCard::PAID_LEVELS。
+        $audiences = TruthDareCard::audiencesFor($mode);
+
+        /* 付費與否是每張卡片自己的 is_paid,不是由尺度推導 —— 中度裡也會有
+           想留給付費的題目。
            歷史地雷:原本這裡在 is_adult 的房間只抽 premium,而每一間房都是
            is_adult —— 結果是免費玩家照樣拿得到全部付費題目,曖昧級那批反而
            一張都抽不到,免費與付費之間根本沒有差別。 */
         $levels = $this->levelsAfterEscalation(
-            TruthDareCard::levelsFor($hasPremiumContent),
+            $this->reachableLevels($category, $audiences, $hasPremiumContent),
             $state
         );
 
         $query = TruthDareCard::where('category', $category)
-            ->whereIn('audience', TruthDareCard::audiencesFor($mode))
+            ->whereIn('audience', $audiences)
             ->whereIn('level', $levels);
+
+        if (! $hasPremiumContent) {
+            $query->freeToPlay();
+        }
 
         if (! empty($usedIds)) {
             $query->whereNotIn('id', $usedIds);
@@ -137,6 +144,30 @@ class TruthDareService
                 'level' => $card->level,
             ],
         ];
+    }
+
+    /**
+     * 這個人在這個場合真的抽得到哪幾級,由輕到重。
+     *
+     * 要先問過資料庫再決定升溫的階梯 —— 免費玩家如果「升」到一個整級都是付費
+     * 題目的等級,會直接抽不到東西。空的等級不進階梯,升溫就只會停在真的有題目
+     * 的最高一級。
+     *
+     * @return string[]
+     */
+    private function reachableLevels(string $category, array $audiences, bool $hasPremiumContent): array
+    {
+        $present = TruthDareCard::where('category', $category)
+            ->whereIn('audience', $audiences)
+            ->when(! $hasPremiumContent, fn ($q) => $q->freeToPlay())
+            ->distinct()
+            ->pluck('level')
+            ->all();
+
+        return array_values(array_filter(
+            TruthDareCard::LEVEL_ORDER,
+            fn ($level) => in_array($level, $present, true)
+        ));
     }
 
     /**

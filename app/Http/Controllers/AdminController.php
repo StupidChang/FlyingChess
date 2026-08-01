@@ -335,6 +335,9 @@ class AdminController extends Controller
         if ($level = $request->input('level')) {
             $query->where('level', $level);
         }
+        if (($paid = $request->input('paid')) !== null && $paid !== '') {
+            $query->where('is_paid', $paid === '1');
+        }
         if ($search = $request->input('q')) {
             $query->where('content', 'like', "%{$search}%");
         }
@@ -345,6 +348,7 @@ class AdminController extends Controller
             'audience' => ['audience', array_keys(TruthDareCard::AUDIENCES)],
             'content' => 'content',
             'level' => ['level', TruthDareCard::LEVEL_ORDER],
+            'paid' => 'is_paid',
             'created_at' => 'created_at',
         ], 'created_at');
 
@@ -367,6 +371,9 @@ class AdminController extends Controller
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
         ]);
 
+        // checkbox 沒勾就完全不送,所以要自己補 false,不然改成免費會存不進去。
+        $data['is_paid'] = $request->boolean('is_paid');
+
         TruthDareCard::create($data);
 
         return redirect()->route('admin.cards')->with('success', '卡片已新增');
@@ -388,6 +395,9 @@ class AdminController extends Controller
             'level' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::LEVELS))],
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
         ]);
+
+        // checkbox 沒勾就完全不送,所以要自己補 false,不然改成免費會存不進去。
+        $data['is_paid'] = $request->boolean('is_paid');
 
         $card->update($data);
 

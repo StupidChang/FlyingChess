@@ -94,6 +94,24 @@ class AdminReturnToListTest extends TestCase
         $this->assertStringStartsWith(config('app.url'), $response->headers->get('Location'));
     }
 
+    public function test_a_card_can_be_switched_between_free_and_paid(): void
+    {
+        $card = TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'content' => '一題',
+            'level' => 'medium', 'is_paid' => true,
+        ]);
+
+        /* checkbox 沒勾就完全不會出現在送出的資料裡,所以控制器要自己補 false ——
+           少了那一步,設成付費的卡片就再也改不回免費了。 */
+        $this->actingAs($this->admin())
+            ->patch("/tw/admin/cards/{$card->id}", [
+                'category' => 'truth', 'audience' => 'both', 'level' => 'medium', 'content' => '一題',
+            ])
+            ->assertRedirect();
+
+        $this->assertFalse($card->fresh()->is_paid);
+    }
+
     public function test_no_return_value_still_works(): void
     {
         $segment = WheelSegment::create(['tier' => 'mild', 'content' => '任務']);

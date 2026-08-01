@@ -164,7 +164,12 @@ class TruthDareCardSeeder extends Seeder
         foreach ($cards as [$category, $audience, $content, $level]) {
             TruthDareCard::firstOrCreate(
                 ['category' => $category, 'content' => $content],
-                ['level' => $level, 'audience' => $audience]
+                [
+                    'level' => $level,
+                    'audience' => $audience,
+                    // 預設界線;之後在後台逐題調整,中度也可以設成付費。
+                    'is_paid' => TruthDareCard::defaultIsPaid($level),
+                ]
             );
         }
     }

@@ -61,6 +61,16 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                {{-- 收費與尺度分開:尺度講內容多直接,收費講商業界線。中度裡
+                     也可以有付費題目,不用把整級變成付費。 --}}
+                <label class="form-check" style="display:flex;gap:8px;align-items:center;cursor:pointer">
+                    <input type="checkbox" name="is_paid" value="1"
+                           {{ old('is_paid', $card?->is_paid ?? \App\Models\TruthDareCard::defaultIsPaid(old('level', $card?->level))) ? 'checked' : '' }}>
+                    <span>需付費或看廣告才抽得到</span>
+                </label>
+            </div>
+
             <div style="display:flex;gap:12px;margin-top:24px">
                 <button type="submit" class="btn">{{ $card ? '儲存' : '新增' }}</button>
                 <a href="{{ route('admin.cards', $return ?? []) }}" class="btn btn-outline">返回列表</a>
