@@ -849,14 +849,43 @@ ul{list-style:none}
 .premium-unavailable{margin-top:8px;padding:12px;border:1px dashed var(--border);
   border-radius:10px;color:var(--text-dim);font-size:.85rem;text-align:center}
 
-/* ── 範本預覽的格子 ── */
-.tpv-sq{background:var(--surface2);border:1px solid var(--border);border-radius:6px;
-  padding:6px;font-size:.72rem;color:var(--text-dim);min-height:50px;display:flex;
-  align-items:center;justify-content:center;text-align:center;word-break:break-all}
-/* 鎖住的格子:斜線底,一眼看得出「這裡有東西但還沒開」。
+/* ── 範本預覽 ──────────────────────────────────────
+   關鍵是每一格都用 aspect-ratio:1 固定成正方形。原本靠 min-height,格子高度
+   會被文字量撐開,同一列高高低低、空格又是另一個高度,整張看起來是散的。
+   min-width 讓窄螢幕改成橫向捲動,而不是把格子壓到看不見。            */
+.tpv-board{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:16px;margin-bottom:24px;overflow-x:auto}
+.tpv-grid{display:grid;grid-template-columns:repeat(var(--tpv-cols),minmax(0,1fr));
+  gap:5px;min-width:560px}
+.tpv-gap{aspect-ratio:1}
+.tpv-sq{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  padding:5px;overflow:hidden;border:1px solid var(--border);border-top:3px solid var(--border);
+  border-radius:7px;background:var(--surface2)}
+.tpv-num{position:absolute;top:2px;left:4px;font-size:.5rem;line-height:1;
+  color:var(--text-dim);opacity:.55}
+/* 文字超過就截行,不讓它改變格子高度 */
+.tpv-text{font-size:clamp(.42rem,.7vw,.62rem);line-height:1.3;color:var(--text-dim);
+  text-align:center;word-break:break-all;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
+/* 上緣配色沿用真實棋盤那套 --sq-* 的色值,預覽看起來才是同一張棋盤的縮小版。
+   ⚠ 每個都要寫 fallback:board.css 只在對局頁與編輯器載入,預覽頁沒有它,
+   直接引用變數會全部變成透明。改 board.css 的配色時這裡要一起改。 */
+.tpv-sq[data-c="action"]{border-top-color:var(--sq-action,#fb923c)}
+.tpv-sq[data-c="drink"] {border-top-color:var(--sq-drink,#facc15)}
+.tpv-sq[data-c="dare"]  {border-top-color:var(--sq-dare,#c084fc)}
+.tpv-sq[data-c="truth"] {border-top-color:var(--sq-truth,#38bdf8)}
+.tpv-sq[data-c="strip"] {border-top-color:var(--sq-strip,#f472b6)}
+.tpv-sq[data-c="move"]  {border-top-color:var(--sq-move,#4ade80)}
+.tpv-sq[data-c="male"]  {border-top-color:var(--sq-male,#38bdf8)}
+.tpv-sq[data-c="female"]{border-top-color:var(--sq-female,#f43f5e)}
+.tpv-sq[data-c="start"] {border-top-color:var(--sq-start,#d9a441)}
+.tpv-sq[data-c="end"]   {border-top-color:var(--sq-end,#f87171)}
+/* 鎖住的格子:斜線底,一眼看得出「這裡有東西但還沒開」。上緣的分類色刻意留著
+   —— 看得出這格是大冒險還是脫衣,但看不到內容,這正是預覽該給的資訊量。
    文字是後端就沒送出來的,這裡只負責長相。 */
-.tpv-sq--locked{color:transparent;border-style:dashed;
-  background:repeating-linear-gradient(135deg,var(--surface2) 0 6px,transparent 6px 12px)}
+.tpv-sq--locked{border-style:dashed;border-top-style:solid;
+  background:repeating-linear-gradient(135deg,
+    var(--surface2) 0 5px,transparent 5px 10px)}
 .tpv-locked-note{margin:0 0 16px;padding:12px 14px;border:1px dashed var(--border);
   border-radius:10px;color:var(--text-dim);font-size:.85rem;text-align:center;line-height:1.6}
 .premium-period{color:var(--text-dim);font-size:.95rem;margin-bottom:24px}
@@ -1509,6 +1538,9 @@ ul{list-style:none}
 .rw-bar{max-width:620px;margin:22px auto 0;padding:12px 16px;border-radius:12px;
     border:1px dashed var(--border);background:var(--surface);
     display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+/* 頁面自己已經有解鎖按鈕時只留彈窗,提示條藏起來。用 display:none 而不是
+   不 render —— 倒數與領獎的 JS 都掛在 #rw-bar 上,拿掉節點整套就停了。 */
+.rw-bar--hidden{display:none}
 .rw-text{font-size:.85rem;color:var(--text-dim);flex:1;min-width:0}
 .rw-bar .rw-live{display:none}
 .rw-bar.is-live{border-style:solid;border-color:var(--gold)}

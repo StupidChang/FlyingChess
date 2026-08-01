@@ -36,9 +36,11 @@
         </figure>
     @endif
 
-    {{-- Static preview grid --}}
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;overflow-x:auto;margin-bottom:24px">
-        <div style="display:grid;grid-template-columns:repeat({{ $board->canvas_cols }}, minmax(60px, 1fr));gap:4px">
+    {{-- 預覽棋盤。每一格都是正方形(aspect-ratio),行高不會被文字撐開 ——
+         之前用 min-height 讓格子高度隨內容跑,同一列的格子高高低低,不成形。
+         配色沿用真實棋盤那套 --sq-* 變數,預覽看起來才是同一張棋盤的縮小版。 --}}
+    <div class="tpv-board">
+        <div class="tpv-grid" style="--tpv-cols:{{ $board->canvas_cols }}">
             @php
                 $squareMap = $board->squares->keyBy(fn($s) => $s->grid_row . '-' . $s->grid_col);
             @endphp
@@ -47,12 +49,15 @@
                     @php $sq = $squareMap->get("$r-$c"); @endphp
                     @if($sq)
                         @php $locked = ! $canSeeAll && $sq->position >= $previewOpenSquares; @endphp
-                        <div class="tpv-sq{{ $locked ? ' tpv-sq--locked' : '' }}">
+                        <div class="tpv-sq{{ $locked ? ' tpv-sq--locked' : '' }}" data-c="{{ $sq->color }}">
+                            <span class="tpv-num">{{ $sq->position }}</span>
                             {{-- 鎖住的格子連文字都不輸出,不是用 CSS 遮 --}}
-                            {{ $locked ? '' : \Illuminate\Support\Str::limit($sq->text, 20) }}
+                            @unless($locked)
+                                <span class="tpv-text">{{ \Illuminate\Support\Str::limit($sq->text, 26) }}</span>
+                            @endunless
                         </div>
                     @else
-                        <div style="min-height:50px"></div>
+                        <div class="tpv-gap"></div>
                     @endif
                 @endfor
             @endfor
@@ -100,5 +105,5 @@
     </div>
 </div>
 
-@include('partials.rewarded-unlock')
+@include('partials.rewarded-unlock', ['barHidden' => true])
 @endsection

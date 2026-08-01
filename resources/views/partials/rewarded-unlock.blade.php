@@ -22,7 +22,10 @@
 @endphp
 
 @unless($rwIsMember)
-<div class="rw-bar" id="rw-bar" data-left="{{ $rwLeft }}">
+{{-- barHidden:頁面上已經有自己的「看廣告解鎖」按鈕時,不要再多一條提示條。
+     彈窗與 JS 仍然需要,所以只藏掉 bar 的外觀,不能整段不 render ——
+     倒數與領獎的邏輯都掛在它身上。 --}}
+<div class="rw-bar{{ ($barHidden ?? false) ? ' rw-bar--hidden' : '' }}" id="rw-bar" data-left="{{ $rwLeft }}">
     <div class="rw-text">
         <span class="rw-idle">{{ __('minigame.rewarded_hint', ['minutes' => $rwMinutes]) }}</span>
         <span class="rw-live">{{ __('minigame.rewarded_active', ['time' => '']) }} <b id="rw-clock"></b></span>
