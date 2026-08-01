@@ -191,4 +191,12 @@
     </div>
 </section>
 
+{{-- 大廳底部的廣告。飛行棋大廳與真心話大廳都有,只有這頁漏了 ——
+     而這頁是導覽列「遊戲大廳」指向的入口,流量比另外兩個大廳都高。
+     共用 lobby_side 這個 zone:三個大廳是同一種版位,分開建 zone 只會讓
+     報表更零碎,看不出「大廳」整體的表現。 --}}
+<div class="ad-sidebar-wrap" style="margin-top:24px">
+    @include('partials.ad-unit', ['zone' => 'lobby_side'])
+</div>
+
 @endsection
