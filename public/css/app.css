@@ -632,11 +632,10 @@ ul{list-style:none}
 .badge-premium{background:var(--gold);color:#241a08}
 .badge-free{background:rgba(52,211,153,.12);color:#5fd080;border:1px solid rgba(52,211,153,.35)}
 .board-card-foot{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border);
-  background:var(--surface2);flex-wrap:wrap}
-/* 付費範本有三顆(預覽／看廣告／升級),放不下就換行。看廣告那顆是主要動作,
-   讓它吃掉剩下的寬度,另外兩顆維持內容寬度。 */
-.board-card-foot .btn-gold{flex:1 1 auto}
-.board-card-foot .btn-outline{flex:0 0 auto}
+  background:var(--surface2)}
+/* 每顆按鈕平分整列(flex-basis 0 而不是 auto —— auto 會讓字多的那顆比較寬,
+   「預覽」和「升級解鎖」字數不同就會一大一小)。只有一顆時自然就是滿版。 */
+.board-card-foot .btn{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap}
 .empty-notice{color:var(--text-dim);padding:20px;font-size:.9rem}
 
 /* Board mini-preview (CSS grid dots representing board shape) */
