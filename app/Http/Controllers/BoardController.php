@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Board;
 use App\Models\BoardSquare;
 use App\Rules\NoBlockedWords;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -453,7 +454,10 @@ class BoardController extends Controller
         return view('boards.templates', compact('templates'));
     }
 
-    public function templatePreview(Board $board)
+    /** 一眼看得出調性、但看不完 —— 付費範本預覽開放的格數。 */
+    private const PREVIEW_OPEN_SQUARES = 8;
+
+    public function templatePreview(Request $request, Board $board)
     {
         if (! $board->is_template) {
             abort(404);
@@ -461,7 +465,16 @@ class BoardController extends Controller
 
         $board->load('squares');
 
-        return view('boards.template-preview', compact('board'));
+        // 付費範本沒有權限時只開頭幾格。遮住的格子**根本不會送出文字**,
+        // 不是用 CSS 糊掉 —— 糊的那種打開開發者工具就看完了,等於沒鎖。
+        $canSeeAll = ! $board->is_premium_template
+            || PremiumAccess::content($request->user());
+
+        return view('boards.template-preview', [
+            'board' => $board,
+            'canSeeAll' => $canSeeAll,
+            'previewOpenSquares' => self::PREVIEW_OPEN_SQUARES,
+        ]);
     }
 
     public function cloneTemplate(Request $request, Board $board)

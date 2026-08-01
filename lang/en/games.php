@@ -28,6 +28,7 @@ return [
 
     // Tags / labels used on lobby + game-hall cards
     'tag_online' => 'Multiplayer online',
+    'preview_short' => 'Preview',
     'badge_popular' => 'Most played',
     'tag_couple' => 'Couple-friendly',
     'tag_party' => 'Local party',

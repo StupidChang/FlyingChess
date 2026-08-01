@@ -9,7 +9,6 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 
@@ -44,14 +43,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 有沒有可以收錢的金流。付費入口(按鈕、升級連結)一律掛在這個值上,
-        // 而不是各自去猜 —— 目前是 DisabledGateway,所以全站不出現任何付款入口。
-        // 用 composer 而不是 View::share:避免在 boot 階段就解析 gateway,
-        // 將來換成需要連外的 driver 時不會拖慢每一個 console 指令。
-        View::composer(['games.lobby', 'boards.templates', 'boards.template-preview'], function ($view) {
-            $view->with('purchaseEnabled', app(PaymentGateway::class)->isLive());
-        });
-
         $resetUrl = function ($notifiable, string $token) {
             $prefix = LocaleHelper::localeToPrefix(app()->getLocale())
                 ?? LocaleHelper::localeToPrefix(LocaleHelper::defaultLocale());

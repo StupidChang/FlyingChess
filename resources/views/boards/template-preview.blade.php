@@ -22,7 +22,9 @@
         </div>
     </div>
 
-    @if($board->reference_image)
+    {{-- 原始設計參考圖整張棋盤都看得到,等於把付費內容送出去。鎖住時直接不輸出:
+         用 CSS 糊掉沒有意義,圖檔還是下載到瀏覽器了,右鍵就能看原圖。 --}}
+    @if($board->reference_image && $canSeeAll)
         <figure style="margin:0 0 24px">
             <a href="{{ asset($board->reference_image) }}" target="_blank" rel="noopener">
                 <img src="{{ asset($board->reference_image) }}" alt="{{ $board->name }} 原始設計參考圖"
@@ -44,8 +46,10 @@
                 @for($c = 1; $c <= $board->canvas_cols; $c++)
                     @php $sq = $squareMap->get("$r-$c"); @endphp
                     @if($sq)
-                        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:.72rem;color:var(--text-dim);min-height:50px;display:flex;align-items:center;justify-content:center;text-align:center;word-break:break-all">
-                            {{ \Illuminate\Support\Str::limit($sq->text, 20) }}
+                        @php $locked = ! $canSeeAll && $sq->position >= $previewOpenSquares; @endphp
+                        <div class="tpv-sq{{ $locked ? ' tpv-sq--locked' : '' }}">
+                            {{-- 鎖住的格子連文字都不輸出,不是用 CSS 遮 --}}
+                            {{ $locked ? '' : \Illuminate\Support\Str::limit($sq->text, 20) }}
                         </div>
                     @else
                         <div style="min-height:50px"></div>
@@ -55,8 +59,21 @@
         </div>
     </div>
 
+    @unless($canSeeAll)
+        {{-- 預覽開頭幾格就好:看得出調性,但看不完。兩條解鎖路徑並排。 --}}
+        <p class="tpv-locked-note">
+            {{ __('play.preview_locked_note', ['open' => $previewOpenSquares, 'minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
+        </p>
+    @endunless
+
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <a href="{{ route('boards.templates') }}" class="btn btn-outline">{{ __('play.back_to_templates') }}</a>
+        @unless($canSeeAll)
+            <button type="button" class="btn btn-gold"
+                    onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
+                {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
+            </button>
+        @endunless
         @if($board->is_premium_template)
             @auth
                 @if(auth()->user()->isPremium())
@@ -82,4 +99,6 @@
         @endif
     </div>
 </div>
+
+@include('partials.rewarded-unlock')
 @endsection

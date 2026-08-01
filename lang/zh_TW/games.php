@@ -28,6 +28,7 @@ return [
 
     // Tags / labels used on lobby + game-hall cards
     'tag_online' => '多人線上',
+    'preview_short' => '預覽',
     'badge_popular' => '最多人玩',
     'tag_couple' => '情侶適合',
     'tag_party' => '同機派對',

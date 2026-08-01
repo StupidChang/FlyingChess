@@ -32,6 +32,7 @@ return [
     'use_this_template' => '使用此模板',
     'upgrade_to_unlock' => '升級會員解鎖',
     'register_to_use' => '註冊後使用',
+    'preview_locked_note' => '預覽只開放前 :open 格。看一段廣告即可解鎖完整內容 :minutes 分鐘,或升級 Premium 永久解鎖。',
     'back_to_templates' => '返回模板列表',
     'template_preview' => '棋盤模板預覽',
 

@@ -32,6 +32,7 @@ return [
     'use_this_template' => 'このテンプレートを使う',
     'upgrade_to_unlock' => 'アップグレードで解放',
     'register_to_use' => '登録して使う',
+    'preview_locked_note' => 'プレビューは最初の :open マスのみです。広告を1本見ると :minutes 分だけ全内容を解錠、Premium なら制限なしで利用できます。',
     'back_to_templates' => 'テンプレート一覧に戻る',
     'template_preview' => 'ボードテンプレートのプレビュー',
 

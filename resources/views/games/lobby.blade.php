@@ -61,17 +61,16 @@
                     </div>
                 </div>
                 <div class="board-card-foot">
-                    {{-- 付費範本:看廣告就能玩(時效內),不是只能升級。
-                         沒有金流時「升級」那顆會整個消失 —— 留一顆按不出結果的按鈕
-                         比沒有更糟。見 config/payments.php。 --}}
+                    {{-- 付費範本給三條路:先看內容、看廣告換 30 分鐘、或升級。
+                         「預覽」放第一順位 —— 不知道裡面是什麼之前,另外兩顆都沒有
+                         說服力。預覽只開頭幾格,見 BoardController::templatePreview。 --}}
                     @if($board->is_premium_template && ! \App\Support\PremiumAccess::content(auth()->user()))
+                        <a href="{{ route('boards.template.preview', $board) }}" class="btn btn-sm btn-outline">{{ __('games.preview_short') }}</a>
                         <button type="button" class="btn btn-sm btn-gold"
                                 onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
                             {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
                         </button>
-                        @if($purchaseEnabled ?? false)
-                            <a href="{{ route('premium.index') }}" class="btn btn-sm btn-outline" title="Premium">{{ __('games.unlock_premium') }}</a>
-                        @endif
+                        <a href="{{ route('premium.index') }}" class="btn btn-sm btn-outline" title="Premium">{{ __('games.unlock_premium') }}</a>
                     @else
                         <a href="{{ route('play.board', $board) }}" class="btn btn-sm btn-gold">{{ __('games.start_game') }}</a>
                     @endif
