@@ -80,6 +80,21 @@
         @endif
     </div>
 
+    @if($startWheel ?? null)
+    <section class="entry-wheel-card" aria-labelledby="entry-wheel-heading">
+        <div>
+            <h2 id="entry-wheel-heading">{{ __('play.start_wheel') }}</h2>
+            <p>{{ __('play.start_wheel_help') }}</p>
+        </div>
+        <div id="entry-wheel-preview-graphic" class="entry-wheel-preview-graphic"></div>
+        <ol class="entry-wheel-legend">
+            @foreach($startWheel as $i => $segment)
+                <li><span class="entry-wheel-number">{{ $i + 1 }}</span>{{ $segment['text'] }}</li>
+            @endforeach
+        </ol>
+    </section>
+    @endif
+
     {{-- 棋盤 + 玩法側欄 --}}
     <div class="play-body">
         {{-- Board --}}

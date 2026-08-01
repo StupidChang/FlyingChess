@@ -62,7 +62,11 @@ class BoardController extends Controller
                     'grid_col' => $sq->grid_col,
                 ]);
             }
-            $board->update(['path_data' => $default->path_data]);
+            $board->update([
+                'path_data' => $default->path_data,
+                'start_wheel' => $default->start_wheel,
+                'capture_enabled' => $default->capture_enabled,
+            ]);
         } else {
             // Blank cross-shape (40 squares)
             $crossMap = [
@@ -482,6 +486,8 @@ class BoardController extends Controller
             'canvas_rows' => $board->canvas_rows,
             'canvas_cols' => $board->canvas_cols,
             'path_data' => $board->path_data,
+            'start_wheel' => $board->start_wheel,
+            'capture_enabled' => $board->capture_enabled,
         ]);
 
         foreach ($board->squares as $sq) {

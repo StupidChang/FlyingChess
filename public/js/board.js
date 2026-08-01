@@ -1111,6 +1111,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof window.EDIT_MODE === 'undefined') window.EDIT_MODE = false;
   buildBoard();
   build3dCube();
+  const entryPreview = document.getElementById('entry-wheel-preview-graphic');
+  if (entryPreview) entryPreview.innerHTML = wheelSvg(null);
   const sqText = document.getElementById('sq-text');
   if (sqText) sqText.addEventListener('input', () => {
     document.getElementById('sq-char').textContent = sqText.value.length;

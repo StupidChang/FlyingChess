@@ -80,7 +80,10 @@
             <button onclick="applyPreset('square')" class="btn btn-sm">{{ __('play.preset_square') }}</button>
         </div>
         <div class="layout-preset-controls">
-            <button onclick="openRulesModal()" class="btn btn-sm btn-outline">⚙ {{ __('play.start_wheel') }} / {{ __('play.capture_rule') }}</button>
+            <button id="add-wheel-btn" type="button" onclick="addStartWheel()" class="btn btn-sm btn-gold">
+                {{ $board->startWheel() ? '🎡 編輯進場轉盤' : '＋ 新增進場轉盤' }}
+            </button>
+            <button type="button" onclick="openRulesModal()" class="btn btn-sm btn-outline">⚙ {{ __('play.capture_rule') }}</button>
         </div>
     </div>
 
@@ -103,11 +106,15 @@
                     <input type="checkbox" id="rule-wheel-on" onchange="toggleWheelSlots()"> {{ __('play.start_wheel_enable') }}
                 </label>
                 <div style="font-size:.75rem;color:var(--text-dim);margin:4px 0 10px">{{ __('play.start_wheel_help') }}</div>
+                <div class="wheel-editor-tools">
+                    <div id="wheel-editor-preview" class="wheel-editor-preview"></div>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="applyWheelPreset()">套用預設轉盤</button>
+                </div>
                 <div id="wheel-slots" class="wheel-slots">
                     @foreach (range(1, 6) as $i)
                         <div class="wheel-slot">
                             <span class="wheel-face" data-face="{{ $i }}">{{ $i }}</span>
-                            <input type="text" id="wheel-text-{{ $i }}" class="form-control" maxlength="60">
+                            <input type="text" id="wheel-text-{{ $i }}" class="form-control" maxlength="60" oninput="renderWheelEditorPreview()">
                             <label><input type="checkbox" id="wheel-enter-{{ $i }}"> {{ __('play.start_wheel_enter') }}</label>
                             <label><input type="checkbox" id="wheel-reroll-{{ $i }}"> {{ __('play.start_wheel_reroll') }}</label>
                         </div>

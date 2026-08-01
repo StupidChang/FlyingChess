@@ -451,6 +451,14 @@ const WHEEL_DEFAULTS = [
   { text: '進入棋盤',     enter: true,  reroll: false },
 ];
 
+/* Add the default wheel and render its six slots immediately. Saving remains
+   explicit so an accidental click cannot alter an existing live board. */
+function addStartWheel() {
+  const hasWheel = Array.isArray(window.START_WHEEL);
+  openRulesModal();
+  if (!hasWheel) applyWheelPreset();
+}
+
 function openRulesModal() {
   const wheel = Array.isArray(window.START_WHEEL) ? window.START_WHEEL : null;
   const slots = wheel || WHEEL_DEFAULTS;
@@ -468,8 +476,34 @@ function openRulesModal() {
   }
 
   toggleWheelSlots();
+  renderWheelEditorPreview();
   document.getElementById('rules-save-status').textContent = '';
   document.getElementById('rules-modal').classList.add('open');
+}
+
+function applyWheelPreset() {
+  document.getElementById('rule-wheel-on').checked = true;
+  WHEEL_DEFAULTS.forEach((slot, index) => {
+    const i = index + 1;
+    document.getElementById(`wheel-text-${i}`).value = slot.text;
+    document.getElementById(`wheel-enter-${i}`).checked = slot.enter;
+    document.getElementById(`wheel-reroll-${i}`).checked = slot.reroll;
+  });
+  toggleWheelSlots();
+  renderWheelEditorPreview();
+}
+
+function renderWheelEditorPreview() {
+  const target = document.getElementById('wheel-editor-preview');
+  if (!target) return;
+  const labels = [];
+  for (let i = 1; i <= 6; i++) {
+    labels.push(document.getElementById(`wheel-text-${i}`)?.value || '');
+  }
+  target.innerHTML = labels.map((label, index) =>
+    `<div class="wheel-preview-segment" style="--wheel-color:${WHEEL_EDIT_HEX[index]}">`
+      + `<strong>${index + 1}</strong><span>${escHtml(label)}</span></div>`
+  ).join('');
 }
 
 function toggleWheelSlots() {
@@ -514,6 +548,10 @@ async function saveRules() {
 
     window.START_WHEEL = wheelOn ? segments : null;
     window.CAPTURE_ON  = document.getElementById('rule-capture').checked;
+    const addButton = document.getElementById('add-wheel-btn');
+    if (addButton) {
+      addButton.textContent = wheelOn ? '🎡 編輯進場轉盤' : '＋ 新增進場轉盤';
+    }
     status.textContent = tp('saved');
   } catch (e) {
     status.style.color = '#ff6b6b';
