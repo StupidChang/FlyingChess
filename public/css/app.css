@@ -461,11 +461,12 @@ ul{list-style:none}
 .game-card{
   position:relative;
   background:var(--surface);
-  /* 1.4px:比 1px 多一點份量,又還沒到 2px 那種厚重感。
-     ⚠ 這個值有三個地方要同步 —— 這裡、hover 漸層框的 padding、
-     招牌卡片跑馬光條的 padding。不一致的話 hover 時會看到線條變粗。 */
-  border:1.4px solid var(--border);
-  border-radius:12px;
+  /* 邊框 2px、圓角 10px。
+     ⚠ 這兩個值各有三個地方要同步 —— 這裡、hover 漸層框、招牌卡片的跑馬光條。
+     圓角尤其不能只改一邊:光環和卡片共用同一個外框,光環的圓角只要比卡片大,
+     卡片較方的那個角就會從亮線外面凸出來,反而更像沒對齊。 */
+  border:2px solid var(--border);
+  border-radius:10px;
   padding:28px 22px;
   text-align:center;
   display:flex;flex-direction:column;gap:10px;
@@ -488,8 +489,8 @@ ul{list-style:none}
   content:'';
   position:absolute;
   inset:0;
-  padding:1.4px;   /* 比卡片自己的 1px 邊框粗一點點,亮起來時線條才有份量 */
-  border-radius:12px;
+  padding:2px;        /* 與 .game-card 的邊框同寬 */
+  border-radius:10px; /* 與 .game-card 的圓角同值 —— 不同值角落會凸出 */
   pointer-events:none;
   background:linear-gradient(145deg,
     rgba(var(--glow-rgb),.9)  0%,
@@ -542,8 +543,8 @@ ul{list-style:none}
   position:absolute;
   pointer-events:none;
   inset:0;
-  padding:1.4px;   /* 與 .game-card 的邊框同寬 */
-  border-radius:12px;
+  padding:2px;        /* 與 .game-card 的邊框同寬 */
+  border-radius:10px; /* 與 .game-card 的圓角同值 */
   /* 上層是跑動的光,下層是靜態底色:光沒經過的地方就是原本那條邊框 */
   background:
     conic-gradient(from var(--beam-angle),
