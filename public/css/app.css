@@ -402,20 +402,25 @@ ul{list-style:none}
   content:'';
   position:absolute;
   top:-18%;left:-8%;right:-8%;height:92%;
-  background:radial-gradient(64% 58% at 50% 0%,rgba(var(--glow-rgb),.26),transparent 74%);
-  animation:section-breathe 7.5s ease-in-out infinite;
+  background:radial-gradient(64% 58% at 50% 0%,rgba(var(--glow-rgb),.34),transparent 74%);
+  /* 從上緣往下漲,不是從中心往四面撐 —— 這是一片掛在頂部的光,
+     原點放中間的話縮小時會離開上緣,看起來像在飄而不是在呼吸。 */
+  transform-origin:50% 0%;
+  animation:section-breathe 6.5s ease-in-out infinite;
   pointer-events:none;
   z-index:0;
 }
 .game-cards-section > .container{position:relative;z-index:1}
+/* 谷底刻意縮到 .88 而不是停在 1:單向放大只有「變大」的感覺,
+   一縮一漲的相對差距才讀得出來是在呼吸。 */
 @keyframes section-breathe{
-  0%,100%{opacity:.35;transform:scale(1)}
-  50%    {opacity:1;transform:scale(1.1)}
+  0%,100%{opacity:.18;transform:scale(.88)}
+  50%    {opacity:1;transform:scale(1.18)}
 }
-/* 底色本身也跟著微微起伏,光暈才不像貼在一塊死板的底上 */
+/* 底色本身也跟著起伏,光暈才不像貼在一塊死板的底上 */
 @keyframes section-tone{
-  0%,100%{filter:brightness(1)}
-  50%    {filter:brightness(1.12)}
+  0%,100%{filter:brightness(.94)}
+  50%    {filter:brightness(1.2)}
 }
 .game-cards-grid{
   display:grid;
@@ -454,19 +459,51 @@ ul{list-style:none}
   max-width:780px;
 }
 .game-card{
+  position:relative;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:12px;
   padding:28px 22px;
   text-align:center;
   display:flex;flex-direction:column;gap:10px;
-  transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease;
+  /* .32s 而不是原本的 .15s:短到那個程度的位移只會「跳一下」,
+     感覺不到漸入漸出。cubic-bezier 是先快後緩的收尾,停下來時比 ease 沉穩。 */
+  transition:border-color .32s ease,
+             box-shadow .32s ease,
+             transform .32s cubic-bezier(.22,.61,.36,1);
 }
 .game-card:hover{
-  border-color:rgba(var(--glow-rgb),.5);
-  transform:translateY(-2px);
-  box-shadow:0 8px 20px -8px rgba(0,0,0,.4);
+  transform:translateY(-4px);
+  box-shadow:0 14px 30px -14px rgba(0,0,0,.6),
+             0 0 24px -10px rgba(var(--glow-rgb),.5);
 }
+/* hover 的框:漸層而不是單一顏色的 rgba。
+   一條從玫瑰紅過渡到暖金再收回玫瑰紅的線,看起來像有光從某個角度掃過,
+   而不是整條線一起變色 —— 這是「有質感」和「換個顏色」的差別。
+   招牌卡片排除在外,它自己那圈跑馬光條已經在做同一件事。               */
+.game-card:not(.game-card--featured)::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  padding:1px;
+  border-radius:12px;
+  pointer-events:none;
+  background:linear-gradient(145deg,
+    rgba(var(--glow-rgb),.9)  0%,
+    rgba(var(--glow-rgb),.28) 32%,
+    rgba(232,189,112,.5)      58%,
+    rgba(var(--glow-rgb),.35) 76%,
+    rgba(var(--glow-rgb),.85) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  opacity:0;
+  transition:opacity .32s ease;
+}
+.game-card:not(.game-card--featured):hover::after{opacity:1}
+/* 讓漸層框接手,底下那條純色邊框同時淡出,免得兩條線在圓角上打架 */
+.game-card:not(.game-card--featured):hover{border-color:transparent}
 
 /* ── 招牌卡片的跑馬光條(首頁飛行棋)──────────────────────────
    一道彗星狀的光沿著外框跑:conic-gradient 轉角度,再用 mask 把中間挖空,
