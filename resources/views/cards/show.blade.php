@@ -161,9 +161,17 @@ body[data-cm-mode="king"] .p-gender{display:none}
             <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
 
+        {{-- 擋下來的當下要同時給兩條路:看廣告(現在就能繼續)與升級(一勞永逸)。
+             只給升級的話,不想付錢的人就直接離開了,連廣告收入都沒有。 --}}
         <div id="upgrade-notice" style="display:none;text-align:center;margin-top:12px">
             <p style="color:var(--gold);margin-bottom:8px" id="cm-gate-text"></p>
-            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">{{ __('minigame.go_premium') }}</a>
+            <div class="mg-gate-actions">
+                <button type="button" class="btn btn-gold"
+                        onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
+                    {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
+                </button>
+                <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">{{ __('minigame.go_premium') }}</a>
+            </div>
         </div>
     </div>
 </div>

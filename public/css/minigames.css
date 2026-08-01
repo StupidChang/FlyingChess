@@ -125,6 +125,10 @@
 .mg-round-badge{text-align:center;color:var(--gold,#d9a441);font-size:1.15rem;margin-bottom:16px}
 .mg-current-player{font-size:1.2rem;color:var(--gold,#d9a441);font-weight:700;text-align:center;margin-bottom:12px}
 .mg-action-btns{text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+/* 付費關卡的兩個出口:看廣告(主要)與升級(次要)。
+   並排而不是上下堆疊,是為了讓兩者看起來是「選一個」而不是「主要動作 + 補充說明」。
+   窄螢幕才換行,那時反而堆疊比較好按。 */
+.mg-gate-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
 /* ── Gender tags (pairing displays) ───────────────────────────────── */
 .mg-gender-tag{display:inline-block;font-size:.7rem;padding:1px 8px;border-radius:6px;font-weight:600;vertical-align:middle;margin-left:4px}

@@ -99,7 +99,7 @@
         });
     }
 
-    openB && openB.addEventListener('click', function(){
+    function openModal(){
         modal.hidden = false;
         claimB.disabled = true;
         status.textContent = '';
@@ -120,7 +120,15 @@
                 status.textContent = T.watching.replace('__S__', n);
             }, 1000);
         });
-    });
+    }
+
+    openB && openB.addEventListener('click', openModal);
+
+    // 付費關卡上的「看廣告解鎖」按鈕從這裡打開同一個彈窗。
+    // 掛在 window 而不是各頁自己複製一份流程:計時、發憑證、兌換那幾段只能有
+    // 一份,分身出去之後遲早會有一份忘了改。骰子那頁的關卡是 JS 動態產生的,
+    // 事件監聽器綁不到,所以要用全域函式而不是 addEventListener。
+    window.rewardedUnlockOpen = openModal;
 
     claimB.addEventListener('click', function(){
         claimB.disabled = true;

@@ -568,9 +568,16 @@
         turn++;
         if(turn>=players.length){turn=0;round++;}
         if(round>6&&!IS_PREMIUM){
+            // 兩條路並列:看廣告(現在就能繼續)與升級(一勞永逸)。
+            // 這段 HTML 是動態產生的,所以按鈕走 onclick 呼叫全域函式,
+            // rewarded-unlock 那份 partial 的 addEventListener 綁不到後生成的節點。
             document.getElementById('result-display').innerHTML=
                 '<p style="color:var(--gold);margin:16px 0">'+escHtml(@json(__('minigame.dice_premium_gate')))+'</p>'+
-                '<a href="{{ route('premium.index') }}" class="btn btn-outline-gold">'+escHtml(@json(__('minigame.go_premium')))+'</a>';
+                '<div class="mg-gate-actions">'+
+                '<button type="button" class="btn btn-gold" onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">'+
+                escHtml(@json(__('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()])))+'</button>'+
+                '<a href="{{ route('premium.index') }}" class="btn btn-outline-gold">'+escHtml(@json(__('minigame.go_premium')))+'</a>'+
+                '</div>';
             document.getElementById('next-btn').style.display='none';
             return;
         }

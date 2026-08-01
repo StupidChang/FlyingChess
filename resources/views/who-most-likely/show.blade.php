@@ -107,9 +107,16 @@
             <button class="btn btn-gold btn-xl" id="next-round-btn" style="display:none" onclick="nextRound()">{{ __('minigame.wml_next') }}</button>
             <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
         </div>
+        {{-- 兩條路並列,理由同 cards/show.blade.php --}}
         <div id="upgrade-notice" style="display:none;text-align:center;margin-top:12px">
             <p style="color:var(--gold);margin-bottom:8px">{{ __('minigame.wml_premium_gate') }}</p>
-            <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">{{ __('minigame.go_premium') }}</a>
+            <div class="mg-gate-actions">
+                <button type="button" class="btn btn-gold"
+                        onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
+                    {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
+                </button>
+                <a href="{{ route('premium.index') }}" class="btn btn-outline-gold">{{ __('minigame.go_premium') }}</a>
+            </div>
         </div>
     </div>
 </div>
