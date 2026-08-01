@@ -121,6 +121,9 @@
   overflow: hidden;
   box-shadow: 0 20px 50px -14px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.04);
   position: relative;
+  /* 棋盤是 .board-wrap(display:flex)的子項,預設會被 flex-shrink 壓回容器寬度 ——
+     手機上我們刻意讓它超出畫面再捲動,所以不能讓它縮。 */
+  flex: none;
 }
 
 /* ---- Individual board square ---- */
@@ -170,8 +173,10 @@
 
 /* ---- Square text — always high-contrast; category is conveyed by the
    top edge color, not by tinting the text (keeps it readable on dark) ---- */
+/* 字級跟著格子走(--cell 由 sizeGameBoard 寫進 #game-board),不是跟著視窗。
+   綁 vw 的話,手機上不管我們把格子放到多大,字都會停在 clamp 的下限。 */
 .sq-text {
-  font-size: clamp(0.38rem, 0.9vw, 0.7rem);
+  font-size: clamp(7px, calc(var(--cell, 60px) * .17), 0.7rem);
   line-height: 1.3;
   color: var(--text, #e9ebf2);
   font-weight: 600;
@@ -185,12 +190,12 @@
 .board-sq.color-start .sq-text,
 .board-sq.color-end   .sq-text {
   font-weight: 800;
-  font-size: clamp(.42rem, 1vw, .8rem);
+  font-size: clamp(8px, calc(var(--cell, 60px) * .2), .8rem);
 }
 
 /* ---- Position number badge ---- */
 .sq-num {
-  font-size: clamp(0.32rem, 0.6vw, 0.5rem);
+  font-size: clamp(6px, calc(var(--cell, 60px) * .12), 0.5rem);
   color: var(--text-dim, #9aa1b5);
   position: absolute;
   top: 2px;
@@ -282,7 +287,7 @@
 .corner-icon.ic-cup    svg { color: var(--yellow, #facc15); }
 .corner-icon.ic-trophy svg { color: var(--gold, #d9a441); }
 .corner-sub {
-  font-size: clamp(.28rem, .6vw, .48rem);
+  font-size: clamp(6px, calc(var(--cell, 60px) * .11), .48rem);
   color: var(--text-dim, #9aa1b5);
   line-height: 1.4;
   white-space: pre-line;
@@ -294,7 +299,7 @@
   bottom: 2px;
   left: 2px;
   right: 2px;
-  font-size: clamp(.3rem, .6vw, .48rem);
+  font-size: clamp(6px, calc(var(--cell, 60px) * .11), .48rem);
   color: #04121b;
   font-weight: 800;
   background: var(--blue, #38bdf8);
@@ -1040,68 +1045,55 @@
   max-height: 2.8em; overflow: hidden;
 }
 
-/* ── 進場轉盤的環境效果 ──────────────────────────────────
-   兩層,都掛在 .bew-graphic 上:轉盤是圓的,所以效果也要是圓的,不能沿用
-   卡片那套圓角矩形的環。用 top/bottom:0 + aspect-ratio:1 取一個正方形再切圓,
-   尺寸就會跟著 SVG 走(SVG 也是 height:100%),不用寫死任何 px。
+/* ── 棋盤的環境效果 ────────────────────────────────────
+   兩件事:外框有一道白光繞著跑,棋盤後面有一層煽情色調在呼吸。
 
-   ::before 是背景的呼吸光暈,z-index:-1 壓在轉盤底下 —— 負值的定位子元素會畫在
-   父層「內容」之下,正好是我們要的(蓋在父層背景之上、轉盤之下)。
-   ::after 是繞著外緣跑的白光,擺在圓周之外,不會蓋到扇形。                */
-@property --wheel-beam { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+   白光用的是首頁招牌卡片那一套(conic 轉角度 + mask 挖空只留框),差別只在
+   這裡的圓角與邊框寬度要對上棋盤自己的值,否則四個角會歪 —— 那個坑在卡片上
+   踩過一次,註解也留在 app.css 裡。                                      */
+@property --board-beam { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 
-.board-entry-wheel .bew-graphic { position: relative; }
-
-.board-entry-wheel .bew-graphic::before,
-.board-entry-wheel .bew-graphic::after {
+.game-board::before {
   content: '';
   position: absolute;
-  left: 50%;
-  aspect-ratio: 1;
-  border-radius: 50%;
+  inset: 0;
+  padding: 1px;                 /* 與 .game-board 的 border 同寬 */
+  border-radius: inherit;
   pointer-events: none;
-}
-
-/* 呼吸的底光。玫瑰紅到暖金,慢到像呼吸而不是閃爍(8 秒一個來回)。 */
-.board-entry-wheel .bew-graphic::before {
-  /* -6% 而不是更大:.board-entry-wheel 有 overflow:hidden(擋住轉盤溢出格子),
-     光暈超過格子可用高度的話會被切出一條直邊,反而比沒有光暈難看。
-     柔邊交給 blur 與 radial 的漸層,不是靠把尺寸拉大。 */
-  top: -6%; bottom: -6%;
-  z-index: -1;
-  background:
-    radial-gradient(circle,
-      rgba(var(--glow-rgb, 244,63,94), .45) 0%,
-      rgba(217, 164, 65, .28) 42%,
-      transparent 72%);
-  filter: blur(12px);
-  animation: wheel-breathe 8s ease-in-out infinite;
-}
-
-/* 繞外緣跑的白光。跟卡片同一套作法:conic 轉角度 + mask 挖空只留環,
-   差別是這裡的環是正圓。3.6 秒一圈,比卡片快 —— 轉盤本來就該看起來在轉。 */
-.board-entry-wheel .bew-graphic::after {
-  top: -5%; bottom: -5%;
-  padding: 2px;
-  background: conic-gradient(from var(--wheel-beam),
+  z-index: 5;                   /* 壓在格子之上:光是畫在框上的 */
+  background: conic-gradient(from var(--board-beam),
     transparent 0deg,
-    transparent 250deg,
-    rgba(255, 255, 255, .25) 310deg,
-    rgba(255, 255, 255, .85) 348deg,
-    #fff 355deg,
+    transparent 205deg,
+    rgba(var(--glow-rgb, 244,63,94), .35) 288deg,
+    rgba(255, 255, 255, .75) 342deg,
+    #fff 352deg,
+    rgba(232, 189, 112, .6) 356deg,
     transparent 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  animation: wheel-beam 3.6s linear infinite;
+  animation: board-beam 7s linear infinite;
 }
 
-@keyframes wheel-breathe {
-  0%, 100% { transform: translateX(-50%) scale(.88); opacity: .4; }
-  50%      { transform: translateX(-50%) scale(1.04); opacity: 1; }
-}
-@keyframes wheel-beam { to { --wheel-beam: 360deg; } }
+@keyframes board-beam { to { --board-beam: 360deg; } }
 
-/* 沒有 transform 動畫的那一層也要置中 */
-.board-entry-wheel .bew-graphic::after { transform: translateX(-50%); }
+/* 棋盤背後的呼吸光。棋盤本身是不透明的,所以這層只會在四周透出來 ——
+   像桌面被一盞暖燈照著,而不是棋盤自己在發光。
+   ⚠ 這裡原本掛的是 hero-glow,但那組 keyframes 在整個專案裡都不存在,
+   所以這層從來沒有動過。 */
+.board-wrap::before {
+  background:
+    radial-gradient(ellipse at 50% 28%,
+      rgba(var(--glow-rgb, 244,63,94), .30) 0%, transparent 62%),
+    radial-gradient(ellipse at 22% 78%,
+      rgba(217, 164, 65, .18) 0%, transparent 58%),
+    radial-gradient(ellipse at 82% 74%,
+      rgba(168, 85, 247, .16) 0%, transparent 58%);
+  animation: board-breathe 11s ease-in-out infinite;
+}
+
+@keyframes board-breathe {
+  0%, 100% { opacity: .45; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.06); }
+}

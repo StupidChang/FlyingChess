@@ -234,6 +234,10 @@ function updateHeaderVar() {
 
 /* Size the board to the wrap's actual free space (padding excluded),
    preserving the grid's aspect ratio. */
+/* 一格的可讀下限。52px 試過,字級只有 8.8px —— 看得到有字,但讀不出寫什麼。
+   64px 對應到約 10.9px,是這個字量下實際讀得動的最小尺寸。 */
+const MIN_CELL = 64;
+
 function sizeGameBoard(board, cols, rows) {
   const wrap = board.closest('.board-wrap');
   const ar = cols / rows;
@@ -246,8 +250,46 @@ function sizeGameBoard(board, cols, rows) {
   }
   let bw = maxW, bh = bw / ar;
   if (bh > maxH) { bh = maxH; bw = bh * ar; }
+
+  /* 格子有一個可讀的下限。手機上把整張棋盤塞進畫面,13 欄的棋盤每格只剩
+     二十幾 px、字小到 7px —— 那不是「縮小」,是根本看不到。
+     低於下限就不再縮,改讓棋盤超出視窗由 .board-wrap 捲動(它本來就是
+     overflow:auto),再由 followActivePiece() 自動捲到輪到的那顆棋子。
+     寧可要捲動也不要一張讀不了的棋盤。 */
+  if (bw / cols < MIN_CELL) {
+    bw = cols * MIN_CELL;
+    bh = rows * MIN_CELL;
+  }
+
   board.style.width  = Math.floor(bw) + 'px';
   board.style.height = Math.floor(bh) + 'px';
+  /* CSS 的 max-width:100% 會把刻意超出視窗的棋盤壓回去,欄寬就又縮小了。
+     寬度是這裡算出來的,交給 .board-wrap 捲動即可。 */
+  board.style.maxWidth = 'none';
+  // 格子邊長給 CSS 用:格子裡的字級跟著它走,見 board.css 的 .sq-text。
+  board.style.setProperty('--cell', Math.floor(bw / cols) + 'px');
+}
+
+/**
+ * 棋盤超出可視範圍時(手機),把輪到的那顆棋子捲進畫面中央。
+ *
+ * 傳進來的是**目的地元素**(格子或進場轉盤),不是棋子本身:棋子的移動是 CSS
+ * transition,剛設好 transform 的那一瞬間 getBoundingClientRect() 拿到的還是舊
+ * 位置,照著捲等於捲到它出發前的地方 —— 看起來就像完全沒有跟。
+ */
+function followActivePiece(target) {
+  const wrap = document.querySelector('.board-wrap');
+  if (!wrap || !target) return;
+  if (wrap.scrollWidth <= wrap.clientWidth && wrap.scrollHeight <= wrap.clientHeight) return;
+
+  const wrapRect = wrap.getBoundingClientRect();
+  const rect = target.getBoundingClientRect();
+
+  wrap.scrollTo({
+    left: wrap.scrollLeft + (rect.left - wrapRect.left) - (wrap.clientWidth - rect.width) / 2,
+    top: wrap.scrollTop + (rect.top - wrapRect.top) - (wrap.clientHeight - rect.height) / 2,
+    behavior: 'smooth',
+  });
 }
 
 /* Re-fit on resize/rotation; piece positions are derived from square rects,
@@ -491,6 +533,7 @@ function renderPieces() {
   const wheelEl = board.querySelector('.board-entry-wheel');
   // 棋子一律用格子的尺寸;沒有格子可量(理論上不會發生)才退回目標元素。
   const cellRef = board.querySelector('.board-sq');
+  let activeTarget = null;
 
   state.players.forEach((p, i) => {
     let el = document.getElementById(`piece-${i+1}`);
@@ -506,6 +549,7 @@ function renderPieces() {
 
     const target = waiting ? wheelEl : document.getElementById(`sq-${currentPos(p)}`);
     if (!target) return;
+    if (i === state.current) activeTarget = target;
     const isNew = !el;
     if (isNew) {
       el = document.createElement('div');
@@ -531,6 +575,9 @@ function renderPieces() {
       place();
     }
   });
+
+  // 棋盤放不進畫面時(手機),跟著輪到的那顆棋子捲動。
+  followActivePiece(activeTarget);
 }
 
 /* ═══════════════════════════════════════════════════
