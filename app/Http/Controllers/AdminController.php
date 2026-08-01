@@ -489,6 +489,23 @@ class AdminController extends Controller
             ->with('success', '卡片已更新');
     }
 
+    /**
+     * 複製一張卡片,然後直接打開副本的編輯頁。
+     *
+     * 用途是「照這一題再做一個變體」—— 同樣的內容換個限定對象或尺度。複製完
+     * 留在列表的話,副本多半會排到別頁去(預設依建立時間排序),還要自己找;
+     * 直接進編輯頁才接得上下一步。
+     */
+    public function duplicateCard(Request $request, TruthDareCard $card)
+    {
+        $copy = $card->replicate();
+        $copy->save();
+
+        return redirect()
+            ->route('admin.cards.edit', [$copy, 'return' => http_build_query($this->listReturn($request))])
+            ->with('success', '已複製,這是副本');
+    }
+
     public function destroyCard(Request $request, TruthDareCard $card)
     {
         $card->delete();
@@ -568,6 +585,16 @@ class AdminController extends Controller
 
         return redirect()->route('admin.wheel-segments', $this->listReturn($request))
             ->with('success', '轉盤任務已更新');
+    }
+
+    public function duplicateWheelSegment(Request $request, WheelSegment $wheelSegment)
+    {
+        $copy = $wheelSegment->replicate();
+        $copy->save();
+
+        return redirect()
+            ->route('admin.wheel-segments.edit', [$copy, 'return' => http_build_query($this->listReturn($request))])
+            ->with('success', '已複製,這是副本');
     }
 
     public function destroyWheelSegment(Request $request, WheelSegment $wheelSegment)
@@ -668,6 +695,16 @@ class AdminController extends Controller
 
         return redirect()->route('admin.prompts', $this->listReturn($request) + ['game' => $data['game']])
             ->with('success', '題目已更新');
+    }
+
+    public function duplicatePrompt(Request $request, GamePrompt $prompt)
+    {
+        $copy = $prompt->replicate();
+        $copy->save();
+
+        return redirect()
+            ->route('admin.prompts.edit', [$copy, 'return' => http_build_query($this->listReturn($request))])
+            ->with('success', '已複製,這是副本');
     }
 
     public function destroyPrompt(Request $request, GamePrompt $prompt)

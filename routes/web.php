@@ -17,9 +17,9 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlayController;
 use App\Http\Controllers\PremiumController;
-use App\Http\Controllers\SesFeedbackController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RewardedUnlockController;
+use App\Http\Controllers\SesFeedbackController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TimeCapsuleController;
 use App\Http\Controllers\TruthDareController;
@@ -396,6 +396,7 @@ Route::prefix('{locale}')
             Route::post('/cards', [AdminController::class, 'storeCard'])->name('cards.store');
             Route::get('/cards/{card}/edit', [AdminController::class, 'editCard'])->name('cards.edit');
             Route::patch('/cards/{card}', [AdminController::class, 'updateCard'])->name('cards.update');
+            Route::post('/cards/{card}/duplicate', [AdminController::class, 'duplicateCard'])->name('cards.duplicate');
             Route::delete('/cards/{card}', [AdminController::class, 'destroyCard'])->name('cards.destroy');
             Route::get('/users', [AdminController::class, 'users'])->name('users');
             Route::get('/users/{user}/edit', [AdminController::class, 'editUser'])->name('users.edit');
@@ -413,6 +414,7 @@ Route::prefix('{locale}')
             Route::post('/prompts/import', [AdminController::class, 'importPrompts'])->name('prompts.import');
             Route::get('/prompts/{prompt}/edit', [AdminController::class, 'editPrompt'])->name('prompts.edit');
             Route::patch('/prompts/{prompt}', [AdminController::class, 'updatePrompt'])->name('prompts.update');
+            Route::post('/prompts/{prompt}/duplicate', [AdminController::class, 'duplicatePrompt'])->name('prompts.duplicate');
             Route::delete('/prompts/{prompt}', [AdminController::class, 'destroyPrompt'])->name('prompts.destroy');
 
             Route::get('/wheel-segments', [AdminController::class, 'wheelSegments'])->name('wheel-segments');
@@ -420,6 +422,7 @@ Route::prefix('{locale}')
             Route::post('/wheel-segments', [AdminController::class, 'storeWheelSegment'])->name('wheel-segments.store');
             Route::get('/wheel-segments/{wheelSegment}/edit', [AdminController::class, 'editWheelSegment'])->name('wheel-segments.edit');
             Route::patch('/wheel-segments/{wheelSegment}', [AdminController::class, 'updateWheelSegment'])->name('wheel-segments.update');
+            Route::post('/wheel-segments/{wheelSegment}/duplicate', [AdminController::class, 'duplicateWheelSegment'])->name('wheel-segments.duplicate');
             Route::delete('/wheel-segments/{wheelSegment}', [AdminController::class, 'destroyWheelSegment'])->name('wheel-segments.destroy');
         });
     });

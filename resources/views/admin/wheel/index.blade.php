@@ -70,6 +70,11 @@
                         </td>
                         <td style="white-space:nowrap">
                             <a href="{{ route('admin.wheel-segments.edit', [$segment, 'return' => request()->getQueryString()]) }}" class="btn btn-sm">編輯</a>
+                            <form action="{{ route('admin.wheel-segments.duplicate', $segment) }}" method="POST" style="display:inline">
+                                @csrf
+                                <input type="hidden" name="return" value="{{ request()->getQueryString() }}">
+                                <button type="submit" class="btn btn-sm btn-outline" title="複製這一題,直接開副本的編輯頁">複製</button>
+                            </form>
                             <form action="{{ route('admin.wheel-segments.destroy', $segment) }}" method="POST"
                                   style="display:inline" onsubmit="return confirm('確定刪除此任務？')">
                                 @csrf @method('DELETE')
