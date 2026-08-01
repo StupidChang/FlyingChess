@@ -59,7 +59,19 @@
 .td-scale-tag--free{background:rgba(52,211,153,.14);color:#5fd08a;border:1px solid rgba(52,211,153,.4)}
 .td-scale-tag--paid{background:rgba(244,63,94,.14);color:#f5a3b3;border:1px solid rgba(244,63,94,.45)}
 .td-scale-row p{font-size:.78rem;line-height:1.65;color:var(--text-dim);margin:0}
-.td-scale-unlock{width:100%;margin-top:14px}
+.td-actions{display:flex;gap:10px;align-items:stretch}
+.td-actions .btn-submit{flex:2.4;width:auto}
+.td-unlock-side{
+  flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px;
+  padding:8px 10px;line-height:1.25;
+}
+.td-unlock-side strong{font-size:.8rem;font-weight:600}
+.td-unlock-side em{font-style:normal;font-size:.68rem;opacity:.75}
+@media(max-width:380px){
+  .td-actions{flex-direction:column}
+  .td-actions .btn-submit,.td-unlock-side{flex:none;width:100%}
+  .td-unlock-side{flex-direction:row;gap:6px}
+}
 .td-scale-unlocked{margin-top:12px;font-size:.78rem;color:var(--gold);text-align:center}
 
 .td-mode-desc{font-size:.8rem;color:var(--text-dim);text-align:center;margin-top:-12px;margin-bottom:16px;min-height:1.2em}
@@ -133,12 +145,7 @@
                         <p>{{ __('games.td_scale_paid_desc') }}</p>
                     </div>
 
-                    @if(! \App\Support\PremiumAccess::content(auth()->user()))
-                    <button type="button" class="btn btn-sm btn-outline-gold td-scale-unlock"
-                            onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
-                        {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
-                    </button>
-                    @else
+                    @if(\App\Support\PremiumAccess::content(auth()->user()))
                     <p class="td-scale-unlocked">{{ __('games.td_tier_unlocked') }}</p>
                     @endif
                 </div>
@@ -147,7 +154,18 @@
             {{-- 18+ only — normal mode removed; the whole site is adults-only --}}
             <p class="td-mode-desc adult-desc" id="mode-desc">{{ __('games.td_mode_adult_desc') }}</p>
 
-            <button type="submit" class="btn btn-gold btn-submit">{{ __('games.td_start_button') }}</button>
+            {{-- 解鎖擺在開始遊戲右邊,但刻意做窄、做成外框 —— 主要動作只有一個,
+                 兩顆一樣大一樣醒目的話反而不知道該按哪個。 --}}
+            <div class="td-actions">
+                <button type="submit" class="btn btn-gold btn-submit">{{ __('games.td_start_button') }}</button>
+                @if(! \App\Support\PremiumAccess::content(auth()->user()))
+                <button type="button" class="btn btn-outline-gold td-unlock-side"
+                        onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
+                    <strong>{{ __('minigame.rewarded_cta_short') }}</strong>
+                    <em>+{{ __('minigame.rewarded_minutes', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}</em>
+                </button>
+                @endif
+            </div>
         </form>
 
         @if($errors->any())

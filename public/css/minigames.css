@@ -48,19 +48,22 @@
 
 .mg-player-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
 
-/* 逐漸升溫開關。五個遊戲共用同一個樣子。 */
-.mg-escalate{display:flex;gap:10px;align-items:flex-start;cursor:pointer;
-  margin:14px 0;padding:12px;border-radius:10px;
+/* 逐漸升溫開關。五個遊戲共用同一個樣子。
+   標題與說明擠在同一行、字級壓小 —— 這是次要選項,不該長得跟主要動作一樣重。
+   窄螢幕放不下時說明才換行。 */
+.mg-escalate{display:flex;gap:8px;align-items:center;cursor:pointer;
+  margin:12px 0;padding:8px 10px;border-radius:8px;
   background:var(--bg,#0d0f16);border:1px solid var(--border,#2a2f42);
   transition:border-color .18s ease,background .18s ease}
 .mg-escalate:hover{border-color:var(--text-dim,#8b90a5)}
-.mg-escalate input{width:18px;height:18px;margin-top:2px;flex:none;
+.mg-escalate input{width:15px;height:15px;flex:none;
   accent-color:var(--gold,#d9a441);cursor:pointer}
 .mg-escalate:has(input:checked){border-color:var(--gold,#d9a441);background:rgba(217,164,65,.07)}
-.mg-escalate strong{display:block;font-size:.9rem;color:var(--text,#e9ebf2)}
+.mg-escalate > span{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
+.mg-escalate strong{font-size:.8rem;font-weight:600;color:var(--text,#e9ebf2);white-space:nowrap}
 .mg-escalate:has(input:checked) strong{color:var(--gold,#d9a441)}
-.mg-escalate em{display:block;font-style:normal;font-size:.75rem;line-height:1.5;
-  color:var(--text-dim,#8b90a5);margin-top:2px}
+.mg-escalate em{font-style:normal;font-size:.7rem;line-height:1.45;
+  color:var(--text-dim,#8b90a5);min-width:0}
 
 /* 玩家頭像。挑選面板是 .pa 內的絕對定位元素 —— 不用算座標,手機上也不會跑版。 */
 .pa{position:relative;flex:none}

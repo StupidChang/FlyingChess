@@ -221,4 +221,6 @@ return [
     'wml_premium_gate' => '免费版最多 6 题，升级 Premium 解锁无限题目与更火辣的成人题库！',
     'escalate_label' => '逐渐升温',
     'escalate_desc' => '从基础题目开始,每几回合往上开放更大尺度的题目',
+    'rewarded_cta_short' => '看广告解锁',
+    'rewarded_minutes' => ':minutes 分钟',
 ];
