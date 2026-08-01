@@ -1039,3 +1039,69 @@
   color: var(--gold, #d9a441); font-weight: 700;
   max-height: 2.8em; overflow: hidden;
 }
+
+/* ── 進場轉盤的環境效果 ──────────────────────────────────
+   兩層,都掛在 .bew-graphic 上:轉盤是圓的,所以效果也要是圓的,不能沿用
+   卡片那套圓角矩形的環。用 top/bottom:0 + aspect-ratio:1 取一個正方形再切圓,
+   尺寸就會跟著 SVG 走(SVG 也是 height:100%),不用寫死任何 px。
+
+   ::before 是背景的呼吸光暈,z-index:-1 壓在轉盤底下 —— 負值的定位子元素會畫在
+   父層「內容」之下,正好是我們要的(蓋在父層背景之上、轉盤之下)。
+   ::after 是繞著外緣跑的白光,擺在圓周之外,不會蓋到扇形。                */
+@property --wheel-beam { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+
+.board-entry-wheel .bew-graphic { position: relative; }
+
+.board-entry-wheel .bew-graphic::before,
+.board-entry-wheel .bew-graphic::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 呼吸的底光。玫瑰紅到暖金,慢到像呼吸而不是閃爍(8 秒一個來回)。 */
+.board-entry-wheel .bew-graphic::before {
+  /* -6% 而不是更大:.board-entry-wheel 有 overflow:hidden(擋住轉盤溢出格子),
+     光暈超過格子可用高度的話會被切出一條直邊,反而比沒有光暈難看。
+     柔邊交給 blur 與 radial 的漸層,不是靠把尺寸拉大。 */
+  top: -6%; bottom: -6%;
+  z-index: -1;
+  background:
+    radial-gradient(circle,
+      rgba(var(--glow-rgb, 244,63,94), .45) 0%,
+      rgba(217, 164, 65, .28) 42%,
+      transparent 72%);
+  filter: blur(12px);
+  animation: wheel-breathe 8s ease-in-out infinite;
+}
+
+/* 繞外緣跑的白光。跟卡片同一套作法:conic 轉角度 + mask 挖空只留環,
+   差別是這裡的環是正圓。3.6 秒一圈,比卡片快 —— 轉盤本來就該看起來在轉。 */
+.board-entry-wheel .bew-graphic::after {
+  top: -5%; bottom: -5%;
+  padding: 2px;
+  background: conic-gradient(from var(--wheel-beam),
+    transparent 0deg,
+    transparent 250deg,
+    rgba(255, 255, 255, .25) 310deg,
+    rgba(255, 255, 255, .85) 348deg,
+    #fff 355deg,
+    transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: wheel-beam 3.6s linear infinite;
+}
+
+@keyframes wheel-breathe {
+  0%, 100% { transform: translateX(-50%) scale(.88); opacity: .4; }
+  50%      { transform: translateX(-50%) scale(1.04); opacity: 1; }
+}
+@keyframes wheel-beam { to { --wheel-beam: 360deg; } }
+
+/* 沒有 transform 動畫的那一層也要置中 */
+.board-entry-wheel .bew-graphic::after { transform: translateX(-50%); }
