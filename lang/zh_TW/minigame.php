@@ -223,4 +223,10 @@ return [
     'escalate_desc' => '從基礎題目開始,每幾回合往上開放更大尺度的題目',
     'rewarded_cta_short' => '看廣告解鎖',
     'rewarded_minutes' => ':minutes 分鐘',
+    'tier_mild_plus' => '輕中',
+    'tier_medium_plus' => '中重',
+    'wheel_mild_plus_name' => '微撩',
+    'wheel_mild_plus_desc' => '比暖場再進一步,開始有一點曖昧',
+    'wheel_medium_plus_name' => '挑逗',
+    'wheel_medium_plus_desc' => '親密之上、大膽之下,火候剛好',
 ];

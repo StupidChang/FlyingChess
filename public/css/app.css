@@ -1211,8 +1211,11 @@ select.admin-search-input{cursor:pointer;min-width:140px}
   display:inline-block;padding:2px 8px;font-size:.75rem;font-weight:600;
   border-radius:6px;white-space:nowrap;
 }
+/* 五級從綠走到紅,顏色本身就看得出輕重,不用讀字 */
 .badge-tier--mild{background:#10b981;color:#04231a}
+.badge-tier--mild_plus{background:#84cc16;color:#16230a}
 .badge-tier--medium{background:#f59e0b;color:#000}
+.badge-tier--medium_plus{background:#f97316;color:#1d0a00}
 .badge-tier--intense{background:#ef4444;color:#fff}
 .badge-tier--neutral{background:var(--surface2);color:var(--text-dim)}
 /* 適用人數。跟強度是不同的軸,所以刻意用外框而不是實心,兩欄擺在一起不會搞混。 */

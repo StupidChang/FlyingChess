@@ -136,7 +136,9 @@
                 <div class="td-scale-body">
                     {{-- 三級都列出來,而且用跟後台、抽到的卡片同一組顏色。 --}}
                     @foreach(['mild' => 'games.td_scale_mild_desc',
+                              'mild_plus' => 'games.td_scale_mild_plus_desc',
                               'medium' => 'games.td_scale_medium_desc',
+                              'medium_plus' => 'games.td_scale_medium_plus_desc',
                               'intense' => 'games.td_scale_intense_desc'] as $level => $desc)
                     <div class="td-scale-row">
                         <span class="badge-tier badge-tier--{{ $level }}">{{ __('games.td_level_'.$level) }}</span>

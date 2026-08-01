@@ -32,10 +32,16 @@ class TruthDareCard extends Model
      */
     /* 標籤不帶「(付費)」—— 收費是每張卡片自己的 is_paid,不是這一級的屬性。
        重度也可以有免費的題目,中度也可以有付費的。 */
-    public const LEVELS = ['mild' => '輕度', 'medium' => '中度', 'intense' => '重度'];
+    public const LEVELS = [
+        'mild' => '輕度',
+        'mild_plus' => '輕中',
+        'medium' => '中度',
+        'medium_plus' => '中重',
+        'intense' => '重度',
+    ];
 
     /** 由輕到重的順序。升溫的階梯與後台排序都靠它。 */
-    public const LEVEL_ORDER = ['mild', 'medium', 'intense'];
+    public const LEVEL_ORDER = ['mild', 'mild_plus', 'medium', 'medium_plus', 'intense'];
 
     /**
      * 新增卡片時預設要不要收費。

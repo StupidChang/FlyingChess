@@ -191,7 +191,7 @@ body[data-cm-mode="king"] .p-gender{display:none}
     var ACTIVITIES = @json($activities);
     /* 由輕到重,而且只留真的拿得到的等級 —— 沒付費也沒看廣告的話 intense
        根本不在 ACTIVITIES 裡,升溫就停在拿得到的最高一級。 */
-    var TIER_ORDER = ['mild','medium','intense'].filter(function(t){
+    var TIER_ORDER = ['mild','mild_plus','medium','medium_plus','intense'].filter(function(t){
         return ACTIVITIES[t] && ACTIVITIES[t].length;
     });
     var escalate = false;
@@ -231,6 +231,8 @@ body[data-cm-mode="king"] .p-gender{display:none}
         resting:   @json(__('minigame.card_resting', ['names' => '__NAMES__'])),
         nameSep:   @json(__('minigame.name_separator')),
         tierMild:  @json(__('minigame.tier_mild')),
+        tierMildP: @json(__('minigame.tier_mild_plus')),
+        tierMedP:  @json(__('minigame.tier_medium_plus')),
         tierMed:   @json(__('minigame.tier_medium')),
         tierInt:   @json(__('minigame.tier_intense'))
     };
@@ -350,7 +352,8 @@ body[data-cm-mode="king"] .p-gender{display:none}
 
     /* ---------- 回合 ---------- */
     function tierTag(){
-        var label = {mild:MSG.tierMild, medium:MSG.tierMed, intense:MSG.tierInt}[roundTier] || MSG.tierMild;
+        var label = {mild:MSG.tierMild, mild_plus:MSG.tierMildP, medium:MSG.tierMed,
+                     medium_plus:MSG.tierMedP, intense:MSG.tierInt}[roundTier] || MSG.tierMild;
         return '<span class="mg-tag mg-tag-'+roundTier+'">'+esc(label)+'</span>';
     }
 

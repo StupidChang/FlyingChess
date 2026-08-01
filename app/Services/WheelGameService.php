@@ -67,7 +67,10 @@ class WheelGameService
     {
         $pools = self::loadFromDb($isPremium);
 
-        if (! empty($pools['mild']) && ! empty($pools['medium']) && ! empty($pools['intense'])) {
+        /* 資料表有東西就用資料表。原本要求三級都有才算數,五級之後那個條件
+           幾乎不可能成立(新加的兩級一開始是空的),會一路退回寫死的常數,
+           後台改的東西就完全看不到。改成「有任何一級就以資料表為準」。 */
+        if (array_filter($pools)) {
             return $pools;
         }
 

@@ -116,10 +116,12 @@
 @keyframes mg-toast-in{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes mg-toast-out{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
 
-/* ── Intensity tag ladder (mild → medium → bold → intense) ────────── */
+/* ── Intensity tag ladder (輕度 → 輕中 → 中度 → 中重 → 重度) ────────── */
 .mg-tag{display:inline-block;font-size:.75rem;padding:2px 10px;border-radius:6px;font-weight:600;margin-left:8px;letter-spacing:.2px}
 .mg-tag-mild{background:rgba(74,222,128,.15);color:var(--green,#4ade80)}
+.mg-tag-mild_plus{background:rgba(132,204,22,.15);color:#a3e635}
 .mg-tag-medium{background:rgba(250,204,21,.15);color:var(--yellow,#facc15)}
+.mg-tag-medium_plus{background:rgba(249,115,22,.15);color:#fb923c}
 .mg-tag-bold{background:rgba(244,63,94,.15);color:var(--accent,#f43f5e)}
 .mg-tag-intense{background:rgba(248,113,113,.15);color:var(--red,#f87171)}
 

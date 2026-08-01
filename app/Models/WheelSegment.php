@@ -19,7 +19,16 @@ class WheelSegment extends Model
     ];
 
     /** 強度。名稱不帶「(付費)」—— 收費是每一題自己的 is_paid。 */
-    public const TIERS = ['mild' => '輕鬆', 'medium' => '親密', 'intense' => '大膽'];
+    public const TIERS = [
+        'mild' => '輕鬆',
+        'mild_plus' => '微撩',
+        'medium' => '親密',
+        'medium_plus' => '挑逗',
+        'intense' => '大膽',
+    ];
+
+    /** 由輕到重的順序。 */
+    public const TIER_ORDER = ['mild', 'mild_plus', 'medium', 'medium_plus', 'intense'];
 
     /** 新增時的預設。原本整級收費的那一級預設打勾。 */
     public static function defaultIsPaid(?string $tier): bool

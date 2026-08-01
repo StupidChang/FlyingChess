@@ -42,7 +42,9 @@
 .wg-card-icon{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
 .wg-card-icon canvas{border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .wg-card-icon-mild{background:rgba(74,222,128,.15);color:var(--green,#4ade80)}
+.wg-card-icon-mild_plus{background:rgba(132,204,22,.15);color:#a3e635}
 .wg-card-icon-medium{background:rgba(250,204,21,.15);color:var(--yellow,#facc15)}
+.wg-card-icon-medium_plus{background:rgba(249,115,22,.15);color:#fb923c}
 .wg-card-icon-intense{background:rgba(248,113,113,.15);color:var(--red,#f87171)}
 
 .wg-card-body{flex:1;min-width:0}
@@ -220,7 +222,7 @@
     var activeTier='mild';
     function tierForRound(r){
         if(!escalate || currentTier==='custom') return currentTier;
-        var order=['mild','medium','intense'];
+        var order=['mild','mild_plus','medium','medium_plus','intense'];
         var cap=order.indexOf(currentTier);
         if(cap<0) return currentTier;
         var ladder=order.slice(0,cap+1).filter(function(t){return SEGMENTS[t]&&SEGMENTS[t].length});
@@ -229,6 +231,8 @@
 
     var TIER_META={
         mild:   {name:@json(__('minigame.wheel_mild_name')),icon:'🌸',desc:@json(__('minigame.wheel_mild_desc')),badge:'mg-tag-mild'},
+        mild_plus:   {name:@json(__('minigame.wheel_mild_plus_name')),icon:'🌷',desc:@json(__('minigame.wheel_mild_plus_desc')),badge:'mg-tag-mild_plus'},
+        medium_plus: {name:@json(__('minigame.wheel_medium_plus_name')),icon:'🔥',desc:@json(__('minigame.wheel_medium_plus_desc')),badge:'mg-tag-medium_plus'},
         medium: {name:@json(__('minigame.wheel_medium_name')),icon:'🔥',desc:@json(__('minigame.wheel_medium_desc')),badge:'mg-tag-medium'},
         intense:{name:@json(__('minigame.wheel_intense_name')),icon:'💋',desc:@json(__('minigame.wheel_intense_desc')),badge:'mg-tag-intense'},
         // 自訂轉盤:選項由下方編輯器提供,不是 DB 題庫
@@ -316,12 +320,14 @@
     function renderLobby(){
         var grid=document.getElementById('wheel-cards');
         var html='';
-        var tiers=['mild','medium','intense'];
+        var tiers=['mild','mild_plus','medium','medium_plus','intense'];
         // 自訂轉盤要有至少 2 個選項才出現在大廳
         if((SEGMENTS.custom||[]).length>=2) tiers.push('custom');
         tiers.forEach(function(tier){
             var meta=TIER_META[tier];
             var pool=SEGMENTS[tier]||[];
+            // 新加的等級一開始沒有任何題目,空卡片點下去只會跳「沒有任務」
+            if(!pool.length) return;
             var locked=false;
             var preview=pool.slice(0,4);
 

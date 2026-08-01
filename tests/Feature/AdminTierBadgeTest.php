@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Middleware\AgeVerification;
+use App\Models\TruthDareCard;
 use App\Models\User;
 use App\Models\WheelSegment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,16 +26,17 @@ class AdminTierBadgeTest extends TestCase
         $this->withoutMiddleware(AgeVerification::class);
         $admin = User::factory()->create(['is_admin' => true]);
 
-        foreach (['mild', 'medium', 'intense'] as $tier) {
+        foreach (WheelSegment::TIER_ORDER as $tier) {
             WheelSegment::create(['tier' => $tier, 'content' => "強度 {$tier} 的任務"]);
         }
 
         $response = $this->actingAs($admin)->get('/tw/admin/wheel-segments');
 
-        $response->assertOk()
-            ->assertSee('badge-tier--mild')
-            ->assertSee('badge-tier--medium')
-            ->assertSee('badge-tier--intense');
+        $response->assertOk();
+
+        foreach (WheelSegment::TIER_ORDER as $tier) {
+            $response->assertSee('badge-tier--'.$tier);
+        }
     }
 
     public function test_every_tier_colour_is_actually_defined_in_the_stylesheet(): void
@@ -42,7 +44,7 @@ class AdminTierBadgeTest extends TestCase
         // 標籤輸出的 class 與樣式表對不上,正是原本那個 bug。
         $css = file_get_contents(public_path('css/app.css'));
 
-        foreach (['mild', 'medium', 'intense', 'neutral'] as $level) {
+        foreach (array_merge(TruthDareCard::LEVEL_ORDER, ['neutral']) as $level) {
             $this->assertStringContainsString(".badge-tier--{$level}{", $css);
         }
     }

@@ -28,10 +28,22 @@ class GamePrompt extends Model
      * 名稱不帶「(付費)」—— 收費是每一題自己的 is_paid,不是這一級的屬性。
      * 中度裡可以有付費題目,重度裡也可以有免費的。
      */
+    /** 由輕到重的順序。升溫的階梯與後台排序都靠它。 */
+    public const LEVEL_ORDER = ['mild', 'mild_plus', 'medium', 'medium_plus', 'intense'];
+
     public const POOLS = [
-        'who_most_likely' => ['mild' => '輕度', 'medium' => '中度', 'intense' => '重度'],
-        'card_game' => ['mild' => '輕度', 'medium' => '中度', 'intense' => '重度'],
-        'king_game' => ['mild' => '輕度', 'medium' => '中度', 'intense' => '重度'],
+        'who_most_likely' => [
+            'mild' => '輕度', 'mild_plus' => '輕中', 'medium' => '中度',
+            'medium_plus' => '中重', 'intense' => '重度',
+        ],
+        'card_game' => [
+            'mild' => '輕度', 'mild_plus' => '輕中', 'medium' => '中度',
+            'medium_plus' => '中重', 'intense' => '重度',
+        ],
+        'king_game' => [
+            'mild' => '輕度', 'mild_plus' => '輕中', 'medium' => '中度',
+            'medium_plus' => '中重', 'intense' => '重度',
+        ],
         'dice_game' => [
             'action.gentle' => '動作・溫和', 'action.bold' => '動作・大膽', 'action.wild' => '動作・狂野',
             'part.gentle' => '部位・溫和', 'part.bold' => '部位・大膽', 'part.wild' => '部位・狂野',

@@ -136,9 +136,12 @@
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
     var PROMPTS = @json($prompts);
     var FREE_ROUNDS = 6;
-    var TIER_TAG_CLASS = {mild:'mg-tag-mild',medium:'mg-tag-medium',intense:'mg-tag-intense'};
+    var TIER_TAG_CLASS = {mild:'mg-tag-mild',mild_plus:'mg-tag-mild_plus',medium:'mg-tag-medium',
+                          medium_plus:'mg-tag-medium_plus',intense:'mg-tag-intense'};
     var TIER_LABELS = {
         mild: @json(__('minigame.tier_mild')),
+        mild_plus: @json(__('minigame.tier_mild_plus')),
+        medium_plus: @json(__('minigame.tier_medium_plus')),
         medium: @json(__('minigame.tier_medium')),
         intense: @json(__('minigame.tier_intense'))
     };
@@ -196,7 +199,7 @@
     /* 由輕到重,而且只留真的有題目的等級 —— 沒權限的等級根本不在 PROMPTS 裡,
        升溫就停在拿得到的最高一級。 */
     function tierOrder(){
-        return ['mild','medium','intense'].filter(function(t){
+        return ['mild','mild_plus','medium','medium_plus','intense'].filter(function(t){
             return PROMPTS[t] && PROMPTS[t].length;
         });
     }

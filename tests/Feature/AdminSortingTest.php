@@ -85,14 +85,18 @@ class AdminSortingTest extends TestCase
 
     public function test_intensity_sorts_by_how_intense_it_is_not_alphabetically(): void
     {
-        $intense = WheelSegment::create(['tier' => 'intense', 'content' => '大膽']);
-        $mild = WheelSegment::create(['tier' => 'mild', 'content' => '輕鬆']);
-        $medium = WheelSegment::create(['tier' => 'medium', 'content' => '親密']);
+        /* 照字串排的話 intense < medium < medium_plus < mild < mild_plus,
+           「大膽」會排在「輕鬆」前面 —— 那不是任何人按下「強度」時想看到的順序。
+           倒著建立,確保排序不是靠 id 湊巧對的。 */
+        $ids = [];
+        foreach (array_reverse(WheelSegment::TIER_ORDER) as $tier) {
+            $ids[$tier] = WheelSegment::create(['tier' => $tier, 'content' => $tier])->id;
+        }
 
-        /* 照字串排的話 intense < medium < mild,「大膽」會排在「輕鬆」前面 ——
-           那不是任何人按下「強度」時想看到的順序。 */
+        $expected = array_map(fn ($t) => $ids[$t], WheelSegment::TIER_ORDER);
+
         $this->assertSame(
-            [$mild->id, $medium->id, $intense->id],
+            $expected,
             $this->order('/tw/admin/wheel-segments?sort=tier&dir=asc', 'segments')
         );
     }

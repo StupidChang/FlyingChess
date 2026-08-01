@@ -223,4 +223,10 @@ return [
     'escalate_desc' => '从基础题目开始,每几回合往上开放更大尺度的题目',
     'rewarded_cta_short' => '看广告解锁',
     'rewarded_minutes' => ':minutes 分钟',
+    'tier_mild_plus' => '轻中',
+    'tier_medium_plus' => '中重',
+    'wheel_mild_plus_name' => '微撩',
+    'wheel_mild_plus_desc' => '比暖场再进一步,开始有一点暧昧',
+    'wheel_medium_plus_name' => '挑逗',
+    'wheel_medium_plus_desc' => '亲密之上、大胆之下,火候刚好',
 ];

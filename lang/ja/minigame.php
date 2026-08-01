@@ -223,4 +223,10 @@ return [
     'escalate_desc' => '軽いお題から始めて、数ラウンドごとに過激なお題を解放します',
     'rewarded_cta_short' => '広告を見る',
     'rewarded_minutes' => ':minutes 分',
+    'tier_mild_plus' => 'やや軽め',
+    'tier_medium_plus' => 'やや強め',
+    'wheel_mild_plus_name' => 'ほんのり',
+    'wheel_mild_plus_desc' => 'ウォームアップの一歩先、少しずつ意識しはじめる',
+    'wheel_medium_plus_name' => 'じらし',
+    'wheel_medium_plus_desc' => '親密の先、大胆の手前',
 ];

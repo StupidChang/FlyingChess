@@ -217,4 +217,10 @@ return [
     'escalate_desc' => 'Start tame and unlock bolder prompts every few rounds.',
     'rewarded_cta_short' => 'Watch an ad',
     'rewarded_minutes' => ':minutes min',
+    'tier_mild_plus' => 'Mild+',
+    'tier_medium_plus' => 'Medium+',
+    'wheel_mild_plus_name' => 'Flirty',
+    'wheel_mild_plus_desc' => 'A step past warming up — the first hint of tension',
+    'wheel_medium_plus_name' => 'Teasing',
+    'wheel_medium_plus_desc' => 'Past intimate, not yet daring',
 ];

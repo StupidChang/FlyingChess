@@ -53,6 +53,7 @@ class KingGameService
     {
         $all = self::defaultPools();
 
+        // 預設題庫沒有 is_paid 可言,照舊把原本標著付費的那級留給有權限的人。
         if (! $isPremium) {
             unset($all['intense']);
         }
@@ -78,7 +79,7 @@ class KingGameService
            程式碼裡的預設題庫沒有 is_paid 這個概念,所以退回預設時仍然照舊
            把 intense 留給有權限的人。 */
         $pools = [];
-        foreach (['mild', 'medium', 'intense'] as $level) {
+        foreach (GamePrompt::LEVEL_ORDER as $level) {
             if (! empty($all[$level])) {
                 $pools[$level] = $all[$level];
             }

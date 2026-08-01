@@ -131,6 +131,21 @@ class AdminMultiFilterTest extends TestCase
             ->assertDontSee($other->name);
     }
 
+    public function test_the_new_middle_levels_are_selectable(): void
+    {
+        $this->card('mild_plus', '輕中的');
+        $this->card('medium_plus', '中重的');
+        $this->card('medium', '中度的');
+
+        // 五級之後,新加的兩級也要能單獨篩、也要能跟別級一起篩。
+        $this->actingAs($this->admin())
+            ->get('/tw/admin/cards?level[]=mild_plus&level[]=medium_plus')
+            ->assertOk()
+            ->assertSee('輕中的')
+            ->assertSee('中重的')
+            ->assertDontSee('中度的');
+    }
+
     public function test_an_unknown_filter_value_is_ignored(): void
     {
         WheelSegment::create(['tier' => 'mild', 'content' => '任務']);
