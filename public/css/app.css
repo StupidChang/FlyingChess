@@ -1621,3 +1621,9 @@ ul{list-style:none}
 .tf-none{color:var(--text-dim);text-align:center;padding:16px 8px;line-height:1.6}
 /* 廣告被攔截器擋掉時的說明。不是錯誤,所以用一般說明色而不是紅字。 */
 .rw-ad-blocked{padding:18px 14px;color:var(--text-dim);font-size:.8rem;line-height:1.7;text-align:center}
+/* 獎勵式影片。容器維持 300x250 的比例區塊,影片自己 contain 進去 —— 直式素材
+   也不會把彈窗撐歪。 */
+.rw-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:250px}
+.rw-video{max-width:100%;max-height:250px;width:auto;border-radius:8px;background:#000}
+.rw-unmute{position:absolute;right:8px;bottom:8px;width:34px;height:34px;border-radius:50%;
+  border:0;background:rgba(0,0,0,.6);color:#fff;font-size:1rem;cursor:pointer;line-height:1}

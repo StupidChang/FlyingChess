@@ -43,6 +43,9 @@ return [
         'zone_lobby_side' => env('EXOCLICK_ZONE_LOBBY_SIDE'),
         'zone_lobby_side_desktop' => env('EXOCLICK_ZONE_LOBBY_SIDE_DESKTOP'),
         'zone_game_end' => env('EXOCLICK_ZONE_GAME_END'),
+        // 獎勵式影片(VAST)。填了就優先播影片,沒填或當次沒有填充就退回上面那顆
+        // banner —— 「看廣告解鎖」放一張靜態圖本來就名不副實,但空白更糟。
+        'zone_game_end_vast' => env('EXOCLICK_ZONE_GAME_END_VAST'),
         'zone_share' => env('EXOCLICK_ZONE_SHARE'),
         'zone_share_desktop' => env('EXOCLICK_ZONE_SHARE_DESKTOP'),
     ],
