@@ -461,7 +461,10 @@ ul{list-style:none}
 .game-card{
   position:relative;
   background:var(--surface);
-  border:1px solid var(--border);
+  /* 1.4px:比 1px 多一點份量,又還沒到 2px 那種厚重感。
+     ⚠ 這個值有三個地方要同步 —— 這裡、hover 漸層框的 padding、
+     招牌卡片跑馬光條的 padding。不一致的話 hover 時會看到線條變粗。 */
+  border:1.4px solid var(--border);
   border-radius:12px;
   padding:28px 22px;
   text-align:center;
@@ -485,7 +488,7 @@ ul{list-style:none}
   content:'';
   position:absolute;
   inset:0;
-  padding:1px;
+  padding:1.4px;   /* 比卡片自己的 1px 邊框粗一點點,亮起來時線條才有份量 */
   border-radius:12px;
   pointer-events:none;
   background:linear-gradient(145deg,
@@ -539,7 +542,7 @@ ul{list-style:none}
   position:absolute;
   pointer-events:none;
   inset:0;
-  padding:1px;
+  padding:1.4px;   /* 與 .game-card 的邊框同寬 */
   border-radius:12px;
   /* 上層是跑動的光,下層是靜態底色:光沒經過的地方就是原本那條邊框 */
   background:
