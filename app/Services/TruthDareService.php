@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class TruthDareService
 {
-    /** 開了升溫時,前幾張只出免費題目。 */
+    /** 開了升溫時,每抽掉這麼多張往上開放一級。 */
     private const ESCALATE_AFTER = 4;
 
     public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false, string $mode = 'couple', bool $escalate = false): array
@@ -95,22 +95,22 @@ class TruthDareService
      */
     public function drawCard(Game $game, string $category, bool $hasPremiumContent, bool $isAdult = false): array
     {
-        /* 免費題目是「成人向、曖昧級」,付費題目是 18+ 露骨級(見 TruthDareCardSeeder
-           的分段)。原本這裡在 is_adult 的房間只抽 premium,而每一間房都是
-           is_adult —— 結果是免費玩家照樣拿得到全部付費題目,那 40 張免費題目
-           反而一張都抽不到,免費與付費之間根本沒有差別。 */
         $state = $game->game_state ?? [];
         $usedIds = $state['used_card_ids'] ?? [];
         $mode = $state['mode'] ?? 'couple';
 
-        $tiers = ['free'];
-        if ($hasPremiumContent && $this->paidUnlockedYet($state)) {
-            $tiers[] = 'premium';
-        }
+        /* 抽得到哪幾級。付費界線寫在 TruthDareCard::PAID_LEVELS。
+           歷史地雷:原本這裡在 is_adult 的房間只抽 premium,而每一間房都是
+           is_adult —— 結果是免費玩家照樣拿得到全部付費題目,曖昧級那批反而
+           一張都抽不到,免費與付費之間根本沒有差別。 */
+        $levels = $this->levelsAfterEscalation(
+            TruthDareCard::levelsFor($hasPremiumContent),
+            $state
+        );
 
         $query = TruthDareCard::where('category', $category)
             ->whereIn('audience', TruthDareCard::audiencesFor($mode))
-            ->whereIn('tier', $tiers);
+            ->whereIn('level', $levels);
 
         if (! empty($usedIds)) {
             $query->whereNotIn('id', $usedIds);
@@ -134,24 +134,30 @@ class TruthDareService
                 'id' => $card->id,
                 'category' => $card->category,
                 'content' => $card->content,
-                'tier' => $card->tier,
+                'level' => $card->level,
             ],
         ];
     }
 
     /**
-     * 開了「逐漸升溫」的房間,前幾張只出免費的曖昧題。
+     * 開了「逐漸升溫」的房間,這時候開放到第幾級。
      *
-     * 這個遊戲只有兩級(免費曖昧／付費露骨),所以階梯只有一階 —— 用已經抽掉
-     * 幾張當進度,與前端那五個遊戲用回合數是同一個意思:一輪四張左右。
+     * 進度用「已經抽掉幾張」算,與前端那五個遊戲用回合數是同一個意思
+     * (一輪大約就是幾張),階梯的節奏也刻意跟 public/js/escalation.js 一致。
+     *
+     * 拿不到的等級本來就不在 $levels 裡,所以升溫只會停在拿得到的最高一級,
+     * 不會出現「升到一級之後永遠抽不到東西」。
      */
-    private function paidUnlockedYet(array $state): bool
+    private function levelsAfterEscalation(array $levels, array $state): array
     {
-        if (empty($state['escalate'])) {
-            return true;
+        if (empty($state['escalate']) || ! $levels) {
+            return $levels;
         }
 
-        return count($state['used_card_ids'] ?? []) >= self::ESCALATE_AFTER;
+        $drawn = count($state['used_card_ids'] ?? []);
+        $step = intdiv($drawn, self::ESCALATE_AFTER) + 1;
+
+        return array_slice($levels, 0, min($step, count($levels)));
     }
 
     public function nextPlayer(Game $game): array

@@ -11,7 +11,7 @@ class TruthDareCard extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['category', 'audience', 'content', 'content_translations', 'tier', 'machine_translated_at'];
+    protected $fillable = ['category', 'audience', 'level', 'content', 'content_translations', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
@@ -22,6 +22,32 @@ class TruthDareCard extends Model
 
     /** 適用人數。跟類型是兩個獨立的軸,壓成一個就會抽到對不上場合的題目。 */
     public const AUDIENCES = ['both' => '通用', 'couple' => '情侶', 'party' => '多人'];
+
+    /**
+     * 尺度,由輕到重。
+     *
+     * 整個站都是成人向,所以不分「一般／18禁」—— 免費那批本來就寫著「曖昧級」,
+     * 不是普遍級。用跟其他四個小遊戲題庫同一套詞彙,後台與玩家只要記一套。
+     */
+    public const LEVELS = ['mild' => '輕度', 'medium' => '中度', 'intense' => '重度(付費)'];
+
+    /** 由輕到重的順序。升溫的階梯與後台排序都靠它。 */
+    public const LEVEL_ORDER = ['mild', 'medium', 'intense'];
+
+    /** 要付費或看廣告才抽得到的等級。付費界線只寫在這裡。 */
+    public const PAID_LEVELS = ['intense'];
+
+    /**
+     * 現在抽得到哪幾級。
+     *
+     * @param  bool  $hasPaidAccess  房主是會員,或這台裝置在看廣告解鎖的時限內
+     */
+    public static function levelsFor(bool $hasPaidAccess): array
+    {
+        return $hasPaidAccess
+            ? self::LEVEL_ORDER
+            : array_values(array_diff(self::LEVEL_ORDER, self::PAID_LEVELS));
+    }
 
     /**
      * 某個場合抽得到哪些 audience。
@@ -53,13 +79,8 @@ class TruthDareCard extends Model
         );
     }
 
-    public function isFree(): bool
+    public function isPaid(): bool
     {
-        return $this->tier === 'free';
-    }
-
-    public function isPremium(): bool
-    {
-        return $this->tier === 'premium';
+        return in_array($this->level, self::PAID_LEVELS, true);
     }
 }

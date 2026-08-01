@@ -312,8 +312,8 @@ class AdminController extends Controller
         if ($audience = $request->input('audience')) {
             $query->where('audience', $audience);
         }
-        if ($tier = $request->input('tier')) {
-            $query->where('tier', $tier);
+        if ($level = $request->input('level')) {
+            $query->where('level', $level);
         }
         if ($search = $request->input('q')) {
             $query->where('content', 'like', "%{$search}%");
@@ -324,7 +324,7 @@ class AdminController extends Controller
             'category' => ['category', array_keys(TruthDareCard::CATEGORIES)],
             'audience' => ['audience', array_keys(TruthDareCard::AUDIENCES)],
             'content' => 'content',
-            'tier' => ['tier', ['free', 'premium']],
+            'level' => ['level', TruthDareCard::LEVEL_ORDER],
             'created_at' => 'created_at',
         ], 'created_at');
 
@@ -343,8 +343,8 @@ class AdminController extends Controller
         $data = $request->validate([
             'category' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::CATEGORIES))],
             'audience' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::AUDIENCES))],
+            'level' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::LEVELS))],
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
-            'tier' => ['required', 'in:free,premium'],
         ]);
 
         TruthDareCard::create($data);
@@ -362,8 +362,8 @@ class AdminController extends Controller
         $data = $request->validate([
             'category' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::CATEGORIES))],
             'audience' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::AUDIENCES))],
+            'level' => ['required', 'in:'.implode(',', array_keys(TruthDareCard::LEVELS))],
             'content' => ['required', 'string', 'max:500', new NoBlockedWords],
-            'tier' => ['required', 'in:free,premium'],
         ]);
 
         $card->update($data);

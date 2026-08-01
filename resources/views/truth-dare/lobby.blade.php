@@ -53,11 +53,9 @@
 .td-scale summary:hover{color:var(--text)}
 .td-scale-body{padding:2px 14px 14px;border-top:1px solid var(--border)}
 .td-scale-row{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
-.td-scale-tag{
-  flex:none;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:600;white-space:nowrap;
-}
-.td-scale-tag--free{background:rgba(52,211,153,.14);color:#5fd08a;border:1px solid rgba(52,211,153,.4)}
-.td-scale-tag--paid{background:rgba(244,63,94,.14);color:#f5a3b3;border:1px solid rgba(244,63,94,.45)}
+.td-scale-row .badge-tier{flex:none;min-width:44px;text-align:center}
+.td-scale-foot{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);
+  font-size:.75rem;line-height:1.6;color:var(--text-dim)}
 .td-scale-row p{font-size:.78rem;line-height:1.65;color:var(--text-dim);margin:0}
 .td-actions{display:flex;gap:10px;align-items:stretch}
 .td-actions .btn-submit{flex:2.4;width:auto}
@@ -136,14 +134,16 @@
             <details class="td-scale">
                 <summary>{{ __('games.td_scale_summary') }}</summary>
                 <div class="td-scale-body">
+                    {{-- 三級都列出來,而且用跟後台、抽到的卡片同一組顏色。 --}}
+                    @foreach(['mild' => 'games.td_scale_mild_desc',
+                              'medium' => 'games.td_scale_medium_desc',
+                              'intense' => 'games.td_scale_intense_desc'] as $level => $desc)
                     <div class="td-scale-row">
-                        <span class="td-scale-tag td-scale-tag--free">{{ __('games.td_scale_free_label') }}</span>
-                        <p>{{ __('games.td_scale_free_desc') }}</p>
+                        <span class="badge-tier badge-tier--{{ $level }}">{{ __('games.td_level_'.$level) }}</span>
+                        <p>{{ __($desc) }}</p>
                     </div>
-                    <div class="td-scale-row">
-                        <span class="td-scale-tag td-scale-tag--paid">{{ __('games.td_scale_paid_label') }}</span>
-                        <p>{{ __('games.td_scale_paid_desc') }}</p>
-                    </div>
+                    @endforeach
+                    <p class="td-scale-foot">{{ __('games.td_scale_paywall') }}</p>
 
                     @if(\App\Support\PremiumAccess::content(auth()->user()))
                     <p class="td-scale-unlocked">{{ __('games.td_tier_unlocked') }}</p>

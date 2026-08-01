@@ -50,10 +50,11 @@
             </div>
 
             <div class="form-group">
-                <label for="tier">版本</label>
-                <select id="tier" name="tier" class="form-input" required>
-                    <option value="free" {{ old('tier', $card?->tier) === 'free' ? 'selected' : '' }}>一般</option>
-                    <option value="premium" {{ old('tier', $card?->tier) === 'premium' ? 'selected' : '' }}>18禁</option>
+                <label for="level">尺度</label>
+                <select id="level" name="level" class="form-input" required>
+                    @foreach(\App\Models\TruthDareCard::LEVELS as $k => $v)
+                    <option value="{{ $k }}" {{ old('level', $card?->level ?? 'mild') === $k ? 'selected' : '' }}>{{ $v }}</option>
+                    @endforeach
                 </select>
             </div>
 

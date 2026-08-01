@@ -16,7 +16,7 @@
         <div class="admin-filters">
             <div class="admin-filter-tabs">
                 <a href="{{ route('admin.cards') }}"
-                   class="admin-filter-tab {{ !request('category') && !request('tier') && !request('audience') ? 'active' : '' }}">全部</a>
+                   class="admin-filter-tab {{ !request('category') && !request('level') && !request('audience') ? 'active' : '' }}">全部</a>
                 {{-- 類型與適用人數是兩個獨立的軸,篩選也要分兩排 --}}
                 @foreach(\App\Models\TruthDareCard::CATEGORIES as $k => $v)
                 <a href="{{ route('admin.cards', ['category' => $k, 'audience' => request('audience')]) }}"
@@ -28,10 +28,10 @@
                    class="admin-filter-tab {{ request('audience') === $k ? 'active' : '' }}">{{ $v }}</a>
                 @endforeach
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
-                <a href="{{ route('admin.cards', ['tier' => 'free']) }}"
-                   class="admin-filter-tab {{ request('tier') === 'free' ? 'active' : '' }}">一般</a>
-                <a href="{{ route('admin.cards', ['tier' => 'premium']) }}"
-                   class="admin-filter-tab {{ request('tier') === 'premium' ? 'active' : '' }}">🔞 18禁</a>
+                @foreach(\App\Models\TruthDareCard::LEVELS as $k => $v)
+                <a href="{{ route('admin.cards', ['level' => $k, 'category' => request('category'), 'audience' => request('audience')]) }}"
+                   class="admin-filter-tab {{ request('level') === $k ? 'active' : '' }}">{{ $v }}</a>
+                @endforeach
             </div>
             <form action="{{ route('admin.cards') }}" method="GET" class="admin-search">
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋卡片內容…"
@@ -49,7 +49,7 @@
                         @include('admin._sort-header', ['key' => 'category', 'label' => '類型'])
                         @include('admin._sort-header', ['key' => 'audience', 'label' => '適用'])
                         @include('admin._sort-header', ['key' => 'content', 'label' => '內容'])
-                        @include('admin._sort-header', ['key' => 'tier', 'label' => '等級'])
+                        @include('admin._sort-header', ['key' => 'level', 'label' => '尺度'])
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -69,11 +69,10 @@
                         </td>
                         <td style="max-width:400px">{{ Str::limit($card->content, 80) }}</td>
                         <td>
-                            @if($card->tier === 'premium')
-                                <span class="badge-dare">18禁</span>
-                            @else
-                                <span style="color:var(--text-dim)">一般</span>
-                            @endif
+                            @include('admin._tier-badge', [
+                                'key' => $card->level,
+                                'label' => \App\Models\TruthDareCard::LEVELS[$card->level] ?? $card->level,
+                            ])
                         </td>
                         <td style="white-space:nowrap">
                             <a href="{{ route('admin.cards.edit', $card) }}" class="btn btn-sm">編輯</a>

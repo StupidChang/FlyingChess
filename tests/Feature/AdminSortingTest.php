@@ -38,7 +38,7 @@ class AdminSortingTest extends TestCase
         return [
             '卡片・類型' => ['/tw/admin/cards', 'category'],
             '卡片・適用' => ['/tw/admin/cards', 'audience'],
-            '卡片・等級' => ['/tw/admin/cards', 'tier'],
+            '卡片・尺度' => ['/tw/admin/cards', 'level'],
             '卡片・內容' => ['/tw/admin/cards', 'content'],
             '題庫・分類' => ['/tw/admin/prompts', 'pool'],
             '題庫・排序' => ['/tw/admin/prompts', 'sort_order'],
@@ -71,9 +71,9 @@ class AdminSortingTest extends TestCase
 
     public function test_cards_sort_by_audience(): void
     {
-        $party = TruthDareCard::create(['category' => 'truth', 'audience' => 'party', 'content' => '多人', 'tier' => 'free']);
-        $both = TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '通用', 'tier' => 'free']);
-        $couple = TruthDareCard::create(['category' => 'truth', 'audience' => 'couple', 'content' => '情侶', 'tier' => 'free']);
+        $party = TruthDareCard::create(['category' => 'truth', 'audience' => 'party', 'content' => '多人', 'level' => 'mild']);
+        $both = TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '通用', 'level' => 'mild']);
+        $couple = TruthDareCard::create(['category' => 'truth', 'audience' => 'couple', 'content' => '情侶', 'level' => 'mild']);
 
         // 通用 → 情侶 → 多人,與下拉選單同一個順序。
         $this->assertSame(

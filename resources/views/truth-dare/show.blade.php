@@ -176,17 +176,26 @@ function drawCard(category) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
+            var LEVEL_LABELS = {
+                mild:    @json(__('games.td_level_mild')),
+                medium:  @json(__('games.td_level_medium')),
+                intense: @json(__('games.td_level_intense'))
+            };
             var catNames = {
                 truth:  @json(__('games.td_cat_truth')),
                 dare:   @json(__('games.td_cat_dare'))
             };
             document.getElementById('card-category').textContent = catNames[data.card.category] || data.card.category;
             document.getElementById('card-content').textContent = data.card.content;
-            document.getElementById('card-tier').textContent = data.card.tier === 'premium' ? @json($isAdult ? __('games.td_card_adult_label') : __('games.td_card_premium_label')) : '';
+            /* 抽到的是哪一級。原本只在付費題目上標「18禁」,現在三級都標 ——
+               玩家看得到現在的尺度,升溫時也才感覺得到自己在往上走。 */
+            var levelTag = document.getElementById('card-tier');
+            levelTag.textContent = LEVEL_LABELS[data.card.level] || '';
+            levelTag.className = 'mg-content-card-tier badge-tier badge-tier--' + (data.card.level || 'mild');
             document.getElementById('category-area').style.display = 'none';
             document.getElementById('card-area').style.display = 'block';
             @if(env('GOOGLE_GA4_ID'))
-            gtag('event', 'truth_dare_card_drawn', {category: category, tier: data.card.tier});
+            gtag('event', 'truth_dare_card_drawn', {category: category, level: data.card.level});
             @endif
         } else {
             document.getElementById('no-card-message').textContent = data.message;

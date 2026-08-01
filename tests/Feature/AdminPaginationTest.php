@@ -21,7 +21,7 @@ class AdminPaginationTest extends TestCase
             TruthDareCard::create([
                 'category' => 'truth',
                 'content' => "測試題目 {$number}",
-                'tier' => 'premium',
+                'level' => 'intense',
             ]);
         }
 
