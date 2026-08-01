@@ -278,6 +278,63 @@ class TruthDareModeTest extends TestCase
         $this->assertTrue($result['success']);
     }
 
+    public function test_each_player_can_be_given_a_gender(): void
+    {
+        $this->withoutMiddleware(AgeVerification::class);
+
+        $this->post('/tw/truth-dare', [
+            'players' => ['小明', '小美', '阿豪'],
+            'genders' => ['male', 'female', ''],
+        ]);
+
+        $players = Game::latest('id')->first()->players()->orderBy('id')->get();
+
+        $this->assertSame('male', $players[0]->gender);
+        $this->assertSame('female', $players[1]->gender);
+        $this->assertNull($players[2]->gender, '不指定就是不存');
+    }
+
+    public function test_an_empty_name_does_not_shift_everyone_elses_gender(): void
+    {
+        $this->withoutMiddleware(AgeVerification::class);
+
+        /* 名字與性別是兩個平行陣列。中間留白的那一列被濾掉時,性別要跟著同一個
+           索引一起濾 —— 只濾其中一邊的話,後面每個人的性別都會錯位一格。 */
+        $this->post('/tw/truth-dare', [
+            'players' => ['小明', '', '小美'],
+            'genders' => ['male', 'female', 'female'],
+        ]);
+
+        $players = Game::latest('id')->first()->players()->orderBy('id')->get();
+
+        $this->assertCount(2, $players);
+        $this->assertSame('小明', $players[0]->player_name);
+        $this->assertSame('male', $players[0]->gender);
+        $this->assertSame('小美', $players[1]->player_name);
+        $this->assertSame('female', $players[1]->gender);
+    }
+
+    public function test_a_made_up_gender_is_rejected(): void
+    {
+        $this->withoutMiddleware(AgeVerification::class);
+
+        $this->post('/tw/truth-dare', [
+            'players' => ['小明', '小美'],
+            'genders' => ['male', 'dragon'],
+        ])->assertSessionHasErrors('genders.1');
+    }
+
+    public function test_the_lobby_offers_a_gender_for_each_player(): void
+    {
+        $this->withoutMiddleware(AgeVerification::class);
+
+        // 可以不填 —— 不是每一桌都想標這個,也不是每個人都想被標。
+        $this->get('/tw/truth-dare')
+            ->assertOk()
+            ->assertSee('name="genders[]"', false)
+            ->assertSee(__('minigame.gender_unset'));
+    }
+
     public function test_the_lobby_offers_the_ad_unlock_to_a_free_visitor(): void
     {
         $this->withoutMiddleware(AgeVerification::class);

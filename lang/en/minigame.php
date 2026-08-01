@@ -223,4 +223,6 @@ return [
     'wheel_mild_plus_desc' => 'A step past warming up — the first hint of tension',
     'wheel_medium_plus_name' => 'Teasing',
     'wheel_medium_plus_desc' => 'Past intimate, not yet daring',
+    'gender_unset' => 'Not set',
+    'card_gender' => 'Gender',
 ];

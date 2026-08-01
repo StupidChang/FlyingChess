@@ -75,6 +75,11 @@
         @foreach($game->players()->orderBy('id')->get() as $i => $p)
         <div class="mg-player-chip" data-session="{{ $p->session_id }}">
             {{ $p->player_name }}
+            {{-- 有些大冒險會指名「一位異性」,桌上看不出誰是誰的話那題沒辦法玩。
+                 沒填性別的人就不標。 --}}
+            @if($p->gender)
+            <span class="mg-gender-tag mg-gender-{{ $p->gender }}">{{ \App\Models\GamePlayer::GENDERS[$p->gender] }}</span>
+            @endif
         </div>
         @endforeach
     </div>
@@ -136,6 +141,7 @@ if (!sessionStorage.getItem('tab_id')) {
 }
 var TAB_ID = sessionStorage.getItem('tab_id');
 var MY_SESSION = '{{ session()->getId() }}' + (TAB_ID ? '|' + TAB_ID : '');
+var GENDER_LABELS = @json(\App\Models\GamePlayer::GENDERS);
 var pollTimer;
 var knownSessions = Array.prototype.map.call(
     document.querySelectorAll('#players-area .mg-player-chip'),
@@ -239,6 +245,12 @@ function pollState() {
                 + (isNew ? ' is-entering' : '');
             div.setAttribute('data-session', p.session_id);
             div.textContent = p.player_name;
+            if (p.gender && GENDER_LABELS[p.gender]) {
+                var g = document.createElement('span');
+                g.className = 'mg-gender-tag mg-gender-' + p.gender;
+                g.textContent = GENDER_LABELS[p.gender];
+                div.appendChild(g);
+            }
             pa.appendChild(div);
             stillKnown.push(p.session_id);
         });

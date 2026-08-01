@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GamePlayer extends Model
 {
-    protected $fillable = ['game_id', 'session_id', 'player_name', 'color', 'is_host', 'user_id'];
+    protected $fillable = ['game_id', 'session_id', 'player_name', 'gender', 'color', 'is_host', 'user_id'];
+
+    /** 可以不填 —— 不是每一桌都想標這個。 */
+    public const GENDERS = ['male' => '男', 'female' => '女'];
 
     protected $casts = [
         'is_host' => 'boolean',

@@ -11,7 +11,7 @@ class TruthDareService
     /** 開了升溫時,每這麼多回合往上開放一級。與 escalation.js 的 STEP 同步。 */
     private const ESCALATE_AFTER = 2;
 
-    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false, string $mode = 'couple', bool $escalate = false): array
+    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false, string $mode = 'couple', bool $escalate = false, ?string $gender = null): array
     {
         $game = Game::create([
             'code' => $this->generateCode(),
@@ -37,6 +37,7 @@ class TruthDareService
         $game->players()->create([
             'session_id' => $sessionId,
             'player_name' => $playerName,
+            'gender' => $gender,
             'color' => 'none',
             'is_host' => true,
             'user_id' => $hostUserId,

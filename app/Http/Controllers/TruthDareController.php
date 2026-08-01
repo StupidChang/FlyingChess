@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use App\Models\GamePlayer;
 use App\Models\User;
 use App\Rules\NoBlockedWords;
 use App\Services\TruthDareService;
@@ -40,16 +41,26 @@ class TruthDareController extends Controller
             'players.*' => ['nullable', 'string', 'max:20', new NoBlockedWords],
             'mode' => ['nullable', 'in:couple,party'],
             'escalate' => ['nullable', 'boolean'],
+            // 性別可以不填,所以是 nullable 而不是 required。
+            'genders' => ['nullable', 'array', 'max:6'],
+            'genders.*' => ['nullable', 'in:'.implode(',', array_keys(GamePlayer::GENDERS))],
         ]);
 
-        $names = array_values(array_filter(
-            array_map('trim', $data['players']),
-            fn ($n) => $n !== ''
-        ));
-        if (empty($names)) {
-            $names = [__('games.td_player_default')];
+        /* 名字與性別是兩個平行陣列。先把空白的名字濾掉,性別要跟著同一個索引
+           一起濾 —— 只濾其中一邊的話,第二個人的性別會套到第三個人身上。 */
+        $rows = [];
+        foreach (array_map('trim', $data['players']) as $i => $name) {
+            if ($name !== '') {
+                $rows[] = ['name' => $name, 'gender' => $data['genders'][$i] ?? null];
+            }
         }
-        $names = array_slice($names, 0, 6);
+
+        $names = array_column($rows, 'name');
+        if (empty($rows)) {
+            $rows = [['name' => __('games.td_player_default'), 'gender' => null]];
+        }
+        $rows = array_slice($rows, 0, 6);
+        $names = array_column($rows, 'name');
 
         $hostUserId = $request->user()?->id;
         $sessionId = $this->playerSessionId($request);
@@ -60,17 +71,19 @@ class TruthDareController extends Controller
 
         // Adults-only site: every room is created in adult mode.
         $result = $this->service->createGame(
-            $names[0], $sessionId, false, $hostUserId, true, $mode, (bool) ($data['escalate'] ?? false)
+            $names[0], $sessionId, false, $hostUserId, true, $mode,
+            (bool) ($data['escalate'] ?? false), $rows[0]['gender']
         );
         $game = $result['game'];
 
         // Add the remaining local players. Each needs a DISTINCT session_id
         // (game_players has a UNIQUE(game_id, session_id) constraint), so we
         // suffix the host session. The device holder acts for all of them.
-        foreach (array_slice($names, 1) as $i => $name) {
+        foreach (array_slice($rows, 1) as $i => $row) {
             $game->players()->create([
                 'session_id' => $sessionId.'#'.($i + 1),
-                'player_name' => $name,
+                'player_name' => $row['name'],
+                'gender' => $row['gender'],
                 'color' => 'none',
                 'is_host' => false,
                 'user_id' => $hostUserId,
@@ -242,6 +255,9 @@ class TruthDareController extends Controller
             'game_state' => $game->game_state,
             'players' => $players->map(fn ($p) => [
                 'player_name' => $p->player_name,
+                // 輪詢會把整塊玩家列重畫,性別沒帶過來的話伺服器渲染的標籤
+                // 會在第一次輪詢就被洗掉。
+                'gender' => $p->gender,
                 'is_host' => $p->is_host,
                 'session_id' => $p->session_id,
             ]),

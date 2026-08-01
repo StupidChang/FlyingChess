@@ -229,4 +229,6 @@ return [
     'wheel_mild_plus_desc' => 'ウォームアップの一歩先、少しずつ意識しはじめる',
     'wheel_medium_plus_name' => 'じらし',
     'wheel_medium_plus_desc' => '親密の先、大胆の手前',
+    'gender_unset' => '指定しない',
+    'card_gender' => '性別',
 ];

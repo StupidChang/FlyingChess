@@ -229,4 +229,6 @@ return [
     'wheel_mild_plus_desc' => '比暖场再进一步,开始有一点暧昧',
     'wheel_medium_plus_name' => '挑逗',
     'wheel_medium_plus_desc' => '亲密之上、大胆之下,火候刚好',
+    'gender_unset' => '不指定',
+    'card_gender' => '性别',
 ];

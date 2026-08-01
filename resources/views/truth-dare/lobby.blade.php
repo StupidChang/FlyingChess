@@ -111,9 +111,21 @@
                 <div id="td-players-list">
                     <div class="mg-player-row">
                         <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="18">
+                        <select name="genders[]" class="form-control p-gender" aria-label="{{ __('minigame.card_gender') }}">
+                            <option value="">{{ __('minigame.gender_unset') }}</option>
+                            @foreach(\App\Models\GamePlayer::GENDERS as $g => $label)
+                            <option value="{{ $g }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="mg-player-row">
                         <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="18">
+                        <select name="genders[]" class="form-control p-gender" aria-label="{{ __('minigame.card_gender') }}">
+                            <option value="">{{ __('minigame.gender_unset') }}</option>
+                            @foreach(\App\Models\GamePlayer::GENDERS as $g => $label)
+                            <option value="{{ $g }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline mg-add-player" id="td-add-player" onclick="tdAddPlayer()">{{ __('minigame.add_player') }}</button>
@@ -205,6 +217,14 @@ document.getElementById('td-create-form').addEventListener('submit', function(){
     });
 });
 
+/* 性別下拉。跟靜態那兩列長一樣,所以字串在這裡組一次就好。 */
+var GENDER_SELECT = @json(
+    '<select name="genders[]" class="form-control p-gender" aria-label="'.__('minigame.card_gender').'">'
+    .'<option value="">'.__('minigame.gender_unset').'</option>'
+    .collect(\App\Models\GamePlayer::GENDERS)->map(fn ($l, $g) => '<option value="'.$g.'">'.$l.'</option>')->implode('')
+    .'</select>'
+);
+
 // Same-device player rows (2–6)
 var tdPlayerCount = 2;
 function escHtmlTd(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
@@ -215,6 +235,7 @@ window.tdAddPlayer = function(){
     row.className = 'mg-player-row';
     var name = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', tdPlayerCount);
     row.innerHTML = '<input type="text" name="players[]" class="form-control p-name" value="'+escHtmlTd(name)+'" maxlength="18">'+
+        GENDER_SELECT +
         '<button type="button" class="mg-player-remove" onclick="tdRemovePlayer(this)">✕</button>';
     document.getElementById('td-players-list').appendChild(row);
     if (tdPlayerCount >= 6) document.getElementById('td-add-player').style.display = 'none';
