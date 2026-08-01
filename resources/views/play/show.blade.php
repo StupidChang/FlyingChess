@@ -108,9 +108,12 @@
         <div class="rules-scrim" id="rules-scrim" onclick="toggleRules(false)"></div>
     </div>
 
-    {{-- 廣告版位:放在棋盤之後,不把遊戲區往下推 --}}
-    @include('partials.ad-unit', ['zone' => 'share'])
 </div>
+
+{{-- 廣告放在 .play-page 之外。那個容器是固定一個視窗高、而且 overflow:hidden,
+     擺在裡面等於跟棋盤搶高度(棋盤是照剩餘空間算出來的),擺在外面則是落在
+     第一屏下方,棋盤維持滿版,想看廣告的往下捲。 --}}
+@include('partials.ad-unit', ['zone' => 'share'])
 
 {{-- Action Modal --}}
 {{-- 進場轉盤:棋子還沒上場時,骰子點數對照轉盤而不是走格 --}}

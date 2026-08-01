@@ -43,6 +43,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset_v('css/app.css') }}">
+    {{-- 廣告版位的投放輔助。必須在版位的 inline script 之前就緒,所以不加 defer。
+         檔案很小,而且沒有廣告的頁面也只是多一個空函式。 --}}
+    <script src="{{ asset_v('js/ads.js') }}"></script>
     @yield('styles')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
