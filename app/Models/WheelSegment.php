@@ -11,11 +11,21 @@ class WheelSegment extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['content', 'content_translations', 'tier', 'machine_translated_at'];
+    protected $fillable = ['content', 'content_translations', 'tier', 'is_paid', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
+        'is_paid' => 'boolean',
     ];
+
+    /** 強度。名稱不帶「(付費)」—— 收費是每一題自己的 is_paid。 */
+    public const TIERS = ['mild' => '輕鬆', 'medium' => '親密', 'intense' => '大膽'];
+
+    /** 新增時的預設。原本整級收費的那一級預設打勾。 */
+    public static function defaultIsPaid(?string $tier): bool
+    {
+        return $tier === 'intense';
+    }
 
     public array $translatable = ['content_translations'];
 

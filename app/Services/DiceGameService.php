@@ -79,7 +79,10 @@ class DiceGameService
     public static function getBuiltInDice(bool $isPremium = false): array
     {
         // 後台改過就以資料表為準;沒有資料就用程式碼裡的預設。
-        $pools = GamePrompt::poolsFor('dice_game') ?: self::defaultPools();
+        // 收費是每一題自己的 is_paid,所以過濾在這一層就做完了。
+        $fromDb = GamePrompt::poolsFor('dice_game', $isPremium);
+        $usingDefaults = empty($fromDb);
+        $pools = $fromDb ?: self::defaultPools();
 
         $defs = [];
         foreach (self::DICE_DEFS as [$cat, $intensity, $premium]) {
@@ -89,7 +92,13 @@ class DiceGameService
 
         $out = [];
         foreach ($defs as [$cat, $intensity, $premium, $faces]) {
-            $locked = $premium && ! $isPremium;
+            /* 付費骰只有在「一面都不剩」的時候才鎖起來 —— 管理員把狂野裡的幾題
+               設成免費之後,那顆骰子就該玩得到,整顆鎖掉的話那些題目等於白設。
+               但退回程式碼預設題庫時沒有 is_paid 可言,那就照舊整顆鎖住。 */
+            $locked = $premium && ! $isPremium && ($usingDefaults || empty($faces));
+            if ($locked) {
+                $faces = [];
+            }
             $out[] = [
                 'id' => 'builtin_'.$cat.($intensity ? '_'.$intensity : ''),
                 'cat' => $cat,

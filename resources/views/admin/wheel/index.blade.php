@@ -17,9 +17,15 @@
             <div class="admin-filter-tabs">
                 <a href="{{ route('admin.wheel-segments') }}"
                    class="admin-filter-tab {{ !request('tier') ? 'active' : '' }}">全部</a>
-                @foreach(['mild' => '輕鬆', 'medium' => '親密', 'intense' => '大膽'] as $k => $v)
+                @foreach(\App\Models\WheelSegment::TIERS as $k => $v)
                 <a href="{{ route('admin.wheel-segments', ['tier' => $k]) }}"
                    class="admin-filter-tab {{ request('tier') === $k ? 'active' : '' }}">{{ $v }}</a>
+                @endforeach
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
+                {{-- 收費是每一題自己的欄位,跟尺度是兩件事,所以自成一排。 --}}
+                @foreach(['0' => '免費', '1' => '付費'] as $k => $v)
+                <a href="{{ request()->fullUrlWithQuery(['paid' => $k, 'page' => null]) }}"
+                   class="admin-filter-tab {{ request('paid') === $k ? 'active' : '' }}">{{ $v }}</a>
                 @endforeach
             </div>
             <form action="{{ route('admin.wheel-segments') }}" method="GET" class="admin-search">
@@ -37,6 +43,7 @@
                         @include('admin._sort-header', ['key' => 'id', 'label' => 'ID'])
                         @include('admin._sort-header', ['key' => 'tier', 'label' => '強度'])
                         @include('admin._sort-header', ['key' => 'content', 'label' => '內容'])
+                        @include('admin._sort-header', ['key' => 'paid', 'label' => '收費'])
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -47,10 +54,17 @@
                         <td>
                             @include('admin._tier-badge', [
                                 'key' => $segment->tier,
-                                'label' => ['mild'=>'輕鬆','medium'=>'親密','intense'=>'大膽'][$segment->tier] ?? $segment->tier,
+                                'label' => \App\Models\WheelSegment::TIERS[$segment->tier] ?? $segment->tier,
                             ])
                         </td>
                         <td style="max-width:400px">{{ Str::limit($segment->content, 80) }}</td>
+                        <td>
+                            @if($segment->is_paid)
+                                <span class="badge-premium">付費</span>
+                            @else
+                                <span style="color:var(--text-dim)">免費</span>
+                            @endif
+                        </td>
                         <td style="white-space:nowrap">
                             <a href="{{ route('admin.wheel-segments.edit', [$segment, 'return' => request()->getQueryString()]) }}" class="btn btn-sm">編輯</a>
                             <form action="{{ route('admin.wheel-segments.destroy', $segment) }}" method="POST"
@@ -62,7 +76,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" style="text-align:center;padding:24px">沒有找到任務</td></tr>
+                    <tr><td colspan="5" style="text-align:center;padding:24px">沒有找到任務</td></tr>
                     @endforelse
                 </tbody>
             </table>

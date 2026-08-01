@@ -84,11 +84,17 @@ class WheelGameService
         return $pools;
     }
 
+    /**
+     * 沒有權限的人只拿得到 is_paid = false 的題目。
+     *
+     * 以前是整級砍掉(unset intense),現在收費是每一題自己的欄位 ——
+     * 大膽那級裡也可以有免費的,親密那級裡也可以有付費的。
+     */
     private static function loadFromDb(bool $isPremium): array
     {
-        $query = WheelSegment::query();
-
-        $segments = $query->orderBy('id')->get();
+        $segments = WheelSegment::query()
+            ->when(! $isPremium, fn ($q) => $q->where('is_paid', false))
+            ->orderBy('id')->get();
 
         if ($segments->isEmpty()) {
             return [];
@@ -97,10 +103,6 @@ class WheelGameService
         $pools = [];
         foreach ($segments->groupBy('tier') as $tier => $items) {
             $pools[$tier] = $items->pluck('content')->toArray();
-        }
-
-        if (! $isPremium) {
-            unset($pools['intense']);
         }
 
         return $pools;

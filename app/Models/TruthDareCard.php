@@ -30,7 +30,9 @@ class TruthDareCard extends Model
      * 整個站都是成人向,所以不分「一般／18禁」—— 免費那批本來就寫著「曖昧級」,
      * 不是普遍級。用跟其他四個小遊戲題庫同一套詞彙,後台與玩家只要記一套。
      */
-    public const LEVELS = ['mild' => '輕度', 'medium' => '中度', 'intense' => '重度(付費)'];
+    /* 標籤不帶「(付費)」—— 收費是每張卡片自己的 is_paid,不是這一級的屬性。
+       重度也可以有免費的題目,中度也可以有付費的。 */
+    public const LEVELS = ['mild' => '輕度', 'medium' => '中度', 'intense' => '重度'];
 
     /** 由輕到重的順序。升溫的階梯與後台排序都靠它。 */
     public const LEVEL_ORDER = ['mild', 'medium', 'intense'];

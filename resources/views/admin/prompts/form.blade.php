@@ -58,6 +58,14 @@
             </div>
 
             <div class="form-group">
+                {{-- 收費與尺度分開:尺度講內容多直接,收費講商業界線。 --}}
+                <label class="form-check" style="display:flex;gap:8px;align-items:center;cursor:pointer">
+                    <input type="checkbox" name="is_paid" value="1" {{ old('is_paid', $prompt?->is_paid ?? \App\Models\GamePrompt::defaultIsPaid(old('pool', $prompt?->pool ?? $pool ?? 'mild'))) ? 'checked' : '' }}>
+                    <span>需付費或看廣告才抽得到</span>
+                </label>
+            </div>
+
+            <div class="form-group">
                 <label for="sort_order">排序</label>
                 <input type="number" id="sort_order" name="sort_order" class="form-input"
                        value="{{ old('sort_order', $prompt?->sort_order ?? 0) }}" min="0" max="9999">

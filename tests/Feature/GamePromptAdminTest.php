@@ -45,14 +45,46 @@ class GamePromptAdminTest extends TestCase
         $this->assertSame(['只有這一題'], $pools['mild']);
     }
 
-    public function test_the_intense_pool_still_needs_premium(): void
+    public function test_a_paid_prompt_is_withheld_from_free_players(): void
     {
         GamePrompt::create(['game' => 'card_game', 'pool' => 'mild', 'content' => '溫和']);
-        GamePrompt::create(['game' => 'card_game', 'pool' => 'intense', 'content' => '露骨']);
+        GamePrompt::create(['game' => 'card_game', 'pool' => 'intense', 'content' => '露骨', 'is_paid' => true]);
 
-        // 題庫搬進資料表之後,分級的界線必須跟著搬,不能因為改了來源就漏掉。
+        // 題庫搬進資料表之後,付費的界線必須跟著搬,不能因為改了來源就漏掉。
         $this->assertArrayNotHasKey('intense', CardGameService::getActivityPools(false));
         $this->assertSame(['露骨'], CardGameService::getActivityPools(true)['intense']);
+    }
+
+    public function test_a_free_prompt_inside_the_intense_pool_reaches_everyone(): void
+    {
+        /* 收費是每一題自己的欄位,不是整級的屬性 —— 重度裡放一題免費的當樣品
+           是合理的用法,以前整級砍掉就做不到。 */
+        GamePrompt::create(['game' => 'card_game', 'pool' => 'intense', 'content' => '免費樣品', 'is_paid' => false]);
+        GamePrompt::create(['game' => 'card_game', 'pool' => 'intense', 'content' => '付費的', 'is_paid' => true]);
+
+        $free = CardGameService::getActivityPools(false);
+
+        $this->assertSame(['免費樣品'], $free['intense']);
+    }
+
+    public function test_a_paid_prompt_inside_a_free_pool_is_withheld(): void
+    {
+        // 反過來也要成立:中度裡也能有付費題目。
+        GamePrompt::create(['game' => 'card_game', 'pool' => 'medium', 'content' => '中度免費']);
+        GamePrompt::create(['game' => 'card_game', 'pool' => 'medium', 'content' => '中度付費', 'is_paid' => true]);
+
+        $this->assertSame(['中度免費'], CardGameService::getActivityPools(false)['medium']);
+        $this->assertCount(2, CardGameService::getActivityPools(true)['medium']);
+    }
+
+    public function test_importing_defaults_marks_the_paid_pools(): void
+    {
+        GamePrompt::importDefaults('card_game');
+
+        // 匯入的初始界線要跟改版前一樣:原本掛著「(付費)」的那幾池預設收費。
+        $this->assertGreaterThan(0, GamePrompt::where('pool', 'intense')->count());
+        $this->assertSame(0, GamePrompt::where('pool', 'intense')->where('is_paid', false)->count());
+        $this->assertSame(0, GamePrompt::where('pool', 'mild')->where('is_paid', true)->count());
     }
 
     public function test_dice_faces_come_from_the_table_per_category(): void

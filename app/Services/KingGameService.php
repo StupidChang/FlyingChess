@@ -48,6 +48,18 @@ class KingGameService
     ];
 
     /** 程式碼裡的預設題庫。資料表空的時候用它,也是後台第一次匯入的來源。 */
+    /** 資料表空的時候用的預設。沒有 is_paid 可言,所以照舊整級判斷。 */
+    private static function defaultPoolsFor(bool $isPremium): array
+    {
+        $all = self::defaultPools();
+
+        if (! $isPremium) {
+            unset($all['intense']);
+        }
+
+        return $all;
+    }
+
     public static function defaultPools(): array
     {
         return [
@@ -59,15 +71,17 @@ class KingGameService
 
     public static function getCommandPools(bool $isPremium = false): array
     {
-        $all = GamePrompt::poolsFor('king_game') ?: self::defaultPools();
+        $all = GamePrompt::poolsFor('king_game', $isPremium) ?: self::defaultPoolsFor($isPremium);
 
-        $pools = [
-            'mild' => $all['mild'] ?? [],
-            'medium' => $all['medium'] ?? [],
-        ];
-
-        if ($isPremium && ! empty($all['intense'])) {
-            $pools['intense'] = $all['intense'];
+        /* 收費是每一題自己的 is_paid,所以過濾在 poolsFor 那一層做完了 ——
+           這裡不再整級砍掉 intense:重度裡也可以有免費題目。
+           程式碼裡的預設題庫沒有 is_paid 這個概念,所以退回預設時仍然照舊
+           把 intense 留給有權限的人。 */
+        $pools = [];
+        foreach (['mild', 'medium', 'intense'] as $level) {
+            if (! empty($all[$level])) {
+                $pools[$level] = $all[$level];
+            }
         }
 
         return $pools;

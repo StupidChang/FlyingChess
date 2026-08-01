@@ -426,10 +426,15 @@ class AdminController extends Controller
             $query->where('content', 'like', "%{$search}%");
         }
 
+        if (($paid = $request->input('paid')) !== null && $paid !== '') {
+            $query->where('is_paid', $paid === '1');
+        }
+
         $this->applySort($query, $request, [
             'id' => 'id',
-            'tier' => ['tier', ['mild', 'medium', 'intense']],
+            'tier' => ['tier', array_keys(WheelSegment::TIERS)],
             'content' => 'content',
+            'paid' => 'is_paid',
             'created_at' => 'created_at',
         ], 'created_at');
 
@@ -450,8 +455,11 @@ class AdminController extends Controller
     {
         $data = $request->validate([
             'content' => ['required', 'string', 'max:200', new NoBlockedWords],
-            'tier' => ['required', 'in:mild,medium,intense'],
+            'tier' => ['required', 'in:'.implode(',', array_keys(WheelSegment::TIERS))],
         ]);
+
+        // checkbox 沒勾就完全不送,要自己補 false。
+        $data['is_paid'] = $request->boolean('is_paid');
 
         WheelSegment::create($data);
 
@@ -470,8 +478,11 @@ class AdminController extends Controller
     {
         $data = $request->validate([
             'content' => ['required', 'string', 'max:200', new NoBlockedWords],
-            'tier' => ['required', 'in:mild,medium,intense'],
+            'tier' => ['required', 'in:'.implode(',', array_keys(WheelSegment::TIERS))],
         ]);
+
+        // checkbox 沒勾就完全不送,要自己補 false。
+        $data['is_paid'] = $request->boolean('is_paid');
 
         $wheelSegment->update($data);
 
@@ -510,11 +521,15 @@ class AdminController extends Controller
         if ($search = $request->input('q')) {
             $query->where('content', 'like', "%{$search}%");
         }
+        if (($paid = $request->input('paid')) !== null && $paid !== '') {
+            $query->where('is_paid', $paid === '1');
+        }
 
         $this->applySort($query, $request, [
             'id' => 'id',
             'pool' => ['pool', array_keys(GamePrompt::POOLS[$game])],
             'content' => 'content',
+            'paid' => 'is_paid',
             'sort_order' => 'sort_order',
         ], 'pool', 'asc');
         $query->orderBy('sort_order')->orderBy('id');
@@ -619,6 +634,8 @@ class AdminController extends Controller
         ])['pool'];
 
         $data['sort_order'] = $data['sort_order'] ?? 0;
+        // checkbox 沒勾就完全不送,要自己補 false,不然改成免費會存不進去。
+        $data['is_paid'] = $request->boolean('is_paid');
 
         return $data;
     }

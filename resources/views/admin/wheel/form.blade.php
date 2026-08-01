@@ -27,7 +27,7 @@
             <div class="form-group">
                 <label for="tier">強度</label>
                 <select id="tier" name="tier" class="form-input" required>
-                    @foreach(['mild' => '輕鬆', 'medium' => '親密', 'intense' => '大膽'] as $k => $v)
+                    @foreach(\App\Models\WheelSegment::TIERS as $k => $v)
                     <option value="{{ $k }}" {{ old('tier', $segment?->tier) === $k ? 'selected' : '' }}>{{ $v }}</option>
                     @endforeach
                 </select>
@@ -37,6 +37,14 @@
                 <label for="content">任務內容</label>
                 <textarea id="content" name="content" class="form-input" rows="3"
                           required maxlength="200">{{ old('content', $segment?->content) }}</textarea>
+            </div>
+
+            <div class="form-group">
+                {{-- 收費與尺度分開:尺度講內容多直接,收費講商業界線。 --}}
+                <label class="form-check" style="display:flex;gap:8px;align-items:center;cursor:pointer">
+                    <input type="checkbox" name="is_paid" value="1" {{ old('is_paid', $segment?->is_paid ?? \App\Models\WheelSegment::defaultIsPaid(old('tier', $segment?->tier))) ? 'checked' : '' }}>
+                    <span>需付費或看廣告才抽得到</span>
+                </label>
             </div>
 
             <div style="display:flex;gap:12px;margin-top:24px">
