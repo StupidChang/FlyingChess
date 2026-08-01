@@ -44,14 +44,16 @@ class BoardContentTierTest extends TestCase
         $before = $board->squares()->orderBy('position')
             ->get(['position', 'grid_row', 'grid_col', 'fly_to'])->toArray();
 
-        $board->squares()->where('position', 6)->update(['text' => '舊內容']);
+        $board->squares()->where('position', 7)->update(['text' => '舊內容']);
         $this->seed(BoardSeeder::class);
 
-        $this->assertSame(40, $board->squares()->count());
+        // 44 而不是 40:十字的四個內轉角補上格子之後,外圈是 44 格。
+        // 轉角插在 index 5,所以原本 index 6 的內容現在落在 7。
+        $this->assertSame(44, $board->squares()->count());
         $this->assertSame($before, $board->squares()->orderBy('position')
             ->get(['position', 'grid_row', 'grid_col', 'fly_to'])->toArray());
         $this->assertSame("從嘴唇一路親到\n對方的鎖骨", $board->squares()
-            ->where('position', 6)->value('text'));
+            ->where('position', 7)->value('text'));
     }
 
     public function test_premium_board_moves_from_warmup_to_explicit_play(): void
@@ -59,10 +61,13 @@ class BoardContentTierTest extends TestCase
         $this->seed(BoardSeeder::class);
         $board = Board::where('name', '情侶飛行棋 V2.0')->firstOrFail();
 
-        $warmup = $board->squares()->whereBetween('position', [1, 9])->pluck('text')->implode(' ');
-        $teasing = $board->squares()->whereBetween('position', [11, 19])->pluck('text')->implode(' ');
-        $foreplay = $board->squares()->whereBetween('position', [20, 30])->pluck('text')->implode(' ');
-        $explicit = $board->squares()->whereBetween('position', [31, 39])->pluck('text')->implode(' ');
+        /* 四個內轉角補進外圈之後,原本 40 格的編號整個往後挪:轉角插在新編號的
+           5、19、29、39,所以之後的每一格依序 +1、+2、+3、+4。下面的區間是把
+           原本的 1-9 / 11-19 / 20-30 / 31-39 換算過來的,分級的意思沒有變。 */
+        $warmup = $board->squares()->whereBetween('position', [1, 10])->pluck('text')->implode(' ');
+        $teasing = $board->squares()->whereBetween('position', [12, 21])->pluck('text')->implode(' ');
+        $foreplay = $board->squares()->whereBetween('position', [22, 33])->pluck('text')->implode(' ');
+        $explicit = $board->squares()->whereBetween('position', [34, 43])->pluck('text')->implode(' ');
 
         $this->assertStringNotContainsString('口交', $warmup);
         $this->assertStringContainsString('脫掉一件', $teasing);
@@ -107,8 +112,8 @@ class BoardContentTierTest extends TestCase
 
             $this->assertTrue($board->is_template);
             $this->assertTrue($board->is_premium_template);
-            $this->assertSame(40, $board->squares_count);
-            $this->assertSame(range(0, 39), $board->path_data['all']);
+            $this->assertSame(44, $board->squares_count);
+            $this->assertSame(range(0, 43), $board->path_data['all']);
             $this->assertSame($referenceImage, $board->reference_image);
             $this->assertCount(6, $board->startWheel());
         }
