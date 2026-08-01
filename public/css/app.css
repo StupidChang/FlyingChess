@@ -1206,11 +1206,15 @@ ul{list-style:none}
    (CLS,同時影響體感與 Core Web Vitals)。這裡預留保守高度:
    .ad-unit 本身只在 zone 有設定時才會被 render(見 partials/ad-unit.blade.php),
    所以沒接廣告的環境不會出現空白區塊。
-   ⚠ 數值要對齊你在聯播網後台實際選的版位尺寸。目前五個 ExoClick zone 都是
-     Rectangle 300x250,桌機手機共用同一個 zone,所以高度也不分斷點 —— 手機
-     若改回較矮的數值,300x250 的素材載入時一樣會把下方內容推開。          */
+   ⚠ 數值要對齊你在聯播網後台實際選的版位尺寸。基準是 300x250(所有版位的窄版,
+     以及 home_mid 的桌機寬版 900x250,兩者同高所以共用一個值)。
+     例外只有 home_banner 的桌機版:那裡是 728x90,首屏下方不該被 250px 擋路。
+     斷點與 ad-unit.blade.php 的 940px 一致 —— 兩邊要一起改,不然會預留錯高度。 */
 .ad-unit{contain:layout}
 .ad-unit--banner{min-height:250px}
+@media(min-width:940px){
+  .ad-unit--banner[data-zone="home_banner"]{min-height:90px}
+}
 /* 後代選擇器而非子選擇器:雙尺寸版位的 ins 是 JS 插進 .ad-slot 裡的,不是直接子層。 */
 .ad-unit--banner ins,.ad-unit--banner iframe{max-width:100%!important}
 /* .closing-cta-section::after 是 700px 寬的裝飾光暈,父層原本沒有裁切,
