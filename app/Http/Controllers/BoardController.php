@@ -13,7 +13,9 @@ class BoardController extends Controller
 {
     private function checkOwnership(Board $board): void
     {
-        if ($board->user_id !== Auth::id()) {
+        $user = Auth::user();
+
+        if (! $user || ($board->user_id !== $user->id && ! $user->isAdmin())) {
             abort(403, __('play.err_board_forbidden'));
         }
     }
