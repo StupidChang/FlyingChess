@@ -270,6 +270,17 @@ function sizeGameBoard(board, cols, rows) {
   board.style.setProperty('--cell', Math.floor(bw / cols) + 'px');
 }
 
+/** 輪到的玩家現在應該在的位置:還沒進場是轉盤,進場了是他所在的格子。 */
+function activePieceTarget() {
+  const board = document.getElementById('game-board');
+  const p = state.players[state.current];
+  if (!board || !p) return null;
+
+  return isOnTrack(p)
+    ? document.getElementById(`sq-${currentPos(p)}`)
+    : board.querySelector('.board-entry-wheel');
+}
+
 /**
  * 棋盤超出可視範圍時(手機),把輪到的那顆棋子捲進畫面中央。
  *
@@ -1320,6 +1331,9 @@ function advanceTurn() {
     } while (state.players[state.current].finished && guard <= n);
   }
   updateTurnUI();
+  /* 換人時畫面要跟過去。手機上棋盤是超出畫面捲動的,不帶過去的話下一位玩家
+     根本看不到自己的棋子在哪 —— 之前只有「棋子移動」會捲,「換人」不會。 */
+  followActivePiece(activePieceTarget());
   const rb = document.getElementById('roll-btn');
   if (rb) rb.disabled = false;
 }
@@ -1354,7 +1368,14 @@ function updateTurnUI() {
   const p = state.players[state.current];
   if (!p) return;
   const label = document.getElementById('turn-label');
-  if (label) label.textContent = tp('turnOf', { ':name': p.name });
+  if (label) {
+    label.textContent = tp('turnOf', { ':name': p.name });
+    /* 重新觸發淡入動畫。同一個元素要再播一次 CSS animation,得先移除 class 並
+       強制一次 reflow —— 只是拿掉再加上,瀏覽器會把兩次變更合併成沒有變更。 */
+    label.classList.remove('is-changing');
+    void label.offsetWidth;
+    label.classList.add('is-changing');
+  }
   /* Every seat, not just p1/p2 — in a 4-player game the highlight used to get
      stuck on whoever of the first two moved last. */
   state.players.forEach(function(_, i) {

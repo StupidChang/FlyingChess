@@ -1097,3 +1097,24 @@
   0%, 100% { opacity: .45; transform: scale(1); }
   50%      { opacity: 1;   transform: scale(1.06); }
 }
+
+/* ── 換手與結果的過場 ──────────────────────────────── */
+
+/* 輪到誰的高亮用淡的,不要瞬間跳色 */
+.player-panel {
+  transition: border-color .28s ease, background-color .28s ease, opacity .28s ease;
+}
+/* 沒輪到的座位稍微退後,視線自然落在當前玩家身上 */
+.player-panel:not(.active) { opacity: .62; }
+
+/* 換人時回合文字重新淡入,讓「換手」這件事看得見 */
+.turn-label.is-changing { animation: turn-swap .32s ease-out both; }
+@keyframes turn-swap {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+/* 轉盤結果的說明淡入 */
+.board-entry-wheel .bew-label.is-result { animation: wheel-result .3s ease-out both; }
+@keyframes wheel-result {
+  from { opacity: 0; transform: translateY(4px); }
+}

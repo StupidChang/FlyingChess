@@ -1671,3 +1671,13 @@ ul{list-style:none}
 .rw-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:64px;height:64px;border-radius:50%;border:0;cursor:pointer;
   background:rgba(0,0,0,.65);color:#fff;font-size:1.6rem;line-height:1}
+
+/* ── 彈窗的淡入 ────────────────────────────────────────
+   彈窗原本是 display:none → flex,直接「啪」地出現。淡入只需要在 .open 上掛
+   animation(元素從不顯示變成顯示時會播一次),不用改任何 JS。
+   淡出做不到 —— display:none 一套用元素就消失了,要淡出得讓 JS 延後移除
+   class。彈窗關閉時使用者的注意力已經移開,不值得為它多一層時序耦合。 */
+.modal.open .modal-overlay { animation: modal-fade .18s ease-out both; }
+.modal.open .modal-box     { animation: modal-rise .22s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes modal-fade { from { opacity: 0; } }
+@keyframes modal-rise { from { opacity: 0; transform: translateY(10px) scale(.97); } }
