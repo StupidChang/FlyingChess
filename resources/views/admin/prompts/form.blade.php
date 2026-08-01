@@ -19,6 +19,9 @@
         <form action="{{ $prompt ? route('admin.prompts.update', $prompt) : route('admin.prompts.store') }}"
               method="POST" class="admin-form">
             @csrf
+            {{-- 帶著使用者原本停在列表的哪一頁、哪個篩選、哪個排序,存檔後照原樣
+                 回去 —— 不然改一筆就要重找一次。 --}}
+            <input type="hidden" name="return" value="{{ http_build_query($return ?? []) }}">
             @if($prompt) @method('PATCH') @endif
 
             <div class="form-group">
@@ -62,7 +65,7 @@
 
             <div style="display:flex;gap:12px;margin-top:24px">
                 <button type="submit" class="btn">{{ $prompt ? '儲存' : '新增' }}</button>
-                <a href="{{ route('admin.prompts', ['game' => $game]) }}" class="btn btn-outline">返回列表</a>
+                <a href="{{ route('admin.prompts', ($return ?? []) + ['game' => $game]) }}" class="btn btn-outline">返回列表</a>
             </div>
         </form>
     </div>

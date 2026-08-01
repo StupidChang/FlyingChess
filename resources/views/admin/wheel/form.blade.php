@@ -19,6 +19,9 @@
         <form action="{{ $segment ? route('admin.wheel-segments.update', $segment) : route('admin.wheel-segments.store') }}"
               method="POST" class="admin-form">
             @csrf
+            {{-- 帶著使用者原本停在列表的哪一頁、哪個篩選、哪個排序,存檔後照原樣
+                 回去 —— 不然改一筆就要重找一次。 --}}
+            <input type="hidden" name="return" value="{{ http_build_query($return ?? []) }}">
             @if($segment) @method('PATCH') @endif
 
             <div class="form-group">
@@ -38,7 +41,7 @@
 
             <div style="display:flex;gap:12px;margin-top:24px">
                 <button type="submit" class="btn">{{ $segment ? '儲存' : '新增' }}</button>
-                <a href="{{ route('admin.wheel-segments') }}" class="btn btn-outline">返回列表</a>
+                <a href="{{ route('admin.wheel-segments', $return ?? []) }}" class="btn btn-outline">返回列表</a>
             </div>
         </form>
     </div>

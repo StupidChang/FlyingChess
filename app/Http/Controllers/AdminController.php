@@ -61,6 +61,23 @@ class AdminController extends Controller
         $query->orderBy($spec, $dir);
     }
 
+    /**
+     * 回到列表時要帶回去的篩選、排序與頁碼。
+     *
+     * 列表頁的網址帶著一堆狀態(第 7 頁、只看重度、依尺度排序…),點進去編輯
+     * 再回來如果全部歸零,等於每改一題就要重找一次。所以列表上的每個連結都
+     * 帶一份當時的 query string,存檔後照原樣回去。
+     *
+     * 只收 query string 而不是完整網址,而且解析後交回 route() 重組 ——
+     * 直接把使用者給的字串當網址轉址就是一個開放轉址漏洞。
+     */
+    private function listReturn(Request $request): array
+    {
+        parse_str((string) $request->input('return'), $params);
+
+        return is_array($params) ? $params : [];
+    }
+
     // ── Traffic ──
 
     /**
@@ -221,9 +238,12 @@ class AdminController extends Controller
         return view('admin.boards.index', compact('boards', 'filter'));
     }
 
-    public function editBoard(Board $board)
+    public function editBoard(Request $request, Board $board)
     {
-        return view('admin.boards.edit', compact('board'));
+        return view('admin.boards.edit', [
+            'board' => $board,
+            'return' => $this->listReturn($request),
+        ]);
     }
 
     public function updateBoard(Request $request, Board $board)
@@ -250,7 +270,7 @@ class AdminController extends Controller
             'is_premium_template' => $data['is_premium_template'] ?? false,
         ]);
 
-        return redirect()->route('admin.boards')->with('success', '棋盤已更新');
+        return redirect()->route('admin.boards', $this->listReturn($request))->with('success', '棋盤已更新');
     }
 
     // ── Community publish review ──
@@ -352,9 +372,12 @@ class AdminController extends Controller
         return redirect()->route('admin.cards')->with('success', '卡片已新增');
     }
 
-    public function editCard(TruthDareCard $card)
+    public function editCard(Request $request, TruthDareCard $card)
     {
-        return view('admin.cards.form', compact('card'));
+        return view('admin.cards.form', [
+            'card' => $card,
+            'return' => $this->listReturn($request),
+        ]);
     }
 
     public function updateCard(Request $request, TruthDareCard $card)
@@ -368,14 +391,16 @@ class AdminController extends Controller
 
         $card->update($data);
 
-        return redirect()->route('admin.cards')->with('success', '卡片已更新');
+        return redirect()->route('admin.cards', $this->listReturn($request))
+            ->with('success', '卡片已更新');
     }
 
-    public function destroyCard(TruthDareCard $card)
+    public function destroyCard(Request $request, TruthDareCard $card)
     {
         $card->delete();
 
-        return redirect()->route('admin.cards')->with('success', '卡片已刪除');
+        return redirect()->route('admin.cards', $this->listReturn($request))
+            ->with('success', '卡片已刪除');
     }
 
     // ── Wheel Segments ──
@@ -403,9 +428,12 @@ class AdminController extends Controller
         return view('admin.wheel.index', compact('segments'));
     }
 
-    public function createWheelSegment()
+    public function createWheelSegment(Request $request)
     {
-        return view('admin.wheel.form', ['segment' => null]);
+        return view('admin.wheel.form', [
+            'segment' => null,
+            'return' => $this->listReturn($request),
+        ]);
     }
 
     public function storeWheelSegment(Request $request)
@@ -420,9 +448,12 @@ class AdminController extends Controller
         return redirect()->route('admin.wheel-segments')->with('success', '轉盤任務已新增');
     }
 
-    public function editWheelSegment(WheelSegment $wheelSegment)
+    public function editWheelSegment(Request $request, WheelSegment $wheelSegment)
     {
-        return view('admin.wheel.form', ['segment' => $wheelSegment]);
+        return view('admin.wheel.form', [
+            'segment' => $wheelSegment,
+            'return' => $this->listReturn($request),
+        ]);
     }
 
     public function updateWheelSegment(Request $request, WheelSegment $wheelSegment)
@@ -434,14 +465,16 @@ class AdminController extends Controller
 
         $wheelSegment->update($data);
 
-        return redirect()->route('admin.wheel-segments')->with('success', '轉盤任務已更新');
+        return redirect()->route('admin.wheel-segments', $this->listReturn($request))
+            ->with('success', '轉盤任務已更新');
     }
 
-    public function destroyWheelSegment(WheelSegment $wheelSegment)
+    public function destroyWheelSegment(Request $request, WheelSegment $wheelSegment)
     {
         $wheelSegment->delete();
 
-        return redirect()->route('admin.wheel-segments')->with('success', '轉盤任務已刪除');
+        return redirect()->route('admin.wheel-segments', $this->listReturn($request))
+            ->with('success', '轉盤任務已刪除');
     }
 
     // ── Game prompts(四個小遊戲的題庫)──
@@ -504,12 +537,13 @@ class AdminController extends Controller
         ]);
     }
 
-    public function editPrompt(GamePrompt $prompt)
+    public function editPrompt(Request $request, GamePrompt $prompt)
     {
         return view('admin.prompts.form', [
             'prompt' => $prompt,
             'game' => $prompt->game,
             'pool' => $prompt->pool,
+            'return' => $this->listReturn($request),
         ]);
     }
 
@@ -527,16 +561,16 @@ class AdminController extends Controller
         $data = $this->validatePrompt($request);
         $prompt->update($data);
 
-        return redirect()->route('admin.prompts', ['game' => $data['game']])
+        return redirect()->route('admin.prompts', $this->listReturn($request) + ['game' => $data['game']])
             ->with('success', '題目已更新');
     }
 
-    public function destroyPrompt(GamePrompt $prompt)
+    public function destroyPrompt(Request $request, GamePrompt $prompt)
     {
         $game = $prompt->game;
         $prompt->delete();
 
-        return redirect()->route('admin.prompts', ['game' => $game])
+        return redirect()->route('admin.prompts', $this->listReturn($request) + ['game' => $game])
             ->with('success', '題目已刪除');
     }
 
@@ -581,9 +615,12 @@ class AdminController extends Controller
 
     // ── Users ──
 
-    public function editUser(User $user)
+    public function editUser(Request $request, User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        return view('admin.users.edit', [
+            'user' => $user,
+            'return' => $this->listReturn($request),
+        ]);
     }
 
     public function updateUser(Request $request, User $user)
@@ -608,7 +645,7 @@ class AdminController extends Controller
             'premium_expires_at' => $data['premium_expires_at'] ?: null,
         ]);
 
-        return redirect()->route('admin.users')->with('success', '會員資料已更新');
+        return redirect()->route('admin.users', $this->listReturn($request))->with('success', '會員資料已更新');
     }
 
     public function users(Request $request)

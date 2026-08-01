@@ -59,7 +59,7 @@
                         <td>{{ $board->squares_count ?? $board->squares()->count() }}</td>
                         <td>{{ $board->created_at->format('Y-m-d') }}</td>
                         <td>
-                            <a href="{{ route('admin.boards.edit', $board) }}" class="btn btn-sm">編輯</a>
+                            <a href="{{ route('admin.boards.edit', [$board, 'return' => request()->getQueryString()]) }}" class="btn btn-sm">編輯</a>
                             <a href="{{ route('boards.edit', $board) }}" class="btn btn-sm btn-outline" target="_blank">畫布</a>
                         </td>
                     </tr>

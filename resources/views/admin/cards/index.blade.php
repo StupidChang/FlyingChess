@@ -75,10 +75,11 @@
                             ])
                         </td>
                         <td style="white-space:nowrap">
-                            <a href="{{ route('admin.cards.edit', $card) }}" class="btn btn-sm">編輯</a>
+                            <a href="{{ route('admin.cards.edit', [$card, 'return' => request()->getQueryString()]) }}" class="btn btn-sm">編輯</a>
                             <form action="{{ route('admin.cards.destroy', $card) }}" method="POST"
                                   style="display:inline" onsubmit="return confirm('確定刪除此卡片？')">
                                 @csrf @method('DELETE')
+                                <input type="hidden" name="return" value="{{ request()->getQueryString() }}">
                                 <button type="submit" class="btn btn-sm btn-outline" style="color:var(--accent)">刪除</button>
                             </form>
                         </td>

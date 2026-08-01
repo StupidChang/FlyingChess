@@ -69,7 +69,7 @@
                         <td>{{ $user->created_at->format('Y-m-d H:i') }}</td>
                         <td>
                             <div style="display:flex;gap:6px;flex-wrap:wrap">
-                                <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm">編輯</a>
+                                <a href="{{ route('admin.users.edit', [$user, 'return' => request()->getQueryString()]) }}" class="btn btn-sm">編輯</a>
                                 @unless($user->isAdmin() || $user->id === auth()->id())
                                     @if($user->isBanned())
                                     <form action="{{ route('admin.users.unban', $user) }}" method="POST"

@@ -75,10 +75,11 @@
                         <td style="max-width:400px">{{ Str::limit($prompt->content, 80) }}</td>
                         <td>{{ $prompt->sort_order }}</td>
                         <td style="white-space:nowrap">
-                            <a href="{{ route('admin.prompts.edit', $prompt) }}" class="btn btn-sm">編輯</a>
+                            <a href="{{ route('admin.prompts.edit', [$prompt, 'return' => request()->getQueryString()]) }}" class="btn btn-sm">編輯</a>
                             <form action="{{ route('admin.prompts.destroy', $prompt) }}" method="POST"
                                   style="display:inline" onsubmit="return confirm('確定刪除此題目？')">
                                 @csrf @method('DELETE')
+                                <input type="hidden" name="return" value="{{ request()->getQueryString() }}">
                                 <button type="submit" class="btn btn-sm btn-outline" style="color:var(--accent)">刪除</button>
                             </form>
                         </td>

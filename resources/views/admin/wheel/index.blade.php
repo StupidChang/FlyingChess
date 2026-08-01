@@ -52,10 +52,11 @@
                         </td>
                         <td style="max-width:400px">{{ Str::limit($segment->content, 80) }}</td>
                         <td style="white-space:nowrap">
-                            <a href="{{ route('admin.wheel-segments.edit', $segment) }}" class="btn btn-sm">編輯</a>
+                            <a href="{{ route('admin.wheel-segments.edit', [$segment, 'return' => request()->getQueryString()]) }}" class="btn btn-sm">編輯</a>
                             <form action="{{ route('admin.wheel-segments.destroy', $segment) }}" method="POST"
                                   style="display:inline" onsubmit="return confirm('確定刪除此任務？')">
                                 @csrf @method('DELETE')
+                                <input type="hidden" name="return" value="{{ request()->getQueryString() }}">
                                 <button type="submit" class="btn btn-sm btn-outline" style="color:var(--accent)">刪除</button>
                             </form>
                         </td>
