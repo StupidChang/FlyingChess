@@ -1791,15 +1791,27 @@ a.gh-name{color:var(--accent)}
   color:var(--text-dim);font-size:.85rem;line-height:1.7;
 }
 .admin-note p{margin-bottom:10px}
-}
 
 /* ── 個人資料頁的自訂工具入口 ── */
-.profile-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
-.profile-tool{display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;
+/* 一律左右兩欄。原本是 auto-fit minmax(240px,1fr),窄螢幕塞不下 240px 就會
+   掉成上下排 —— 手機上看起來就是「跑版」。minmax(0,1fr) 而不是 1fr:
+   1fr 等於 minmax(auto,1fr),欄位不會縮到比內容還窄,長字串會把整個 grid
+   撐出容器外。 */
+.profile-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.profile-tool{display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;min-width:0;
   border:2px solid var(--border);background:var(--surface);transition:border-color .32s ease,
   transform .32s cubic-bezier(.22,.61,.36,1),box-shadow .32s ease}
+.profile-tool-text{min-width:0}
 .profile-tool:hover{transform:translateY(-4px);border-color:rgba(var(--glow-rgb),.5);
   box-shadow:0 14px 30px -14px rgba(0,0,0,.6)}
 .profile-tool-icon{font-size:1.6rem;line-height:1;flex:none}
 .profile-tool strong{display:block;font-size:.95rem}
 .profile-tool em{display:block;font-style:normal;font-size:.78rem;color:var(--text-dim);margin-top:3px}
+/* 手機上兩欄各自很窄,圖示改成疊在文字上方,不然一行只放得下三四個字 */
+@media(max-width:560px){
+  .profile-tools{gap:10px}
+  .profile-tool{flex-direction:column;align-items:flex-start;gap:8px;padding:13px}
+  .profile-tool-icon{font-size:1.4rem}
+  .profile-tool strong{font-size:.88rem}
+  .profile-tool em{font-size:.72rem;line-height:1.5}
+}

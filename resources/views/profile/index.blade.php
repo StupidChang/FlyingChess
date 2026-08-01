@@ -106,7 +106,7 @@
         <div class="profile-tools">
             <a href="{{ route('dice.index') }}" class="profile-tool">
                 <span class="profile-tool-icon" aria-hidden="true">🎲</span>
-                <span>
+                <span class="profile-tool-text">
                     <strong>{{ __('ui.my_dice') }}</strong>
                     <em>{{ __('ui.my_dice_desc') }}</em>
                 </span>
@@ -115,7 +115,7 @@
                  這裡要連的是真的放著轉盤編輯器的那一頁。 --}}
             <a href="{{ route('wheel-game.show') }}#cw-root" class="profile-tool">
                 <span class="profile-tool-icon" aria-hidden="true">🎡</span>
-                <span>
+                <span class="profile-tool-text">
                     <strong>{{ __('ui.my_wheels') }}</strong>
                     <em>{{ __('ui.my_wheels_desc') }}</em>
                 </span>

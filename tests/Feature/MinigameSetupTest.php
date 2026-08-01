@@ -74,4 +74,30 @@ class MinigameSetupTest extends TestCase
 
         $this->assertStringContainsString('.pa-grid[hidden]{display:none}', $css);
     }
+
+    public function test_the_stylesheets_have_balanced_braces(): void
+    {
+        /* 用腳本大量改 CSS 的時候很容易多留一個 }。瀏覽器會忽略它繼續往下讀,
+           所以畫面不會整個壞掉,只會有某一段規則莫名其妙不生效 —— 那種問題
+           用肉眼看幾乎找不到。 */
+        foreach (['css/app.css', 'css/minigames.css', 'css/board.css'] as $file) {
+            $depth = 0;
+            $wentNegative = false;
+
+            foreach (str_split(file_get_contents(public_path($file))) as $ch) {
+                if ($ch === '{') {
+                    $depth++;
+                } elseif ($ch === '}') {
+                    $depth--;
+                }
+                if ($depth < 0) {
+                    $wentNegative = true;
+                    break;
+                }
+            }
+
+            $this->assertFalse($wentNegative, "{$file} 有多出來的 }");
+            $this->assertSame(0, $depth, "{$file} 有沒關起來的 {");
+        }
+    }
 }
