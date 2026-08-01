@@ -28,6 +28,7 @@ return [
 
     // Tags / labels used on lobby + game-hall cards
     'tag_online' => 'オンライン対戦',
+    'badge_popular' => '人気No.1',
     'tag_couple' => 'カップル向け',
     'tag_party' => '同じ端末でパーティー',
     'start_game' => 'ゲーム開始',
