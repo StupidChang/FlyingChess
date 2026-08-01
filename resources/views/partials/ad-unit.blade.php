@@ -79,9 +79,6 @@
 </div>
 @endif
 
-@if($showAds && ($hasEC || $hasTJ || $hasAS))
-    {{-- 廣告本身就是 Premium 的最佳說服時機:給一條低調的出口,不用彈窗。 --}}
-    <div class="ad-upsell">
-        <a href="{{ route('premium.index') }}">{{ __('ui.ad_remove') }}</a>
-    </div>
-@endif
+{{-- 這裡原本有一條「不想看廣告?升級 Premium」的連結。拿掉了:每個廣告下面都掛
+     一句招攬,五個版位加起來變成整站在碎念,而 /premium 在導覽列本來就有入口。
+     語系檔的 ui.ad_remove 與 .ad-upsell 的樣式先留著,要復原只要把這段補回來。 --}}
