@@ -8,7 +8,10 @@ use Illuminate\Support\Str;
 
 class TruthDareService
 {
-    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false, string $mode = 'couple'): array
+    /** 開了升溫時,前幾張只出免費題目。 */
+    private const ESCALATE_AFTER = 4;
+
+    public function createGame(string $playerName, string $sessionId, bool $isPrivate = false, ?int $hostUserId = null, bool $isAdult = false, string $mode = 'couple', bool $escalate = false): array
     {
         $game = Game::create([
             'code' => $this->generateCode(),
@@ -25,6 +28,8 @@ class TruthDareService
                 'is_adult' => $isAdult,
                 // 情侶場還是多人場。題目池差在這裡,不是差在多一個分類按鈕。
                 'mode' => $mode === 'party' ? 'party' : 'couple',
+                // 逐漸升溫:前幾張只出免費的曖昧題,之後才放行付費的露骨題。
+                'escalate' => $escalate,
             ],
         ]);
 
@@ -94,15 +99,14 @@ class TruthDareService
            的分段)。原本這裡在 is_adult 的房間只抽 premium,而每一間房都是
            is_adult —— 結果是免費玩家照樣拿得到全部付費題目,那 40 張免費題目
            反而一張都抽不到,免費與付費之間根本沒有差別。 */
-        $tiers = ['free'];
-        if ($hasPremiumContent) {
-            $tiers[] = 'premium';
-        }
-
         $state = $game->game_state ?? [];
         $usedIds = $state['used_card_ids'] ?? [];
-
         $mode = $state['mode'] ?? 'couple';
+
+        $tiers = ['free'];
+        if ($hasPremiumContent && $this->paidUnlockedYet($state)) {
+            $tiers[] = 'premium';
+        }
 
         $query = TruthDareCard::where('category', $category)
             ->whereIn('audience', TruthDareCard::audiencesFor($mode))
@@ -133,6 +137,21 @@ class TruthDareService
                 'tier' => $card->tier,
             ],
         ];
+    }
+
+    /**
+     * 開了「逐漸升溫」的房間,前幾張只出免費的曖昧題。
+     *
+     * 這個遊戲只有兩級(免費曖昧／付費露骨),所以階梯只有一階 —— 用已經抽掉
+     * 幾張當進度,與前端那五個遊戲用回合數是同一個意思:一輪四張左右。
+     */
+    private function paidUnlockedYet(array $state): bool
+    {
+        if (empty($state['escalate'])) {
+            return true;
+        }
+
+        return count($state['used_card_ids'] ?? []) >= self::ESCALATE_AFTER;
     }
 
     public function nextPlayer(Game $game): array

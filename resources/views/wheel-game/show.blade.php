@@ -146,6 +146,7 @@
                 </div>
             </div>
             <button class="btn btn-sm btn-outline mg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+            @include('partials.escalate-toggle')
             <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
         </div>
     </div>
@@ -196,6 +197,9 @@
 @endsection
 
 @section('scripts')
+{{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
+<script src="{{ asset_v('js/player-avatar.js') }}"></script>
+<script src="{{ asset_v('js/escalation.js') }}"></script>
 <script>
 (function(){
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
@@ -208,6 +212,20 @@
     var currentAngle=0;
     var currentSegments=[];
     var currentTier='mild';
+    var escalate=false;
+    /* 這一回合實際用哪一級的轉盤。
+       開了升溫的話,玩家在大廳選的那一級是**上限**而不是固定值 —— 從最輕的
+       一級開始往上走到他選的那一級為止。想直接玩大膽的人把開關關掉就好。
+       自訂轉盤沒有分級,不參與升溫。 */
+    var activeTier='mild';
+    function tierForRound(r){
+        if(!escalate || currentTier==='custom') return currentTier;
+        var order=['mild','medium','intense'];
+        var cap=order.indexOf(currentTier);
+        if(cap<0) return currentTier;
+        var ladder=order.slice(0,cap+1).filter(function(t){return SEGMENTS[t]&&SEGMENTS[t].length});
+        return Escalation.topTierFor(r, ladder, true)||currentTier;
+    }
 
     var TIER_META={
         mild:   {name:@json(__('minigame.wheel_mild_name')),icon:'🌸',desc:@json(__('minigame.wheel_mild_desc')),badge:'mg-tag-mild'},
@@ -395,10 +413,11 @@
         players=[];
         var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){
-            players.push(r.querySelector('.p-name').value.trim()||fallbackName);
+            players.push(PlayerAvatar.displayName(r)||fallbackName);
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         turn=0;round=1;
+        escalate=Escalation.enabled();
         showTurn();
     };
 
@@ -407,7 +426,8 @@
        ═══════════════════════════════════════════ */
     function showTurn(){
         showPhase('game-phase');
-        var meta=TIER_META[currentTier];
+        activeTier=tierForRound(round);
+        var meta=TIER_META[activeTier];
         var roundLabel = @json(__('minigame.wheel_round_n', ['n' => '__N__'])).replace('__N__', round);
         document.getElementById('turn-badge').innerHTML=escHtml(roundLabel)+' <span class="mg-tag '+meta.badge+'">'+escHtml(meta.name)+'</span>';
         var turnLabel = @json(__('minigame.wheel_player_turn', ['name' => '__NAME__'])).replace('__NAME__', players[turn]);
@@ -418,7 +438,7 @@
         document.getElementById('wheel-wrapper').classList.remove('spinning');
         spinning=false;
 
-        currentSegments=pickSegments(currentTier);
+        currentSegments=pickSegments(activeTier);
         var canvas=document.getElementById('wheel-canvas');
         canvas.style.transition='none';
         canvas.style.transform='rotate(0deg)';
@@ -491,7 +511,7 @@
     function buildTaskPanel(){
         var panel=document.getElementById('task-panel');
         if(!currentSegments.length){panel.innerHTML='';return;}
-        var meta=TIER_META[currentTier];
+        var meta=TIER_META[activeTier];
         var html='<div class="wg-task-header"><span class="wg-task-header-title">'+escHtml(@json(__('minigame.wheel_round_tasks')))+'</span><span class="mg-tag '+meta.badge+'">'+escHtml(meta.name)+'</span></div>';
         html+='<ul class="wg-task-list">';
         for(var i=0;i<currentSegments.length;i++){

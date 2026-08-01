@@ -219,4 +219,6 @@ return [
     'wml_scoreboard' => '当前得分',
     'wml_next' => '下一题',
     'wml_premium_gate' => '免费版最多 6 题，升级 Premium 解锁无限题目与更火辣的成人题库！',
+    'escalate_label' => '逐渐升温',
+    'escalate_desc' => '从基础题目开始,每几回合往上开放更大尺度的题目',
 ];

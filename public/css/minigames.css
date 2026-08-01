@@ -47,6 +47,49 @@
 .mg-setup-heading{color:var(--gold,#d9a441);font-size:1.1rem;margin-bottom:12px;font-weight:700}
 
 .mg-player-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+
+/* 逐漸升溫開關。五個遊戲共用同一個樣子。 */
+.mg-escalate{display:flex;gap:10px;align-items:flex-start;cursor:pointer;
+  margin:14px 0;padding:12px;border-radius:10px;
+  background:var(--bg,#0d0f16);border:1px solid var(--border,#2a2f42);
+  transition:border-color .18s ease,background .18s ease}
+.mg-escalate:hover{border-color:var(--text-dim,#8b90a5)}
+.mg-escalate input{width:18px;height:18px;margin-top:2px;flex:none;
+  accent-color:var(--gold,#d9a441);cursor:pointer}
+.mg-escalate:has(input:checked){border-color:var(--gold,#d9a441);background:rgba(217,164,65,.07)}
+.mg-escalate strong{display:block;font-size:.9rem;color:var(--text,#e9ebf2)}
+.mg-escalate:has(input:checked) strong{color:var(--gold,#d9a441)}
+.mg-escalate em{display:block;font-style:normal;font-size:.75rem;line-height:1.5;
+  color:var(--text-dim,#8b90a5);margin-top:2px}
+
+/* 玩家頭像。挑選面板是 .pa 內的絕對定位元素 —— 不用算座標,手機上也不會跑版。 */
+.pa{position:relative;flex:none}
+.pa-btn{
+  width:40px;height:40px;border-radius:10px;cursor:pointer;
+  background:var(--bg,#0d0f16);border:1px solid var(--border,#2a2f42);
+  font-size:1.25rem;line-height:1;display:grid;place-items:center;
+  transition:border-color .15s ease,transform .15s ease;
+}
+.pa-btn:hover{border-color:var(--gold,#d9a441)}
+.pa-btn[aria-expanded=true]{border-color:var(--gold,#d9a441);transform:scale(1.05)}
+.pa-grid{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:40;
+  display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:8px;
+  background:var(--surface,#151823);border:1px solid var(--border,#2a2f42);
+  border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.45);
+  animation:pa-in .14s ease-out;
+}
+@keyframes pa-in{from{opacity:0;transform:translateY(-4px)}}
+.pa-opt{
+  width:34px;height:34px;border-radius:8px;cursor:pointer;
+  background:none;border:1px solid transparent;font-size:1.15rem;line-height:1;
+  display:grid;place-items:center;transition:background .12s ease,transform .12s ease;
+}
+.pa-opt:hover{background:var(--surface2,#1d2130);transform:scale(1.12)}
+@media(prefers-reduced-motion:reduce){
+  .pa-grid{animation:none}
+  .pa-btn,.pa-opt{transition:none}
+}
 .mg-player-row input[type=text]{flex:1;min-width:100px}
 .mg-player-row select{width:auto;min-width:60px}
 .mg-player-remove{

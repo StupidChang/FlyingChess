@@ -163,6 +163,7 @@
             </div>
         </div>
         <button class="btn btn-sm btn-outline mg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        @include('partials.escalate-toggle')
         <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
@@ -208,6 +209,9 @@
 @endsection
 
 @section('scripts')
+{{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
+<script src="{{ asset_v('js/player-avatar.js') }}"></script>
+<script src="{{ asset_v('js/escalation.js') }}"></script>
 <script>
 (function(){
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
@@ -304,7 +308,41 @@
         if(d.intensity) return CAT_LABELS[d.cat]+' · '+(INT_LABELS[d.intensity]||'');
         return CAT_LABELS[d.cat];
     }
-    function activeDice(){ return ALL.filter(function(d){return enabled[d.id] && !d.locked}); }
+    var escalate=false;
+    var INT_ORDER=['gentle','bold','wild'];
+
+    /**
+     * 這一回合實際上桌的骰子。
+     *
+     * 沒開升溫就是玩家勾了什麼用什麼。開了的話,玩家勾的那顆是**上限**:
+     * 同一個類別先從最溫和的變體開始,每幾回合往上換一階,最多換到他勾的那階。
+     * 拿不到的(付費未解鎖的 wild 帶 locked)一律排除,升溫就停在拿得到的最高階。
+     */
+    function activeDice(){
+        var picked=ALL.filter(function(d){return enabled[d.id] && !d.locked});
+        if(!escalate) return picked;
+
+        var seen={};
+        var result=[];
+        picked.forEach(function(d){
+            if(d.custom || !d.cat || INT_ORDER.indexOf(d.intensity)===-1){
+                result.push(d);   // 自訂骰與沒有分階的骰子(例如時間)照常上桌
+                return;
+            }
+            if(seen[d.cat]) return;   // 同一個類別只留一顆
+            seen[d.cat]=true;
+
+            var cap=INT_ORDER.indexOf(d.intensity);
+            var ladder=INT_ORDER.slice(0,cap+1).filter(function(level){
+                return ALL.some(function(x){return x.cat===d.cat && x.intensity===level && !x.locked && !x.custom});
+            });
+            var want=Escalation.topTierFor(round, ladder, true)||d.intensity;
+            var pick=ALL.filter(function(x){return x.cat===d.cat && x.intensity===want && !x.locked && !x.custom})[0];
+            result.push(pick||d);
+        });
+
+        return result;
+    }
 
     function renderDiceSelect(){
         var wrap=document.getElementById('dice-select');
@@ -403,10 +441,11 @@
         players=[];
         var fallbackName = @json(__('minigame.player_default_short'));
         rows.forEach(function(r){
-            players.push(r.querySelector('.p-name').value.trim()||fallbackName);
+            players.push(PlayerAvatar.displayName(r)||fallbackName);
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         turn=0;round=1;defaultEnabled();
+        escalate=Escalation.enabled();
         clearHistory();
         showTurn();
     };

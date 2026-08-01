@@ -80,10 +80,10 @@
                 <h2 class="mg-setup-heading">{{ __('minigame.players_setup') }}</h2>
                 <div id="td-players-list">
                     <div class="mg-player-row">
-                        <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="20">
+                        <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="18">
                     </div>
                     <div class="mg-player-row">
-                        <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="20">
+                        <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="18">
                     </div>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline mg-add-player" id="td-add-player" onclick="tdAddPlayer()">{{ __('minigame.add_player') }}</button>
@@ -91,7 +91,9 @@
 
             {{-- 場合不另外問 —— 玩家名字本來就要一個一個加,人數已經知道了。
                  這裡只提示人數會影響題目,不然使用者不會知道加一個人題目就換了一套。 --}}
-            <p class="td-hint td-hint-mode" id="td-mode-hint"></p>
+            <p class="td-hint td-hint-mode">{{ __('games.td_mode_hint') }}</p>
+
+            @include('partials.escalate-toggle')
 
             {{-- 免費與付費的差別。放在開局前而不是抽到鎖住的題目才說 ——
                  玩到一半被擋下來,毀掉的是整場氣氛。 --}}
@@ -126,6 +128,8 @@
 @endsection
 
 @section('scripts')
+{{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
+<script src="{{ asset_v('js/player-avatar.js') }}"></script>
 <script>
 (function() {
     if (!sessionStorage.getItem('tab_id')) {
@@ -134,16 +138,6 @@
     var el = document.getElementById('td-create-tab-id');
     if (el) el.value = sessionStorage.getItem('tab_id');
 })();
-
-/* 人數決定題目池,所以人數一變,提示也要跟著變。 */
-var TD_MODE_HINT = {
-    couple: @json(__('games.td_mode_hint_couple')),
-    party:  @json(__('games.td_mode_hint_party'))
-};
-function tdSyncMode(){
-    var el = document.getElementById('td-mode-hint');
-    if (el) el.textContent = TD_MODE_HINT[tdPlayerCount >= 3 ? 'party' : 'couple'];
-}
 
 // Same-device player rows (2–6)
 var tdPlayerCount = 2;
@@ -154,19 +148,15 @@ window.tdAddPlayer = function(){
     var row = document.createElement('div');
     row.className = 'mg-player-row';
     var name = @json(__('minigame.player_default', ['n' => '__N__'])).replace('__N__', tdPlayerCount);
-    row.innerHTML = '<input type="text" name="players[]" class="form-control p-name" value="'+escHtmlTd(name)+'" maxlength="20">'+
+    row.innerHTML = '<input type="text" name="players[]" class="form-control p-name" value="'+escHtmlTd(name)+'" maxlength="18">'+
         '<button type="button" class="mg-player-remove" onclick="tdRemovePlayer(this)">✕</button>';
     document.getElementById('td-players-list').appendChild(row);
     if (tdPlayerCount >= 6) document.getElementById('td-add-player').style.display = 'none';
-    tdSyncMode();
 };
-tdSyncMode();
-
 window.tdRemovePlayer = function(btn){
     btn.closest('.mg-player-row').remove();
     tdPlayerCount--;
     document.getElementById('td-add-player').style.display = 'inline-block';
-    tdSyncMode();
 };
 </script>
 @endsection

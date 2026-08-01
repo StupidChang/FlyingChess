@@ -82,6 +82,7 @@
             </div>
         </div>
         <button class="btn btn-sm btn-outline mg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        @include('partials.escalate-toggle')
         <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
@@ -127,6 +128,9 @@
 @endsection
 
 @section('scripts')
+{{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
+<script src="{{ asset_v('js/player-avatar.js') }}"></script>
+<script src="{{ asset_v('js/escalation.js') }}"></script>
 <script>
 (function(){
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
@@ -176,19 +180,30 @@
         players=[];
         var fallbackName=@json(__('minigame.player_default_short'));
         rows.forEach(function(r,i){
-            var nm=r.querySelector('.p-name').value.trim()||(fallbackName+(i+1));
+            var nm=PlayerAvatar.displayName(r)||(fallbackName+(i+1));
             players.push({name:nm,score:0});
         });
         if(players.length<2){showToast(@json(__('minigame.min_players_2')));return;}
         round=1;
+        escalate=Escalation.enabled();
         recentPrompts=[];
         document.getElementById('setup-phase').style.display='none';
         document.getElementById('round-phase').style.display='block';
         newRound();
     };
 
+    var escalate=false;
+    /* 由輕到重,而且只留真的有題目的等級 —— 沒權限的等級根本不在 PROMPTS 裡,
+       升溫就停在拿得到的最高一級。 */
+    function tierOrder(){
+        return ['mild','medium','intense'].filter(function(t){
+            return PROMPTS[t] && PROMPTS[t].length;
+        });
+    }
+
     function pickPrompt(){
-        var tiers=Object.keys(PROMPTS);
+        var tiers=Escalation.tiersFor(round, tierOrder(), escalate);
+        if(!tiers.length) tiers=Object.keys(PROMPTS);
         // Avoid immediate repeats within the last few rounds.
         for(var tries=0;tries<12;tries++){
             var tier=tiers[Math.floor(Math.random()*tiers.length)];

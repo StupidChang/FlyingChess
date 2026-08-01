@@ -127,6 +127,7 @@ body[data-cm-mode="king"] .p-gender{display:none}
             @endfor
         </div>
         <button class="btn btn-sm btn-outline mg-add-player" id="add-player-btn" onclick="addPlayer()">{{ __('minigame.add_player') }}</button>
+        @include('partials.escalate-toggle')
         <button class="btn btn-gold btn-full" onclick="startGame()">{{ __('minigame.start_game') }}</button>
     </div>
 
@@ -181,10 +182,19 @@ body[data-cm-mode="king"] .p-gender{display:none}
 @endsection
 
 @section('scripts')
+{{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
+<script src="{{ asset_v('js/player-avatar.js') }}"></script>
+<script src="{{ asset_v('js/escalation.js') }}"></script>
 <script>
 (function(){
     var IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
     var ACTIVITIES = @json($activities);
+    /* 由輕到重,而且只留真的拿得到的等級 —— 沒付費也沒看廣告的話 intense
+       根本不在 ACTIVITIES 裡,升溫就停在拿得到的最高一級。 */
+    var TIER_ORDER = ['mild','medium','intense'].filter(function(t){
+        return ACTIVITIES[t] && ACTIVITIES[t].length;
+    });
+    var escalate = false;
     var MODE = @json($isKing ? 'king' : 'card');
 
     var URLS = {
@@ -291,7 +301,7 @@ body[data-cm-mode="king"] .p-gender{display:none}
         players = [];
         rows.forEach(function(r){
             players.push({
-                name: r.querySelector('.p-name').value.trim() || fallback,
+                name: PlayerAvatar.displayName(r) || fallback,
                 gender: r.querySelector('.p-gender').value,
                 card: null
             });
@@ -306,6 +316,7 @@ body[data-cm-mode="king"] .p-gender{display:none}
             if(!hasM || !hasF){ alert(MSG.needMF); return; }
         }
         round = 1; usedCards = [];
+        escalate = Escalation.enabled();
         startRound();
     };
 
@@ -339,15 +350,16 @@ body[data-cm-mode="king"] .p-gender{display:none}
 
     /* ---------- 回合 ---------- */
     function tierTag(){
-        if(round<=3) return '<span class="mg-tag mg-tag-mild">'+esc(MSG.tierMild)+'</span>';
-        if(round<=6) return '<span class="mg-tag mg-tag-medium">'+esc(MSG.tierMed)+'</span>';
-        return '<span class="mg-tag mg-tag-intense">'+esc(MSG.tierInt)+'</span>';
+        var label = {mild:MSG.tierMild, medium:MSG.tierMed, intense:MSG.tierInt}[roundTier] || MSG.tierMild;
+        return '<span class="mg-tag mg-tag-'+roundTier+'">'+esc(label)+'</span>';
     }
 
     function startRound(){
         el('setup-phase').style.display = 'none';
         el('drawing-phase').style.display = 'block';
         cardsDealt = false; flipping = false;
+        // 一回合只決定一次等級,標籤與實際抽到的題目才會是同一級。
+        roundTier = currentTier();
 
         var label = T[MODE].round.replace('__N__', round);
         el('round-badge').innerHTML = esc(label) + (MODE === 'card' ? ' ' + tierTag() : '');
@@ -518,9 +530,17 @@ body[data-cm-mode="king"] .p-gender{display:none}
     }
 
     /* ---------- 揭曉:撲克牌配對 ---------- */
+    /* 這一回合落在哪一級。開了升溫就照階梯走,沒開就每回合在所有等級裡隨機 ——
+       原本這一段是寫死的三段式,等於「逐漸升溫」永遠開著,關不掉。 */
+    function currentTier(){
+        if(!TIER_ORDER.length) return 'mild';
+        if(escalate) return Escalation.topTierFor(round, TIER_ORDER, true);
+        return TIER_ORDER[Math.floor(Math.random()*TIER_ORDER.length)];
+    }
+    var roundTier = 'mild';
+
     function activity(){
-        var pool = round<=3 ? ACTIVITIES.mild
-                 : (round<=6 ? ACTIVITIES.medium : (ACTIVITIES.intense || ACTIVITIES.medium));
+        var pool = ACTIVITIES[roundTier] || ACTIVITIES.mild || [];
         return pool[Math.floor(Math.random()*pool.length)];
     }
     function revealPairs(){

@@ -32,10 +32,10 @@ class TruthDareModeTest extends TestCase
         ]);
     }
 
-    private function room(string $mode): Game
+    private function room(string $mode, bool $escalate = false): Game
     {
         $result = app(TruthDareService::class)
-            ->createGame('主揪', 'sess-1', false, null, true, $mode);
+            ->createGame('主揪', 'sess-1', false, null, true, $mode, $escalate);
 
         return $result['game'];
     }
@@ -149,6 +149,40 @@ class TruthDareModeTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertSame('露骨級', $result['card']['content']);
+    }
+
+    public function test_escalation_holds_back_the_explicit_prompts_at_first(): void
+    {
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '曖昧級', 'tier' => 'free']);
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'tier' => 'premium']);
+
+        $game = $this->room('couple', escalate: true);
+        $service = app(TruthDareService::class);
+
+        // 開頭幾張只會是免費的曖昧題,即使有付費權限也一樣 —— 那正是升溫的重點。
+        $first = $service->drawCard($game->fresh(), 'truth', true, true);
+        $this->assertSame('曖昧級', $first['card']['content']);
+
+        // 抽掉幾張之後才放行露骨題。
+        for ($i = 0; $i < 4; $i++) {
+            $service->drawCard($game->fresh(), 'dare', true, true);
+            $state = $game->fresh()->game_state;
+            $state['used_card_ids'][] = -$i;   // 湊出「已經玩了幾張」
+            $game->update(['game_state' => $state]);
+        }
+
+        $later = $service->drawCard($game->fresh(), 'truth', true, true);
+        $this->assertSame('露骨級', $later['card']['content']);
+    }
+
+    public function test_without_escalation_everything_is_in_play_from_the_start(): void
+    {
+        TruthDareCard::create(['category' => 'truth', 'audience' => 'both', 'content' => '露骨級', 'tier' => 'premium']);
+
+        $result = app(TruthDareService::class)
+            ->drawCard($this->room('couple'), 'truth', true, true);
+
+        $this->assertTrue($result['success']);
     }
 
     public function test_the_lobby_offers_the_ad_unlock_to_a_free_visitor(): void

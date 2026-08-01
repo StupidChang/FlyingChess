@@ -39,6 +39,7 @@ class TruthDareController extends Controller
             'players' => ['required', 'array', 'min:1', 'max:6'],
             'players.*' => ['nullable', 'string', 'max:20', new NoBlockedWords],
             'mode' => ['nullable', 'in:couple,party'],
+            'escalate' => ['nullable', 'boolean'],
         ]);
 
         $names = array_values(array_filter(
@@ -58,7 +59,9 @@ class TruthDareController extends Controller
         $mode = $data['mode'] ?? (count($names) >= 3 ? 'party' : 'couple');
 
         // Adults-only site: every room is created in adult mode.
-        $result = $this->service->createGame($names[0], $sessionId, false, $hostUserId, true, $mode);
+        $result = $this->service->createGame(
+            $names[0], $sessionId, false, $hostUserId, true, $mode, (bool) ($data['escalate'] ?? false)
+        );
         $game = $result['game'];
 
         // Add the remaining local players. Each needs a DISTINCT session_id

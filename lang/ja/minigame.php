@@ -219,4 +219,6 @@ return [
     'wml_scoreboard' => '現在のスコア',
     'wml_next' => '次の質問',
     'wml_premium_gate' => '無料版は最大 6 問まで。プレミアムで無制限の質問とさらに過激な大人向けネタを解放！',
+    'escalate_label' => '徐々に過激に',
+    'escalate_desc' => '軽いお題から始めて、数ラウンドごとに過激なお題を解放します',
 ];

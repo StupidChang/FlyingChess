@@ -213,4 +213,6 @@ return [
     'wml_scoreboard' => 'Scores',
     'wml_next' => 'Next',
     'wml_premium_gate' => 'Free version caps at 6 questions. Go Premium to unlock unlimited questions and a bolder adult question bank!',
+    'escalate_label' => 'Warm up gradually',
+    'escalate_desc' => 'Start tame and unlock bolder prompts every few rounds.',
 ];
