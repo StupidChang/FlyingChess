@@ -64,8 +64,6 @@
             @endif
         </article>
 
-        @include('partials.ad-unit', ['zone' => 'home_banner'])
-
         @if($result)
         <section class="tt-card">
             <h2>{{ __('traits.result.distribution') }}</h2>
@@ -119,6 +117,9 @@
         </div>
         @endif
 
+        {{-- 結果讀完了再放。剛揭曉就插一個廣告是這一頁最傷的位置。 --}}
+        @include('partials.ad-unit', ['zone' => 'home_banner'])
+
         <div class="tt-actions">
             <a href="{{ route('trait-test.show') }}" class="btn btn-gold btn-xl">
                 {{ $result ? __('traits.retake') : __('traits.start') }}
@@ -128,7 +129,7 @@
 
         {{-- 20 種屬性互相連結。對搜尋引擎是內部連結網,對讀者是「還有哪些型」。 --}}
         <section class="tt-card">
-            <h2>{{ __('traits.result.distribution') }}</h2>
+            <h2>{{ __('traits.result.all_traits') }}</h2>
             <div class="tt-all">
                 @foreach($items as $k => $other)
                 <a href="{{ route('trait-test.result', ['slug' => $other['slug']]) }}"

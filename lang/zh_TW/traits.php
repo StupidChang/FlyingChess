@@ -198,6 +198,7 @@ return [
         'show_all' => '顯示全部 20 種',
         'show_top' => '只看前 8 種',
         'spectrums' => '四個光譜',
+        'all_traits' => '全部 20 種屬性',
         'saved' => '已記錄到你的個人資料',
         'save_prompt' => '登入之後,每次測驗都會記下來,個人資料頁看得到自己怎麼變的。',
         'login_to_save' => '登入並記錄',

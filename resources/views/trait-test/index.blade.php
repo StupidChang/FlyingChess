@@ -53,8 +53,6 @@
             <p class="tt-intro">{{ __('traits.intro') }}</p>
         </header>
 
-        @include('partials.ad-unit', ['zone' => 'home_banner'])
-
         <form action="{{ route('trait-test.submit') }}" method="POST" id="tt-form">
             @csrf
 
@@ -81,10 +79,6 @@
                     </div>
                 </fieldset>
 
-                {{-- 中間插一個版位。題目很長,只放頭尾的話中段完全沒有曝光。 --}}
-                @if($q['n'] === 14)
-                    @include('partials.ad-unit', ['zone' => 'home_mid'])
-                @endif
             @endforeach
 
             @error('a')<p class="tt-error">{{ $message }}</p>@enderror
@@ -93,6 +87,10 @@
                 <button type="submit" class="btn btn-gold btn-xl" id="tt-submit">{{ __('traits.submit') }}</button>
             </div>
         </form>
+
+        {{-- 這一頁只留這一個內文版位,而且放在交卷按鈕之後 —— 作答到一半被
+             廣告打斷是最傷的,主角是測驗本身。桌機另外有右側欄。 --}}
+        @include('partials.ad-unit', ['zone' => 'home_banner'])
 
         <section class="tt-faq">
             <h2>{{ __('ui.faq') ?: 'FAQ' }}</h2>
