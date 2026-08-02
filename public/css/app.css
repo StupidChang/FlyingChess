@@ -1133,6 +1133,12 @@ ul{list-style:none}
 .admin-th-sort a:hover .admin-sort-arrow{opacity:.7}
 .admin-th-sort.is-sorted a{color:var(--gold)}
 .admin-th-sort.is-sorted .admin-sort-arrow{opacity:1}
+/* 疊了兩欄以上時標出優先順序,不然看到兩個箭頭不知道誰先誰後 */
+.admin-sort-order{
+  display:inline-grid;place-items:center;min-width:14px;height:14px;padding:0 3px;
+  border-radius:4px;background:var(--gold);color:#241a08;
+  font-size:.6rem;font-weight:700;line-height:1;
+}
 
 .admin-filters{
   display:flex;flex-wrap:wrap;

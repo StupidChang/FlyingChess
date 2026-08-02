@@ -154,7 +154,97 @@ class AdminSortingTest extends TestCase
             ->getContent();
 
         $this->assertStringContainsString('tier=mild', $html);
-        $this->assertStringContainsString('sort=content', $html);
-        $this->assertStringNotContainsString('sort=content&amp;dir=asc&amp;page=', $html);
+        // 排序參數現在是陣列:sort[0]=content:asc
+        $this->assertStringContainsString('content%3Aasc', $html);
+
+        // 那一條連結本身不能還帶著 page(頁尾的分頁連結當然有,不算)
+        preg_match('/href="([^"]*content%3Aasc[^"]*)"/', $html, $m);
+        $this->assertNotEmpty($m, '找不到排序連結');
+        $this->assertStringNotContainsString('page=', $m[1]);
+    }
+
+    public function test_two_columns_can_be_sorted_at_once(): void
+    {
+        $mk = fn (string $category, string $level, string $content) => TruthDareCard::create([
+            'category' => $category, 'audience' => 'both', 'gender' => 'any',
+            'level' => $level, 'content' => $content,
+        ]);
+
+        // 故意讓建立順序跟預期完全相反,排序不能是靠 id 湊巧對的
+        $dareIntense = $mk('dare', 'intense', 'D-重');
+        $dareMild = $mk('dare', 'mild', 'D-輕');
+        $truthIntense = $mk('truth', 'intense', 'T-重');
+        $truthMild = $mk('truth', 'mild', 'T-輕');
+
+        /* 先照類型排,同類型的再照尺度排。類型的順序是 truth → dare
+           (TruthDareCard::CATEGORIES 的順序)。 */
+        $this->assertSame(
+            [$truthMild->id, $truthIntense->id, $dareMild->id, $dareIntense->id],
+            $this->order('/tw/admin/cards?sort[]=category:asc&sort[]=level:asc', 'cards')
+        );
+    }
+
+    public function test_the_second_column_only_breaks_ties_in_the_first(): void
+    {
+        $mk = fn (string $category, string $level, string $content) => TruthDareCard::create([
+            'category' => $category, 'audience' => 'both', 'gender' => 'any',
+            'level' => $level, 'content' => $content,
+        ]);
+
+        $truthIntense = $mk('truth', 'intense', 'T-重');
+        $dareMild = $mk('dare', 'mild', 'D-輕');
+
+        /* 第二欄只在第一欄相同時才有作用。這裡兩張的類型不同,所以就算尺度
+           排序會把 D-輕 放前面,類型排序仍然決定 T 在前。 */
+        $this->assertSame(
+            [$truthIntense->id, $dareMild->id],
+            $this->order('/tw/admin/cards?sort[]=category:asc&sort[]=level:asc', 'cards')
+        );
+    }
+
+    public function test_each_column_keeps_its_own_direction(): void
+    {
+        $mk = fn (string $category, string $level, string $content) => TruthDareCard::create([
+            'category' => $category, 'audience' => 'both', 'gender' => 'any',
+            'level' => $level, 'content' => $content,
+        ]);
+
+        $truthMild = $mk('truth', 'mild', 'T-輕');
+        $truthIntense = $mk('truth', 'intense', 'T-重');
+
+        // 類型遞增、尺度遞減 —— 兩欄各自的方向要分開記
+        $this->assertSame(
+            [$truthIntense->id, $truthMild->id],
+            $this->order('/tw/admin/cards?sort[]=category:asc&sort[]=level:desc', 'cards')
+        );
+    }
+
+    public function test_a_repeated_or_unknown_column_is_dropped(): void
+    {
+        WheelSegment::create(['tier' => 'mild', 'content' => '任務']);
+
+        /* 同一欄出現兩次只認第一次(不然 SQL 會有兩個相同的 order by),
+           白名單以外的鍵一律丟掉。 */
+        $this->actingAs($this->admin())
+            ->get('/tw/admin/wheel-segments?sort[]=tier:asc&sort[]=tier:desc&sort[]=nonsense:asc')
+            ->assertOk()
+            ->assertSee('任務');
+    }
+
+    public function test_clicking_a_sorted_column_switches_it_to_desc_in_place(): void
+    {
+        TruthDareCard::create([
+            'category' => 'truth', 'audience' => 'both', 'gender' => 'any',
+            'level' => 'mild', 'content' => '一題',
+        ]);
+
+        /* 已經排在第一順位的欄位,換方向時要留在第一順位 —— 換個方向就被丟到
+           最後的話,好不容易疊起來的優先順序會整個亂掉。 */
+        $html = $this->actingAs($this->admin())
+            ->get('/tw/admin/cards?sort[]=category:asc&sort[]=level:asc')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('category%3Adesc&amp;sort%5B1%5D=level%3Aasc', $html);
     }
 }

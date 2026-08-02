@@ -46,27 +46,67 @@ class AdminController extends Controller
      * 「輕鬆 mild」前面,那不是任何人想看到的順序。CASE 的值走 binding,
      * 而且欄位名只從白名單來,網址上的參數不會進到 SQL 裡。
      */
+    /**
+     * 後台列表的欄位排序,可以疊好幾欄。
+     *
+     * 網址是 ?sort[]=category:asc&sort[]=level:asc,順序就是優先順序 ——
+     * 先照類型排,同類型的再照尺度排。舊的單欄寫法 ?sort=level&dir=asc 也還吃。
+     *
+     * $allowed 是白名單,鍵是網址上的 sort 值,值有兩種寫法:
+     *   'created_at'                          直接照欄位排
+     *   ['tier', ['mild','medium','intense']]  照指定順序排
+     *
+     * 第二種是給分級這類欄位用的 —— 直接照字串排的話「大膽 intense」會排在
+     * 「輕鬆 mild」前面,那不是任何人想看到的順序。CASE 的值走 binding,
+     * 而且欄位名只從白名單來,網址上的參數不會進到 SQL 裡。
+     */
     private function applySort($query, Request $request, array $allowed, string $default, string $defaultDir = 'desc'): void
     {
-        $sort = (string) $request->input('sort');
-        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+        $specs = self::sortSpecs($request, $allowed) ?: [[$default, $defaultDir]];
 
-        if (! isset($allowed[$sort])) {
-            $sort = $default;
-            $dir = $defaultDir;
+        foreach ($specs as [$key, $dir]) {
+            $spec = $allowed[$key];
+
+            if (is_array($spec)) {
+                [$column, $order] = $spec;
+                $cases = implode(' ', array_map(fn ($i) => 'WHEN ? THEN '.$i, array_keys($order)));
+                $query->orderByRaw("CASE {$column} {$cases} ELSE ".count($order)." END {$dir}", $order);
+
+                continue;
+            }
+
+            $query->orderBy($spec, $dir);
+        }
+    }
+
+    /**
+     * 網址上目前排了哪幾欄,依優先順序。
+     *
+     * 表頭要畫箭頭與第幾順位,所以這支是 public static —— view 也要用同一份
+     * 解析,兩邊各寫一套的話遲早會對不起來。
+     *
+     * @return array<int, array{0:string, 1:string}> [[key, 'asc'|'desc'], …]
+     */
+    public static function sortSpecs(Request $request, array $allowed): array
+    {
+        $raw = (array) $request->input('sort', []);
+
+        // 舊寫法:?sort=level&dir=asc
+        if (count($raw) === 1 && ! str_contains((string) reset($raw), ':')) {
+            $raw = [reset($raw).':'.($request->input('dir') === 'asc' ? 'asc' : 'desc')];
         }
 
-        $spec = $allowed[$sort];
+        $specs = [];
+        foreach ($raw as $item) {
+            [$key, $dir] = array_pad(explode(':', (string) $item, 2), 2, 'asc');
 
-        if (is_array($spec)) {
-            [$column, $order] = $spec;
-            $cases = implode(' ', array_map(fn ($i) => 'WHEN ? THEN '.$i, array_keys($order)));
-            $query->orderByRaw("CASE {$column} {$cases} ELSE ".count($order)." END {$dir}", $order);
-
-            return;
+            // 白名單以外的鍵直接丟掉;同一欄只認第一次出現的那個方向
+            if (isset($allowed[$key]) && ! isset($specs[$key])) {
+                $specs[$key] = [$key, $dir === 'desc' ? 'desc' : 'asc'];
+            }
         }
 
-        $query->orderBy($spec, $dir);
+        return array_values($specs);
     }
 
     /**
