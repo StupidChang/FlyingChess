@@ -51,4 +51,16 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    /*
+     * 站長工具的驗證碼。Search Console 對這個站特別重要:成人站在自然搜尋上
+     * 本來就受 SafeSearch 影響,沒有 Search Console 就連「有沒有被收錄」都
+     * 只能用猜的。Bing 一起放 —— 成人查詢在 Bing 的佔比遠高於它的整體市佔。
+     */
+    'google' => [
+        'site_verification' => env('GOOGLE_SITE_VERIFICATION'),
+    ],
+
+    'bing' => [
+        'site_verification' => env('BING_SITE_VERIFICATION'),
+    ],
 ];

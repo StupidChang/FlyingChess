@@ -16,6 +16,16 @@
          廣告聯播網審核成人站台時也會看。純標示,不影響一般瀏覽。 --}}
     <meta name="rating" content="RTA-5042-1996-1400-1577-RTA">
     <meta name="rating" content="adult">
+    {{-- 站長工具的驗證。Search Console 是「查詢工具」不是廣告產品,成人站一樣
+         用得到 —— 而且沒有它就完全看不到 Google 到底收錄了什麼、卡在哪裡。
+         拿到驗證碼之後設 .env 的 GOOGLE_SITE_VERIFICATION / BING_SITE_VERIFICATION
+         就會出現在這裡,不用改程式。 --}}
+    @if(config('services.google.site_verification'))
+    <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+    @endif
+    @if(config('services.bing.site_verification'))
+    <meta name="msvalidate.01" content="{{ config('services.bing.site_verification') }}">
+    @endif
     <link rel="canonical" href="@yield('canonical', LocaleHelper::localizedUrl($currentLocale, request()->path()))">
     @foreach (LocaleHelper::readyLocales() as $locale => $meta)
         <link rel="alternate" hreflang="{{ $meta['hreflang'] }}" href="{{ LocaleHelper::localizedUrl($locale, request()->path()) }}">
