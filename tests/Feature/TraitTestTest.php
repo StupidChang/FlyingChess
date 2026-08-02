@@ -236,6 +236,39 @@ class TraitTestTest extends TestCase
         }
     }
 
+    public function test_the_test_is_reachable_from_every_page(): void
+    {
+        /* 沒有入口的頁面等於不存在 —— 使用者找不到,爬蟲也只能靠 sitemap。
+           頁尾在每一頁都出現,是站內連結最有效的位置。 */
+        foreach (['/tw', '/tw/game-hall', '/tw/truth-dare'] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee(route('trait-test.show'), false);
+        }
+    }
+
+    public function test_the_hall_lists_it_in_the_structured_data(): void
+    {
+        // 大廳的 ItemList 是「這個站有哪些東西」的機器可讀版本
+        $this->get('/tw/game-hall')
+            ->assertOk()
+            ->assertSee('"'.route('trait-test.show').'"', false);
+    }
+
+    public function test_the_page_carries_its_own_seo_not_the_site_default(): void
+    {
+        $html = $this->get('/tw/trait-test')->assertOk()->getContent();
+
+        // 標題、描述、canonical 都要是這一頁自己的,不能吃站台預設
+        $this->assertStringContainsString('<title>'.__('traits.seo.title'), $html);
+        $this->assertStringContainsString(__('traits.seo.description'), $html);
+        $this->assertStringContainsString('rel="canonical" href="'.route('trait-test.show').'"', $html);
+        $this->assertStringNotContainsString(__('seo.home_description'), $html);
+
+        // Quiz 結構化資料,給 Google 與 AI 搜尋讀
+        $this->assertStringContainsString('"@type":"Quiz"', $html);
+    }
+
     public function test_the_profile_shows_the_timeline(): void
     {
         $user = User::factory()->create();

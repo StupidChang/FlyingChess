@@ -102,6 +102,7 @@
                     <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
                     <a href="{{ route('wheel.pure') }}">{{ __('games.pure_wheel') }}</a>
                     <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
+                    <a href="{{ route('trait-test.show') }}">{{ __('traits.title') }}</a>
                     <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 </div>
             </div>
@@ -170,6 +171,7 @@
             <a href="{{ route('king-game.show') }}" class="nav-link">{{ __('games.king_game') }}</a>
             <a href="{{ route('wheel-game.show') }}" class="nav-link">{{ __('games.wheel_game') }}</a>
             <a href="{{ route('wheel.pure') }}" class="nav-link">{{ __('games.pure_wheel') }}</a>
+            <a href="{{ route('trait-test.show') }}" class="nav-link">{{ __('traits.title') }}</a>
             <a href="{{ route('who-most-likely.show') }}" class="nav-link">{{ __('games.who_most_likely') }}</a>
             <a href="{{ route('boards.community') }}" class="nav-link">{{ __('ui.community_boards') }}</a>
         </div>
@@ -230,6 +232,8 @@
                 <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
                 <a href="{{ route('wheel.pure') }}">{{ __('games.pure_wheel') }}</a>
                 <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
+                {{-- 頁尾是站內連結最有效的地方:每一頁都連過去,爬蟲一定找得到 --}}
+                <a href="{{ route('trait-test.show') }}">{{ __('traits.title') }}</a>
                 <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 <a href="{{ route('play') }}">{{ __('play.create_board') }}</a>
                 @auth
