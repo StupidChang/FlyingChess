@@ -22,6 +22,7 @@ use App\Http\Controllers\RewardedUnlockController;
 use App\Http\Controllers\SesFeedbackController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TimeCapsuleController;
+use App\Http\Controllers\TraitTestController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\WheelGameController;
 use App\Http\Controllers\WhoMostLikelyController;
@@ -77,6 +78,7 @@ Route::get('/llms.txt', function () {
         $link('wheel-game', 'minigame.wheel_title').': '.__('games.desc_wheel'),
         $link('wheel', 'games.pure_wheel').': '.__('games.desc_pure_wheel'),
         $link('who-most-likely', 'minigame.wml_title').': '.__('games.desc_wml'),
+        $link('trait-test', 'traits.title').': '.__('traits.seo.description'),
         // Short labels on purpose: seo.play_title carries a :board placeholder and
         // the community/templates SEO titles are full sentences. A link label in
         // llms.txt should read as a page name, so use the plain UI strings here.
@@ -305,6 +307,14 @@ Route::prefix('{locale}')
 
         // 純轉盤:只有轉盤與指針,沒有題庫,不用限速
         Route::get('/wheel', [WheelGameController::class, 'pure'])->name('wheel.pure');
+
+        /* 枕邊屬性測驗。結果頁是獨立網址,20 種屬性就是 20 個可以被搜尋到、
+           可以被分享的頁面 —— 做成交卷後的一次性畫面的話,SEO 貢獻是零。
+           交卷限速:算分不重,但這是一個匿名可寫入的端點。 */
+        Route::get('/trait-test', [TraitTestController::class, 'show'])->name('trait-test.show');
+        Route::post('/trait-test', [TraitTestController::class, 'submit'])
+            ->name('trait-test.submit')->middleware('throttle:20,1');
+        Route::get('/trait-test/{slug}', [TraitTestController::class, 'result'])->name('trait-test.result');
 
         // 自訂轉盤的儲存 / 讀取 / 刪除(登入 + 已驗證)。純 JSON API,
         // 由 partials/custom-wheel 的編輯器以 fetch 呼叫。

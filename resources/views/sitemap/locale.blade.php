@@ -17,12 +17,24 @@ $paths = [
     // 純轉盤。首頁與遊戲大廳各連了 4 次、回 200 可索引,但一直漏在 sitemap 外。
     ['path' => 'wheel',           'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'who-most-likely', 'priority' => '0.7', 'changefreq' => 'monthly'],
+    ['path' => 'trait-test',      'priority' => '0.8', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'community',       'priority' => '0.7', 'changefreq' => 'daily'],
     ['path' => 'premium',         'priority' => '0.5', 'changefreq' => 'monthly'],
     ['path' => 'privacy',         'priority' => '0.3', 'changefreq' => 'yearly'],
     ['path' => 'terms',           'priority' => '0.3', 'changefreq' => 'yearly'],
 ];
+
+/* 屬性測驗的 20 個結果頁。每一種屬性都是一個獨立的落地頁 —— 這才是這個測驗
+   對搜尋的價值,只收錄測驗本身的話等於只有一頁。
+   只在有翻譯的語系列出:沒翻譯的那幾頁是 noindex,列進 sitemap 是自相矛盾。 */
+if (in_array($currentLocale, (array) config('traits.translated', []), true)) {
+    foreach ((array) trans('traits.items', [], $currentLocale) as $item) {
+        if (! empty($item['slug'])) {
+            $paths[] = ['path' => 'trait-test/'.$item['slug'], 'priority' => '0.6', 'changefreq' => 'monthly'];
+        }
+    }
+}
 
 foreach ($boards as $b) {
     $paths[] = ['path' => 'play/share/'.$b->share_code, 'priority' => '0.6', 'changefreq' => 'monthly'];

@@ -123,6 +123,9 @@
         </div>
     </section>
 
+    {{-- 我的屬性 --}}
+    @include('profile._traits')
+
     {{-- 遊玩紀錄 --}}
     <section>
         <div class="section-head">

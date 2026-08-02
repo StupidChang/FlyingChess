@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GamePlayer;
+use App\Models\TraitResult;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
@@ -54,9 +55,14 @@ class ProfileController extends Controller
         // 「升級解鎖更多」只會覺得莫名其妙。
         $hiddenPlays = $isPremium ? 0 : max(0, $totalPlays - $playHistory->count());
 
+        // 屬性測驗的紀錄,舊到新 —— 走勢圖是照時間往右畫的
+        $traitResults = TraitResult::where('user_id', $user->id)
+            ->orderBy('created_at')
+            ->get();
+
         return view('profile.index', compact(
             'user', 'boards', 'playHistory', 'timeline',
-            'isPremium', 'freeLimit', 'totalPlays', 'hiddenPlays'
+            'isPremium', 'freeLimit', 'totalPlays', 'hiddenPlays', 'traitResults'
         ));
     }
 }
