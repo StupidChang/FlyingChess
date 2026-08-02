@@ -70,4 +70,5 @@ return [
     'theme_rose' => 'Rose',
     'theme_indigo' => 'Indigo',
     'theme_switch' => 'Switch theme',
+    'rights_reserved' => 'All prompts and copy are original. All rights reserved.',
 ];

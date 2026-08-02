@@ -70,4 +70,5 @@ return [
     'theme_rose' => 'ローズ',
     'theme_indigo' => 'インディゴ',
     'theme_switch' => 'テーマ切替',
+    'rights_reserved' => '掲載中のお題および文章はすべてオリジナルです。無断転載を禁じます。',
 ];

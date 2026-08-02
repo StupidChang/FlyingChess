@@ -286,14 +286,25 @@ Route::prefix('{locale}')
         Route::post('/ad-unlock/claim', [RewardedUnlockController::class, 'claim'])
             ->name('rewarded.claim')->middleware('throttle:20,1');
 
-        // Single-player mini games
-        Route::get('/card-game', [CardGameController::class, 'show'])->name('card-game.show');
-        Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
-        Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');
-        Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
-        // 純轉盤:只有轉盤與指針
+        /* Single-player mini games.
+         *
+         * 這幾頁會把題庫的一部分送進 HTML(見 App\Support\ContentExposure),所以
+         * 蒐集整份題庫的方法就是「一直重載、每次撈走不同的一小把」。throttle 是
+         * 讓那件事變慢的那一半 —— 只裁切不限速的話,重載五次就湊回來了。
+         *
+         * 40/分鐘 對真人非常寬鬆(玩一場只會載一次),對想枚舉的人則是硬牆。
+         * 爬蟲一分鐘也不會抓四十次同一批頁面。
+         */
+        Route::middleware('throttle:40,1')->group(function () {
+            Route::get('/card-game', [CardGameController::class, 'show'])->name('card-game.show');
+            Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
+            Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');
+            Route::get('/wheel-game', [WheelGameController::class, 'show'])->name('wheel-game.show');
+            Route::get('/who-most-likely', [WhoMostLikelyController::class, 'show'])->name('who-most-likely.show');
+        });
+
+        // 純轉盤:只有轉盤與指針,沒有題庫,不用限速
         Route::get('/wheel', [WheelGameController::class, 'pure'])->name('wheel.pure');
-        Route::get('/who-most-likely', [WhoMostLikelyController::class, 'show'])->name('who-most-likely.show');
 
         // 自訂轉盤的儲存 / 讀取 / 刪除(登入 + 已驗證)。純 JSON API,
         // 由 partials/custom-wheel 的編輯器以 fetch 呼叫。

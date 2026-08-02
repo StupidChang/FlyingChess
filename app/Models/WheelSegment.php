@@ -11,11 +11,12 @@ class WheelSegment extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['content', 'content_translations', 'tier', 'is_paid', 'machine_translated_at'];
+    protected $fillable = ['is_canary', 'content', 'content_translations', 'tier', 'is_paid', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
         'is_paid' => 'boolean',
+        'is_canary' => 'boolean',
     ];
 
     /** 強度。名稱不帶「(付費)」—— 收費是每一題自己的 is_paid。 */

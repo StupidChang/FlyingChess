@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\WheelSegment;
+use App\Support\ContentExposure;
 
 class WheelGameService
 {
@@ -28,7 +29,8 @@ class WheelGameService
         '沿著大腿摸到內側，停在對方說可以的位置',
     ];
 
-    private const SEGMENTS_INTENSE = [
+    /** public 是為了讓測試驗得到「題庫本身有多少」—— 送出去的那一份會被裁切。 */
+    public const SEGMENTS_INTENSE = [
         '把對方壓到床上或沙發上，深吻 1 分鐘',
         '跨坐在對方腿上，照喜歡的節奏磨蹭 30 秒',
         '伸進衣服裡，摸一個對方同意的私密部位 30 秒',
@@ -71,7 +73,7 @@ class WheelGameService
            幾乎不可能成立(新加的兩級一開始是空的),會一路退回寫死的常數,
            後台改的東西就完全看不到。改成「有任何一級就以資料表為準」。 */
         if (array_filter($pools)) {
-            return $pools;
+            return ContentExposure::samplePools($pools);
         }
 
         // Fallback to hardcoded constants when DB is empty
@@ -84,7 +86,7 @@ class WheelGameService
             $pools['intense'] = self::SEGMENTS_INTENSE;
         }
 
-        return $pools;
+        return ContentExposure::samplePools($pools);
     }
 
     /**

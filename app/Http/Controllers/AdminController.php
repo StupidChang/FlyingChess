@@ -459,6 +459,7 @@ class AdminController extends Controller
         $this->applyIn($query, $request, 'gender', TruthDareCard::GENDERS);
         $this->applyIn($query, $request, 'level', TruthDareCard::LEVELS);
         $this->applyBoolIn($query, $request, 'paid', 'is_paid');
+        $this->applyBoolIn($query, $request, 'canary', 'is_canary');
         if ($search = $request->input('q')) {
             $query->where('content', 'like', "%{$search}%");
         }
@@ -496,6 +497,7 @@ class AdminController extends Controller
 
         // checkbox 沒勾就完全不送,所以要自己補 false,不然改成免費會存不進去。
         $data['is_paid'] = $request->boolean('is_paid');
+        $data['is_canary'] = $request->boolean('is_canary');
 
         TruthDareCard::create($data);
 
@@ -522,6 +524,7 @@ class AdminController extends Controller
 
         // checkbox 沒勾就完全不送,所以要自己補 false,不然改成免費會存不進去。
         $data['is_paid'] = $request->boolean('is_paid');
+        $data['is_canary'] = $request->boolean('is_canary');
 
         $card->update($data);
 
@@ -566,6 +569,7 @@ class AdminController extends Controller
         }
 
         $this->applyBoolIn($query, $request, 'paid', 'is_paid');
+        $this->applyBoolIn($query, $request, 'canary', 'is_canary');
 
         $this->applySort($query, $request, [
             'id' => 'id',
@@ -597,6 +601,7 @@ class AdminController extends Controller
 
         // checkbox 沒勾就完全不送,要自己補 false。
         $data['is_paid'] = $request->boolean('is_paid');
+        $data['is_canary'] = $request->boolean('is_canary');
 
         WheelSegment::create($data);
 
@@ -620,6 +625,7 @@ class AdminController extends Controller
 
         // checkbox 沒勾就完全不送,要自己補 false。
         $data['is_paid'] = $request->boolean('is_paid');
+        $data['is_canary'] = $request->boolean('is_canary');
 
         $wheelSegment->update($data);
 
@@ -667,6 +673,7 @@ class AdminController extends Controller
             $query->where('content', 'like', "%{$search}%");
         }
         $this->applyBoolIn($query, $request, 'paid', 'is_paid');
+        $this->applyBoolIn($query, $request, 'canary', 'is_canary');
 
         $this->applySort($query, $request, [
             'id' => 'id',
@@ -793,6 +800,7 @@ class AdminController extends Controller
         $data['sort_order'] = $data['sort_order'] ?? 0;
         // checkbox 沒勾就完全不送,要自己補 false,不然改成免費會存不進去。
         $data['is_paid'] = $request->boolean('is_paid');
+        $data['is_canary'] = $request->boolean('is_canary');
 
         return $data;
     }

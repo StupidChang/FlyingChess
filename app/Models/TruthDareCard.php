@@ -11,11 +11,12 @@ class TruthDareCard extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['category', 'audience', 'gender', 'level', 'is_paid', 'content', 'content_translations', 'machine_translated_at'];
+    protected $fillable = ['category', 'audience', 'gender', 'level', 'is_paid', 'is_canary', 'content', 'content_translations', 'machine_translated_at'];
 
     protected $casts = [
         'machine_translated_at' => 'datetime',
         'is_paid' => 'boolean',
+        'is_canary' => 'boolean',
     ];
 
     /** 題目類型。後台下拉與驗證共用。 */

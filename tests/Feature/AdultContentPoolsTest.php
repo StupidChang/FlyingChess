@@ -36,7 +36,10 @@ class AdultContentPoolsTest extends TestCase
         $this->assertArrayHasKey('mild', $free);
         $this->assertArrayHasKey('medium', $free);
         $this->assertArrayNotHasKey('intense', $free);
-        $this->assertGreaterThanOrEqual(32, count($premium['intense']));
+        /* 題庫本身的數量看原始常數,不看送出去的那一份 —— 送出去的會被
+           ContentExposure 裁成隨機子集,拿它當數量指標會誤判成題目變少了。 */
+        $this->assertGreaterThanOrEqual(32, count(WheelGameService::SEGMENTS_INTENSE));
+        $this->assertNotEmpty($premium['intense']);
     }
 
     public function test_non_premium_card_game_does_not_receive_intense_pool(): void
@@ -44,7 +47,8 @@ class AdultContentPoolsTest extends TestCase
         $free = CardGameService::getActivityPools(false);
         $premium = CardGameService::getActivityPools(true);
 
-        $this->assertGreaterThanOrEqual(40, count($premium['intense']));
+        $this->assertGreaterThanOrEqual(40, count(CardGameService::defaultPools()['intense']));
+        $this->assertNotEmpty($premium['intense']);
         $this->assertArrayNotHasKey('intense', $free);
     }
 

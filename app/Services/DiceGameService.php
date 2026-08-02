@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\GamePrompt;
+use App\Support\ContentExposure;
 
 class DiceGameService
 {
@@ -106,7 +107,7 @@ class DiceGameService
                 'premium' => $premium,
                 'locked' => $locked,
                 'custom' => false,
-                'faces' => $locked ? [] : array_values(array_unique($faces)),
+                'faces' => $locked ? [] : ContentExposure::sample(array_values(array_unique($faces))),
             ];
         }
 

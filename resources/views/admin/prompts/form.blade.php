@@ -71,6 +71,16 @@
                        value="{{ old('sort_order', $prompt?->sort_order ?? 0) }}" min="0" max="9999">
             </div>
 
+            <div class="form-group">
+                {{-- 標記題:寫成獨一無二的句子,之後在別人的站上搜到就是證據。
+                     它本身是正常題目,照樣會被抽到 —— 不然永遠不會流出去,
+                     也就失去意義。 --}}
+                <label class="form-check" style="display:flex;gap:8px;align-items:center;cursor:pointer">
+                    <input type="checkbox" name="is_canary" value="1" {{ old('is_canary', $prompt?->is_canary) ? 'checked' : '' }}>
+                    <span>標記題(用來抓抄襲)</span>
+                </label>
+            </div>
+
             <div style="display:flex;gap:12px;margin-top:24px">
                 <button type="submit" class="btn">{{ $prompt ? '儲存' : '新增' }}</button>
                 <a href="{{ route('admin.prompts', ($return ?? []) + ['game' => $game]) }}" class="btn btn-outline">返回列表</a>

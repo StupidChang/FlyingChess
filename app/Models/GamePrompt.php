@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class GamePrompt extends Model
 {
-    protected $fillable = ['game', 'pool', 'is_paid', 'content', 'sort_order'];
+    protected $fillable = ['game', 'pool', 'is_paid', 'is_canary', 'content', 'sort_order'];
 
-    protected $casts = ['is_paid' => 'boolean'];
+    protected $casts = ['is_paid' => 'boolean', 'is_canary' => 'boolean'];
 
     /** 後台下拉選單與驗證共用的清單。 */
     public const GAMES = [

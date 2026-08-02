@@ -19,7 +19,8 @@ class AdminGameHostTest extends TestCase
     private function game(array $host): Game
     {
         $game = Game::create([
-            'code' => 'ABC'.rand(100, 999),
+            // 依序給號,不用 rand —— 同一支測試建三場,撞號的機率不是零
+            'code' => 'CODE'.str_pad((string) (Game::count() + 1), 3, '0', STR_PAD_LEFT),
             'game_type' => 'flying_chess',
             'status' => 'playing',
             'max_players' => 4,

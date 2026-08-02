@@ -15,7 +15,7 @@
 
         <div class="admin-filters">
             <div class="admin-filter-tabs">
-                @include('admin._filter-clear', ['params' => ['tier', 'paid']])
+                @include('admin._filter-clear', ['params' => ['tier', 'paid', 'canary']])
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @foreach(\App\Models\WheelSegment::TIERS as $k => $v)
                 @include('admin._filter-tab', ['param' => 'tier', 'value' => $k, 'label' => $v])
@@ -23,6 +23,8 @@
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @include('admin._filter-tab', ['param' => 'paid', 'value' => '0', 'label' => '免費'])
                 @include('admin._filter-tab', ['param' => 'paid', 'value' => '1', 'label' => '付費'])
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
+                @include('admin._filter-tab', ['param' => 'canary', 'value' => '1', 'label' => '標記題'])
             </div>
             <form action="{{ route('admin.wheel-segments') }}" method="GET" class="admin-search">
                 {{-- 搜尋時把目前的篩選一起帶走,不然搜一次篩選就沒了 --}}

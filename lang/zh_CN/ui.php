@@ -70,4 +70,5 @@ return [
     'theme_rose' => '玫瑰',
     'theme_indigo' => '靛蓝',
     'theme_switch' => '切换配色',
+    'rights_reserved' => '站内题目与文案均为原创,保留一切权利',
 ];

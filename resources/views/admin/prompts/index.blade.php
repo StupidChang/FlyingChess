@@ -31,7 +31,9 @@
                 <span style="border-left:1px solid var(--border);margin:0 8px"></span>
                 @include('admin._filter-tab', ['param' => 'paid', 'value' => '0', 'label' => '免費'])
                 @include('admin._filter-tab', ['param' => 'paid', 'value' => '1', 'label' => '付費'])
-                @include('admin._filter-clear', ['params' => ['pool', 'paid']])
+                <span style="border-left:1px solid var(--border);margin:0 8px"></span>
+                @include('admin._filter-tab', ['param' => 'canary', 'value' => '1', 'label' => '標記題'])
+                @include('admin._filter-clear', ['params' => ['pool', 'paid', 'canary']])
             </div>
             <form action="{{ route('admin.prompts') }}" method="GET" class="admin-search">
                 <input type="hidden" name="game" value="{{ $game }}">

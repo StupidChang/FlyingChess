@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\GamePrompt;
+use App\Support\ContentExposure;
 
 class KingGameService
 {
@@ -85,6 +86,7 @@ class KingGameService
             }
         }
 
-        return $pools;
+        // 一次只送一份隨機子集,見 ContentExposure 的說明
+        return ContentExposure::samplePools($pools);
     }
 }

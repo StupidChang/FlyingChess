@@ -243,7 +243,11 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p class="footer-copy">&copy; {{ date('Y') }} {{ __('ui.site_name') }}</p>
+            {{-- 版權聲明講清楚範圍。發 DMCA 的時候,對方主張「網站上沒有聲明」
+                 是很常見的第一句話,寫明就少一輪來回。 --}}
+            <p class="footer-copy">
+                &copy; {{ date('Y') }} {{ __('ui.site_name') }} · {{ __('ui.rights_reserved') }}
+            </p>
             <button class="theme-toggle footer-theme" onclick="toggleTheme()" title="{{ __('ui.theme_switch') }}">
                 <span id="theme-label">{{ __('ui.theme_rose') }}</span>
             </button>
