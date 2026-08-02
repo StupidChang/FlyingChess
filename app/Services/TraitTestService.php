@@ -107,6 +107,36 @@ class TraitTestService
         return ['traits' => $traits, 'axes' => $axes, 'top' => $traits[0]['key']];
     }
 
+    /**
+     * 依使用者自己的分數,挑出每一條光譜該講哪一段。
+     *
+     * 「同一型的每個人拿到同一份範本」是這類測驗最常被批評的地方,所以這一段
+     * 是照實際分數算的,不是照主屬性查表。
+     *
+     * @param  array<string,int>  $axes  -8…+8
+     */
+    public function axisReading(array $axes): array
+    {
+        $names = $this->axes();
+        $text = $this->lang('axis_reading');
+        $out = [];
+
+        foreach ($axes as $id => $v) {
+            // 三分之一為界:偏一邊要夠明顯才算偏,不然每個人都是「偏左」
+            $band = $v >= self::AXIS_SCALE / 3 ? 'left'
+                : ($v <= -self::AXIS_SCALE / 3 ? 'right' : 'mid');
+
+            $out[$id] = [
+                'label' => ($names[$id]['left'] ?? '').' ⇄ '.($names[$id]['right'] ?? ''),
+                'lean' => $band === 'mid' ? null : ($band === 'left' ? $names[$id]['left'] : $names[$id]['right']),
+                'strength' => (int) round(abs($v) / self::AXIS_SCALE * 100),
+                'text' => $text[$id][$band] ?? '',
+            ];
+        }
+
+        return $out;
+    }
+
     /** 網址片段 → 屬性代碼。找不到回 null。 */
     public function keyFromSlug(string $slug): ?string
     {

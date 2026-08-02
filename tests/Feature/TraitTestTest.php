@@ -168,6 +168,74 @@ class TraitTestTest extends TestCase
         }
     }
 
+    public function test_the_deep_reading_is_not_in_the_html_when_locked(): void
+    {
+        $item = __('traits.items.tease');
+
+        /* 鎖住的內容如果照樣渲染、只是用 CSS 遮起來,檢視原始碼就破解了 ——
+           那跟沒有鎖一樣。所以鎖住時伺服器根本不輸出那段文字。 */
+        $this->get('/tw/trait-test/'.$item['slug'])
+            ->assertOk()
+            ->assertSee(__('traits.result.deep_locked'))
+            ->assertDontSee($item['deep']);
+    }
+
+    public function test_watching_an_ad_unlocks_the_deep_reading(): void
+    {
+        $item = __('traits.items.tease');
+
+        $token = $this->postJson('/tw/ad-unlock/start')->json('token');
+        $this->travel(config('premium.rewarded.min_watch_seconds', 15) + 1)->seconds();
+        $this->withCredentials()->postJson('/tw/ad-unlock/claim', ['token' => $token])
+            ->assertJsonPath('ok', true);
+
+        $this->withCredentials()->get('/tw/trait-test/'.$item['slug'])
+            ->assertOk()
+            ->assertSee($item['deep'])
+            ->assertDontSee(__('traits.result.deep_locked'));
+    }
+
+    public function test_the_axis_reading_follows_the_actual_score(): void
+    {
+        $service = app(TraitTestService::class);
+
+        /* 「同一型的每個人拿到同一份範本」是這類測驗最常被批評的地方。
+           這一段必須跟著實際分數走,不是照主屬性查表。 */
+        $left = $service->axisReading(['DS' => 8, 'PE' => 0, 'OR' => -8, 'IG' => 0]);
+
+        $this->assertSame(__('traits.axis_reading.DS.left'), $left['DS']['text']);
+        $this->assertSame(__('traits.axis_reading.OR.right'), $left['OR']['text']);
+        $this->assertSame(__('traits.axis_reading.PE.mid'), $left['PE']['text'], '接近中間就該講「兩邊都有」');
+        $this->assertNull($left['PE']['lean']);
+    }
+
+    public function test_the_quiz_still_lists_every_question_without_javascript(): void
+    {
+        /* 封面是 JS 加上去的增強。爬蟲與關掉 JS 的人一樣要讀得到全部題目 ——
+           收合如果是伺服器端做的,這一頁對搜尋引擎就只剩一顆按鈕。 */
+        $html = $this->get('/tw/trait-test')->assertOk()->getContent();
+
+        foreach (__('traits.questions') as $q) {
+            $this->assertStringContainsString($q, $html);
+        }
+    }
+
+    public function test_no_page_prints_a_raw_translation_key(): void
+    {
+        /* __() 找不到 key 時回傳 key 本身,而那是 truthy —— 所以
+           __('x') ?: '後備' 的後備永遠不會生效,畫面上會直接出現「ui.faq」。
+           肉眼很容易漏掉,測試掃一次比較快。 */
+        foreach (['/tw/trait-test', '/tw/trait-test/tease'] as $url) {
+            $html = $this->get($url)->assertOk()->getContent();
+
+            $this->assertDoesNotMatchRegularExpression(
+                '/>\s*(ui|traits|games|minigame)\.[a-z_.]+\s*</',
+                $html,
+                "{$url} 印出了未翻譯的 key"
+            );
+        }
+    }
+
     public function test_the_profile_shows_the_timeline(): void
     {
         $user = User::factory()->create();

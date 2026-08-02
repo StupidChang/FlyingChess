@@ -86,6 +86,7 @@
 
         <section class="tt-card">
             <h2>{{ __('traits.result.spectrums') }}</h2>
+            <p class="tt-hint">{{ __('traits.result.spectrums_hint') }}</p>
             @foreach($axes as $id => $a)
                 @php
                     $v = $result['axes'][$id] ?? 0;
@@ -117,6 +118,39 @@
         </div>
         @endif
 
+
+        {{-- 深入解讀。鎖住的時候**完全不渲染**內容 —— 塞進 HTML 再用 CSS 遮起來,
+             等於檢視原始碼就破解了,那跟沒有鎖一樣。 --}}
+        <section class="tt-card tt-deep">
+            <h2>{{ __('traits.result.deep_title') }}</h2>
+
+            @if($unlocked)
+                <p class="tt-deep-body">{{ $item['deep'] }}</p>
+
+                @if($axisReading)
+                <h3 class="tt-deep-sub">{{ __('traits.result.axis_reading_title') }}
+                    <em>{{ __('traits.result.axis_personal') }}</em></h3>
+                @foreach($axisReading as $r)
+                <div class="tt-reading">
+                    <div class="tt-reading-head">
+                        <strong>{{ $r['label'] }}</strong>
+                        <span>{{ $r['lean'] ? $r['lean'].' '.$r['strength'].'%' : __('traits.result.balanced') }}</span>
+                    </div>
+                    <p>{{ $r['text'] }}</p>
+                </div>
+                @endforeach
+                @endif
+
+                <p class="tt-deep-note">{{ __('traits.result.deep_unlocked_note') }}</p>
+            @else
+                <p class="tt-deep-teaser">{{ __('traits.result.deep_locked') }}</p>
+                <button type="button" class="btn btn-gold tt-deep-btn"
+                        onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
+                    {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
+                </button>
+            @endif
+        </section>
+
         {{-- 結果讀完了再放。剛揭曉就插一個廣告是這一頁最傷的位置。 --}}
         @include('partials.ad-unit', ['zone' => 'home_banner'])
 
@@ -141,6 +175,7 @@
         </section>
 
         <section class="tt-faq">
+            <h2>{{ __('traits.faq_title') }}</h2>
             @foreach(__('traits.faq') as $f)
             <details class="tt-faq-item">
                 <summary>{{ $f['q'] }}</summary>
@@ -154,6 +189,8 @@
         @include('partials.ad-unit', ['zone' => 'lobby_side'])
     </aside>
 </div>
+
+@include('partials.rewarded-unlock', ['barHidden' => true])
 @endsection
 
 @section('scripts')

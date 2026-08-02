@@ -51,9 +51,19 @@
             <h1>{{ __('traits.title') }}</h1>
             <p class="tt-tagline">{{ __('traits.tagline') }}</p>
             <p class="tt-intro">{{ __('traits.intro') }}</p>
+
+            {{-- 封面。一進來就攤開 30 題會勸退,先給一個「開始」的緩衝。
+                 題目仍然在 HTML 裡(SEO 與沒有 JS 的情況都要拿得到),
+                 只是預設收起來。 --}}
+            <div class="tt-facts">
+                <span>{{ __('traits.facts.count', ['n' => count($questions)]) }}</span>
+                <span>{{ __('traits.facts.time') }}</span>
+                <span>{{ __('traits.facts.free') }}</span>
+            </div>
+            <button type="button" class="btn btn-gold btn-xl tt-start" id="tt-start">{{ __('traits.start') }}</button>
         </header>
 
-        <form action="{{ route('trait-test.submit') }}" method="POST" id="tt-form">
+        <form action="{{ route('trait-test.submit') }}" method="POST" id="tt-form" class="tt-collapsed">
             @csrf
 
             <div class="tt-progress">
@@ -93,7 +103,7 @@
         @include('partials.ad-unit', ['zone' => 'home_banner'])
 
         <section class="tt-faq">
-            <h2>{{ __('ui.faq') ?: 'FAQ' }}</h2>
+            <h2>{{ __('traits.faq_title') }}</h2>
             @foreach(__('traits.faq') as $f)
             <details class="tt-faq-item">
                 <summary>{{ $f['q'] }}</summary>
@@ -114,6 +124,22 @@
 (function () {
     var form = document.getElementById('tt-form');
     var total = {{ count($questions) }};
+
+    /* 沒有 JS 的話題目就直接是展開的 —— 收合是 JS 加上去的增強,
+       不是必要條件。爬蟲與關掉 JS 的人一樣讀得到全部題目。 */
+    var start = document.getElementById('tt-start');
+    start.hidden = false;
+    start.addEventListener('click', function () {
+        form.classList.remove('tt-collapsed');
+        start.hidden = true;
+        form.querySelector('.tt-q').scrollIntoView({behavior: 'smooth', block: 'start'});
+    });
+
+    // 重載後帶著舊作答回來(驗證失敗)的話,直接展開,不要再擋一次
+    if (form.querySelector('.tt-q input:checked')) {
+        form.classList.remove('tt-collapsed');
+        start.hidden = true;
+    }
 
     function update() {
         var done = form.querySelectorAll('.tt-q input:checked').length;

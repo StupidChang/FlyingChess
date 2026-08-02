@@ -1953,3 +1953,32 @@ a.gh-name{color:var(--accent)}
 .tt-entry-sub{font-size:.76rem;color:var(--text-dim);margin-top:2px}
 .tt-entry-sub em{font-style:normal;color:var(--gold)}
 .tt-entry-date{font-size:.74rem;color:var(--text-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ── 測驗封面與深入解讀 ── */
+.tt-facts{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 16px}
+.tt-facts span{font-size:.75rem;color:var(--text-dim);border:1px solid var(--border);
+  border-radius:99px;padding:4px 12px;background:var(--surface)}
+.tt-start{width:100%;max-width:320px}
+/* 收合時只藏題目,進度條與交卷按鈕也一起 —— 露出半截比全部收起來更亂 */
+.tt-collapsed{display:none}
+
+.tt-deep-body{font-size:.92rem;line-height:1.95;color:var(--text);margin:0 0 4px;max-width:62ch}
+.tt-deep-sub{font-size:.88rem;margin:22px 0 10px;padding-top:16px;border-top:1px solid var(--border)}
+.tt-deep-sub em{font-style:normal;font-size:.72rem;color:var(--gold);margin-left:8px;font-weight:400}
+.tt-reading{padding:12px 0;border-bottom:1px solid var(--border)}
+.tt-reading:last-child{border-bottom:0;padding-bottom:0}
+.tt-reading-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:5px}
+.tt-reading-head strong{font-size:.84rem}
+.tt-reading-head span{font-size:.74rem;color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tt-reading p{font-size:.84rem;line-height:1.8;color:var(--text-dim);margin:0}
+.tt-deep-note{font-size:.75rem;color:var(--gold);margin:16px 0 0}
+.tt-deep-teaser{font-size:.88rem;line-height:1.8;color:var(--text-dim);margin:0 0 16px;max-width:56ch}
+.tt-deep-btn{width:100%;max-width:320px}
+.tt-deep{border-color:rgba(217,164,65,.35)}
+
+/* 手機上選項的字太小,而且五格擠成一排點不準 */
+@media(max-width:420px){
+  .tt-scale{grid-template-columns:repeat(5,1fr);gap:3px}
+  .tt-scale label{font-size:.62rem;padding:10px 1px;line-height:1.25}
+  .tt-dot{width:8px;height:8px}
+}

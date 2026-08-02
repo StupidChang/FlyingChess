@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TraitResult;
 use App\Services\TraitTestService;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 
 /**
@@ -78,6 +79,10 @@ class TraitTestController extends Controller
             $result = null;
         }
 
+        /* 深入解讀要看廣告或當會員才看得到。鎖住的時候**不渲染**那段內容 ——
+           塞進 HTML 再用 CSS 遮起來,等於檢視原始碼就破解了。 */
+        $unlocked = PremiumAccess::content($request->user());
+
         return view('trait-test.result', [
             'key' => $key,
             'item' => $this->service->item($key),
@@ -85,6 +90,8 @@ class TraitTestController extends Controller
             'axes' => $this->service->axes(),
             'items' => (array) trans('traits.items'),
             'translated' => $this->service->isTranslated(),
+            'unlocked' => $unlocked,
+            'axisReading' => $unlocked && $result ? $this->service->axisReading($result['axes']) : [],
         ]);
     }
 }
