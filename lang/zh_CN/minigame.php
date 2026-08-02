@@ -231,4 +231,7 @@ return [
     'wheel_medium_plus_desc' => '亲密之上、大胆之下,火候刚好',
     'gender_unset' => '不指定',
     'card_gender' => '性别',
+    'cw_seo_title' => '自订转盘 — 自己设定选项与机率的在线转盘',
+    'cw_seo_description' => '自己输入选项与占比,即时产生专属转盘。可以调每一项的机率、存成自己的转盘,免费、不用注册。',
+    'cw_back_to_wheel' => '回到命运转盘',
 ];

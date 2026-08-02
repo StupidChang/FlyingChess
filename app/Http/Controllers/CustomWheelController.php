@@ -9,16 +9,30 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * 自訂轉盤的儲存 / 讀取 / 刪除。
+ * 自訂轉盤:一個頁面 + 三支 JSON 端點。
  *
- * 全部以 JSON 回應,由轉盤編輯器用 fetch 呼叫 —— 頁面本身仍是 SSR,
- * 這裡只負責資料,不渲染任何畫面(符合 CLAUDE.md 的 SSR 原則)。
+ * page() 是頁面本身;index/store/destroy 全部以 JSON 回應,由頁面上的編輯器
+ * 用 fetch 呼叫 —— 資料與畫面分開,符合 CLAUDE.md 的 SSR 原則。
  *
  * 內容審核:轉盤只有本人看得到,但仍會存進資料庫,所以名稱與每個選項
  * 都套 NoBlockedWords,與專案其他使用者輸入欄位一致。
  */
 class CustomWheelController extends Controller
 {
+    /**
+     * 自訂轉盤的頁面。
+     *
+     * 原本它是掛在命運轉盤頁下半部的一個區塊,要往下捲很久才看得到,而且
+     * 那一頁的標題與描述講的是命運轉盤 —— 等於這個工具沒有自己的搜尋落點。
+     * 獨立成頁之後它有自己的網址、標題與 sitemap 條目。
+     *
+     * 不需要登入就能玩(資料先存在瀏覽器),要存成帳號裡的轉盤才需要登入。
+     */
+    public function page()
+    {
+        return view('custom-wheel.index');
+    }
+
     public function index(Request $request): JsonResponse
     {
         $wheels = CustomWheel::where('user_id', $request->user()->id)

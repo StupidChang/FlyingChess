@@ -113,6 +113,7 @@
                     <a href="{{ route('wheel.pure') }}">{{ __('games.pure_wheel') }}</a>
                     <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
                     <a href="{{ route('trait-test.show') }}">{{ __('traits.title') }}</a>
+                <a href="{{ route('custom-wheel.page') }}">{{ __('minigame.cw_title') }}</a>
                     <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 </div>
             </div>

@@ -18,6 +18,7 @@ $paths = [
     ['path' => 'wheel',           'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'who-most-likely', 'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'trait-test',      'priority' => '0.8', 'changefreq' => 'monthly'],
+    ['path' => 'custom-wheel',    'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'community',       'priority' => '0.7', 'changefreq' => 'daily'],
     ['path' => 'premium',         'priority' => '0.5', 'changefreq' => 'monthly'],

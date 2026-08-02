@@ -231,4 +231,7 @@ return [
     'wheel_medium_plus_desc' => '親密の先、大胆の手前',
     'gender_unset' => '指定しない',
     'card_gender' => '性別',
+    'cw_seo_title' => 'カスタムルーレット — 項目と確率を自分で設定',
+    'cw_seo_description' => '項目と割合を入力するだけで、専用のルーレットがその場でできあがります。項目ごとの確率も調整可能。無料・登録不要。',
+    'cw_back_to_wheel' => 'ルーレットゲームに戻る',
 ];

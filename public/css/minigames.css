@@ -405,3 +405,18 @@
     .mg-card-slot,.mg-card-scene.dealing,.mg-card-scene.flip-bump{animation:none}
     .mg-card-inner{transition:transform .2s linear}
 }
+
+/* 命運轉盤頁上連往自訂轉盤的入口 */
+.cw-promo{display:flex;align-items:center;gap:14px;max-width:560px;margin:26px auto 40px;
+  padding:16px 18px;border-radius:14px;text-decoration:none;
+  background:var(--surface,#151823);border:1px solid var(--border,#2a2f42);
+  transition:border-color .2s ease,transform .2s ease}
+.cw-promo:hover{border-color:var(--gold,#d9a441);transform:translateY(-2px)}
+.cw-promo-icon{font-size:1.5rem;flex:none}
+.cw-promo strong{display:block;font-size:.98rem;color:var(--text,#e9ebf2)}
+.cw-promo em{display:block;font-style:normal;font-size:.78rem;color:var(--text-dim,#8b90a5);margin-top:3px}
+.cw-promo-go{margin-left:auto;color:var(--gold,#d9a441);font-size:1.1rem;flex:none}
+.cw-page{padding:32px 20px 60px}
+.cw-back{text-align:center;margin-top:28px}
+.cw-back a{color:var(--text-dim,#8b90a5);font-size:.85rem}
+.cw-back a:hover{color:var(--gold,#d9a441)}

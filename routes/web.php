@@ -308,6 +308,9 @@ Route::prefix('{locale}')
         // 純轉盤:只有轉盤與指針,沒有題庫,不用限速
         Route::get('/wheel', [WheelGameController::class, 'pure'])->name('wheel.pure');
 
+        // 自訂轉盤。頁面公開,存檔才要登入(下面的 my-wheels 那組)
+        Route::get('/custom-wheel', [CustomWheelController::class, 'page'])->name('custom-wheel.page');
+
         /* 枕邊屬性測驗。結果頁是獨立網址,20 種屬性就是 20 個可以被搜尋到、
            可以被分享的頁面 —— 做成交卷後的一次性畫面的話,SEO 貢獻是零。
            交卷限速:算分不重,但這是一個匿名可寫入的端點。 */

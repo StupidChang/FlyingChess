@@ -111,9 +111,7 @@
                     <em>{{ __('ui.my_dice_desc') }}</em>
                 </span>
             </a>
-            {{-- custom-wheel.index 是給編輯器 fetch 用的 JSON API,不是頁面。
-                 這裡要連的是真的放著轉盤編輯器的那一頁。 --}}
-            <a href="{{ route('wheel-game.show') }}#cw-root" class="profile-tool">
+            <a href="{{ route('custom-wheel.page') }}" class="profile-tool">
                 <span class="profile-tool-icon" aria-hidden="true">🎡</span>
                 <span class="profile-tool-text">
                     <strong>{{ __('ui.my_wheels') }}</strong>

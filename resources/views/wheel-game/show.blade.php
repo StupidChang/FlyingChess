@@ -187,11 +187,18 @@
 </div>
 <canvas id="confetti-canvas"></canvas>
 
-{{-- 命運轉盤區塊是滿版的,提示下方還有內容 --}}
-@include('partials.scroll-hint', ['target' => '#cw-root'])
-
-{{-- 自訂轉盤(帶權重):放在命運轉盤下方 --}}
-@include('partials.custom-wheel')
+{{-- 自訂轉盤已經獨立成一頁。留一張卡片連過去 —— 原本它掛在這一頁下半部,
+     要往下捲很久才看得到,而且沒有自己的網址與搜尋落點。 --}}
+<div class="container">
+    <a href="{{ route('custom-wheel.page') }}" class="cw-promo">
+        <span class="cw-promo-icon" aria-hidden="true">✏️</span>
+        <span>
+            <strong>{{ __('minigame.cw_title') }}</strong>
+            <em>{{ __('minigame.cw_subtitle') }}</em>
+        </span>
+        <span class="cw-promo-go" aria-hidden="true">→</span>
+    </a>
+</div>
 
     {{-- 常駐的「看廣告解鎖」提示。刻意不做成彈窗:一群人圍著一台裝置玩的時候,
          遊戲中跳出任何東西毀掉的是整場氣氛,不只是一個人的體驗。 --}}

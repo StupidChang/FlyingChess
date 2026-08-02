@@ -225,4 +225,7 @@ return [
     'wheel_medium_plus_desc' => 'Past intimate, not yet daring',
     'gender_unset' => 'Not set',
     'card_gender' => 'Gender',
+    'cw_seo_title' => 'Custom Wheel — set your own options and odds',
+    'cw_seo_description' => 'Type in your own options and weights and the wheel redraws instantly. Tune the odds slice by slice and save your own wheels. Free, no sign-up.',
+    'cw_back_to_wheel' => 'Back to the wheel game',
 ];

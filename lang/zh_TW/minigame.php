@@ -231,4 +231,7 @@ return [
     'wheel_medium_plus_desc' => '親密之上、大膽之下,火候剛好',
     'gender_unset' => '不指定',
     'card_gender' => '性別',
+    'cw_seo_title' => '自訂轉盤 — 自己設定選項與機率的線上轉盤',
+    'cw_seo_description' => '自己輸入選項與佔比,即時產生專屬轉盤。可以調每一項的機率、存成自己的轉盤,免費、不用註冊。',
+    'cw_back_to_wheel' => '回到命運轉盤',
 ];
