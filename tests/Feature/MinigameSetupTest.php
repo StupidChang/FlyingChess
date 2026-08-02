@@ -75,6 +75,20 @@ class MinigameSetupTest extends TestCase
         $this->assertStringContainsString('.pa-grid[hidden]{display:none}', $css);
     }
 
+    public function test_every_display_class_toggled_by_hidden_overrides_it(): void
+    {
+        /* 同一個坑犯過兩次了(頭像面板、屬性長條)。凡是用 hidden 屬性切換、
+           而 class 又指定了 display 的元素,都必須自己把 display:none 蓋回去 ——
+           少了那一行,元素會一直看得見,而且完全沒有錯誤訊息。 */
+        $css = collect(['css/app.css', 'css/minigames.css'])
+            ->map(fn ($f) => file_get_contents(public_path($f)))
+            ->implode("\n");
+
+        foreach (['.pa-grid', '.tt-bar'] as $sel) {
+            $this->assertStringContainsString($sel.'[hidden]{display:none}', $css, "{$sel} 少了 [hidden] 覆蓋");
+        }
+    }
+
     public function test_the_stylesheets_have_balanced_braces(): void
     {
         /* 用腳本大量改 CSS 的時候很容易多留一個 }。瀏覽器會忽略它繼續往下讀,

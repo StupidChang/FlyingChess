@@ -1889,6 +1889,9 @@ a.gh-name{color:var(--accent)}
 .tt-hint{font-size:.76rem;color:var(--text-dim);margin-bottom:16px}
 
 .tt-bar{display:grid;grid-template-columns:6.5em 1fr 3em;gap:10px;align-items:center;margin-bottom:7px}
+/* hidden 的 UA 樣式是 display:none,優先權比上面這條 class 低 —— 不蓋回去的話
+   「顯示全部」還沒按,20 條就全部攤在那裡。跟 .pa-grid 是同一個坑。 */
+.tt-bar[hidden]{display:none}
 .tt-bar-name{font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
 .tt-bar-name:hover{color:var(--gold)}
 .tt-bar-track{height:7px;border-radius:99px;background:var(--surface2);overflow:hidden}
