@@ -62,16 +62,16 @@ class BetaNoticeTest extends TestCase
         $this->get('/tw')->assertOk()->assertSee('data-key="beta_notice_v7"', false);
     }
 
-    public function test_the_report_link_appears_only_with_a_support_address(): void
+    public function test_the_report_link_goes_to_the_in_site_form(): void
     {
-        config(['beta.notice' => true, 'support.email' => 'help@example.com']);
-        $this->get('/tw')->assertOk()->assertSee('mailto:help@example.com', false);
+        config(['beta.notice' => true]);
 
-        // 沒有信箱就不要留一個死路連結
-        config(['support.email' => '']);
-        $this->get('/tw')
+        /* 原本這裡是 mailto:SUPPORT_EMAIL —— 要開信箱、要打地址,而按下這個連結
+           的人通常正在氣頭上。改成站內表單,並帶上現在這一頁當作 ?from=。 */
+        $this->get('/tw/wheel-game')
             ->assertOk()
-            ->assertDontSee(__('ui.beta_report'))
+            ->assertSee(__('ui.beta_report'))
+            ->assertSee(route('feedback.show', ['from' => '/tw/wheel-game']), false)
             ->assertDontSee('mailto:', false);
     }
 

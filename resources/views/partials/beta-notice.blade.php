@@ -11,12 +11,12 @@
     - z-index 150:蓋得住 sticky header(100)與下拉選單(110/120),但讓擲骰遮罩
       (.dice-overlay 200)與 .modal(300)蓋住它 —— 骰子在轉的時候不該有東西浮在上面
     - 手機只留「徽章 + 一句話 + 關閉」,說明文與按鈕收起來,才不會擋住畫面
+    - 「回報問題」連到站內回報表單,並帶上現在這一頁當作 ?from=
     - 尊重 prefers-reduced-motion:直接出現,不做位移
 --}}
 @if(config('beta.notice'))
     @php
         $betaKey = 'beta_notice_v'.config('beta.notice_version');
-        $betaReportTo = config('support.email');
     @endphp
 
     <div class="beta-note" id="betaNote" role="status" aria-live="polite" data-key="{{ $betaKey }}" hidden>
@@ -31,10 +31,10 @@
             <p class="beta-note-desc">{{ __('ui.beta_desc') }}</p>
             <div class="beta-note-actions">
                 <button type="button" class="beta-note-ok">{{ __('ui.beta_ok') }}</button>
-                @if($betaReportTo)
-                    {{-- 有客服信箱才給這個連結,不然「歡迎回報」會是個死路 --}}
-                    <a class="beta-note-report" href="mailto:{{ $betaReportTo }}">{{ __('ui.beta_report') }}</a>
-                @endif
+                {{-- 帶上現在這一頁 —— 回報表單會自動填好「在哪一頁遇到的」,
+                     使用者少打一行,我們多一條查問題的線索。 --}}
+                <a class="beta-note-report"
+                   href="{{ route('feedback.show', ['from' => '/'.request()->path()]) }}">{{ __('ui.beta_report') }}</a>
             </div>
         </div>
     </div>

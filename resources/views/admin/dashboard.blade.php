@@ -55,6 +55,13 @@
                 <span class="admin-stat-num">{{ number_format($stats['games_today']) }}</span>
                 <span class="admin-stat-label">今日新增場次</span>
             </div>
+            {{-- 未處理回報:有的時候標成強調色,沒有的時候就是一個普通的 0 --}}
+            <a href="{{ route('admin.feedback') }}" class="admin-stat-card">
+                <span class="admin-stat-num" @if($stats['pending_feedback']) style="color:var(--accent)" @endif>
+                    {{ number_format($stats['pending_feedback']) }}
+                </span>
+                <span class="admin-stat-label">未處理回報</span>
+            </a>
         </div>
 
         @php

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Board;
+use App\Models\Feedback;
 use App\Models\Game;
 use App\Models\GamePrompt;
 use App\Models\PageView;
@@ -11,9 +12,18 @@ use App\Models\User;
 use App\Models\WheelSegment;
 use App\Rules\NoBlockedWords;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
+    /** 回報狀態的中文標籤。後台是中文介面,view 與 flash 訊息共用這一份。 */
+    public const FEEDBACK_STATUS_LABELS = [
+        Feedback::STATUS_NEW => '未處理',
+        Feedback::STATUS_DOING => '處理中',
+        Feedback::STATUS_DONE => '已處理',
+        Feedback::STATUS_SPAM => '垃圾',
+    ];
+
     /** 流量頁的語系篩選。四個語系各自是一個站。 */
     private const TRAFFIC_LOCALES = [
         'zh_TW' => '繁體中文',
@@ -307,6 +317,7 @@ class AdminController extends Controller
             'users_today' => User::whereDate('created_at', now()->toDateString())->count(),
             'games_today' => Game::whereDate('created_at', now()->toDateString())->count(),
             'pending_reviews' => Board::where('publish_status', Board::PUBLISH_PENDING)->count(),
+            'pending_feedback' => Feedback::where('status', Feedback::STATUS_NEW)->count(),
             'published_boards' => Board::where('publish_status', Board::PUBLISH_APPROVED)->count(),
         ];
 
@@ -967,5 +978,67 @@ class AdminController extends Controller
         $count = Game::where('updated_at', '<', now()->subDays(7))->delete();
 
         return redirect()->route('admin.games')->with('success', "已清理 {$count} 筆 7 天前的場次");
+    }
+
+    /**
+     * 站內回報的列表。
+     *
+     * 預設順序是「未處理的排在最前面,同狀態內最新的在上面」—— 這一頁的用途
+     * 是清待辦,不是翻歷史。單純照時間排的話,處理完的舊回報會一直卡在第一頁。
+     */
+    public function feedback(Request $request)
+    {
+        $query = Feedback::with('user:id,name,email');
+
+        $this->applyIn($query, $request, 'type', Feedback::TYPES);
+        $this->applyIn($query, $request, 'status', Feedback::STATUSES);
+
+        if ($search = $request->input('q')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('message', 'like', "%{$search}%")
+                    ->orWhere('contact', 'like', "%{$search}%")
+                    ->orWhere('page_path', 'like', "%{$search}%");
+            });
+        }
+
+        $sortable = [
+            'id' => 'id',
+            'type' => ['type', Feedback::TYPES],
+            'status' => ['status', Feedback::STATUSES],
+            'locale' => 'locale',
+            'created_at' => 'created_at',
+        ];
+        $this->applySort($query, $request, $sortable, 'status', 'asc');
+
+        /* applySort 的預設值只能給一個鍵,但這一頁預設要兩層:未處理優先,
+           同狀態內最新的在上面。使用者一旦自己點了表頭就完全照他的來。 */
+        if (! self::sortSpecs($request, $sortable)) {
+            $query->orderByDesc('created_at');
+        }
+
+        $feedback = $query->paginate($this->perPage($request, $query))->withQueryString();
+
+        $counts = Feedback::selectRaw('status, COUNT(*) as c')->groupBy('status')->pluck('c', 'status');
+
+        return view('admin.feedback.index', compact('feedback', 'counts'));
+    }
+
+    public function updateFeedbackStatus(Request $request, Feedback $feedback)
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::in(Feedback::STATUSES)],
+        ]);
+
+        $feedback->update(['status' => $data['status']]);
+
+        return back()->with('success', "#{$feedback->id} 已標記為「".self::FEEDBACK_STATUS_LABELS[$data['status']].'」');
+    }
+
+    public function destroyFeedback(Feedback $feedback)
+    {
+        $id = $feedback->id;
+        $feedback->delete();
+
+        return back()->with('success', "回報 #{$id} 已刪除");
     }
 }

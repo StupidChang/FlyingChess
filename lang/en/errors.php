@@ -7,6 +7,8 @@ return [
     '404_message' => "The page you're looking for doesn't exist — it may have been moved or deleted.",
     '419_title' => 'Page expired',
     '419_message' => 'Your session security check expired. Please go back and try again.',
+    '429_title' => 'Too many requests',
+    '429_message' => 'That was a few too many in a short while. Please try again in a bit.',
     '500_title' => 'Server error',
     '500_message' => 'We are temporarily unavailable. Please try again later.',
     '503_title' => 'Under maintenance',

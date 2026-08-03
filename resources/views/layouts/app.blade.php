@@ -253,6 +253,7 @@
                 @else
                 <a href="{{ route('register') }}">{{ __('auth.register_title') }}</a>
                 @endauth
+                <a href="{{ route('feedback.show', ['from' => '/'.request()->path()]) }}">{{ __('feedback.nav') }}</a>
                 <a href="{{ route('legal.privacy') }}" rel="nofollow">{{ __('legal.privacy_title') }}</a>
                 <a href="{{ route('legal.terms') }}" rel="nofollow">{{ __('legal.terms_title') }}</a>
             </div>

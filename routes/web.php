@@ -8,6 +8,7 @@ use App\Http\Controllers\CardGameController;
 use App\Http\Controllers\CustomWheelController;
 use App\Http\Controllers\DiceController;
 use App\Http\Controllers\DiceGameController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameHallController;
 use App\Http\Controllers\GoogleAuthController;
@@ -225,6 +226,13 @@ Route::prefix('{locale}')
         Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
         Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
 
+        /* 站內回報。不需要登入 —— 遇到 bug 的人有很高比例還沒註冊,而「先去
+           註冊才能告訴我們哪裡壞了」是最好的勸退方式。防濫用只靠 throttle 與
+           蜜罐,刻意不套擋詞規則(理由見 FeedbackController)。 */
+        Route::get('/feedback', [FeedbackController::class, 'show'])->name('feedback.show');
+        Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store')
+            ->middleware('throttle:5,60');
+
         // Auth (guest only)
         Route::middleware('guest')->group(function () {
             Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -440,6 +448,11 @@ Route::prefix('{locale}')
             Route::patch('/prompts/{prompt}', [AdminController::class, 'updatePrompt'])->name('prompts.update');
             Route::post('/prompts/{prompt}/duplicate', [AdminController::class, 'duplicatePrompt'])->name('prompts.duplicate');
             Route::delete('/prompts/{prompt}', [AdminController::class, 'destroyPrompt'])->name('prompts.destroy');
+
+            // 站內回報
+            Route::get('/feedback', [AdminController::class, 'feedback'])->name('feedback');
+            Route::patch('/feedback/{feedback}', [AdminController::class, 'updateFeedbackStatus'])->name('feedback.status');
+            Route::delete('/feedback/{feedback}', [AdminController::class, 'destroyFeedback'])->name('feedback.destroy');
 
             Route::get('/wheel-segments', [AdminController::class, 'wheelSegments'])->name('wheel-segments');
             Route::get('/wheel-segments/create', [AdminController::class, 'createWheelSegment'])->name('wheel-segments.create');
