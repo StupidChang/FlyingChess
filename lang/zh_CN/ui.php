@@ -71,4 +71,12 @@ return [
     'theme_indigo' => '靛蓝',
     'theme_switch' => '切换配色',
     'rights_reserved' => '站内题目与文案均为原创,保留一切权利',
+
+    // 测试版公告(右下角小卡／手机底部细条),见 config/beta.php
+    'beta_badge' => '测试版',
+    'beta_title' => '目前是测试版本',
+    'beta_desc' => '题目与功能还在持续调整,内容可能随时更新或重置。你玩到的东西之后都会再变得更好。',
+    'beta_ok' => '知道了',
+    'beta_report' => '反馈问题',
+    'beta_close' => '关闭公告',
 ];

@@ -275,6 +275,10 @@
     </div>
 </footer>
 
+{{-- 測試版公告。放在 footer 之後、腳本之前 —— 它是 position:fixed,DOM 位置不影響
+     版面,但排在最後才不會插進 main 的 tab 順序中間。 --}}
+@include('partials.beta-notice')
+
 <script src="{{ asset_v('js/app.js') }}"></script>
 <script>
 // Theme toggle

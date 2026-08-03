@@ -71,4 +71,12 @@ return [
     'theme_indigo' => 'Indigo',
     'theme_switch' => 'Switch theme',
     'rights_reserved' => 'All prompts and copy are original. All rights reserved.',
+
+    // Beta notice (desktop card, bottom-right; slim bar on mobile) — see config/beta.php
+    'beta_badge' => 'Beta',
+    'beta_title' => 'This is a beta release',
+    'beta_desc' => 'Prompts and features are still being tuned, so things may change or reset at any time. Everything you see here is on its way to getting better.',
+    'beta_ok' => 'Got it',
+    'beta_report' => 'Report a problem',
+    'beta_close' => 'Dismiss notice',
 ];
