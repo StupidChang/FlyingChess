@@ -8,7 +8,8 @@
     - 進站 700ms 後才浮出來,不跟首屏搶注意力,也不影響 LCP
     - 關掉之後記在 localStorage,同一個瀏覽器就不再出現(版號一動會重新宣布)
     - 已經關過的人不會看到任何一格閃現 —— 元素帶 hidden 出場,由 JS 決定要不要顯示
-    - z-index 250:蓋得住 sticky header(100),但仍讓 .modal(300)蓋住它
+    - z-index 150:蓋得住 sticky header(100)與下拉選單(110/120),但讓擲骰遮罩
+      (.dice-overlay 200)與 .modal(300)蓋住它 —— 骰子在轉的時候不該有東西浮在上面
     - 手機只留「徽章 + 一句話 + 關閉」,說明文與按鈕收起來,才不會擋住畫面
     - 尊重 prefers-reduced-motion:直接出現,不做位移
 --}}
@@ -40,7 +41,7 @@
 
     <style>
     .beta-note{
-        position:fixed;right:22px;bottom:22px;z-index:250;
+        position:fixed;right:22px;bottom:22px;z-index:150;
         width:336px;max-width:calc(100vw - 32px);
         background:linear-gradient(158deg,var(--surface) 0%,var(--surface2) 100%);
         border:1px solid var(--border);border-radius:16px;overflow:hidden;
