@@ -66,7 +66,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'drink', '一起乾一杯'],
                 [30, 'action', '從背後環抱 30 秒'],
                 [31, 'end', '終點\n抱抱！'],
-            
+
             ],
             'square'
         );
@@ -108,7 +108,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'truth', '你喝醉後做過最丟臉的事？'],
                 [30, 'action', '跟右邊的人交換座位'],
                 [31, 'end', '終點\n恭喜通關！'],
-            
+
             ],
             'square'
         );
@@ -150,7 +150,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'drink', '為當年的自己乾一杯'],
                 [30, 'truth', '如果重來一次，你會更早開口嗎？'],
                 [31, 'end', '終點\n下課了！'],
-            
+
             ],
             'square'
         );
@@ -192,7 +192,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'truth', '你希望我多練哪裡？'],
                 [30, 'action', '按摩對方的小腿 30 秒'],
                 [31, 'end', '終點\n今天練到了！'],
-            
+
             ],
             'square'
         );
@@ -236,7 +236,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'truth', '你今晚最想被誰稱讚？'],
                 [30, 'dare', '讓大家投票決定你下一格做什麼'],
                 [31, 'end', '終點\n大家辛苦了！'],
-            
+
             ],
             'rect'
         );
@@ -278,7 +278,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'action', '蓋同一條毯子靠著 1 分鐘'],
                 [30, 'dare', '放一首你想跟我一起聽的歌'],
                 [31, 'end', '終點\n繼續懶在一起吧！'],
-            
+
             ],
             'rect'
         );
@@ -320,7 +320,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'action', '幫對方擦乳液 30 秒'],
                 [30, 'dare', '把燈調到你覺得最好的亮度'],
                 [31, 'end', '終點\n旅途愉快！'],
-            
+
             ],
             'rect'
         );
@@ -362,7 +362,7 @@ class BoardTemplateSeeder extends Seeder
                 [29, 'action', '以角色的身分幫對方按摩 30 秒'],
                 [30, 'truth', '剛才哪一刻最讓你入戲？'],
                 [31, 'end', '終點\n精彩殺青！'],
-            
+
             ],
             'rect'
         );
@@ -410,7 +410,7 @@ class BoardTemplateSeeder extends Seeder
                 [33, 'dare', '親一個你自己選的位置'],
                 [34, 'action', '貼著耳朵說出你現在想做的事'],
                 [35, 'end', '終點\n心動不如行動！'],
-            
+
             ],
             'cross'
         );
@@ -456,7 +456,7 @@ class BoardTemplateSeeder extends Seeder
                 [33, 'action', '用手指幫對方，快慢由對方說了算'],
                 [34, 'dare', '兩個人都說一個界線，剩下的自己決定'],
                 [35, 'end', '終點\n享受今晚吧！'],
-            
+
             ],
             'cross'
         );
@@ -502,7 +502,7 @@ class BoardTemplateSeeder extends Seeder
                 [33, 'action', '抽兩個人，親對方 10 秒'],
                 [34, 'drink', '沒被指定過的人自罰一杯'],
                 [35, 'end', '終點\n你是勇者！'],
-            
+
             ],
             'cross'
         );
@@ -548,7 +548,7 @@ class BoardTemplateSeeder extends Seeder
                 [33, 'truth', '現在你想要快一點還是慢一點？'],
                 [34, 'action', '挑一個你們都想試的體位，直接開始'],
                 [35, 'end', '終點\n美好的夜晚開始了'],
-            
+
             ],
             'cross'
         );
@@ -594,7 +594,7 @@ class BoardTemplateSeeder extends Seeder
                 [33, 'truth', '你想要繼續被動，還是換你主導？'],
                 [34, 'action', '拿掉眼罩，看著對方做你剛才最想做的事'],
                 [35, 'end', '終點\n感官全開！'],
-            
+
             ],
             'cross'
         );
@@ -794,7 +794,7 @@ class BoardTemplateSeeder extends Seeder
 
     private function createTemplate(string $name, string $desc, bool $isPremium, array $squares, string $shape = 'cross'): void
     {
-        if (!$isPremium) {
+        if (! $isPremium) {
             $squares = $this->adultFreeSquares($squares);
             $desc = '成人漸進版｜'.$desc;
         }
@@ -865,12 +865,14 @@ class BoardTemplateSeeder extends Seeder
             if ($position === 0) {
                 $square[1] = 'start';
                 $square[2] = '起點\n先從調情慢慢來';
+
                 continue;
             }
 
             if ($position === $last) {
                 $square[1] = 'end';
                 $square[2] = '終點\n抱緊對方，接下來自己決定';
+
                 continue;
             }
 

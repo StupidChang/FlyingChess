@@ -186,7 +186,7 @@ class BoardSeeder extends Seeder
         bool $isPremium = false,
         bool $hasStartWheel = false,
     ): void {
-        if (!$isPremium) {
+        if (! $isPremium) {
             $squares = $this->adultFreeSquares($squares);
         }
 
@@ -283,12 +283,14 @@ class BoardSeeder extends Seeder
             if ($position === 0) {
                 $square['text'] = "起點\n先從調情慢慢升溫";
                 $square['color'] = 'start';
+
                 continue;
             }
 
             if ($position === $last) {
                 $square['text'] = "終點\n抱緊對方，接下來自己決定";
                 $square['color'] = 'end';
+
                 continue;
             }
 

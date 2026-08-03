@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Payments\DisabledGateway;
+
 /*
  * 金流商選擇。
  *
@@ -22,7 +24,7 @@ return [
 
     'gateways' => [
         'disabled' => [
-            'driver' => App\Support\Payments\DisabledGateway::class,
+            'driver' => DisabledGateway::class,
             'config' => null,
         ],
     ],

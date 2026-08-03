@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\PageView;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -22,7 +23,7 @@ Schedule::call(function () {
     $cutoff = now()->subDays(180);
 
     do {
-        $deleted = App\Models\PageView::where('created_at', '<', $cutoff)
+        $deleted = PageView::where('created_at', '<', $cutoff)
             ->limit(5000)->delete();
     } while ($deleted > 0);
 })->dailyAt('04:30')->timezone('Asia/Taipei')->name('prune-page-views');

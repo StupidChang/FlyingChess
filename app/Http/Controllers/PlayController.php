@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Board;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 
 class PlayController extends Controller
@@ -28,7 +29,7 @@ class PlayController extends Controller
         // 玩到這張棋盤」,不是「這張棋盤屬不屬於你」。存一份到自己的收藏
         // (BoardController::cloneTemplate)仍然只認會員資格。
         if ($board->is_premium_template) {
-            if (! \App\Support\PremiumAccess::content(auth()->user())) {
+            if (! PremiumAccess::content(auth()->user())) {
                 return redirect()->route('premium.index')
                     ->with('error', __('play.err_premium_template_play'));
             }
