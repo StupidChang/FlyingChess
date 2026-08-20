@@ -63,6 +63,31 @@ php artisan migrate
 php artisan db:seed     # Seeds default board via BoardSeeder
 ```
 
+### 這台主機的部署（IMPORTANT）
+
+`/var/www/flyingchess` 本身就是線上環境：改檔案就是改線上。但 **改完不會自動生效**
+—— PHP-FPM 開著 `opcache.validate_timestamps=0`（`/etc/php/8.3/fpm/conf.d/99-opcache.ini`），
+web 程序會一直跑舊的編譯結果，包含 `bootstrap/cache/config.php`、
+`bootstrap/cache/routes-v7.php` 與 `storage/framework/views/` 下的 Blade 編譯檔。
+
+CLI（`php artisan`、測試）沒有這個問題（`opcache.enable_cli=0`），所以會出現
+「我在終端機驗過都對，但網站行為沒變」這種假象。踩過一次：`.env` 填好
+`SNS_TOPIC_ARN`、`config:cache` 也跑了、tinker 讀得到，但真實請求進來仍然拿到
+「未設定」而被拒收。
+
+改完程式或設定，收尾一律跑：
+
+```bash
+php artisan config:cache && php artisan route:cache && php artisan view:clear
+systemctl reload php8.3-fpm    # 少了這行,上面三行等於沒做
+```
+
+`reload` 是 graceful 的（等現有請求跑完才換 worker），不會斷線。
+
+另外：**測試一定要用 `composer run test`**，不要直接 `php artisan test` ——
+config 被 cache 之後 `phpunit.xml` 的 env 覆寫會被忽略，測試會打到線上那份設定
+（症狀是上百個測試同時失敗）。
+
 ### Docker (Production)
 ```bash
 # Copy and configure .env.docker.example → .env, then:

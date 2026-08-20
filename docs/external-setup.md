@@ -17,6 +17,7 @@
 | SMTP（Amazon SES） | ✅ 已完成 — 已實際寄出測試信，見下方 ⚠️ 連接埠陷阱 |
 | Cloudflare Email Routing | ✅ 已完成 — 根網域 MX 指向 Cloudflare |
 | SES production access | ✅ **已核准**（2026-08-20 收到核准信）— 可寄給任何地址，註冊流程通了 |
+| SES 退信通知（SNS）| ✅ **已接上**（2026-08-20）— 端到端驗證過，永久退信與客訴會自動停寄 |
 | 廣告（ExoClick） | ✅ 七個 zone 投放中（2026-08-01）— 但 `ADS_TXT_LINES` 仍空、`/ads.txt` 回 404 |
 | 金流 | ⛔ **綠界已整份移除、全站沒有任何付款入口**（2026-08-01,刻意的,見下方 § 金流已停用） |
 | Google 登入 / GA4 / Search Console | ❌ 三個 env 值未填（Google 登入未填時路由 404、按鈕隱藏，不會壞） |
@@ -158,13 +159,12 @@ STARTTLS 埠，加密與功能和 587 完全相同。
 
 - **退信與檢舉率**。SES 的 bounce > 5%、complaint > 0.1% 會被暫停寄信權限，
   而這站是任何人都能填 email 註冊 —— 打錯字的假地址就是退信。程式端已經有
-  `EmailSuppression` 接 SES 的 SNS 通知並自動停寄，但 **`.env` 的
-  `SNS_TOPIC_ARN` 目前是空的，通知會被拒收**，等於這道防線沒有接上。
-  ARN 的取得方式見下方 § 退信通知。
+  `EmailSuppression` 接 SES 的 SNS 通知並自動停寄，**2026-08-20 已接上並驗證過**
+  （見下方 § 退信通知）。
 - **DKIM/SPF/DMARC 要持續有效**。網域驗證失效的話寄出去的信會直接進垃圾桶，
   而使用者只會覺得「這站的驗證信不會來」。
 
-### § 退信通知（SNS）— ⚠️ 還沒接上
+### § 退信通知（SNS）— ✅ 已接上
 
 程式端已經寫好了：`POST /ses/feedback`（`SesFeedbackController`）收 SES 經由
 SNS 送來的退信與客訴，永久退信與客訴會寫進 `email_suppressions`，之後站上就
@@ -215,6 +215,19 @@ php artisan tinker --execute="echo App\Models\EmailSuppression::latest()->first(
 `storage/logs/laravel.log` 裡如果看到 `rejected unexpected TopicArn`，是 ARN 填
 錯或填了別的 topic；看到 `SNS_TOPIC_ARN 未設定` 就是第 3 步的 `config:cache`
 沒跑。
+
+**或者是 `config:cache` 跑了但沒 reload PHP-FPM。** 這台的 FPM 開著
+`opcache.validate_timestamps=0`，web 程序看不到新的 `bootstrap/cache/config.php`
+—— 而 CLI 看得到，所以會變成「tinker 讀得到 ARN，真實請求卻說未設定」。
+`systemctl reload php8.3-fpm` 之後才算生效。見 CLAUDE.md § 這台主機的部署。
+
+#### ✅ 2026-08-20 已驗證通過
+
+`SNS_TOPIC_ARN=arn:aws:sns:us-east-1:094156048967:ses-feedback` 已填、訂閱狀態
+Confirmed。用 mailbox simulator 做過端到端：寄出後 10 秒內
+`bounce@simulator.amazonses.com` 就進了 `email_suppressions`（reason=bounce、
+detail=General），之後用 `php artisan mail:unsuppress` 清掉了測試資料 ——
+留著的話下次測試會被站上自己的擋寄機制攔下來，測了也不會真的寄出去。
 
 ### 為什麼需要
 - 註冊驗證信目前可能寄不出去（Laravel 預設 `MAIL_MAILER=log` 只寫 log）
