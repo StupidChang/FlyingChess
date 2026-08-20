@@ -34,18 +34,16 @@
             <div class="board-card-foot">
                 <a href="{{ route('boards.template.preview', $board) }}" class="btn btn-sm btn-outline">{{ __('play.preview') }}</a>
                 @if($board->is_premium_template)
-                    @auth
-                        @if(auth()->user()->isPremium())
-                            <form action="{{ route('boards.template.clone', $board) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-gold">{{ __('play.use_template') }}</button>
-                            </form>
-                        @else
-                            <a href="{{ route('premium.index') }}" class="btn btn-sm btn-gold">{{ __('play.upgrade_to_unlock') }}</a>
-                        @endif
-                    @else
+                    @if(\App\Support\PremiumAccess::keepsakes(auth()->user()))
+                        <form action="{{ route('boards.template.clone', $board) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-gold">{{ __('play.use_template') }}</button>
+                        </form>
+                    @elseif(app(\App\Support\Payments\PaymentGateway::class)->isLive())
                         <a href="{{ route('premium.index') }}" class="btn btn-sm btn-gold">{{ __('play.upgrade_to_unlock') }}</a>
-                    @endauth
+                    @endif
+                    {{-- 沒有金流時不放「升級解鎖」——「預覽」那顆會帶到有「看廣告解鎖」
+                         的頁面,那才是現在唯一走得通的路。 --}}
                 @else
                     @auth
                         <form action="{{ route('boards.template.clone', $board) }}" method="POST">

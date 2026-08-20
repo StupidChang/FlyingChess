@@ -7,6 +7,7 @@ use App\Models\GamePlayer;
 use App\Models\TraitResult;
 use App\Models\User;
 use App\Rules\NoBlockedWords;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -27,7 +28,12 @@ class ProfileController extends Controller
         $user = $request->user();
         $boards = $user->boards()->withCount('squares')->latest()->get();
 
-        $isPremium = $user->isPremium();
+        /* keepsakes() 而不是 isPremium():完整紀錄與時間軸算「留得住的東西」,
+           有金流的時候只認會員資格;沒有金流的期間看廣告也算 —— 否則這兩個功能
+           對所有人都是永久鎖著的。見 PremiumAccess::keepsakes()。
+           頁面上那顆 Premium 徽章仍然用 $user->isPremium():那是帳號身分,
+           不是「現在看得到什麼」。 */
+        $isPremium = PremiumAccess::keepsakes($user);
         $freeLimit = max(1, (int) config('premium.free_history_limit', 5));
 
         // Play history: rooms this user created or joined while logged in.

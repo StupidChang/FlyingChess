@@ -533,8 +533,11 @@ class BoardController extends Controller
         }
 
         if ($board->is_premium_template) {
+            /* keepsakes() 而不是 isPremium():「存一份到收藏」是留得住的東西,
+               有金流的時候只認會員資格;沒有金流的期間(現況)看廣告也算 ——
+               否則這個功能對所有人都是永久鎖著的。見 PremiumAccess::keepsakes()。 */
             $user = $request->user();
-            if (! $user || ! $user->isPremium()) {
+            if (! PremiumAccess::keepsakes($user)) {
                 return redirect()->route('premium.index')
                     ->with('error', __('play.err_premium_template_clone'));
             }

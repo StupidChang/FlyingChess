@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use App\Support\Payments\PaymentGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Tests\Support\FakeLiveGateway;
 use Tests\TestCase;
 
 /**
@@ -132,9 +134,9 @@ class RewardedUnlockTest extends TestCase
         $this->assertGreaterThan(30 * 60, $left, '第二支廣告應該疊加在剩餘時間上');
     }
 
-    public function test_the_unlock_grants_content_but_not_membership(): void
+    /** 有 8 場紀錄的使用者,給下面兩條「留得住的東西」用。 */
+    private function userWithEightPlays(): User
     {
-        // 這是整個機制最容易寫壞的地方:看廣告換到的是內容,不是會員。
         config()->set('premium.free_history_limit', 5);
         $user = User::factory()->create();
 
@@ -150,21 +152,73 @@ class RewardedUnlockTest extends TestCase
             ]);
         }
 
+        return $user;
+    }
+
+    private function watchAnAdAs(User $user): void
+    {
         $token = $this->actingAs($user)->startAd();
         $this->travel(20)->seconds();
         $this->actingAs($user)->asVisitor()
             ->postJson('/tw/ad-unlock/claim', ['token' => $token])->assertOk();
+    }
 
-        // 內容解鎖了……
+    public function test_without_a_payment_gateway_the_ad_also_opens_the_keepsakes(): void
+    {
+        /* 站上目前沒有付款入口,所以「留得住的東西」(完整紀錄、時間軸、存一份範本
+           到收藏)如果只認會員資格,就是對所有人永久鎖著 —— 沒有任何路徑可以取得。
+           所以在這個狀態下看廣告也算。見 PremiumAccess::keepsakes()。 */
+        $user = $this->userWithEightPlays();
+
+        $this->watchAnAdAs($user);
+
         $this->actingAs($user)->asVisitor()->get('/tw/dice-game')
             ->assertOk()->assertViewHas('isPremium', true);
 
-        // ……但個人頁的遊玩紀錄仍然只有免費額度,時間軸也還是鎖著。
+        $this->actingAs($user)->asVisitor()->get('/tw/profile')
+            ->assertOk()
+            ->assertViewHas('isPremium', true)
+            ->assertViewHas('hiddenPlays', 0);
+    }
+
+    public function test_a_live_gateway_puts_the_keepsake_boundary_back(): void
+    {
+        /* 這是整個機制最容易寫壞的地方:看廣告換到的是「現在玩得到什麼」,不是會員。
+           一旦真的收得到錢,那條界線就該恢復 —— 用 30 分鐘的權限換一件永久的東西
+           (八張付費範本全部存走)會讓付費完全失去意義。
+
+           界線綁在 PaymentGateway::isLive() 而不是寫死,就是為了讓它自己回來:
+           接上 CCBill/SegPay 那天不需要有人記得回頭改。這條測試釘的就是那件事。 */
+        $this->app->instance(PaymentGateway::class, new FakeLiveGateway);
+
+        $user = $this->userWithEightPlays();
+
+        $this->watchAnAdAs($user);
+
+        // 內容還是解鎖的……
+        $this->actingAs($user)->asVisitor()->get('/tw/dice-game')
+            ->assertOk()->assertViewHas('isPremium', true);
+
+        // ……但個人頁的紀錄只有免費額度,時間軸鎖著。
         $this->actingAs($user)->asVisitor()->get('/tw/profile')
             ->assertOk()
             ->assertViewHas('isPremium', false)
             ->assertViewHas('timeline', null)
             ->assertViewHas('hiddenPlays', 3);
+    }
+
+    public function test_the_ad_never_removes_the_ads_themselves(): void
+    {
+        /* 看廣告換免廣告是自我矛盾 —— 這條界線和有沒有金流無關,永遠只認會員資格。 */
+        $user = User::factory()->create();
+
+        $this->watchAnAdAs($user);
+
+        $this->actingAs($user)->asVisitor()->get('/tw/dice-game')
+            ->assertOk()
+            ->assertViewHas('isPremium', true);   // 內容解鎖了
+
+        $this->assertFalse($user->fresh()->isPremium(), '看廣告不該讓人變成會員');
     }
 
     // ── 每日上限 ─────────────────────────────────────────

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Support\Payments\PaymentGateway;
 use Illuminate\Support\Str;
 
 /**
@@ -49,6 +50,33 @@ class PremiumAccess
     public static function content(?User $user): bool
     {
         return ($user?->isPremium() ?? false) || self::rewardedActive();
+    }
+
+    /**
+     * 「留得住的東西」現在拿不拿得到 —— 存一份範本到自己的收藏、個人頁的完整
+     * 遊玩紀錄與時間軸。
+     *
+     * content() 管的是「現在玩得到什麼」,這一個管的是「留下來的東西」。原本這條
+     * 界線是硬的:留得住的只認 User::isPremium(),看廣告換不到 —— 用 30 分鐘的
+     * 權限去換一件永久的東西,界線會壞掉(看一支廣告就能把八張付費範本全部存走)。
+     *
+     * 問題是站上目前沒有任何付款入口(見 config/payments.php)。那條界線在這個
+     * 狀態下不是「暫時沒人買」,而是**對所有人永久鎖著、沒有任何路徑可以取得** ——
+     * 等於那幾個功能是死的。所以:
+     *
+     *   有金流 → 維持原本的硬界線(只認會員資格)
+     *   沒金流 → 退到 content(),看廣告也算
+     *
+     * 綁在 isLive() 而不是寫死,是為了讓它**自己回去**:接上 CCBill/SegPay 的那天
+     * 界線自動恢復,不需要有人記得回來改這裡。忘記改的話就是把付費功能永久送出去。
+     */
+    public static function keepsakes(?User $user): bool
+    {
+        if (app(PaymentGateway::class)->isLive()) {
+            return $user?->isPremium() ?? false;
+        }
+
+        return self::content($user);
     }
 
     public static function rewardedActive(): bool

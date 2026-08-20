@@ -66,7 +66,12 @@
                          換到的多半是一次跳過。見 BoardController::templatePreview。 --}}
                     @if($board->is_premium_template && ! \App\Support\PremiumAccess::content(auth()->user()))
                         <a href="{{ route('boards.template.preview', $board) }}" class="btn btn-sm btn-gold">{{ __('games.preview_short') }}</a>
+                        {{-- 只有真的收得到錢的時候才放「升級解鎖」。沒有金流時它會把人
+                             帶到一頁寫著「目前沒有付款方式」的畫面 —— 而預覽頁上就有
+                             「看廣告解鎖」,那是現在唯一走得通的路。 --}}
+                        @if(app(\App\Support\Payments\PaymentGateway::class)->isLive())
                         <a href="{{ route('premium.index') }}" class="btn btn-sm btn-outline" title="Premium">{{ __('games.unlock_premium') }}</a>
+                        @endif
                     @else
                         {{-- canonical 網址(有 share_code 的走 /play/share/{code})。
                              大廳是公開頁,連數字網址等於叫爬蟲多爬一份重複內容。 --}}

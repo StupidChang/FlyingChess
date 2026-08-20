@@ -87,18 +87,23 @@
             </button>
         @endunless
         @if($board->is_premium_template)
-            @auth
-                @if(auth()->user()->isPremium())
-                    <form action="{{ route('boards.template.clone', $board) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-gold">{{ __('play.use_this_template') }}</button>
-                    </form>
-                @else
-                    <a href="{{ route('premium.index') }}" class="btn btn-gold">{{ __('play.upgrade_to_unlock') }}</a>
-                @endif
-            @else
+            @php
+                /* keepsakes():存一份到收藏是留得住的東西 —— 有金流時只認會員資格,
+                   沒有金流的期間看廣告也算。見 PremiumAccess::keepsakes()。 */
+                $canKeep = \App\Support\PremiumAccess::keepsakes(auth()->user());
+                $gatewayLive = app(\App\Support\Payments\PaymentGateway::class)->isLive();
+            @endphp
+            @if($canKeep)
+                <form action="{{ route('boards.template.clone', $board) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-gold">{{ __('play.use_this_template') }}</button>
+                </form>
+            @elseif($gatewayLive)
                 <a href="{{ route('premium.index') }}" class="btn btn-gold">{{ __('play.upgrade_to_unlock') }}</a>
-            @endauth
+            @endif
+            {{-- 沒有金流的時候不放「升級解鎖」:那顆會把人帶到一頁寫著「目前沒有
+                 付款方式」的畫面,按了只會困惑。這一頁上面就有「看廣告解鎖」,
+                 解鎖後重載這裡就會變成「存一份」。 --}}
         @else
             @auth
                 <form action="{{ route('boards.template.clone', $board) }}" method="POST">
