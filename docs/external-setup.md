@@ -164,6 +164,58 @@ STARTTLS 埠，加密與功能和 587 完全相同。
 - **DKIM/SPF/DMARC 要持續有效**。網域驗證失效的話寄出去的信會直接進垃圾桶，
   而使用者只會覺得「這站的驗證信不會來」。
 
+### § 退信通知（SNS）— ⚠️ 還沒接上
+
+程式端已經寫好了：`POST /ses/feedback`（`SesFeedbackController`）收 SES 經由
+SNS 送來的退信與客訴，永久退信與客訴會寫進 `email_suppressions`，之後站上就
+不再寄給那個地址。這個路由不吃 `{locale}` 前綴、已排除 CSRF、也在
+`AgeVerification` 的豁免清單裡，所以 AWS 打得到。
+
+**缺的只有 `.env` 的 `SNS_TOPIC_ARN`。** 空著的時候 `SnsMessage::isValid()` 是
+fail-closed —— 一律拒收。
+
+主控台（區域是 **us-east-1**，跟 `MAIL_HOST` 一致）：
+<https://us-east-1.console.aws.amazon.com/sns/v3/home?region=us-east-1#/topics>
+
+#### ⚠️ 順序不能反
+
+`SNS_TOPIC_ARN` 空著的時候，**連 AWS 的 SubscriptionConfirmation 都會被拒收**
+（403）。先建訂閱再填 ARN 的話，訂閱會一直卡在 Pending confirmation，而且看不
+出原因。正確順序是：拿到 ARN → 填 .env → `config:cache` → 才建（或重送）訂閱。
+
+#### 步驟
+
+1. **Topic**。上面那個網址 → 有現成的就點進去，沒有就 Create topic，Type 選
+   **Standard**（FIFO 不支援 HTTPS 訂閱），名字隨意。
+2. **複製 ARN**，長得像 `arn:aws:sns:us-east-1:123456789012:pillownight-ses`。
+3. **填進 `.env`**：`SNS_TOPIC_ARN=arn:aws:sns:...`，然後
+   `php artisan config:cache`（設定有 cache，不重建不會生效）。
+4. **訂閱**。回到那個 topic → Subscriptions：
+   - 已經有一筆 `https://pillownight.com/ses/feedback` 卡在 Pending
+     confirmation → 勾選 → **Request confirmation**（這次會成功）
+   - 沒有 → **Create subscription**，Protocol = **HTTPS**，
+     Endpoint = `https://pillownight.com/ses/feedback`，其餘留預設
+   - 狀態變成 **Confirmed** 就通了
+5. **把 SES 的事件接到這個 topic**（如果之前沒設過）。SES → 網域身分的
+   Notifications，或 Configuration set 的 Event destinations，事件至少勾
+   **Bounce** 與 **Complaint**，目的地選這個 SNS topic。
+
+#### 驗證
+
+用 SES 的 mailbox simulator 做端到端測試，不要只看訂閱狀態：
+
+```bash
+# 從站上寄一封到這個地址,SES 會產生一則真的 Permanent bounce
+php artisan tinker --execute="Mail::raw('test', fn(\$m) => \$m->to('bounce@simulator.amazonses.com')->subject('bounce test'));"
+
+# 幾秒後應該多一列
+php artisan tinker --execute="echo App\Models\EmailSuppression::latest()->first()?->email;"
+```
+
+`storage/logs/laravel.log` 裡如果看到 `rejected unexpected TopicArn`，是 ARN 填
+錯或填了別的 topic；看到 `SNS_TOPIC_ARN 未設定` 就是第 3 步的 `config:cache`
+沒跑。
+
 ### 為什麼需要
 - 註冊驗證信目前可能寄不出去（Laravel 預設 `MAIL_MAILER=log` 只寫 log）
 - 密碼重設（PR-A-08 修了 rate limit，但需要實際寄信才完整）
