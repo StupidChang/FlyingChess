@@ -197,11 +197,11 @@
                 </div>
                 <h3>{{ __('home.mode_play_title') }}</h3>
                 <p>{{ __('home.mode_play_desc') }}</p>
-                @if($default)
-                <a href="{{ route('play.board', $default) }}" class="btn btn-gold btn-full">{{ __('home.mode_play_cta') }}</a>
-                @else
-                <a href="{{ route('play') }}" class="btn btn-gold btn-full">{{ __('home.mode_play_cta') }}</a>
-                @endif
+                {{-- 連 canonical 網址,不要連 /play/{id}。同一張棋盤有兩三個網址,
+                     canonicalPlayUrl() 是唯一該被收錄的那一個(預設棋盤 = 乾淨的
+                     /play)。連數字網址的話,爬蟲得多跑一趟才從 canonical 標籤知道
+                     這頁不是正本 —— 首頁是全站爬取的入口,這裡連錯最貴。 --}}
+                <a href="{{ $default ? $default->canonicalPlayUrl() : route('play') }}" class="btn btn-gold btn-full">{{ __('home.mode_play_cta') }}</a>
             </article>
 
             {{-- 共同清單 / 時光膠囊 暫時隱藏（保留程式碼，日後可還原：移除下面 @if(false)/@endif 即可） --}}

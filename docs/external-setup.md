@@ -16,7 +16,7 @@
 | AI 檢索爬蟲放行（ChatGPT / Perplexity / Claude） | ✅ 已驗證可取得內容 |
 | SMTP（Amazon SES） | ✅ 已完成 — 已實際寄出測試信，見下方 ⚠️ 連接埠陷阱 |
 | Cloudflare Email Routing | ✅ 已完成 — 根網域 MX 指向 Cloudflare |
-| SES production access | ❌ **未申請** — 仍在 sandbox，除已驗證地址外任何人註冊都收不到驗證信 |
+| SES production access | ✅ **已核准**（2026-08-20 收到核准信）— 可寄給任何地址，註冊流程通了 |
 | 廣告（ExoClick） | ✅ 七個 zone 投放中（2026-08-01）— 但 `ADS_TXT_LINES` 仍空、`/ads.txt` 回 404 |
 | 金流 | ⛔ **綠界已整份移除、全站沒有任何付款入口**（2026-08-01,刻意的,見下方 § 金流已停用） |
 | Google 登入 / GA4 / Search Console | ❌ 三個 env 值未填（Google 登入未填時路由 404、按鈕隱藏，不會壞） |
@@ -148,14 +148,21 @@ STARTTLS 埠，加密與功能和 587 完全相同。
 
 驗證連線用：`timeout 8 bash -c "exec 3<>/dev/tcp/email-smtp.us-east-1.amazonaws.com/2587"`
 
-### ⚠️ 還沒做：申請脫離 sandbox
+### ✅ 已脫離 sandbox（2026-08-20 核准）
 
-**在核准之前，除了已驗證的地址，任何人註冊都收不到驗證信**，而 `User` 有
-`MustVerifyEmail` — 等於註冊流程是斷的，站不能開放註冊。
+核准之後任何地址都收得到信，註冊流程（`User` 有 `MustVerifyEmail`）通了。
+申請時走的是 Account dashboard → Request production access，Mail type 選
+**Transactional**。
 
-Account dashboard → Request production access，Mail type 選 **Transactional**，
-用途說明要寫明：只寄交易信（註冊驗證、密碼重設、使用者自己填的膠囊提醒）、
-不做行銷、網域已完成 DKIM/SPF/DMARC、預估量 <200 封/日。
+**核准之後還要顧的兩件事**（sandbox 時期不存在的風險）：
+
+- **退信與檢舉率**。SES 的 bounce > 5%、complaint > 0.1% 會被暫停寄信權限，
+  而這站是任何人都能填 email 註冊 —— 打錯字的假地址就是退信。程式端已經有
+  `EmailSuppression` 接 SES 的 SNS 通知並自動停寄，但 **`.env` 的
+  `SNS_TOPIC_ARN` 目前是空的，通知會被拒收**，等於這道防線沒有接上。
+  ARN 的取得方式見下方 § 退信通知。
+- **DKIM/SPF/DMARC 要持續有效**。網域驗證失效的話寄出去的信會直接進垃圾桶，
+  而使用者只會覺得「這站的驗證信不會來」。
 
 ### 為什麼需要
 - 註冊驗證信目前可能寄不出去（Laravel 預設 `MAIL_MAILER=log` 只寫 log）
@@ -386,9 +393,15 @@ Bing Webmaster Tools 支援直接從 Search Console 匯入，五分鐘。值得�
 
 ## 8. 金流（Premium 訂閱）— ❌ **尚未可收款**
 
-> 舊版文件寫「已整合，不需要額外操作」是**錯的**，以下是實際狀況。
+> 舊版文件寫「已整合，不需要額外操作」是**錯的**。
+>
+> ⚠️ **以下這段也已經過時（2026-08-20 標記）**：綠界的 driver 與
+> `config/ecpay.php` 在 2026-08-01 已整份刪除，預設 driver 換成
+> `DisabledGateway`，站上不存在付款入口 —— 以本檔開頭的 **§ 金流已停用**
+> 為準。下面保留的是「為什麼不能用台灣金流」與「換成誰」的判斷依據，
+> 不是現況描述。
 
-### 現狀
+### 當時的現狀（已不適用）
 - `.env` **沒有任何 `ECPAY_*`**，全部吃 `config/ecpay.php` 的預設值 → 目前指向 **sandbox**（`payment-stage.ecpay.com.tw`）與綠界的**公開測試商店 `3002607``
 - 沒有定期定額。付款是**單筆延展**：`premium_expires_at = max(現有到期日, now) + 方案天數`
 

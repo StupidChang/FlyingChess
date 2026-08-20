@@ -30,6 +30,7 @@ return [
 
     'templates_title' => '棋盤模板 — 情侶與多人遊戲棋盤',
     'templates_description' => '精選枕邊遊戲棋盤模板，免費模板與 Premium 專屬模板，情侶雙人到多人遊戲都有，一鍵套用開始玩。',
+    'template_preview_description' => '「:board」棋盤模板預覽 —— 先看格子內容再決定要不要玩，枕邊遊戲情侶雙人到多人都適用。',
     'boards_description' => '管理你建立的自訂棋盤，編輯格子內容與路徑設定。',
 
     'community_title' => '社群棋盤 — 玩家自製情趣、同房遊戲棋盤免費玩',

@@ -7,8 +7,11 @@ use App\Support\LocaleHelper;
 use App\Support\Payments\PaymentGateway;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -46,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->mergePricingOverrides();
+        $this->registerRateLimiters();
 
         $resetUrl = function ($notifiable, string $token) {
             $prefix = LocaleHelper::localeToPrefix(app()->getLocale())
@@ -104,6 +108,29 @@ class AppServiceProvider extends ServiceProvider
                 ->line(__('mail.reset_line2', ['count' => $expire]))
                 ->line(__('mail.reset_line3'))
                 ->salutation(__('mail.salutation'));
+        });
+    }
+
+    /**
+     * 具名的節流器。
+     *
+     * 為什麼需要:`throttle:40,1` 這種**匿名**寫法的計數器 key 是
+     * `sha1(domain|ip)` —— 裡面沒有路由。也就是說站上每一條匿名節流路由(擲骰、
+     * 輪詢 state、抽卡、送出測驗……)全部共用同一個 per-IP 計數器,只是各自比對
+     * 不同的門檻。實際後果:一場飛行棋每 2 秒輪詢一次 state(30 次/分)再加上
+     * 幾個動作,一分鐘內輕鬆超過 40 —— 然後那位玩家(以及同一個 NAT 出口的
+     * 所有人)去點五個迷你遊戲頁就會拿到 429。Googlebot 也一樣,而那五頁都在
+     * sitemap 裡,爬到 429 只會讓它降低爬取速率。
+     *
+     * 具名節流器可以自己決定 key,所以這裡把 bucket 縮到「這一頁 + 這個 IP」。
+     * 防題庫被枚舉的意圖沒有變:同一頁一分鐘重載 40 次仍然是硬牆,而真人玩一場
+     * 只會載一次。跨語系刻意共用一個 bucket —— 題庫是同一批、只是換了翻譯,
+     * 不該讓輪流換語系就拿到四倍額度。
+     */
+    private function registerRateLimiters(): void
+    {
+        RateLimiter::for('minigame-page', function (Request $request) {
+            return Limit::perMinute(40)->by('minigame-page|'.$request->route()->uri().'|'.$request->ip());
         });
     }
 

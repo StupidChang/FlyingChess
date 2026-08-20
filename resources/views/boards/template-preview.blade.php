@@ -1,6 +1,17 @@
 @extends('layouts.app')
 @section('title', $board->name . ' — ' . __('play.template_preview'))
-@section('meta_description', __('seo.templates_description'))
+{{-- 描述用這張範本自己的,不要用 /templates 列表頁那句共用文案 —— 六個預覽頁
+     共用一句描述,分享出去的預覽卡片全都長一樣,看不出點進去是哪張棋盤。 --}}
+@section('meta_description', __('seo.template_preview_description', ['board' => $board->name]))
+@section('og_title', $board->name . ' — ' . __('play.template_preview'))
+@section('og_description', __('seo.template_preview_description', ['board' => $board->name]))
+{{-- 維持 noindex,兩種範本各有理由:
+     - 付費範本:Googlebot 沒有付費資格,拿到的是 8 格解鎖 / 其餘連文字都不輸出
+       (見 BoardController::PREVIEW_OPEN_SQUARES)。收錄一頁幾乎空的棋盤格,
+       對一個還在爭取信任的網域是扣分。
+     - 免費範本:同一批格子在 /play/share/{code} 已經是可索引的正本,這頁進索引
+       就是自己跟自己的棋盤頁搶。
+     要改的是「讓付費範本有一頁值得收錄的內容」,不是把這頁打開。 --}}
 @section('robots', 'noindex,follow')
 @section('content')
 

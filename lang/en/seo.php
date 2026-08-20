@@ -30,6 +30,7 @@ return [
 
     'templates_title' => 'Board Templates — couple & multiplayer boards',
     'templates_description' => 'Curated PillowPlay board templates — free and Premium-exclusive, from couple two-player to multiplayer games. Apply one and start playing.',
+    'template_preview_description' => 'Preview the ":board" board template — see what is on the squares before you play. PillowPlay, from two players to a party.',
     'boards_description' => 'Manage your custom boards — edit square content and path settings.',
 
     'community_title' => 'Community Boards — Player-Made Couple & Same-Room Game Boards, Free',

@@ -30,6 +30,7 @@ return [
 
     'templates_title' => '棋盘模板 — 情侣与多人游戏棋盘',
     'templates_description' => '精选枕边游戏棋盘模板，免费模板与 Premium 专属模板，情侣双人到多人游戏都有，一键应用开始玩。',
+    'template_preview_description' => '「:board」棋盘模板预览 —— 先看格子内容再决定要不要玩，枕边游戏情侣双人到多人都适用。',
     'boards_description' => '管理你创建的自定义棋盘，编辑格子内容与路径设置。',
 
     'community_title' => '社区棋盘 — 玩家自制情趣、同房游戏棋盘免费玩',

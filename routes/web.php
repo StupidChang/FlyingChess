@@ -314,9 +314,14 @@ Route::prefix('{locale}')
          * 讓那件事變慢的那一半 —— 只裁切不限速的話,重載五次就湊回來了。
          *
          * 40/分鐘 對真人非常寬鬆(玩一場只會載一次),對想枚舉的人則是硬牆。
-         * 爬蟲一分鐘也不會抓四十次同一批頁面。
+         *
+         * 用具名節流器而不是 `throttle:40,1`:匿名寫法的計數器 key 不含路由,
+         * 全站的匿名節流路由共用同一個 per-IP 計數器 —— 遊戲中輪詢 state 就足以
+         * 把它燒到 40 以上,然後這五頁對那位玩家(和同一個 NAT 出口的所有人、
+         * 以及 Googlebot)回 429。這五頁都在 sitemap 裡。
+         * 見 AppServiceProvider::registerRateLimiters()。
          */
-        Route::middleware('throttle:40,1')->group(function () {
+        Route::middleware('throttle:minigame-page')->group(function () {
             Route::get('/card-game', [CardGameController::class, 'show'])->name('card-game.show');
             Route::get('/dice-game', [DiceGameController::class, 'show'])->name('dice-game.show');
             Route::get('/king-game', [KingGameController::class, 'show'])->name('king-game.show');

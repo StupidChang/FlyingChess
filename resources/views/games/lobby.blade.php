@@ -68,7 +68,9 @@
                         <a href="{{ route('boards.template.preview', $board) }}" class="btn btn-sm btn-gold">{{ __('games.preview_short') }}</a>
                         <a href="{{ route('premium.index') }}" class="btn btn-sm btn-outline" title="Premium">{{ __('games.unlock_premium') }}</a>
                     @else
-                        <a href="{{ route('play.board', $board) }}" class="btn btn-sm btn-gold">{{ __('games.start_game') }}</a>
+                        {{-- canonical 網址(有 share_code 的走 /play/share/{code})。
+                             大廳是公開頁,連數字網址等於叫爬蟲多爬一份重複內容。 --}}
+                        <a href="{{ $board->canonicalPlayUrl() }}" class="btn btn-sm btn-gold">{{ __('games.start_game') }}</a>
                     @endif
                 </div>
             </article>
