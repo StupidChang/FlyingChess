@@ -99,7 +99,8 @@
 
     var T = {
         watching: @json(__('minigame.rewarded_watching', ['seconds' => '__S__'])),
-        failed:   @json(__('minigame.rewarded_failed'))
+        failed:   @json(__('minigame.rewarded_failed')),
+        limit:    @json(__('minigame.rewarded_limit', ['count' => '__N__']))
     };
 
     function mmss(s){
@@ -346,6 +347,13 @@
         serveAd();
 
         post(@json(route('rewarded.start'))).then(function(r){ return r.json(); }).then(function(d){
+            if(d.limitReached){
+                // 額度用完:把廣告收掉,不要讓人看完才發現換不到
+                if(video && !video.paused) video.pause();
+                status.textContent = T.limit.replace('__N__', d.dailyLimit);
+                claimB.disabled = true;
+                return;
+            }
             if(!d.token) return;
             token = d.token;
             secondsLeft = d.minWatchSeconds || 15;
@@ -372,7 +380,14 @@
     claimB.addEventListener('click', function(){
         claimB.disabled = true;
         post(@json(route('rewarded.claim')), {token: token}).then(function(r){
-            if(!r.ok){ status.textContent = T.failed; return null; }
+            if(!r.ok){
+                return r.json().catch(function(){ return {}; }).then(function(e){
+                    status.textContent = e && e.limitReached
+                        ? T.limit.replace('__N__', e.dailyLimit)
+                        : T.failed;
+                    return null;
+                });
+            }
             return r.json();
         }).then(function(d){
             if(!d) return;

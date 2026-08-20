@@ -86,5 +86,17 @@ return [
     'rewarded' => [
         'minutes' => (int) env('PREMIUM_REWARDED_MINUTES', 30),
         'min_watch_seconds' => (int) env('PREMIUM_REWARDED_MIN_WATCH', 15),
+
+        /*
+         * 一天最多換幾次。沒有這個上限的話,「等 15 秒再打一次 claim」可以無限
+         * 重複 —— 15 秒換 30 分鐘,寫個三行的腳本就是永久免費,而且完全不必真的
+         * 看廣告(最短觀看秒數只證明「有等」,不證明「有看」)。
+         *
+         * 8 次 = 一天 4 小時的解鎖時間。真人一天用不到兩次,想繞的人則從「無限」
+         * 變成「每個 session 4 小時」。這是減速丘不是牆(清 cookie 就重新計算),
+         * 真正的牆是聯播網的 server-to-server reward callback,見
+         * PremiumAccess::issueAdToken()。
+         */
+        'max_per_day' => (int) env('PREMIUM_REWARDED_MAX_PER_DAY', 8),
     ],
 ];

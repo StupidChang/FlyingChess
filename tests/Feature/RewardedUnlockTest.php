@@ -6,6 +6,7 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -164,5 +165,86 @@ class RewardedUnlockTest extends TestCase
             ->assertViewHas('isPremium', false)
             ->assertViewHas('timeline', null)
             ->assertViewHas('hiddenPlays', 3);
+    }
+
+    // ── 每日上限 ─────────────────────────────────────────
+
+    /**
+     * 換一次:發憑證 → 等過最短觀看秒數 → 兌換。
+     *
+     * 刻意不用 startAd():額度用完之後 start 不會發憑證,那個 helper 會在
+     * 「回傳 string」的型別上先炸掉,測不到我們想測的 422。
+     */
+    private function redeemOnce(): TestResponse
+    {
+        $token = $this->asVisitor()->postJson('/tw/ad-unlock/start')->json('token');
+        $this->travel(20)->seconds();
+
+        return $this->asVisitor()->postJson('/tw/ad-unlock/claim', ['token' => $token]);
+    }
+
+    public function test_the_daily_limit_stops_the_endless_start_wait_claim_loop(): void
+    {
+        /* 這是這個功能真正的漏洞:最短觀看秒數只證明「有等 15 秒」,不證明
+           「有看廣告」。少了上限,15 秒換 30 分鐘可以無限重複。 */
+        config(['premium.rewarded.max_per_day' => 3]);
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->redeemOnce()->assertOk();
+        }
+
+        $this->redeemOnce()
+            ->assertStatus(422)
+            ->assertJson(['ok' => false, 'limitReached' => true, 'dailyLimit' => 3]);
+    }
+
+    public function test_the_ad_is_not_even_served_once_the_limit_is_reached(): void
+    {
+        /* 額度用完之後 start 就不發憑證了。先播再拒絕是最糟的順序:使用者看完
+           15 秒才被告知換不到,而那次曝光也拿不回來。 */
+        config(['premium.rewarded.max_per_day' => 1]);
+
+        $this->redeemOnce()->assertOk();
+
+        $this->asVisitor()->postJson('/tw/ad-unlock/start')
+            ->assertOk()
+            ->assertJson(['limitReached' => true, 'usedToday' => 1, 'dailyLimit' => 1])
+            ->assertJsonMissing(['token' => true]);
+    }
+
+    public function test_a_token_taken_before_the_limit_cannot_be_cashed_in_after_it(): void
+    {
+        /* 憑證發完會留在 session 裡,所以「先拿一張、把額度用完、再回來領」
+           這條路要在兌換的那一刻堵住,不能只擋在 start()。 */
+        config(['premium.rewarded.max_per_day' => 1]);
+
+        $early = $this->startAd();
+
+        $this->redeemOnce()->assertOk();   // 額度用掉(這一次會換掉 session 裡的憑證)
+
+        $this->asVisitor()->postJson('/tw/ad-unlock/claim', ['token' => $early])
+            ->assertStatus(422);
+    }
+
+    public function test_the_count_resets_the_next_day(): void
+    {
+        config(['premium.rewarded.max_per_day' => 1]);
+
+        $this->redeemOnce()->assertOk();
+        $this->redeemOnce()->assertStatus(422);
+
+        // 跨日自動歸零,不需要排程去清
+        $this->travel(1)->day();
+
+        $this->redeemOnce()->assertOk();
+    }
+
+    public function test_the_limit_can_be_switched_off(): void
+    {
+        config(['premium.rewarded.max_per_day' => 0]);
+
+        for ($i = 0; $i < 4; $i++) {
+            $this->redeemOnce()->assertOk();
+        }
     }
 }

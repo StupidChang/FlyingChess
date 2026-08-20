@@ -25,6 +25,16 @@ class RewardedUnlockController extends Controller
             return response()->json(['already' => true]);
         }
 
+        /* 額度用完就不要播廣告了。先播再拒絕是最糟的順序:使用者看完 15 秒才被
+           告知「今天不能換」,而那次曝光我們也拿不回來。 */
+        if (PremiumAccess::rewardedLimitReached()) {
+            return response()->json([
+                'limitReached' => true,
+                'usedToday' => PremiumAccess::rewardedRedemptionsToday(),
+                'dailyLimit' => PremiumAccess::rewardedDailyLimit(),
+            ]);
+        }
+
         return response()->json([
             'token' => PremiumAccess::issueAdToken(),
             'minWatchSeconds' => (int) config('premium.rewarded.min_watch_seconds', 15),
@@ -36,8 +46,17 @@ class RewardedUnlockController extends Controller
         $secondsLeft = PremiumAccess::redeem($request->input('token'));
 
         if ($secondsLeft <= 0) {
-            // 沒說是憑證錯還是看太快 —— 對正常使用者這兩者的處置一樣(重看一次),
-            // 對想繞的人則少給一點線索。
+            /* 只有「今天額度用完」會明講。憑證錯與看太快仍然合成同一個回覆 ——
+               對正常使用者這兩者的處置一樣(重看一次),對想繞的人則少給線索。
+               額度是例外:不講的話使用者只會一直重看廣告,以為是自己哪裡做錯。 */
+            if (PremiumAccess::rewardedLimitReached()) {
+                return response()->json([
+                    'ok' => false,
+                    'limitReached' => true,
+                    'dailyLimit' => PremiumAccess::rewardedDailyLimit(),
+                ], 422);
+            }
+
             return response()->json(['ok' => false], 422);
         }
 

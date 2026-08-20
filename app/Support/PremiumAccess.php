@@ -36,6 +36,9 @@ class PremiumAccess
 
     private const TOKEN_ISSUED_KEY = 'rewarded_token_at';
 
+    /** 今天換過幾次:['date' => 'Y-m-d', 'n' => int]。 */
+    private const COUNT_KEY = 'rewarded_count';
+
     /*
      * 時間一律走 now() 而不是 PHP 的 time():專案其他地方都用 Carbon,而且
      * Laravel 的 travel() 只能撥動 Carbon —— 用 time() 的話「最短觀看秒數」
@@ -63,6 +66,42 @@ class PremiumAccess
     public static function rewardedMinutes(): int
     {
         return max(1, (int) config('premium.rewarded.minutes', 30));
+    }
+
+    /** 一天最多換幾次。0 或負數視為關閉這個上限。 */
+    public static function rewardedDailyLimit(): int
+    {
+        return (int) config('premium.rewarded.max_per_day', 8);
+    }
+
+    /** 今天已經換過幾次。跨日自動歸零 —— 不需要排程去清。 */
+    public static function rewardedRedemptionsToday(): int
+    {
+        $row = session(self::COUNT_KEY);
+
+        if (! is_array($row) || ($row['date'] ?? null) !== now()->toDateString()) {
+            return 0;
+        }
+
+        return (int) ($row['n'] ?? 0);
+    }
+
+    /**
+     * 今天的次數用完了沒。
+     *
+     * 為什麼需要:最短觀看秒數只證明「有等 15 秒」,不證明「有看廣告」。少了這個
+     * 上限,「start → 等 15 秒 → claim」可以無限重複,15 秒換 30 分鐘,等於永久
+     * 免費。加上上限之後,想繞的人從「無限」變成「每個 session 一天 4 小時」。
+     *
+     * 這是減速丘不是牆:訪客沒有帳號,計數只能放 session,清 cookie 就重新算。
+     * 真正的牆是 S2S reward callback,見 issueAdToken()。放 session 而不是綁 IP
+     * 是刻意的 —— 同一個 NAT 出口後面可能有很多真人,綁 IP 會誤傷。
+     */
+    public static function rewardedLimitReached(): bool
+    {
+        $limit = self::rewardedDailyLimit();
+
+        return $limit > 0 && self::rewardedRedemptionsToday() >= $limit;
     }
 
     /**
@@ -107,8 +146,19 @@ class PremiumAccess
             return 0;
         }
 
+        /* 上限也在這裡再擋一次,不只擋在 start()。憑證是發完就留在 session 裡的,
+           所以「先拿一張、用完額度之後再回來領」這條路要在兌換的那一刻堵住。 */
+        if (self::rewardedLimitReached()) {
+            return 0;
+        }
+
         // 用掉就作廢,同一張憑證不能重複領。
         session()->forget([self::TOKEN_KEY, self::TOKEN_ISSUED_KEY]);
+
+        session([self::COUNT_KEY => [
+            'date' => now()->toDateString(),
+            'n' => self::rewardedRedemptionsToday() + 1,
+        ]]);
 
         // 從「現在」與「原有到期時間」較晚的那個往後加,連看兩支廣告會累加
         // 而不是把剩下的時間洗掉。

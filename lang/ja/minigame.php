@@ -21,6 +21,7 @@ return [
     'rewarded_watching' => '広告を再生中… あと :seconds 秒で解放できます',
     'rewarded_claim' => '完了、コンテンツを解放',
     'rewarded_failed' => '解放に失敗しました。もう一度広告をご覧ください。',
+    'rewarded_limit' => '本日の解放回数を使い切りました（1 日 :count 回）。また明日どうぞ。',
     'rewarded_close' => '閉じる',
     'name_separator' => '、',
 

@@ -20,6 +20,7 @@ return [
     'rewarded_watching' => 'Ad playing… unlock available in :seconds s',
     'rewarded_claim' => 'Done — unlock',
     'rewarded_failed' => 'Unlock failed. Please watch the ad again.',
+    'rewarded_limit' => 'You have used all of today\'s unlocks (:count per day). Come back tomorrow.',
     'rewarded_close' => 'Close',
     'name_separator' => ', ',
 

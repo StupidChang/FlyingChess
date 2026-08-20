@@ -21,6 +21,7 @@ return [
     'rewarded_watching' => '廣告播放中… :seconds 秒後可解鎖',
     'rewarded_claim' => '完成，解鎖內容',
     'rewarded_failed' => '解鎖失敗，請重看一次廣告。',
+    'rewarded_limit' => '今天的解鎖次數已用完（每天 :count 次），明天再來。',
     'rewarded_close' => '關閉',
     'name_separator' => '、',
 
