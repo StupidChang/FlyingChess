@@ -209,6 +209,8 @@ return [
     'copy_link' => '复制链接',
     'copied' => '已复制 ✓',
     'role_partner' => '你是伙伴',
+    'claim_partner_hint' => '你是被邀请的另一半吗?点下方按钮加入,才能添加与投票。',
+    'claim_partner_btn' => '我是另一半,加入',
     'role_owner_short' => '创建者',
     'role_partner_short' => '伙伴',
     'delete_btn' => '删除',

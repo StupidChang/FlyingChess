@@ -181,6 +181,8 @@ return [
     'bucket_content_required' => 'やりたいことを入力してください',
     'bucket_content_max' => '1 件の内容は 200 文字以内で入力してください',
     'bucket_no_vote_permission' => '投票する権限がありません',
+    'bucket_partner_taken' => 'このリストにはすでにパートナーがいるため、参加できません。',
+    'capsule_partner_taken' => 'このカプセルにはすでにパートナーがいるため、参加できません。',
     'bucket_delete_own_only' => '削除できるのは自分が提案した項目だけです',
 
     // Time capsule — server messages (TimeCapsuleController)

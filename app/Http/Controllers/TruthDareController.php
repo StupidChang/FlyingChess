@@ -24,7 +24,11 @@ class TruthDareController extends Controller
         $base = $request->session()->getId();
         $tab = $request->input('tab_id') ?? $request->header('X-Tab-Id', '');
 
-        return $tab ? "{$base}|{$tab}" : $base;
+        // tab_id 是使用者可控字串。直接串接寫進 game_players.session_id 的話,
+        // SQLite 的 TEXT 欄位不限長度,一次請求就能塞進好幾 MB,乘上每場最多 6
+        // 個玩家列 = 免費的磁碟填爆管道。跟 GameController 一樣先 hash 成固定 64
+        // 字元再用 —— tab 內容仍能區分不同分頁,但長度被釘死。
+        return $tab ? hash('sha256', "{$base}|{$tab}") : $base;
     }
 
     public function lobby()

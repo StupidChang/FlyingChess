@@ -59,6 +59,18 @@ class TrackPageView
             return false;
         }
 
+        /* 還沒確認年齡的人不算。年齡閘改成覆蓋層之後(見 config/content.php 的
+           age_gate_mode),他們拿到的是狀態 200 的完整 HTML —— 只看狀態碼的話,
+           每一個在閘門前就跳出的訪客都會被算成一次瀏覽,把統計灌爆。
+           他們看到的是一層遮罩,不是那一頁。
+
+           旗標由 AgeVerification 掛上。這裡刻意不自己讀 cookie:本中介層讀的是
+           $next() 回來之後的 request,那時候 cookie 袋已經被 EncryptCookies 動過,
+           解不開的值會變成 null,判斷會全錯。 */
+        if ($request->attributes->get('age_unverified')) {
+            return false;
+        }
+
         if (! str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
             return false;
         }

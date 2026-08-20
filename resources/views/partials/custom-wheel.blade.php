@@ -10,7 +10,10 @@
     - 轉盤本體旋轉、指針固定在 12 點鐘 —— 與命運轉盤的操作習慣一致。
 --}}
 <section class="cw" id="cw-root" aria-labelledby="cw-heading">
-    <h2 class="cw-heading" id="cw-heading">{{ __('minigame.cw_title') }}</h2>
+    {{-- h1:自訂轉盤已經獨立成一頁,這是那一頁的主標題。之前是 h2(那時候它掛在
+         命運轉盤頁的 h1 底下),獨立之後整頁就沒有 h1 了,搜尋引擎只能從 <title>
+         猜主題。如果哪天這個 partial 又被包進別的頁面的 h1 底下,要把層級改成參數。 --}}
+    <h1 class="cw-heading" id="cw-heading">{{ __('minigame.cw_title') }}</h1>
     <p class="cw-sub">{{ __('minigame.cw_subtitle') }}</p>
 
     <div class="cw-layout">

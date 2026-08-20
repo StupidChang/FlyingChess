@@ -23,10 +23,10 @@ class RewardedUnlockTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** AgeVerification 會用 200 的年齡確認頁擋掉沒有 UA 的請求。 */
+    /** AgeVerification 會擋掉沒確認過年齡的寫入請求 —— 見 TestCase::asAgeVerified。 */
     private function asVisitor()
     {
-        return $this->withHeader('User-Agent', 'Googlebot');
+        return $this->asAgeVerified();
     }
 
     private function startAd(): string

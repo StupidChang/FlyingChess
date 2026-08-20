@@ -64,6 +64,21 @@ class GoogleAuthController extends Controller
             $user->email = $email;
             // Google 帳號沒有本站密碼,給一組隨機值佔位(使用者可日後用忘記密碼設定)
             $user->password = bcrypt(Str::random(40));
+        } elseif (is_null($user->email_verified_at)) {
+            /*
+             * 帳號預先劫持(pre-hijacking)防護。
+             *
+             * 攻擊者可以先用受害者的 email 註冊(密碼自己設),那一列是「未驗證」的。
+             * 之後受害者用 Google 登入同一個 email,若我們直接沿用這一列並標記為已驗證,
+             * 受害者從此使用的其實是攻擊者當初設好密碼的帳號 —— 攻擊者事後用那組密碼
+             * 就能登入受害者的帳號。
+             *
+             * 所以:把一個「之前未驗證」的既有帳號綁到 Google 登入時,先作廢它原本的
+             * 密碼與 remember token。Google 已驗證了 email 擁有權,受害者要用密碼登入
+             * 走「忘記密碼」重設即可,攻擊者當初那組密碼則失效。
+             */
+            $user->password = bcrypt(Str::random(40));
+            $user->setRememberToken(Str::random(60));
         }
 
         if ($user->is_banned) {

@@ -81,17 +81,9 @@ class TimeCapsuleController extends Controller
         $capsule = TimeCapsule::where('share_code', $shareCode)->firstOrFail();
         $role = $this->resolveRole($request, $capsule);
 
-        $cookieJar = null;
-        if ($role === 'partner-new') {
-            $partnerToken = Str::random(48);
-            $capsule->update(['partner_token' => $partnerToken]);
-            $cookieJar = cookie(
-                self::ROLE_COOKIE_PREFIX.$capsule->share_code,
-                $partnerToken,
-                self::ROLE_COOKIE_DAYS * 24 * 60
-            );
-            $role = 'partner';
-        }
+        // partner 身分改由明確的 POST /claim 發放,不再由開頁自動指派 —— 理由同
+        // bucket-list:連結預覽 bot 與任何拿到連結的人都會搶先把 partner 佔走。
+        $canClaim = $role === 'viewer' && is_null($capsule->partner_token);
 
         // First successful open after open_at
         if ($capsule->isSealed() && Carbon::today()->greaterThanOrEqualTo($capsule->open_at) && ! $capsule->opened_at) {
@@ -109,14 +101,39 @@ class TimeCapsuleController extends Controller
             }
         }
 
-        $response = response()->view('time-capsule.show', [
+        return response()->view('time-capsule.show', [
             'capsule' => $capsule,
             'role' => $role,
             'questions' => $questions,
             'answerMap' => $answerMap,
+            'canClaim' => $canClaim,
         ]);
+    }
 
-        return $cookieJar ? $response->withCookie($cookieJar) : $response;
+    /**
+     * 明確認領 partner 身分(先到先得,但必須是使用者主動送出的 POST)。
+     */
+    public function claim(Request $request, string $shareCode)
+    {
+        $capsule = TimeCapsule::where('share_code', $shareCode)->firstOrFail();
+        $role = $this->resolveRole($request, $capsule);
+
+        if (in_array($role, ['owner', 'partner'], true)) {
+            return back();
+        }
+
+        if (! is_null($capsule->partner_token)) {
+            return back()->withErrors(['claim' => __('minigame.capsule_partner_taken')]);
+        }
+
+        $partnerToken = Str::random(48);
+        $capsule->update(['partner_token' => $partnerToken]);
+
+        return back()->withCookie(cookie(
+            self::ROLE_COOKIE_PREFIX.$capsule->share_code,
+            $partnerToken,
+            self::ROLE_COOKIE_DAYS * 24 * 60
+        ));
     }
 
     public function saveAnswers(Request $request, string $shareCode)
@@ -134,9 +151,16 @@ class TimeCapsuleController extends Controller
 
         $answers = $request->input('answers', []);
 
+        // 明確限制陣列大小與每則長度。少了這個,JSON body 可以塞一個 20MB 的
+        // answers 物件,每則都跑 NoBlockedWords(逐字小寫化 + 22 次 str_contains),
+        // 一次請求就能把一個 worker 卡住好幾秒。下面的 1000 字截斷是在驗證之後才跑,
+        // 保護的是儲存、不是 CPU,所以長度上限一定要在驗證這層擋。
         $validator = Validator::make(
             ['answers' => $answers],
-            ['answers.*' => ['nullable', 'string', new NoBlockedWords]]
+            [
+                'answers' => ['array', 'max:100'],
+                'answers.*' => ['nullable', 'string', 'max:2000', new NoBlockedWords],
+            ]
         );
         if ($validator->fails()) {
             return back()->withErrors(['answers' => $validator->errors()->first()]);
@@ -197,7 +221,7 @@ class TimeCapsuleController extends Controller
     }
 
     /**
-     * @return 'owner'|'partner'|'partner-new'|'viewer'
+     * @return 'owner'|'partner'|'viewer' partner 身分只能透過 claim() 取得,不在此自動指派
      */
     private function resolveRole(Request $request, TimeCapsule $capsule): string
     {
@@ -208,9 +232,6 @@ class TimeCapsuleController extends Controller
         }
         if ($capsule->partner_token && $cookie && hash_equals($capsule->partner_token, $cookie)) {
             return 'partner';
-        }
-        if (is_null($capsule->partner_token)) {
-            return 'partner-new';
         }
 
         return 'viewer';

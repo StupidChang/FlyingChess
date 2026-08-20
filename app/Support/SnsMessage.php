@@ -59,6 +59,26 @@ class SnsMessage
             return false;
         }
 
+        // Topic 白名單。驗簽只證明「這訊息真的來自某個 AWS 帳號」,不證明是**我們**
+        // 的 Topic —— 任何人都能在自己的 AWS 帳號建一個 Topic、把我們的端點訂進去,
+        // 發出來的通知一樣簽章合法。不綁 Topic 的話,對方就能把任意信箱塞進抑制清單。
+        //
+        // 未設定 topic_arn 時 fail-closed(拒收),但把這則訊息的真實 TopicArn 記進
+        // log —— 這樣第一次收到合法通知時,把那串 ARN 貼進 SNS_TOPIC_ARN 即可啟用,
+        // 不必事先知道 ARN 就能安全上線。
+        $expectedTopic = (string) config('services.ses.topic_arn', '');
+        $actualTopic = (string) ($this->payload['TopicArn'] ?? '');
+        if ($expectedTopic === '') {
+            Log::warning('SNS: SNS_TOPIC_ARN 未設定,通知一律拒收。把下面這個 ARN 填進 .env 的 SNS_TOPIC_ARN 即可啟用。', ['TopicArn' => $actualTopic]);
+
+            return false;
+        }
+        if (! hash_equals($expectedTopic, $actualTopic)) {
+            Log::warning('SNS: rejected unexpected TopicArn', ['TopicArn' => $actualTopic]);
+
+            return false;
+        }
+
         $canonical = '';
         foreach ($fields as $field) {
             if (! isset($this->payload[$field])) {
@@ -96,7 +116,10 @@ class SnsMessage
             return false;
         }
 
-        return Http::timeout(10)->get($url)->successful();
+        // 不跟隨轉址:主機白名單只驗第一跳,若 AWS 網址回一個 3xx 指到別處,
+        // 跟隨的話就等於被帶去打任意主機(SSRF)。SubscribeURL 是終端網址,本來
+        // 就不該有轉址。fetchCert 同理。
+        return Http::withoutRedirecting()->timeout(10)->get($url)->successful();
     }
 
     private function certUrlLooksLikeAws(string $url): bool
@@ -110,7 +133,7 @@ class SnsMessage
     private function fetchCert(string $url): ?string
     {
         try {
-            $res = Http::timeout(10)->get($url);
+            $res = Http::withoutRedirecting()->timeout(10)->get($url);
 
             return $res->successful() ? $res->body() : null;
         } catch (\Throwable $e) {

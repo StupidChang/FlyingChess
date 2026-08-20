@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TraitResult;
 use App\Services\TraitTestService;
+use App\Support\LocaleHelper;
 use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 
@@ -27,7 +28,11 @@ class TraitTestController extends Controller
         return view('trait-test.index', [
             'questions' => $this->service->questions(),
             'scale' => (array) trans('traits.scale'),
+            // 20 個屬性的清單:題目頁要連得到 20 個結果頁,見那一頁的說明
+            'items' => (array) trans('traits.items'),
             'translated' => $this->service->isTranslated(),
+            // 只有翻好的語系才宣告 hreflang —— 其他語系這一頁是 noindex
+            'hreflangLocales' => LocaleHelper::hreflangSet((array) config('traits.translated', [])),
         ]);
     }
 
@@ -90,6 +95,8 @@ class TraitTestController extends Controller
             'axes' => $this->service->axes(),
             'items' => (array) trans('traits.items'),
             'translated' => $this->service->isTranslated(),
+            // 只有翻好的語系才宣告 hreflang —— 其他語系這一頁是 noindex
+            'hreflangLocales' => LocaleHelper::hreflangSet((array) config('traits.translated', [])),
             'unlocked' => $unlocked,
             'axisReading' => $unlocked && $result ? $this->service->axisReading($result['axes']) : [],
         ]);

@@ -175,6 +175,8 @@ return [
     'bucket_content_required' => 'Please enter something you want to do',
     'bucket_content_max' => 'Each item cannot exceed 200 characters',
     'bucket_no_vote_permission' => "You can't vote on this list",
+    'bucket_partner_taken' => 'This list already has a partner and cannot be joined.',
+    'capsule_partner_taken' => 'This capsule already has a partner and cannot be joined.',
     'bucket_delete_own_only' => 'You can only delete items you proposed',
 
     // Time capsule — server messages (TimeCapsuleController)

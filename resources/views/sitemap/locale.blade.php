@@ -18,6 +18,8 @@ $paths = [
     ['path' => 'wheel',           'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'who-most-likely', 'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'trait-test',      'priority' => '0.8', 'changefreq' => 'monthly'],
+    ['path' => 'repression-test', 'priority' => '0.8', 'changefreq' => 'monthly'],
+    ['path' => 'guide',           'priority' => '0.7', 'changefreq' => 'weekly'],
     ['path' => 'custom-wheel',    'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'community',       'priority' => '0.7', 'changefreq' => 'daily'],
@@ -33,6 +35,22 @@ if (in_array($currentLocale, (array) config('traits.translated', []), true)) {
     foreach ((array) trans('traits.items', [], $currentLocale) as $item) {
         if (! empty($item['slug'])) {
             $paths[] = ['path' => 'trait-test/'.$item['slug'], 'priority' => '0.6', 'changefreq' => 'monthly'];
+        }
+    }
+}
+
+/* 站內文章。每一篇都是一個獨立落地頁,而且是這個站接資訊型查詢的唯一入口。 */
+if (in_array($currentLocale, (array) config('guides.translated', []), true)) {
+    foreach ((array) config('guides.articles') as $slug => $meta) {
+        $paths[] = ['path' => 'guide/'.$slug, 'priority' => $meta['priority'] ?? '0.6', 'changefreq' => 'monthly'];
+    }
+}
+
+/* 性壓抑指數測驗的 5 個級距頁,同樣的理由 —— 每個級距都是一個獨立落地頁。 */
+if (in_array($currentLocale, (array) config('repression.translated', []), true)) {
+    foreach ((array) trans('repression.bands', [], $currentLocale) as $band) {
+        if (! empty($band['slug'])) {
+            $paths[] = ['path' => 'repression-test/'.$band['slug'], 'priority' => '0.6', 'changefreq' => 'monthly'];
         }
     }
 }

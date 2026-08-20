@@ -18,6 +18,7 @@ return [
         'slot_lobby_side' => env('ADSENSE_SLOT_LOBBY_SIDE'),
         'slot_game_end' => env('ADSENSE_SLOT_GAME_END'),
         'slot_share' => env('ADSENSE_SLOT_SHARE'),
+        'slot_discover_side' => env('ADSENSE_SLOT_DISCOVER_SIDE'),
     ],
 
     'trafficjunky' => [
@@ -27,6 +28,7 @@ return [
         'spot_lobby_side' => env('TRAFFICJUNKY_SPOT_LOBBY_SIDE'),
         'spot_game_end' => env('TRAFFICJUNKY_SPOT_GAME_END'),
         'spot_share' => env('TRAFFICJUNKY_SPOT_SHARE'),
+        'spot_discover_side' => env('TRAFFICJUNKY_SPOT_DISCOVER_SIDE'),
     ],
 
     // ExoClick banner zones — 每個版位一個 zone id（後台 Sites & Zones 建立）。
@@ -48,5 +50,10 @@ return [
         'zone_game_end_vast' => env('EXOCLICK_ZONE_GAME_END_VAST'),
         'zone_share' => env('EXOCLICK_ZONE_SHARE'),
         'zone_share_desktop' => env('EXOCLICK_ZONE_SHARE_DESKTOP'),
+        // 尋找頁左右側的直式版位(建議 250x900 之類的摩天大樓尺寸)。只在寬螢幕
+        // 顯示;沒設定就不出現、頁面自動改回單欄置中。在 ExoClick 建一個該尺寸的
+        // zone,把 id 填進 EXOCLICK_ZONE_DISCOVER_SIDE 即生效。
+        'zone_discover_side' => env('EXOCLICK_ZONE_DISCOVER_SIDE'),
+        'zone_discover_side_desktop' => env('EXOCLICK_ZONE_DISCOVER_SIDE_DESKTOP'),
     ],
 ];

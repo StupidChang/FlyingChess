@@ -23,4 +23,13 @@ class EmailSuppression extends Model
             ['reason' => $reason, 'detail' => $detail],
         );
     }
+
+    /**
+     * 解除抑制。誤把某地址加進清單(或使用者換了能收信的信箱)時的恢復路徑,
+     * 由 `php artisan mail:unsuppress {email}` 呼叫。回傳是否真的刪到一筆。
+     */
+    public static function release(string $email): bool
+    {
+        return (bool) static::where('email', mb_strtolower(trim($email)))->delete();
+    }
 }

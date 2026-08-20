@@ -12,6 +12,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameHallController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\GuideController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KingGameController;
 use App\Http\Controllers\LegalController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlayController;
 use App\Http\Controllers\PremiumController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RepressionTestController;
 use App\Http\Controllers\RewardedUnlockController;
 use App\Http\Controllers\SesFeedbackController;
 use App\Http\Controllers\SitemapController;
@@ -44,10 +46,15 @@ use Illuminate\Support\Facades\Route;
 | RedirectUnprefixedUrl::NEVER_PREFIX keeps them out of the 301 sweep.
 */
 
-Route::post('/age-verify', function () {
+Route::post('/age-verify', function (Request $request) {
     $cookie = cookie('age_verified', '1', 30 * 24 * 60);
 
-    return redirect()->back()->withCookie($cookie);
+    // redirect()->back() 直接信任 Referer,可被導去站外(開放轉址)。只在 Referer
+    // 與本站同主機時才回去,否則回首頁 —— 擋掉「確認年齡後被彈到釣魚站」。
+    $ref = (string) $request->headers->get('referer', '');
+    $back = ($ref !== '' && parse_url($ref, PHP_URL_HOST) === $request->getHost()) ? $ref : url('/');
+
+    return redirect($back)->withCookie($cookie);
 })->name('age.verify');
 
 // llms.txt — the convention generative engines read for a plain-text map of the
@@ -80,6 +87,7 @@ Route::get('/llms.txt', function () {
         $link('wheel', 'games.pure_wheel').': '.__('games.desc_pure_wheel'),
         $link('who-most-likely', 'minigame.wml_title').': '.__('games.desc_wml'),
         $link('trait-test', 'traits.title').': '.__('traits.seo.description'),
+        $link('repression-test', 'repression.title').': '.__('repression.seo.description'),
         // Short labels on purpose: seo.play_title carries a :board placeholder and
         // the community/templates SEO titles are full sentences. A link label in
         // llms.txt should read as a page name, so use the plain UI strings here.
@@ -267,26 +275,29 @@ Route::prefix('{locale}')
         // Flying Chess
         Route::prefix('games')->name('games.')->group(function () {
             Route::get('/', [GameController::class, 'lobby'])->name('lobby');
-            Route::post('/', [GameController::class, 'create'])->name('create');
+            Route::post('/', [GameController::class, 'create'])->name('create')->middleware('throttle:20,1');
             Route::get('/{code}', [GameController::class, 'show'])->name('show');
-            Route::post('/{code}/join', [GameController::class, 'join'])->name('join');
-            Route::post('/{code}/start', [GameController::class, 'start'])->name('start');
-            Route::post('/{code}/roll', [GameController::class, 'roll'])->name('roll');
-            Route::post('/{code}/move', [GameController::class, 'move'])->name('move');
-            Route::get('/{code}/state', [GameController::class, 'state'])->name('state');
+            Route::post('/{code}/join', [GameController::class, 'join'])->name('join')->middleware('throttle:20,1');
+            Route::post('/{code}/start', [GameController::class, 'start'])->name('start')->middleware('throttle:30,1');
+            // roll/move 是每回合都會打的,對真人放寬到 90/分(玩再快也用不到),
+            // 但仍是硬牆:不擋的話一個 while 迴圈就能塞爆 6 個 FPM worker 與 SQLite 寫鎖。
+            Route::post('/{code}/roll', [GameController::class, 'roll'])->name('roll')->middleware('throttle:90,1');
+            Route::post('/{code}/move', [GameController::class, 'move'])->name('move')->middleware('throttle:90,1');
+            Route::get('/{code}/state', [GameController::class, 'state'])->name('state')->middleware('throttle:120,1');
         });
 
         // Truth or Dare
         Route::prefix('truth-dare')->name('truth-dare.')->group(function () {
             Route::get('/', [TruthDareController::class, 'lobby'])->name('lobby');
-            Route::post('/', [TruthDareController::class, 'create'])->name('create');
+            Route::post('/', [TruthDareController::class, 'create'])->name('create')->middleware('throttle:20,1');
             Route::get('/{code}', [TruthDareController::class, 'show'])->name('show');
-            Route::post('/{code}/join', [TruthDareController::class, 'join'])->name('join');
-            Route::post('/{code}/start', [TruthDareController::class, 'start'])->name('start');
-            Route::post('/{code}/draw', [TruthDareController::class, 'draw'])->name('draw');
-            Route::post('/{code}/next', [TruthDareController::class, 'nextPlayer'])->name('next');
-            Route::get('/{code}/state', [TruthDareController::class, 'state'])->name('state');
-            Route::post('/{code}/leave', [TruthDareController::class, 'leave'])->name('leave');
+            Route::post('/{code}/join', [TruthDareController::class, 'join'])->name('join')->middleware('throttle:20,1');
+            Route::post('/{code}/start', [TruthDareController::class, 'start'])->name('start')->middleware('throttle:30,1');
+            // draw 不限速的話,連抽就能把整份題庫(含付費題)一張張枚舉出來。
+            Route::post('/{code}/draw', [TruthDareController::class, 'draw'])->name('draw')->middleware('throttle:40,1');
+            Route::post('/{code}/next', [TruthDareController::class, 'nextPlayer'])->name('next')->middleware('throttle:60,1');
+            Route::get('/{code}/state', [TruthDareController::class, 'state'])->name('state')->middleware('throttle:120,1');
+            Route::post('/{code}/leave', [TruthDareController::class, 'leave'])->name('leave')->middleware('throttle:30,1');
         });
 
         // 看廣告換一段時間的付費內容。throttle 是必要的:兌換端點決定了誰能玩到
@@ -327,6 +338,19 @@ Route::prefix('{locale}')
             ->name('trait-test.submit')->middleware('throttle:20,1');
         Route::get('/trait-test/{slug}', [TraitTestController::class, 'result'])->name('trait-test.result');
 
+        /* 性壓抑指數測驗。同樣的做法:五個級距 = 五個獨立的落地頁。
+           和屬性測驗刻意不重疊 —— 那一份測「偏好哪一種」,這一份測「有多容易踩煞車」,
+           一個是類型一個是程度,關鍵字不會互相吃掉。 */
+        Route::get('/repression-test', [RepressionTestController::class, 'show'])->name('repression-test.show');
+        Route::post('/repression-test', [RepressionTestController::class, 'submit'])
+            ->name('repression-test.submit')->middleware('throttle:20,1');
+        Route::get('/repression-test/{slug}', [RepressionTestController::class, 'result'])->name('repression-test.result');
+
+        /* 玩法指南(站內文章)。吃資訊型意圖的關鍵字,遊戲頁吃工具型 ——
+           兩者不能互相搶字,見 config/guides.php 開頭的說明。 */
+        Route::get('/guide', [GuideController::class, 'index'])->name('guide.index');
+        Route::get('/guide/{slug}', [GuideController::class, 'show'])->name('guide.show');
+
         // 自訂轉盤的儲存 / 讀取 / 刪除(登入 + 已驗證)。純 JSON API,
         // 由 partials/custom-wheel 的編輯器以 fetch 呼叫。
         Route::prefix('my-wheels')->name('custom-wheel.')->middleware(['auth', 'verified'])->group(function () {
@@ -346,12 +370,20 @@ Route::prefix('{locale}')
         // Bucket List
         Route::prefix('bucket-list')->name('bucket-list.')->group(function () {
             Route::get('/', [BucketListController::class, 'lobby'])->name('lobby');
-            Route::post('/', [BucketListController::class, 'create'])->name('create');
+            Route::post('/', [BucketListController::class, 'create'])->name('create')
+                ->middleware('throttle:10,60');
             Route::get('/{shareCode}', [BucketListController::class, 'show'])->name('show')
                 ->middleware('throttle:60,1');
-            Route::post('/{shareCode}/items', [BucketListController::class, 'addItem'])->name('items.add');
-            Route::post('/{shareCode}/items/{itemId}/vote', [BucketListController::class, 'voteItem'])->name('items.vote');
-            Route::delete('/{shareCode}/items/{itemId}', [BucketListController::class, 'deleteItem'])->name('items.delete');
+            // 「我是另一半,加入」—— partner 身分只由這個明確的 POST 發放,不再由
+            // GET 開頁時自動指派(否則連結預覽 bot 或任何拿到連結的人都會先佔走)。
+            Route::post('/{shareCode}/claim', [BucketListController::class, 'claim'])->name('claim')
+                ->middleware('throttle:20,1');
+            Route::post('/{shareCode}/items', [BucketListController::class, 'addItem'])->name('items.add')
+                ->middleware('throttle:30,1');
+            Route::post('/{shareCode}/items/{itemId}/vote', [BucketListController::class, 'voteItem'])->name('items.vote')
+                ->middleware('throttle:60,1');
+            Route::delete('/{shareCode}/items/{itemId}', [BucketListController::class, 'deleteItem'])->name('items.delete')
+                ->middleware('throttle:30,1');
         });
 
         // Time Capsule
@@ -363,8 +395,12 @@ Route::prefix('{locale}')
                 ->middleware('throttle:6,60');
             Route::get('/{shareCode}', [TimeCapsuleController::class, 'show'])->name('show')
                 ->middleware('throttle:60,1');
-            Route::post('/{shareCode}/answers', [TimeCapsuleController::class, 'saveAnswers'])->name('answers');
-            Route::post('/{shareCode}/seal', [TimeCapsuleController::class, 'seal'])->name('seal');
+            Route::post('/{shareCode}/claim', [TimeCapsuleController::class, 'claim'])->name('claim')
+                ->middleware('throttle:20,1');
+            Route::post('/{shareCode}/answers', [TimeCapsuleController::class, 'saveAnswers'])->name('answers')
+                ->middleware('throttle:30,1');
+            Route::post('/{shareCode}/seal', [TimeCapsuleController::class, 'seal'])->name('seal')
+                ->middleware('throttle:20,1');
         });
 
         // Custom board play
@@ -372,8 +408,22 @@ Route::prefix('{locale}')
         Route::get('/play/share/{code}', [PlayController::class, 'showByCode'])->name('play.code')->middleware('throttle:60,1');
         Route::get('/play/{board}', [PlayController::class, 'show'])->name('play.board');
 
-        // Profile
-        Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index')->middleware(['auth', 'verified']);
+        // Profile —— 擁有者本人的儀表板與個人化編輯
+        Route::middleware(['auth', 'verified'])->group(function () {
+            Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+            Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+            // 單一表單:文字 / 配色 / 公開 / 頭像+橫幅圖檔 / 焦點都走這一條(multipart)。
+            Route::patch('/profile', [ProfileController::class, 'update'])
+                ->name('profile.update')->middleware('throttle:30,1');
+        });
+
+        // 公開個人頁(別人看到的)。不需登入,但只有本人公開過的才看得到。
+        Route::get('/u/{user}', [ProfileController::class, 'publicShow'])
+            ->name('profile.public')->middleware('throttle:60,1');
+
+        // 尋找:瀏覽站上公開的個人頁(聯誼探索頁)。
+        Route::get('/discover', [ProfileController::class, 'discover'])
+            ->name('profile.discover')->middleware('throttle:60,1');
 
         // Board CRUD
         Route::prefix('boards')->name('boards.')->middleware(['auth', 'verified'])->group(function () {
@@ -417,6 +467,8 @@ Route::prefix('{locale}')
         Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
             Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
             Route::get('/traffic', [AdminController::class, 'traffic'])->name('traffic');
+            Route::get('/pricing', [AdminController::class, 'pricing'])->name('pricing');
+            Route::patch('/pricing', [AdminController::class, 'updatePricing'])->name('pricing.update');
             Route::get('/boards', [AdminController::class, 'boards'])->name('boards');
             Route::get('/board-reviews', [AdminController::class, 'boardReviews'])->name('boards.reviews');
             Route::post('/boards/{board}/approve', [AdminController::class, 'approveBoard'])->name('boards.approve');

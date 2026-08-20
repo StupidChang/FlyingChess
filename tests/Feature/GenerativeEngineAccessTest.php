@@ -57,7 +57,11 @@ class GenerativeEngineAccessTest extends TestCase
         $response->assertOk();
         // The game hall's own H1 — present only if the age gate was bypassed.
         $response->assertSee(__('seo.lobby_title'), false);
-        $response->assertDontSee('age-gate', false);
+        /* 找的是「獨立閘門頁」的標記,不是子字串 'age-gate'。預設的 overlay 模式下
+           這些 bot 和沒確認年齡的真人一樣會拿到覆蓋層(那正是不 cloaking 的意思),
+           而覆蓋層裡有 age-gate-btns / age-gate-links 這種名字 —— 用子字串比對的話
+           會把「正確的行為」判成失敗。見 AgeGateTest。 */
+        $response->assertDontSee('class="age-gate"', false);
     }
 
     #[DataProvider('trainingBotProvider')]

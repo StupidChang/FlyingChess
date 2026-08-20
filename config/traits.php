@@ -51,17 +51,21 @@ return [
     'axes' => ['DS', 'PE', 'OR', 'IG'],
 
     /*
-     * 30 題。
+     * 90 題,分六段。
      *
      *   section  分段標題的 key(只在該段第一題出現)
      *   axis     [光譜, 方向]。方向 0 表示這題不計入任何光譜,只餵屬性
      *   weights  這題餵給哪些屬性、各多少權重(可負)
      *
-     * 一題同時餵好幾個屬性,所以 30 題撐得起 20 種屬性的分數。
-     * 順序就是顯示順序;插題請加在該段末尾,不要插在中間 —— 題號是使用者
-     * 回報問題時唯一的座標。
+     * 一題同時餵好幾個屬性,所以撐得起 20 種屬性的分數。屬性百分比是各自對自己的
+     * 權重上限正規化的,所以某個屬性被幾題餵到不影響「算不算得出來」,只影響解析度。
+     *
+     * 順序就是顯示順序,而且 lang/{locale}/traits.php 的 questions 必須逐一對齊 ——
+     * 第 N 個結構配第 N 句題目。插題一律加在「該段末尾 / 全部末尾」,不要插在中間,
+     * 否則所有後面的題目文字都會錯位;題號也是使用者回報問題時唯一的座標。
      */
     'questions' => [
+        // ── 0-15 節奏與主導(DS)──
         ['section' => 'lead', 'axis' => ['DS', 1], 'weights' => ['dom' => 2, 'tease' => 1, 'sub' => -1]],
         ['axis' => ['DS', -1], 'weights' => ['sub' => 2, 'devotee' => 1, 'dom' => -1]],
         ['axis' => ['DS', 1], 'weights' => ['dom' => 2, 'tease' => 1, 'pleaser' => 1]],
@@ -71,15 +75,32 @@ return [
         ['axis' => ['DS', 0], 'weights' => ['pleaser' => 3, 'caregiver' => 1]],
         ['axis' => ['DS', 1], 'weights' => ['caregiver' => 3, 'coach' => 1, 'dom' => 1]],
         ['axis' => ['DS', 0], 'weights' => ['switch' => 3, 'dom' => -1, 'sub' => -1]],
+        ['axis' => ['DS', 1], 'weights' => ['dom' => 3, 'coach' => 1]],
+        ['axis' => ['DS', -1], 'weights' => ['sub' => 2, 'devotee' => 1, 'brat' => -1]],
+        ['axis' => ['DS', 1], 'weights' => ['coach' => 3, 'dom' => 1]],
+        ['axis' => ['DS', -1], 'weights' => ['sub' => 2, 'devotee' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['switch' => 3]],
+        ['axis' => ['DS', 1], 'weights' => ['dom' => 2, 'coach' => 1]],
+        ['axis' => ['DS', -1], 'weights' => ['brat' => 3, 'sub' => 1]],
 
+        // ── 16-30 感受從哪裡來(PE)──
         ['section' => 'feel', 'axis' => ['PE', 1], 'weights' => ['sensual' => 3]],
         ['axis' => ['PE', -1], 'weights' => ['romantic' => 3]],
-        ['axis' => ['PE', -1], 'weights' => ['verbal' => 3, 'romantic' => 1]],
+        ['axis' => ['PE', 0], 'weights' => ['verbal' => 3, 'romantic' => 1]],
         ['axis' => ['PE', 1], 'weights' => ['sensual' => 2, 'ritual' => 1]],
-        ['axis' => ['PE', -1], 'weights' => ['verbal' => 3, 'dom' => 1]],
+        ['axis' => ['PE', 0], 'weights' => ['verbal' => 3, 'dom' => 1]],
         ['axis' => ['PE', -1], 'weights' => ['pleaser' => 2, 'devotee' => 2, 'romantic' => 1]],
         ['axis' => ['PE', -1], 'weights' => ['aftercare' => 3, 'caregiver' => 1]],
+        ['axis' => ['PE', 1], 'weights' => ['sensual' => 3, 'slowburn' => 1]],
+        ['axis' => ['PE', -1], 'weights' => ['romantic' => 3, 'devotee' => 1]],
+        ['axis' => ['PE', -1], 'weights' => ['verbal' => 2, 'romantic' => 1, 'exhib' => 1]],
+        ['axis' => ['PE', 1], 'weights' => ['sensual' => 3, 'aftercare' => 1]],
+        ['axis' => ['PE', 0], 'weights' => ['verbal' => 3, 'dom' => 1]],
+        ['axis' => ['PE', -1], 'weights' => ['romantic' => 2, 'tease' => 1]],
+        ['axis' => ['PE', 1], 'weights' => ['sensual' => 3]],
+        ['axis' => ['PE', -1], 'weights' => ['aftercare' => 3, 'devotee' => 1]],
 
+        // ── 31-46 尺度與想像(OR)──
         ['section' => 'limits', 'axis' => ['OR', 1], 'weights' => ['explorer' => 3]],
         ['axis' => ['OR', -1], 'weights' => ['guardian' => 3, 'explorer' => -1]],
         ['axis' => ['OR', 1], 'weights' => ['exhib' => 3, 'explorer' => 1]],
@@ -88,13 +109,63 @@ return [
         ['axis' => ['OR', 1], 'weights' => ['exhib' => 3]],
         ['axis' => ['OR', -1], 'weights' => ['ritual' => 3, 'guardian' => 1, 'spark' => -1]],
         ['axis' => ['OR', 1], 'weights' => ['explorer' => 2, 'dom' => 1]],
+        ['axis' => ['OR', 1], 'weights' => ['exhib' => 2, 'voyeur' => 1]],
+        ['axis' => ['OR', 1], 'weights' => ['exhib' => 3]],
+        ['axis' => ['OR', -1], 'weights' => ['guardian' => 3]],
+        ['axis' => ['OR', 1], 'weights' => ['explorer' => 2, 'exhib' => 1, 'brat' => 1]],
+        ['axis' => ['OR', -1], 'weights' => ['ritual' => 3, 'sensual' => 1]],
+        ['axis' => ['OR', 1], 'weights' => ['voyeur' => 3]],
+        ['axis' => ['OR', -1], 'weights' => ['guardian' => 2, 'ritual' => 1, 'spark' => -1]],
+        ['axis' => ['OR', 1], 'weights' => ['exhib' => 2, 'pleaser' => 1]],
 
+        // ── 47-60 速度與升溫(IG)──
         ['section' => 'pace', 'axis' => ['IG', 1], 'weights' => ['spark' => 3]],
         ['axis' => ['IG', -1], 'weights' => ['slowburn' => 3]],
         ['axis' => ['IG', 1], 'weights' => ['spark' => 3, 'ritual' => -1]],
         ['axis' => ['IG', -1], 'weights' => ['slowburn' => 3, 'sensual' => 1]],
         ['axis' => ['IG', -1], 'weights' => ['slowburn' => 2, 'tease' => 2]],
         ['axis' => ['IG', -1], 'weights' => ['aftercare' => 2, 'devotee' => 2, 'romantic' => 1]],
+        ['axis' => ['IG', 1], 'weights' => ['spark' => 3]],
+        ['axis' => ['IG', -1], 'weights' => ['slowburn' => 2, 'tease' => 1, 'romantic' => 1]],
+        ['axis' => ['IG', 1], 'weights' => ['spark' => 2, 'explorer' => 1]],
+        ['axis' => ['IG', -1], 'weights' => ['slowburn' => 3]],
+        ['axis' => ['IG', 1], 'weights' => ['spark' => 2, 'dom' => 1]],
+        ['axis' => ['IG', -1], 'weights' => ['slowburn' => 3]],
+        ['axis' => ['IG', 1], 'weights' => ['spark' => 2, 'guardian' => -1]],
+        ['axis' => ['IG', -1], 'weights' => ['slowburn' => 2, 'tease' => 1, 'devotee' => 1]],
+
+        // ── 61-75 親密裡的依附(多為 axis 0,只餵屬性)──
+        ['section' => 'bond', 'axis' => ['DS', 0], 'weights' => ['devotee' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['caregiver' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['pleaser' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['devotee' => 3, 'romantic' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['caregiver' => 3, 'coach' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['pleaser' => 2, 'caregiver' => 1, 'devotee' => 1]],
+        ['axis' => ['DS', -1], 'weights' => ['devotee' => 2, 'sub' => 1, 'sensual' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['devotee' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['pleaser' => 3]],
+        ['axis' => ['DS', 1], 'weights' => ['caregiver' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['switch' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['caregiver' => 2, 'devotee' => 1]],
+        ['axis' => ['DS', -1], 'weights' => ['sub' => 2, 'guardian' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['aftercare' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['exhib' => 2, 'devotee' => 1]],
+
+        // ── 76-89 表達、界線與收尾 ──
+        ['section' => 'voice', 'axis' => ['PE', 0], 'weights' => ['verbal' => 3]],
+        ['axis' => ['OR', -1], 'weights' => ['guardian' => 3]],
+        ['axis' => ['DS', -1], 'weights' => ['pleaser' => 2, 'devotee' => 1, 'sub' => 1]],
+        ['axis' => ['IG', 0], 'weights' => ['aftercare' => 3]],
+        ['axis' => ['PE', 0], 'weights' => ['dom' => 3, 'verbal' => 1]],
+        ['axis' => ['PE', -1], 'weights' => ['romantic' => 2, 'verbal' => 1]],
+        ['axis' => ['OR', -1], 'weights' => ['ritual' => 2, 'guardian' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['verbal' => 1, 'coach' => 1, 'guardian' => 1]],
+        ['axis' => ['IG', 0], 'weights' => ['aftercare' => 3]],
+        ['axis' => ['PE', 0], 'weights' => ['verbal' => 2, 'tease' => 1, 'dom' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['aftercare' => 2, 'devotee' => 1, 'romantic' => 1]],
+        ['axis' => ['DS', 1], 'weights' => ['coach' => 3, 'caregiver' => 1]],
+        ['axis' => ['DS', -1], 'weights' => ['sub' => 2, 'devotee' => 1]],
+        ['axis' => ['OR', -1], 'weights' => ['guardian' => 3]],
     ],
 
     /*

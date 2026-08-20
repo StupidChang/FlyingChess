@@ -30,7 +30,7 @@
             ],
         ],
     ],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}
 </script>
 @endsection
 
@@ -127,6 +127,52 @@
             @if($unlocked)
                 <p class="tt-deep-body">{{ $item['deep'] }}</p>
 
+                {{-- 優勢 / 盲點:一正一反,顏色分開,一眼看得出哪個是好消息哪個要留意 --}}
+                @if(!empty($item['strength']) || !empty($item['watch']))
+                <div class="tt-swgrid">
+                    @if(!empty($item['strength']))
+                    <div class="tt-sw tt-sw-plus">
+                        <span class="tt-sw-tag">{{ __('traits.result.deep_strength') }}</span>
+                        <p>{{ $item['strength'] }}</p>
+                    </div>
+                    @endif
+                    @if(!empty($item['watch']))
+                    <div class="tt-sw tt-sw-minus">
+                        <span class="tt-sw-tag">{{ __('traits.result.deep_watch') }}</span>
+                        <p>{{ $item['watch'] }}</p>
+                    </div>
+                    @endif
+                </div>
+                @endif
+
+                {{-- 合拍 / 磨合 --}}
+                @if(!empty($item['match']) || !empty($item['friction']))
+                <h3 class="tt-deep-sub">{{ __('traits.result.deep_pairing') }}</h3>
+                @if(!empty($item['match']))
+                <div class="tt-pair tt-pair-match">
+                    <span class="tt-pair-tag">{{ __('traits.result.deep_match') }}</span>
+                    <p>{{ $item['match'] }}</p>
+                </div>
+                @endif
+                @if(!empty($item['friction']))
+                <div class="tt-pair tt-pair-friction">
+                    <span class="tt-pair-tag">{{ __('traits.result.deep_friction') }}</span>
+                    <p>{{ $item['friction'] }}</p>
+                </div>
+                @endif
+                @endif
+
+                {{-- 給對方看的一句話 --}}
+                @if(!empty($item['partner_line']))
+                <div class="tt-partner">
+                    <div class="tt-partner-head">
+                        <span class="tt-partner-title">{{ __('traits.result.deep_partner_title') }}</span>
+                        <span class="tt-partner-hint">{{ __('traits.result.deep_partner_hint') }}</span>
+                    </div>
+                    <blockquote class="tt-partner-quote">{{ $item['partner_line'] }}</blockquote>
+                </div>
+                @endif
+
                 @if($axisReading)
                 <h3 class="tt-deep-sub">{{ __('traits.result.axis_reading_title') }}
                     <em>{{ __('traits.result.axis_personal') }}</em></h3>
@@ -144,6 +190,13 @@
                 <p class="tt-deep-note">{{ __('traits.result.deep_unlocked_note') }}</p>
             @else
                 <p class="tt-deep-teaser">{{ __('traits.result.deep_locked') }}</p>
+                @if(is_array(__('traits.result.deep_locked_list')))
+                <ul class="tt-deep-list">
+                    @foreach(__('traits.result.deep_locked_list') as $li)
+                    <li>{{ $li }}</li>
+                    @endforeach
+                </ul>
+                @endif
                 <button type="button" class="btn btn-gold tt-deep-btn"
                         onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
                     {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
@@ -155,7 +208,7 @@
         @include('partials.ad-unit', ['zone' => 'home_banner'])
 
         <div class="tt-actions">
-            <a href="{{ route('trait-test.show') }}" class="btn btn-gold btn-xl">
+            <a href="{{ route('trait-test.show') }}" class="btn btn-primary btn-xl">
                 {{ $result ? __('traits.retake') : __('traits.start') }}
             </a>
             <button type="button" class="btn btn-outline" id="tt-share">{{ __('traits.result.share') }}</button>

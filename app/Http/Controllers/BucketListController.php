@@ -49,28 +49,46 @@ class BucketListController extends Controller
         $list = BucketList::where('share_code', $shareCode)->firstOrFail();
         $role = $this->resolveRole($request, $list);
 
-        // First-time partner visitor — assign partner token
-        $cookieJar = null;
-        if ($role === 'partner-new') {
-            $partnerToken = Str::random(48);
-            $list->update(['partner_token' => $partnerToken]);
-            $cookieJar = cookie(
-                self::ROLE_COOKIE_PREFIX.$list->share_code,
-                $partnerToken,
-                self::ROLE_COOKIE_DAYS * 24 * 60
-            );
-            $role = 'partner';
-        }
+        // partner 身分不再由開頁(GET)自動指派 —— 那會被連結預覽 bot 或任何拿到
+        // 連結的路人搶先佔走,而且不可逆。改成頁面顯示一個「我是另一半,加入」的
+        // 按鈕,由使用者明確 POST /claim 才發放(見 claim())。
+        $canClaim = $role === 'viewer' && is_null($list->partner_token);
 
         $items = $list->items()->get();
 
-        $response = response()->view('bucket-list.show', [
+        return response()->view('bucket-list.show', [
             'list' => $list,
             'role' => $role,
             'items' => $items,
+            'canClaim' => $canClaim,
         ]);
+    }
 
-        return $cookieJar ? $response->withCookie($cookieJar) : $response;
+    /**
+     * 明確認領 partner 身分。只有在還沒有人是 partner 時才成立,先到先得,
+     * 但一定要是使用者主動送出的 POST(CSRF 保護 + 限速),bot 不會觸發。
+     */
+    public function claim(Request $request, string $shareCode)
+    {
+        $list = BucketList::where('share_code', $shareCode)->firstOrFail();
+        $role = $this->resolveRole($request, $list);
+
+        if (in_array($role, ['owner', 'partner'], true)) {
+            return back();   // 已經是成員,不需認領
+        }
+
+        if (! is_null($list->partner_token)) {
+            return back()->withErrors(['claim' => __('minigame.bucket_partner_taken')]);
+        }
+
+        $partnerToken = Str::random(48);
+        $list->update(['partner_token' => $partnerToken]);
+
+        return back()->withCookie(cookie(
+            self::ROLE_COOKIE_PREFIX.$list->share_code,
+            $partnerToken,
+            self::ROLE_COOKIE_DAYS * 24 * 60
+        ));
     }
 
     public function addItem(Request $request, string $shareCode)
@@ -144,11 +162,12 @@ class BucketListController extends Controller
     /**
      * Determine viewer's role for this list.
      *
-     * @return 'owner'|'partner'|'partner-new'|'viewer'
-     *                                                  - 'owner'       cookie token matches owner_token
-     *                                                  - 'partner'     cookie token matches partner_token
-     *                                                  - 'partner-new' no partner_token set yet — caller must assign
-     *                                                  - 'viewer'      third-party visitor (read-only)
+     * @return 'owner'|'partner'|'viewer'
+     *                                    - 'owner'   cookie token matches owner_token
+     *                                    - 'partner' cookie token matches partner_token
+     *                                    - 'viewer'  everyone else (read-only). A viewer who
+     *                                    arrives before any partner is set can become the
+     *                                    partner via the explicit POST /claim, never here.
      */
     private function resolveRole(Request $request, BucketList $list): string
     {
@@ -159,9 +178,6 @@ class BucketListController extends Controller
         }
         if ($list->partner_token && $cookie && hash_equals($list->partner_token, $cookie)) {
             return 'partner';
-        }
-        if (is_null($list->partner_token)) {
-            return 'partner-new';
         }
 
         return 'viewer';

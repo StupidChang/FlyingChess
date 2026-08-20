@@ -40,7 +40,7 @@
             ],
         ],
     ],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}
 </script>
 @endsection
 
@@ -57,10 +57,9 @@
                  只是預設收起來。 --}}
             <div class="tt-facts">
                 <span>{{ __('traits.facts.count', ['n' => count($questions)]) }}</span>
-                <span>{{ __('traits.facts.time') }}</span>
                 <span>{{ __('traits.facts.free') }}</span>
             </div>
-            <button type="button" class="btn btn-gold btn-xl tt-start" id="tt-start">{{ __('traits.start') }}</button>
+            <button type="button" class="btn btn-primary btn-xl tt-start" id="tt-start">{{ __('traits.start') }}</button>
         </header>
 
         <form action="{{ route('trait-test.submit') }}" method="POST" id="tt-form" class="tt-collapsed">
@@ -80,11 +79,13 @@
                     <legend class="sr-only">{{ $q['text'] }}</legend>
                     <span class="tt-q-no">{{ str_pad($q['n'] + 1, 2, '0', STR_PAD_LEFT) }}</span>
                     <p class="tt-q-text">{{ $q['text'] }}</p>
+                    {{-- 同意在左、不同意在右:反轉顯示順序,但 $i 仍是原本的索引,
+                         所以分數(value = $i-2)與顏色(tt-opt-$i)都不變、不會算錯。 --}}
                     <div class="tt-scale">
-                        @foreach($scale as $i => $label)
+                        @foreach(array_reverse($scale, true) as $i => $label)
                         <input type="radio" name="a[{{ $q['n'] }}]" id="a{{ $q['n'] }}_{{ $i }}" value="{{ $i - 2 }}"
                                {{ old('a.'.$q['n']) !== null && (int) old('a.'.$q['n']) === $i - 2 ? 'checked' : '' }}>
-                        <label for="a{{ $q['n'] }}_{{ $i }}"><span class="tt-dot"></span>{{ $label }}</label>
+                        <label for="a{{ $q['n'] }}_{{ $i }}" class="tt-opt tt-opt-{{ $i }}"><span class="tt-dot"></span>{{ $label }}</label>
                         @endforeach
                     </div>
                 </fieldset>
@@ -94,13 +95,27 @@
             @error('a')<p class="tt-error">{{ $message }}</p>@enderror
 
             <div class="tt-actions">
-                <button type="submit" class="btn btn-gold btn-xl" id="tt-submit">{{ __('traits.submit') }}</button>
+                <button type="submit" class="btn btn-primary btn-xl" id="tt-submit">{{ __('traits.submit') }}</button>
             </div>
         </form>
 
         {{-- 這一頁只留這一個內文版位,而且放在交卷按鈕之後 —— 作答到一半被
              廣告打斷是最傷的,主角是測驗本身。桌機另外有右側欄。 --}}
         @include('partials.ad-unit', ['zone' => 'home_banner'])
+
+        {{-- 20 個屬性頁的入口。這一頁以前完全沒有連到任何結果頁,那 20 頁只能從
+             「別的結果頁」走到 —— 也就是離首頁 4 層。新網域的爬取預算很少,4 層深
+             的頁面很可能永遠不會被抓。這個測驗的 SEO 價值就是那 20 頁,入口要放在
+             它們的母頁上。 --}}
+        <section class="tt-card">
+            <h2>{{ __('traits.result.all_traits') }}</h2>
+            <div class="tt-all">
+                @foreach($items as $k => $item)
+                <a href="{{ route('trait-test.result', ['slug' => $item['slug']]) }}"
+                   class="tt-chip tt-c-{{ config('traits.traits.'.$k.'.colour', 'gold') }}">{{ $item['name'] }}</a>
+                @endforeach
+            </div>
+        </section>
 
         <section class="tt-faq">
             <h2>{{ __('traits.faq_title') }}</h2>

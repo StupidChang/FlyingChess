@@ -1,0 +1,221 @@
+@extends('layouts.app')
+
+@section('title', __('repression.seo.title') . ' — ' . __('ui.site_name'))
+@section('meta_description', __('repression.seo.description'))
+@section('og_title', __('repression.seo.title'))
+@section('og_description', __('repression.seo.description'))
+@section('canonical', route('repression-test.show'))
+
+{{-- 沒翻譯的語系標 noindex:讓搜尋引擎收錄一頁中文內容配英文網址,
+     對排名是扣分不是加分。翻好之後把語系加進 config/repression.php 的 translated。 --}}
+@section('robots', $translated ? 'index,follow' : 'noindex,follow')
+
+@section('schema')
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@graph' => [
+        [
+            '@type' => 'Quiz',
+            'name' => __('repression.seo.title'),
+            'description' => __('repression.seo.description'),
+            'url' => route('repression-test.show'),
+            'educationalLevel' => 'adult',
+            'numberOfQuestions' => count($questions),
+            'inLanguage' => str_replace('_', '-', app()->getLocale()),
+        ],
+        [
+            '@type' => 'FAQPage',
+            'mainEntity' => collect(__('repression.faq'))->map(fn ($f) => [
+                '@type' => 'Question',
+                'name' => $f['q'],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']],
+            ])->all(),
+        ],
+        [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => __('ui.home'), 'item' => route('home')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => __('repression.title'), 'item' => route('repression-test.show')],
+            ],
+        ],
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}
+</script>
+@endsection
+
+@section('content')
+<div class="container tt-page">
+    <div class="tt-main">
+        <header class="tt-head">
+            <h1>{{ __('repression.title') }}</h1>
+            <p class="tt-tagline">{{ __('repression.tagline') }}</p>
+            <p class="tt-intro">{{ __('repression.intro') }}</p>
+
+            {{-- 封面。一進來就攤開 40 題會勸退,先給一個「開始」的緩衝。
+                 題目仍然在 HTML 裡(SEO 與沒有 JS 的情況都要拿得到),
+                 只是預設收起來。 --}}
+            <div class="tt-facts">
+                <span>{{ __('repression.facts.count', ['n' => count($questions)]) }}</span>
+                <span>{{ __('repression.facts.time') }}</span>
+                <span>{{ __('repression.facts.free') }}</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-xl tt-start" id="tt-start">{{ __('repression.start') }}</button>
+        </header>
+
+        {{-- 五個面向先攤在測驗前面:對還沒作答的訪客(含搜尋引擎)來說,這是這一頁
+             唯一說得出「這測驗到底在測什麼」的內容。 --}}
+        <section class="tt-card">
+            <h2>{{ __('repression.result.dimensions_title') }}</h2>
+            <ul class="rp-dims">
+                @foreach($dimensions as $k => $d)
+                <li class="rp-dim tt-c-{{ config('repression.dimensions.'.$k.'.colour', 'gold') }}">
+                    <strong>{{ $d['name'] }}</strong>
+                    <span>{{ $d['note'] }}</span>
+                </li>
+                @endforeach
+            </ul>
+        </section>
+
+        <form action="{{ route('repression-test.submit') }}" method="POST" id="tt-form" class="tt-collapsed">
+            @csrf
+
+            <div class="tt-progress">
+                <div class="tt-progress-bar"><div class="tt-progress-fill" id="tt-fill"></div></div>
+                <span class="tt-progress-count" id="tt-count">0 / {{ count($questions) }}</span>
+            </div>
+
+            @foreach($questions as $q)
+                @if($q['section'])
+                <h2 class="tt-section">{{ $q['section'] }}</h2>
+                @endif
+
+                <fieldset class="tt-q" id="tt-q{{ $q['n'] }}">
+                    <legend class="sr-only">{{ $q['text'] }}</legend>
+                    <span class="tt-q-no">{{ str_pad($q['n'] + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                    <p class="tt-q-text">{{ $q['text'] }}</p>
+                    {{-- 符合在左、不符合在右:和屬性測驗同一個方向,兩個測驗的操作手感一致。
+                         反轉的只是顯示順序,$i 仍是原本的索引,所以分數(value = $i)與
+                         顏色(tt-opt-$i)都不變、不會算錯。 --}}
+                    <div class="tt-scale">
+                        @foreach(array_reverse($scale, true) as $i => $label)
+                        <input type="radio" name="a[{{ $q['n'] }}]" id="a{{ $q['n'] }}_{{ $i }}" value="{{ $i }}"
+                               {{ old('a.'.$q['n']) !== null && (int) old('a.'.$q['n']) === $i ? 'checked' : '' }}>
+                        <label for="a{{ $q['n'] }}_{{ $i }}" class="tt-opt tt-opt-{{ $i }}"><span class="tt-dot"></span>{{ $label }}</label>
+                        @endforeach
+                    </div>
+                </fieldset>
+
+            @endforeach
+
+            @error('a')<p class="tt-error">{{ $message }}</p>@enderror
+
+            <div class="tt-actions">
+                <button type="submit" class="btn btn-primary btn-xl" id="tt-submit">{{ __('repression.submit') }}</button>
+            </div>
+        </form>
+
+        <p class="rp-disclaimer">{{ __('repression.disclaimer') }}</p>
+
+        {{-- 這一頁只留這一個內文版位,而且放在交卷按鈕之後 —— 作答到一半被
+             廣告打斷是最傷的,主角是測驗本身。桌機另外有右側欄。 --}}
+        @include('partials.ad-unit', ['zone' => 'home_banner'])
+
+        {{-- 五個級距先列出來:訪客還沒作答就看得到五頁的入口,對搜尋引擎則是
+             這一頁通往五個結果頁的內部連結。 --}}
+        <section class="tt-card">
+            <h2>{{ __('repression.result.bands_title') }}</h2>
+            <div class="tt-all">
+                @foreach($bands as $b)
+                <a href="{{ route('repression-test.result', ['slug' => $b['slug']]) }}"
+                   class="tt-chip tt-c-{{ $b['colour'] }}">{{ $b['label'] }}　{{ $b['name'] }}</a>
+                @endforeach
+            </div>
+        </section>
+
+        <section class="tt-faq">
+            <h2>{{ __('repression.faq_title') }}</h2>
+            @foreach(__('repression.faq') as $f)
+            <details class="tt-faq-item">
+                <summary>{{ $f['q'] }}</summary>
+                <p>{{ $f['a'] }}</p>
+            </details>
+            @endforeach
+        </section>
+
+        <p class="rp-cross">
+            {{ __('repression.result.other_test') }}
+            <a href="{{ route('trait-test.show') }}">{{ __('traits.title') }}</a>
+        </p>
+    </div>
+
+    <aside class="tt-rail">
+        @include('partials.ad-unit', ['zone' => 'lobby_side'])
+    </aside>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+(function () {
+    var form = document.getElementById('tt-form');
+    var total = {{ count($questions) }};
+
+    /* 沒有 JS 的話題目就直接是展開的 —— 收合是 JS 加上去的增強,
+       不是必要條件。爬蟲與關掉 JS 的人一樣讀得到全部題目。 */
+    var start = document.getElementById('tt-start');
+    start.hidden = false;
+    start.addEventListener('click', function () {
+        form.classList.remove('tt-collapsed');
+        start.hidden = true;
+        form.querySelector('.tt-q').scrollIntoView({behavior: 'smooth', block: 'start'});
+    });
+
+    // 重載後帶著舊作答回來(驗證失敗)的話,直接展開,不要再擋一次
+    if (form.querySelector('.tt-q input:checked')) {
+        form.classList.remove('tt-collapsed');
+        start.hidden = true;
+    }
+
+    function update() {
+        var done = form.querySelectorAll('.tt-q input:checked').length;
+        document.getElementById('tt-fill').style.width = (done / total * 100) + '%';
+        document.getElementById('tt-count').textContent = done + ' / ' + total;
+    }
+
+    form.addEventListener('change', function (e) {
+        if (e.target.type === 'radio') {
+            e.target.closest('.tt-q').classList.add('answered');
+            update();
+        }
+    });
+
+    /* 交卷前先擋一次。伺服器一樣會驗(前端擋得住的只有手滑),但讓使用者
+       直接跳到沒答的那一題,比整頁重載之後自己找快得多。 */
+    form.addEventListener('submit', function (e) {
+        var first = null;
+        for (var i = 0; i < total; i++) {
+            if (!form.querySelector('input[name="a[' + i + ']"]:checked')) { first = i; break; }
+        }
+        if (first === null) return;
+
+        e.preventDefault();
+        var el = document.getElementById('tt-q' + first);
+        el.classList.add('missing');
+        el.scrollIntoView({behavior: 'smooth', block: 'center'});
+        var msg = document.getElementById('tt-missing');
+        msg.textContent = @json(__('repression.unanswered', ['n' => '__N__']))
+            .replace('__N__', total - form.querySelectorAll('.tt-q input:checked').length);
+        msg.hidden = false;
+    });
+
+    var m = document.createElement('p');
+    m.className = 'tt-error';
+    m.id = 'tt-missing';
+    m.hidden = true;
+    form.querySelector('.tt-actions').before(m);
+
+    update();
+})();
+</script>
+@endsection

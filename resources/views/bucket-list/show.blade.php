@@ -90,6 +90,17 @@
         </div>
     @endif
 
+    @if(!empty($canClaim))
+        <div class="mg-claim-box">
+            <p class="mg-claim-hint">{{ __('games.claim_partner_hint') }}</p>
+            @error('claim')<p class="mg-claim-error">{{ $message }}</p>@enderror
+            <form method="POST" action="{{ route('bucket-list.claim', ['shareCode' => $list->share_code]) }}">
+                @csrf
+                <button type="submit" class="btn btn-primary">{{ __('games.claim_partner_btn') }}</button>
+            </form>
+        </div>
+    @endif
+
     @php
         $stats = ['total' => $items->count(), 'agreed' => 0, 'pending' => 0, 'rejected' => 0, 'maybe' => 0];
         foreach ($items as $it) { $stats[$it->status()]++; }

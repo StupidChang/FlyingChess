@@ -3,8 +3,11 @@
 @section('meta_description', __('seo.play_meta_description', ['board' => $board->name]))
 @section('og_title', __('seo.play_meta_title', ['board' => $board->name]) . ' — ' . __('ui.site_name'))
 @section('og_description', __('seo.play_meta_description', ['board' => $board->name]))
-@section('canonical', url()->current())
-@section('robots', $board->is_default ? 'index,follow' : 'noindex,follow')
+{{-- 同一張棋盤有 /play、/play/{id}、/play/share/{code} 好幾個網址,內容一樣。
+     canonical 一律指向 Board::canonicalPlayUrl() 選出的那一個,不要用
+     url()->current() —— 那會讓每個網址都自稱正本,就是重複內容。 --}}
+@section('canonical', $board->canonicalPlayUrl())
+@section('robots', $board->isPubliclyIndexable() ? 'index,follow' : 'noindex,follow')
 @section('styles')
 <link rel="stylesheet" href="{{ asset_v('css/board.css') }}">
 @endsection

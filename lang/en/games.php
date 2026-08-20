@@ -210,6 +210,8 @@ return [
     'copy_link' => 'Copy link',
     'copied' => 'Copied ✓',
     'role_partner' => 'You are the partner',
+    'claim_partner_hint' => 'Are you the invited partner? Join below to add and vote.',
+    'claim_partner_btn' => "I'm the partner — join",
     'role_owner_short' => 'Creator',
     'role_partner_short' => 'Partner',
     'delete_btn' => 'Delete',

@@ -30,6 +30,27 @@ class LocaleHelper
     }
 
     /**
+     * 某個頁面該宣告哪些 hreflang。
+     *
+     * 給「只有部分語系有文案」的頁面用(屬性測驗、性壓抑指數測驗):那些頁面在
+     * 沒翻譯的語系會退回繁中並標 noindex,而 hreflang 指向一個 noindex 的頁面是
+     * 自相矛盾的訊號 —— Google 遇到就整組忽略,連翻好的那幾個語系一起失效。
+     *
+     * 交集為空(例如某個測驗的 translated 寫了一個還沒 ready 的語系)時退回全部
+     * ready 的語系,而不是回空陣列:少了 hreflang 只是少一個訊號,完全沒有
+     * canonical/alternate 會讓四個語系互相被當成重複內容。
+     *
+     * @param  array<int, string>  $translated  有文案的語系代碼
+     * @return array<string, array>
+     */
+    public static function hreflangSet(array $translated): array
+    {
+        $set = array_intersect_key(self::readyLocales(), array_flip($translated));
+
+        return $set !== [] ? $set : self::readyLocales();
+    }
+
+    /**
      * Pick the localized value for a translatable column.
      *
      * Master-first read order (avoids stale reads when admin edits the legacy

@@ -181,6 +181,8 @@ return [
     'bucket_content_required' => '請輸入想做的事',
     'bucket_content_max' => '單筆內容不可超過 200 字',
     'bucket_no_vote_permission' => '無投票權',
+    'bucket_partner_taken' => '這份清單已經有另一半了,無法再加入。',
+    'capsule_partner_taken' => '這個膠囊已經有另一半了,無法再加入。',
     'bucket_delete_own_only' => '只能刪除自己提的項目',
 
     // Time capsule — server messages (TimeCapsuleController)

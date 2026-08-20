@@ -33,12 +33,12 @@ class PricingAndHistoryTest extends TestCase
      */
     private function visit(string $url)
     {
-        return $this->withHeader('User-Agent', 'Googlebot')->get($url);
+        return $this->asAgeVerified()->get($url);
     }
 
     private function submit(string $url, array $data = [])
     {
-        return $this->withHeader('User-Agent', 'Googlebot')->post($url, $data);
+        return $this->asAgeVerified()->post($url, $data);
     }
 
     // ── 幣別與方案 ──────────────────────────────────────────

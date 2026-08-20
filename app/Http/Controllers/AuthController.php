@@ -82,7 +82,10 @@ class AuthController extends Controller
         RateLimiter::hit($hourly, 3600);
 
         $data = $request->validate([
-            'name' => 'required|string|max:50',
+            // 角括號在暱稱裡永遠不是正常字元,擋掉當作縱深防禦。真正的 XSS 防線是
+            // 輸出端的跳脫(admin 面板已改用 data 屬性 + dataset,不再把暱稱拼進 JS
+            // 字串),這條只是讓惡意 payload 連存都存不進來。撇號等合法字元不擋。
+            'name' => ['required', 'string', 'max:50', 'regex:/^[^<>]+$/'],
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8|confirmed',
         ]);

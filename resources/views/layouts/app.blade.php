@@ -3,6 +3,16 @@
     $currentLocale = app()->getLocale();
     $currentHreflang = LocaleHelper::hreflang($currentLocale) ?? 'zh-TW';
     $defaultLocale = LocaleHelper::defaultLocale();
+
+    /* hreflang 只能指向「那個語系真的可以被索引」的版本。
+       多數頁面四個語系都翻好了,所以預設就是全部 ready 的語系;但有些頁面
+       (屬性測驗、性壓抑指數測驗)只有繁中有文案,其他語系是退回繁中並標 noindex ——
+       那些頁面由控制器傳 $hreflangLocales 把清單縮小。指向 noindex 頁面的 hreflang
+       是自相矛盾的訊號,Google 會直接忽略整組。 */
+    $hreflangLocales = $hreflangLocales ?? LocaleHelper::readyLocales();
+    $xDefaultLocale = array_key_exists($defaultLocale, $hreflangLocales)
+        ? $defaultLocale
+        : (array_key_first($hreflangLocales) ?? $defaultLocale);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $currentHreflang }}">
@@ -27,15 +37,15 @@
     <meta name="msvalidate.01" content="{{ config('services.bing.site_verification') }}">
     @endif
     <link rel="canonical" href="@yield('canonical', LocaleHelper::localizedUrl($currentLocale, request()->path()))">
-    @foreach (LocaleHelper::readyLocales() as $locale => $meta)
+    @foreach ($hreflangLocales as $locale => $meta)
         <link rel="alternate" hreflang="{{ $meta['hreflang'] }}" href="{{ LocaleHelper::localizedUrl($locale, request()->path()) }}">
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ LocaleHelper::localizedUrl($defaultLocale, request()->path()) }}">
+    <link rel="alternate" hreflang="x-default" href="{{ LocaleHelper::localizedUrl($xDefaultLocale, request()->path()) }}">
     <meta property="og:title" content="@yield('og_title', config('app.name'))">
     <meta property="og:description" content="@yield('og_description', __('seo.home_description'))">
     <meta property="og:url" content="@yield('canonical', LocaleHelper::localizedUrl($currentLocale, request()->path()))">
     <meta property="og:locale" content="{{ str_replace('-', '_', $currentHreflang) }}">
-    @foreach (LocaleHelper::readyLocales() as $locale => $meta)
+    @foreach ($hreflangLocales as $locale => $meta)
         @if ($locale !== $currentLocale)
             <meta property="og:locale:alternate" content="{{ str_replace('-', '_', $meta['hreflang']) }}">
         @endif
@@ -93,7 +103,9 @@
     @include('partials.schema-org')
     @yield('schema')
 </head>
-<body>
+{{-- age-locked:沒確認年齡時鎖住捲動,讓覆蓋層底下的頁面動不了。
+     真正的閘門是覆蓋層本身,這個 class 只是不讓人「滑過去」。 --}}
+<body class="{{ ($ageUnverified ?? false) ? 'age-locked' : '' }}">
 <header class="site-header">
     <div class="container">
         <a href="{{ route('home') }}" class="logo">@include('partials.heart-icon')<span>{{ __('ui.site_name') }}</span></a>
@@ -101,6 +113,8 @@
         {{-- Desktop nav — explicit .nav-desktop class; hidden on mobile via .nav-desktop{display:none} in media query --}}
         <nav class="nav-desktop">
             <a href="{{ route('home') }}" class="nav-link">{{ __('ui.home') }}</a>
+            <a href="{{ route('profile.discover') }}" class="nav-link">{{ __('profile.discover_title') }}</a>
+            <a href="{{ route('guide.index') }}" class="nav-link">{{ __('guides.index_h1') }}</a>
             <div class="nav-dropdown">
                 <a href="{{ route('game-hall.index') }}" class="nav-link nav-play nav-dropdown-toggle" aria-haspopup="true">{{ __('games.lobby') }}</a>
                 <div class="nav-dropdown-menu">
@@ -113,11 +127,26 @@
                     <a href="{{ route('wheel.pure') }}">{{ __('games.pure_wheel') }}</a>
                     <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
                     <a href="{{ route('trait-test.show') }}">{{ __('traits.title') }}</a>
+                    <a href="{{ route('repression-test.show') }}">{{ __('repression.title') }}</a>
                 <a href="{{ route('custom-wheel.page') }}">{{ __('minigame.cw_title') }}</a>
                     <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 </div>
             </div>
             @auth
+                {{-- 通知(右上角)。內容之後再接,先做出鈴鐺與面板的殼。 --}}
+                <div class="nav-dropdown nav-notif">
+                    <button type="button" class="nav-link nav-dropdown-toggle nav-notif-toggle" aria-haspopup="true" aria-label="{{ __('ui.notifications') }}">
+                        @include('partials.icon', ['name' => 'bell', 'cls' => 'nav-notif-ico'])
+                        <span class="nav-notif-dot" hidden></span>
+                    </button>
+                    <div class="nav-dropdown-menu nav-notif-menu">
+                        <div class="nav-notif-head">{{ __('ui.notifications') }}</div>
+                        <div class="nav-notif-empty">
+                            @include('partials.icon', ['name' => 'bell', 'cls' => 'nav-notif-empty-ico'])
+                            <p>{{ __('ui.notifications_empty') }}</p>
+                        </div>
+                    </div>
+                </div>
                 <div class="nav-dropdown nav-account">
                     <button type="button" class="nav-link nav-dropdown-toggle nav-account-toggle" aria-haspopup="true">
                         {{-- 名字的第一個字當頭像。純文字,不用等任何圖片載入,
@@ -170,6 +199,8 @@
     {{-- Mobile nav — .nav-mobile is never targeted by the desktop hide rule --}}
     <nav class="nav-mobile" id="mobileNav">
         <a href="{{ route('home') }}" class="nav-link">{{ __('ui.home') }}</a>
+            <a href="{{ route('profile.discover') }}" class="nav-link">{{ __('profile.discover_title') }}</a>
+            <a href="{{ route('guide.index') }}" class="nav-link">{{ __('guides.index_h1') }}</a>
         <button class="nav-link nav-mobile-games-toggle" onclick="toggleMobileGames(this)">
             {{ __('games.lobby') }} <span class="toggle-arrow">▾</span>
         </button>
@@ -213,13 +244,25 @@
 </header>
 
 <main>
-    @if(session('success'))
-        <div class="toast toast-ok" onclick="this.remove()">{{ session('success') }}</div>
+    @if(session('success') || session('error'))
+        @php $toastErr = (bool) session('error'); @endphp
+        <div class="app-toast {{ $toastErr ? 'is-err' : 'is-ok' }}" id="app-toast" role="status" aria-live="polite">
+            <span class="app-toast-ico">@include('partials.icon', ['name' => $toastErr ? 'x' : 'check'])</span>
+            <span class="app-toast-msg">{{ session('error') ?: session('success') }}</span>
+            <button type="button" class="app-toast-x" aria-label="{{ __('ui.close') }}">@include('partials.icon', ['name' => 'x'])</button>
+            <span class="app-toast-bar"></span>
+        </div>
+        <script>
+        (function () {
+            var t = document.getElementById('app-toast'); if (!t) return;
+            var bar = t.querySelector('.app-toast-bar'), dur = 4200, done = false;
+            requestAnimationFrame(function () { bar.style.transition = 'width ' + dur + 'ms linear'; bar.style.width = '0%'; });
+            function dismiss() { if (done) return; done = true; t.classList.add('leaving'); setTimeout(function () { t.remove(); }, 300); }
+            var to = setTimeout(dismiss, dur);
+            t.addEventListener('click', function () { clearTimeout(to); dismiss(); });
+        })();
+        </script>
     @endif
-    @if(session('error'))
-        <div class="toast toast-err" onclick="this.remove()">{{ session('error') }}</div>
-    @endif
-    <script>document.querySelectorAll('.toast').forEach(function(t){setTimeout(function(){t.remove()},3400)})</script>
     @yield('content')
     {{-- 遊戲頁的 FAQ 區塊。放在這裡而不是各頁 content 尾端,是因為八個遊戲頁的
          content 結構各不相同,集中在版型收尾才不會每頁插的位置都不一樣。 --}}
@@ -311,5 +354,11 @@ function toggleMobileGames(btn) {
 </script>
 @yield('scripts')
 @stack('scripts')
+
+{{-- 放在最後:覆蓋層是蓋在頁面上的,不是頁面的一部分。DOM 順序放後面,
+     沒有 JS 也能靠 CSS 的 position:fixed 蓋滿整個視窗。 --}}
+@if($ageUnverified ?? false)
+    @include('partials.age-gate-overlay')
+@endif
 </body>
 </html>

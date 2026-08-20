@@ -3,13 +3,39 @@
 @section('meta_description', __('seo.profile_description'))
 @section('robots','noindex,nofollow')
 @section('content')
-<div class="container" style="padding-top:40px;padding-bottom:60px">
+@php $theme = $user->themeMeta(); @endphp
+{{-- 個人頁沿用原本的全寬(電腦版)版面;只加上個人化的橫幅與配色變數,
+     不套 .pf-wrap 的 720px 上限(那個窄版留給編輯頁與公開頁)。 --}}
+<div class="container pf-themed" style="padding-top:20px;padding-bottom:60px;--pf-accent:{{ $theme['accent'] }};--pf-from:{{ $theme['from'] }};--pf-to:{{ $theme['to'] }}">
+
+    {{-- 個人化橫幅:配色、頭像與名字,一進來就是「這是我的頁」 --}}
+    <div class="pf-banner" @if($user->bannerUrl()) style="background-image:url('{{ $user->bannerUrl() }}');background-position:{{ $user->bannerPosition() }}" @endif></div>
+    <div class="pf-headline" style="margin-bottom:20px">
+        <div class="pf-avatar">
+            @if($user->avatarUrl())
+                <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }}" style="object-position:{{ $user->avatarPosition() }}">
+            @else
+                <span class="pf-avatar-fallback">{{ $user->initial() }}</span>
+            @endif
+        </div>
+        <div class="pf-headline-text">
+            <h1>{{ $user->name }}</h1>
+            <p>
+                @if($user->city)<span class="pf-tag">{{ __('profile.lives_in', ['city' => $user->city]) }}</span>@endif
+                @if($user->isPremium())<span class="badge-premium" style="font-size:.72rem;padding:2px 8px;border-radius:6px">Premium</span>@endif
+                <span class="pf-since">{{ __('ui.member_status') }}</span>
+            </p>
+        </div>
+        <div class="pf-headline-actions">
+            <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-theme">{{ __('profile.edit_profile') }}</a>
+            @if($user->profile_public)
+            <a href="{{ route('profile.public', $user) }}" class="btn btn-sm btn-outline">{{ __('profile.view_public') }}</a>
+            @endif
+        </div>
+    </div>
 
     {{-- 帳號資訊 --}}
     <section style="margin-bottom:36px">
-        <div class="section-head">
-            <h1>{{ __('ui.profile') }}</h1>
-        </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px">
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
                 <div>

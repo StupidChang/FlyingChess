@@ -420,3 +420,9 @@
 .cw-back{text-align:center;margin-top:28px}
 .cw-back a{color:var(--text-dim,#8b90a5);font-size:.85rem}
 .cw-back a:hover{color:var(--gold,#d9a441)}
+
+/* 「我是另一半,加入」認領區塊。partner 身分改由使用者明確點擊發放,
+   不再由開頁自動指派,見 BucketList/TimeCapsule controller。 */
+.mg-claim-box{background:var(--surface,#151823);border:1px dashed var(--accent,#e0688b);border-radius:10px;padding:16px;margin-bottom:20px;text-align:center}
+.mg-claim-box .mg-claim-hint{color:var(--text-dim,#9aa1b5);font-size:.85rem;margin:0 0 12px}
+.mg-claim-box .mg-claim-error{color:var(--accent,#e0688b);font-size:.82rem;margin:0 0 10px}

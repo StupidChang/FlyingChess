@@ -42,6 +42,7 @@ class PublicRoutesSmokeTest extends TestCase
             '/tw/wheel-game',
             '/tw/wheel',
             '/tw/who-most-likely',
+            '/tw/repression-test',
             '/tw/truth-dare',
             '/tw/bucket-list',
             '/tw/time-capsule',

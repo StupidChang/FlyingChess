@@ -71,19 +71,22 @@
                                 @unless($user->isAdmin() || $user->id === auth()->id())
                                     @if($user->isBanned())
                                     <form action="{{ route('admin.users.unban', $user) }}" method="POST"
-                                          onsubmit="return confirm('確定要解除封鎖「{{ $user->name }}」嗎？')">
+                                          data-confirm="確定要解除封鎖「{{ $user->name }}」嗎？"
+                                          onsubmit="return confirm(this.dataset.confirm)">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline">解封</button>
                                     </form>
                                     @else
                                     <form action="{{ route('admin.users.ban', $user) }}" method="POST"
-                                          onsubmit="return confirm('確定要封鎖「{{ $user->name }}」嗎？被封鎖後將無法登入。')">
+                                          data-confirm="確定要封鎖「{{ $user->name }}」嗎？被封鎖後將無法登入。"
+                                          onsubmit="return confirm(this.dataset.confirm)">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline">封鎖</button>
                                     </form>
                                     @endif
                                     <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                                          onsubmit="return confirm('確定要刪除「{{ $user->name }}」嗎？此操作會連帶刪除其建立的棋盤，且無法復原。')">
+                                          data-confirm="確定要刪除「{{ $user->name }}」嗎？此操作會連帶刪除其建立的棋盤，且無法復原。"
+                                          onsubmit="return confirm(this.dataset.confirm)">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline" style="color:#dc2626;border-color:#dc2626">刪除</button>
                                     </form>

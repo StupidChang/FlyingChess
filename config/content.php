@@ -12,5 +12,35 @@
  * 設成 0 就是不限(回到舊行為)。真的遇到有人在刷,調小即可 —— 不用改程式。
  */
 return [
+    /*
+     * 一次頁面載入,每個等級最多送幾題到瀏覽器。這個 cap 只會截斷「比它大」的池;
+     * 目前只有撲克牌的 intense(40 題)比 24 大,其餘池(國王 16、誰最有可能 20、
+     * 骰子 wild 6)都比 24 小,所以對它們而言 cap 是不作用的。
+     *
+     * 想靠調小 cap 去截斷那些小池是行不通的 —— 要壓到 8 才截得到,但那會讓「付費
+     * 使用者一次只拿到 8 題」,直接砍掉付費體驗的多樣性(也牴觸 AdultContentPoolsTest
+     * 對「每級 ≥16 題」的產品預期)。小池外流的真正解法不是這個 cap,而是把付費池
+     * 綁在真正的 User::isPremium() 上,而不是「看廣告」那個 client-trusted 的解鎖
+     * (見 PremiumAccess 的註解與資安報告)。所以這裡維持 24,不為了資安而砍體驗。
+     */
     'client_pool_cap' => (int) env('CONTENT_CLIENT_POOL_CAP', 24),
+
+    /*
+     * 年齡閘要用哪一種形式。
+     *
+     *   overlay      (預設)所有人 —— 包含 Googlebot —— 拿到同一份完整 HTML,
+     *                沒確認過年齡的人上面蓋一層覆蓋層。
+     *   interstitial 舊行為:沒確認過的人拿到一頁獨立的年齡確認頁,爬蟲則靠
+     *                User-Agent 白名單直接放行看到完整內容。
+     *
+     * 為什麼預設改成 overlay:interstitial 是「依 User-Agent 給不同內容」——
+     * Googlebot 拿到 187KB 的完整頁,真人拿到 5KB 的閘門頁。那正是 Google 對
+     * cloaking 的定義,成人站普遍這樣做也普遍沒事,但一旦被抽查判定,代價是整站
+     * 掉出索引。overlay 讓兩邊的 HTML 一致,就不構成 cloaking;代價是內容出現在
+     * 原始碼裡 —— 對一個本來就要能被檢索的 SSR 站來說,這本來就是既定事實。
+     *
+     * 廣告聯播網若要求「必須先確認年齡才能看到任何內容」,設回 interstitial 即可,
+     * 不用改程式。AgeGateTest 兩種模式都有測。
+     */
+    'age_gate_mode' => env('AGE_GATE_MODE', 'overlay'),
 ];

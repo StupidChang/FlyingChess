@@ -11,6 +11,7 @@ use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Session\Middleware\AuthenticateSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -32,6 +33,31 @@ return Application::configure(basePath: dirname(__DIR__))
             at: (require __DIR__.'/../config/cloudflare.php')['proxies']
         );
 
+        /*
+         * 只信任這幾個 Host。origin(nginx)本身可以被直接連到(preview vhost、
+         * 直連 IP),沒有這一層的話,攻擊者送一個任意 Host header 進來,就會被
+         * 反射進 canonical / 表單 action /「密碼重設信」的連結 —— 等於一個可以
+         * 把重設連結指到釣魚站的漏洞。列白名單之後,Host 對不上的請求直接 400,
+         * 連控制器都到不了,信也就發不出去。
+         *
+         * TrustHosts 在 local / testing 會自動略過(見 shouldSpecifyTrustedHosts),
+         * 所以不影響本機開發與測試。
+         *
+         * ⚠ 這裡的每一筆都是「正規表達式」,不是字串比對(Symfony 會拿去 preg_match)。
+         * 所以一定要錨定 ^...$ 並跳脫點號,否則 'pillownight.com' 會變成「點號可代表
+         * 任意字元、且未錨定」的鬆散樣式(evil-pillownightXcom.attacker.com 也會過)。
+         * 主網域與其子網域(www.)由 subdomains: true 依 app.url 自動加上
+         * ^(.+\.)?pillownight\.com$,不必也不該在這裡重複。
+         */
+        $middleware->trustHosts(
+            at: [
+                '^flying\.104\.64\.144\.208\.nip\.io$',   // preview vhost
+                '^localhost$',
+                '^127\.0\.0\.1$',
+            ],
+            subdomains: true,
+        );
+
         $middleware->alias([
             'age.verify' => AgeVerification::class,
             'premium' => EnsurePremium::class,
@@ -39,6 +65,18 @@ return Application::configure(basePath: dirname(__DIR__))
             'not.banned' => EnsureNotBanned::class,
             'set.locale' => SetLocale::class,
             'redirect.unprefixed' => RedirectUnprefixedUrl::class,
+        ]);
+
+        /*
+         * 讓「密碼重設 / 變更」能夠讓該使用者的其他 session 一起失效。
+         *
+         * AuthenticateSession 會把使用者的密碼 hash 存進 session,每次請求比對;
+         * 一旦密碼被改(重設),其他仍持有舊 session cookie 的地方(例如被竊取的
+         * session)下一個請求就對不上而被登出。沒有它的話,受害者重設密碼後,
+         * 攻擊者手上的舊 session 依然有效 —— 這正是使用者重設密碼想擋掉的事。
+         */
+        $middleware->web(append: [
+            AuthenticateSession::class,
         ]);
 
         // The locale cookie is a UI preference (not sensitive); skip encryption

@@ -22,9 +22,17 @@ class EmailSuppressionTest extends TestCase
 
     private const CERT_URL = 'https://sns.us-east-1.amazonaws.com/SimpleNotificationService-test.pem';
 
+    /** 這個站接受的 SNS Topic。驗簽只證明來自「某個」AWS 帳號,綁 Topic 才能證明
+     *  是我們的 Topic —— 見 SnsMessage::isValid()。 */
+    private const TOPIC_ARN = 'arn:aws:sns:us-east-1:1:ses-feedback';
+
     /** 自己簽一則 SNS 通知,並讓憑證網址回傳對應的公鑰憑證。 */
     private function signedPayload(array $extra = [], string $type = 'Notification'): array
     {
+        // 端點預設 fail-closed(未設定 topic_arn 就全部拒收),測試環境沒有 .env,
+        // 所以這裡把它設成本站接受的 Topic,讓合法通知走得完整條流程。
+        config(['services.ses.topic_arn' => self::TOPIC_ARN]);
+
         $key = openssl_pkey_new([
             'private_key_bits' => 2048,
             'private_key_type' => OPENSSL_KEYTYPE_RSA,
@@ -36,7 +44,7 @@ class EmailSuppressionTest extends TestCase
         $payload = array_merge([
             'Type' => $type,
             'MessageId' => 'msg-1',
-            'TopicArn' => 'arn:aws:sns:us-east-1:1:ses-feedback',
+            'TopicArn' => self::TOPIC_ARN,
             'Timestamp' => now()->toIso8601String(),
             'SignatureVersion' => '1',
             'SigningCertURL' => self::CERT_URL,
@@ -124,6 +132,44 @@ class EmailSuppressionTest extends TestCase
             ]),
         ])->assertForbidden();
 
+        $this->assertSame(0, EmailSuppression::count());
+    }
+
+    public function test_a_notification_from_an_unexpected_topic_is_rejected(): void
+    {
+        // 簽章合法(來自某個 AWS 帳號),但 Topic 不是我們的 —— 攻擊者用自己帳號的
+        // Topic 把我們的端點訂進去就是這個情境。不綁 Topic 的話,他就能把任意信箱
+        // 塞進抑制清單。
+        $payload = $this->signedPayload(
+            ['Message' => json_encode([
+                'notificationType' => 'Bounce',
+                'bounce' => [
+                    'bounceType' => 'Permanent',
+                    'bouncedRecipients' => [['emailAddress' => 'victim@example.com']],
+                ],
+            ])],
+        );
+        config(['services.ses.topic_arn' => 'arn:aws:sns:us-east-1:999999999999:attacker-topic']);
+
+        $this->postJson('/ses/feedback', $payload)->assertForbidden();
+        $this->assertSame(0, EmailSuppression::count());
+    }
+
+    public function test_notifications_are_rejected_when_no_topic_is_configured(): void
+    {
+        // fail-closed:沒設定 SNS_TOPIC_ARN 時,連簽章合法的通知也一律拒收。
+        $payload = $this->signedPayload(
+            ['Message' => json_encode([
+                'notificationType' => 'Bounce',
+                'bounce' => [
+                    'bounceType' => 'Permanent',
+                    'bouncedRecipients' => [['emailAddress' => 'victim@example.com']],
+                ],
+            ])],
+        );
+        config(['services.ses.topic_arn' => null]);
+
+        $this->postJson('/ses/feedback', $payload)->assertForbidden();
         $this->assertSame(0, EmailSuppression::count());
     }
 

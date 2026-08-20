@@ -128,6 +128,17 @@
         </div>
     @endif
 
+    @if(!empty($canClaim) && !$capsule->isSealed())
+        <div class="mg-claim-box">
+            <p class="mg-claim-hint">{{ __('games.claim_partner_hint') }}</p>
+            @error('claim')<p class="mg-claim-error">{{ $message }}</p>@enderror
+            <form method="POST" action="{{ route('time-capsule.claim', ['shareCode' => $capsule->share_code]) }}">
+                @csrf
+                <button type="submit" class="btn btn-primary">{{ __('games.claim_partner_btn') }}</button>
+            </form>
+        </div>
+    @endif
+
     {{-- Body: questions --}}
     @if($capsule->isSealed() && !$capsule->isOpenable())
         {{-- Sealed but not yet openable: hide content --}}

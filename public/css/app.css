@@ -1825,52 +1825,73 @@ a.gh-name{color:var(--accent)}
 /* ── 枕邊屬性測驗 ────────────────────────────────────────
    顏色沿用既有的 token,tt-c-* 是「這個屬性是哪一色系」的單一來源 ——
    長條、標籤、結果頁的頂線都吃同一個 class。 */
-.tt-page{display:grid;grid-template-columns:minmax(0,1fr);gap:26px;padding:36px 20px 70px}
-@media(min-width:1000px){ .tt-page{grid-template-columns:minmax(0,1fr) 300px} }
-.tt-rail{display:none}
-@media(min-width:1000px){ .tt-rail{display:block} .tt-rail .ad-slot{position:sticky;top:20px} }
+/* 版面:測驗本體置中在一個舒適的閱讀寬度(720px)。側欄廣告只在夠寬的螢幕
+   (≥1300px)以 fixed 掛在右側留白,不參與版面計算 —— 這樣測驗永遠是真正的
+   置中,而不是「主欄 + 側欄」那種偏左的置中。 */
+.tt-page{max-width:720px;margin:0 auto;padding:40px 20px 72px}
 .tt-main{min-width:0}
+.tt-rail{display:none}
+@media(min-width:1300px){
+  .tt-rail{display:block;position:fixed;right:24px;top:88px;width:300px;z-index:4}
+}
 
 .tt-c-rose{--tt:#f43f5e}
 .tt-c-gold{--tt:#d9a441}
 .tt-c-indigo{--tt:#818cf8}
 .tt-c-green{--tt:#5fd08a}
 
-.tt-head{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px}
-.tt-head h1{font-size:clamp(1.6rem,4.4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin-bottom:10px;text-wrap:balance}
-.tt-tagline{color:var(--text);font-size:.95rem;margin-bottom:8px}
-.tt-intro{color:var(--text-dim);font-size:.86rem;line-height:1.75;max-width:58ch}
+/* 封面:置中,像一張正式的測驗開場 —— 標語用 accent 立刻建立「重點色」。 */
+.tt-head{text-align:center;padding:6px 0 28px;margin-bottom:6px}
+.tt-head h1{font-size:clamp(1.7rem,4.6vw,2.4rem);font-weight:800;letter-spacing:-.02em;margin-bottom:12px;text-wrap:balance}
+.tt-tagline{color:var(--accent);font-weight:600;font-size:1rem;margin-bottom:10px}
+.tt-intro{color:var(--text-dim);font-size:.9rem;line-height:1.8;max-width:52ch;margin:0 auto}
+.tt-facts{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:22px 0}
+.tt-facts span{font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);
+  border-radius:999px;padding:6px 14px}
+.tt-start{min-width:220px}
 
-.tt-progress{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0;display:flex;align-items:center;gap:12px}
-.tt-progress-bar{flex:1;height:5px;border-radius:99px;background:var(--surface2);overflow:hidden}
-.tt-progress-fill{height:100%;width:0;border-radius:99px;
-  background:linear-gradient(90deg,#818cf8,var(--gold),var(--accent));transition:width .34s cubic-bezier(.22,.61,.36,1)}
-.tt-progress-count{font-size:.78rem;color:var(--text-dim);font-variant-numeric:tabular-nums}
+/* 進度條:單一 accent 實心,是全頁最強的「你走到哪了」訊號。 */
+.tt-progress{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 0;display:flex;align-items:center;gap:12px;
+  margin-bottom:6px}
+.tt-progress-bar{flex:1;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.tt-progress-fill{height:100%;width:0;border-radius:99px;background:var(--accent);
+  transition:width .34s cubic-bezier(.22,.61,.36,1)}
+.tt-progress-count{font-size:.8rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
 
-.tt-section{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);
-  margin:26px 0 10px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.tt-section{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;
+  margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
 
-.tt-q{border:1px solid var(--border);border-radius:14px;background:var(--surface);
-  padding:16px 18px 13px;margin:0 0 10px;transition:border-color .2s}
-.tt-q.answered{border-color:rgba(217,164,65,.35)}
-.tt-q.missing{border-color:var(--accent)}
-.tt-q-no{font-size:.68rem;letter-spacing:.14em;color:var(--text-dim);display:block;margin-bottom:6px;
+/* 題目卡。答過的稍微退到背景、加一個 ✓,讓還沒答的自然變成視覺重點。 */
+.tt-q{border:1px solid var(--border);border-radius:16px;background:var(--surface);
+  padding:18px 20px 15px;margin:0 0 12px;transition:border-color .2s,box-shadow .2s,opacity .2s}
+.tt-q.answered{opacity:.72}
+.tt-q.answered .tt-q-no::after{content:'  ✓';color:var(--accent)}
+.tt-q.missing{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--glow-rgb),.16)}
+.tt-q-no{font-size:.68rem;letter-spacing:.14em;color:var(--accent);font-weight:700;display:block;margin-bottom:7px;
   font-variant-numeric:tabular-nums}
-.tt-q-text{font-size:.96rem;line-height:1.6;margin-bottom:13px;text-wrap:balance}
-.tt-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.tt-scale input{position:absolute;opacity:0;width:0;height:0}
-.tt-scale label{display:grid;place-items:center;gap:5px;padding:9px 4px;cursor:pointer;
-  border:1px solid var(--border);border-radius:10px;background:var(--bg);
-  font-size:.66rem;line-height:1.3;color:var(--text-dim);text-align:center;
-  transition:border-color .16s,background .16s,color .16s}
-.tt-scale label:hover{border-color:var(--text-dim);color:var(--text)}
-.tt-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid currentColor;transition:background .16s,transform .16s}
-.tt-scale input:checked + label{border-color:var(--gold);color:var(--gold);background:rgba(217,164,65,.1)}
-.tt-scale input:checked + label .tt-dot{background:var(--gold);transform:scale(1.25)}
-.tt-scale input:focus-visible + label{outline:2px solid var(--gold);outline-offset:2px}
+.tt-q-text{font-size:1rem;line-height:1.6;margin-bottom:15px;text-wrap:balance;font-weight:500}
 
-.tt-error{color:var(--accent);font-size:.85rem;margin:14px 0 0}
-.tt-actions{display:flex;gap:10px;margin:24px 0;flex-wrap:wrap}
+/* 五等量表:選中的一格用 accent 實心填滿 + 白字,是每一題最清楚的「我選了這個」。 */
+.tt-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.tt-scale input{position:absolute;opacity:0;width:0;height:0}
+.tt-scale label{display:grid;place-items:center;gap:8px;padding:13px 4px;cursor:pointer;
+  border:1px solid var(--border);border-radius:12px;background:var(--bg);
+  font-size:.66rem;line-height:1.3;color:var(--text-dim);text-align:center;
+  transition:border-color .16s,background .16s,color .16s,transform .12s}
+/* 五等量表:完全不(紅)→ 一半一半(灰)→ 完全是(綠),越同意越綠。 */
+.tt-opt-0{--opt:#ef4444}
+.tt-opt-1{--opt:#f59e0b}
+.tt-opt-2{--opt:#94a3b8}
+.tt-opt-3{--opt:#84cc16}
+.tt-opt-4{--opt:#22c55e}
+.tt-scale label:hover{border-color:var(--opt,var(--accent));color:var(--text);transform:translateY(-1px)}
+.tt-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--opt,currentColor);transition:background .16s,border-color .16s,transform .16s}
+.tt-scale input:checked + label{border-color:var(--opt,var(--accent));color:#fff;background:var(--opt,var(--accent))}
+.tt-scale input:checked + label .tt-dot{background:#fff;border-color:#fff;transform:scale(1.08)}
+.tt-scale input:focus-visible + label{outline:2px solid var(--opt,var(--accent));outline-offset:2px}
+
+.tt-error{color:var(--accent);font-size:.88rem;font-weight:600;margin:14px 0 0;text-align:center}
+.tt-actions{display:flex;gap:10px;margin:28px 0;flex-wrap:wrap}
 .tt-actions .btn-xl{flex:1;min-width:180px}
 
 .tt-verdict{border:1px solid var(--border);border-radius:18px;background:var(--surface);
@@ -1972,9 +1993,44 @@ a.gh-name{color:var(--accent)}
 .tt-reading-head span{font-size:.74rem;color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums}
 .tt-reading p{font-size:.84rem;line-height:1.8;color:var(--text-dim);margin:0}
 .tt-deep-note{font-size:.75rem;color:var(--gold);margin:16px 0 0}
-.tt-deep-teaser{font-size:.88rem;line-height:1.8;color:var(--text-dim);margin:0 0 16px;max-width:56ch}
+.tt-deep-teaser{font-size:.88rem;line-height:1.8;color:var(--text-dim);margin:0 0 14px;max-width:58ch}
 .tt-deep-btn{width:100%;max-width:320px}
 .tt-deep{border-color:rgba(217,164,65,.35)}
+
+/* 鎖住時列出「解鎖後有什麼」,把價值講清楚,讓看廣告/付費的動機更明確 */
+.tt-deep-list{margin:0 0 18px;padding:0}
+.tt-deep-list li{position:relative;padding:5px 0 5px 26px;font-size:.85rem;color:var(--text);line-height:1.6}
+.tt-deep-list li::before{content:'✓';position:absolute;left:4px;top:5px;color:var(--gold);font-weight:700}
+
+/* 優勢 / 盲點:綠=好消息,rose=要留意,一眼分得出來 */
+.tt-swgrid{display:grid;grid-template-columns:1fr;gap:10px;margin:18px 0 4px}
+@media(min-width:560px){ .tt-swgrid{grid-template-columns:1fr 1fr} }
+.tt-sw{border:1px solid var(--border);border-radius:12px;padding:13px 15px;background:var(--bg)}
+.tt-sw p{font-size:.85rem;line-height:1.7;color:var(--text);margin:6px 0 0}
+.tt-sw-tag{font-size:.68rem;letter-spacing:.12em;font-weight:700;text-transform:uppercase}
+.tt-sw-plus{border-left:3px solid #5fd08a}
+.tt-sw-plus .tt-sw-tag{color:#5fd08a}
+.tt-sw-minus{border-left:3px solid var(--accent)}
+.tt-sw-minus .tt-sw-tag{color:var(--accent)}
+
+/* 合拍 / 磨合 */
+.tt-pair{border-radius:12px;padding:12px 15px;margin-bottom:8px;background:var(--bg);border:1px solid var(--border)}
+.tt-pair p{font-size:.85rem;line-height:1.7;color:var(--text);margin:5px 0 0}
+.tt-pair-tag{font-size:.68rem;letter-spacing:.12em;font-weight:700;text-transform:uppercase}
+.tt-pair-match{border-left:3px solid #5fd08a}
+.tt-pair-match .tt-pair-tag{color:#5fd08a}
+.tt-pair-friction{border-left:3px solid var(--gold)}
+.tt-pair-friction .tt-pair-tag{color:var(--gold)}
+
+/* 給對方看的一句話 —— 這一頁最該被分享的東西,做成引言卡 */
+.tt-partner{margin:22px 0 4px;border-radius:14px;padding:18px 20px;
+  background:linear-gradient(135deg,rgba(var(--glow-rgb),.10),rgba(var(--glow-rgb),.03));
+  border:1px solid rgba(var(--glow-rgb),.28)}
+.tt-partner-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin-bottom:10px}
+.tt-partner-title{font-size:.72rem;letter-spacing:.12em;font-weight:700;text-transform:uppercase;color:var(--accent)}
+.tt-partner-hint{font-size:.74rem;color:var(--text-dim)}
+.tt-partner-quote{font-size:1rem;line-height:1.85;color:var(--text);margin:0;padding-left:16px;
+  border-left:3px solid var(--accent);font-style:normal;text-wrap:pretty}
 
 /* 手機上選項的字太小,而且五格擠成一排點不準 */
 @media(max-width:420px){
@@ -1982,3 +2038,287 @@ a.gh-name{color:var(--accent)}
   .tt-scale label{font-size:.62rem;padding:10px 1px;line-height:1.25}
   .tt-dot{width:8px;height:8px}
 }
+
+/* ==========================================================================
+   個人頁 / 公開檔案 —— 可個人化配色
+   顏色由 .pf-wrap 的 inline style 帶入(--pf-accent/--pf-from/--pf-to),
+   值都來自 config/profile 的白名單,不是使用者自由輸入,所以沒有 CSS 注入。
+   ========================================================================== */
+.pf-wrap{max-width:720px;padding-top:24px;padding-bottom:60px}
+.pf-banner{height:140px;border-radius:18px;position:relative;
+  background:linear-gradient(135deg,var(--pf-from,#f43f5e),var(--pf-to,#fb7185));
+  background-size:cover;background-position:center;
+  box-shadow:inset 0 -40px 60px -30px rgba(0,0,0,.35)}
+
+/* 共用 SVG icon:1em 方形、跟著文字色與大小 */
+.pf-ico{width:1em;height:1em;display:inline-block;vertical-align:-.125em;flex:none}
+
+/* 拖曳調整圖片焦點(編輯頁) */
+.pf-draggable{cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.pf-draggable:active{cursor:grabbing}
+.pf-draggable img{cursor:inherit}
+.pf-drag-hint{position:absolute;left:12px;bottom:12px;background:rgba(0,0,0,.55);color:#fff;
+  font-size:.72rem;padding:3px 10px;border-radius:99px;pointer-events:none;backdrop-filter:blur(2px)}
+/* position:relative + z-index 讓頭像疊在橫幅之上 —— 橫幅設了 position:relative
+   (放拖曳提示用),沒有這個的話「有定位的橫幅」會蓋過「未定位的頭像」。 */
+.pf-headline{display:flex;align-items:flex-end;gap:16px;margin:-46px 8px 0;flex-wrap:wrap;position:relative;z-index:2}
+.pf-avatar{width:96px;height:96px;border-radius:50%;overflow:hidden;flex:none;
+  border:4px solid var(--surface);background:var(--surface2);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.pf-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.pf-avatar-fallback{width:100%;height:100%;display:grid;place-items:center;color:#fff;
+  font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,var(--pf-from,#f43f5e),var(--pf-to,#fb7185))}
+.pf-avatar-sm{width:72px;height:72px;border-width:3px}
+.pf-avatar-sm .pf-avatar-fallback{font-size:1.6rem}
+.pf-headline-text{flex:1;min-width:180px;padding-bottom:4px}
+.pf-headline-text h1{font-size:clamp(1.4rem,4vw,1.8rem);font-weight:800;letter-spacing:-.01em;margin:0 0 4px}
+.pf-headline-text p{margin:0;font-size:.85rem;color:var(--text-dim);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pf-headline-actions{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:6px}
+.pf-tag{color:var(--pf-accent,#f43f5e);font-weight:600}
+.pf-since{color:var(--text-dim)}
+
+.btn-theme{background:var(--pf-accent,#f43f5e);color:#fff;border:0}
+.btn-theme:hover{filter:brightness(1.08)}
+
+.pf-owner-note{margin:18px 8px 0;padding:10px 14px;border-radius:10px;font-size:.82rem;
+  color:var(--pf-accent,#f43f5e);background:color-mix(in srgb,var(--pf-accent,#f43f5e) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--pf-accent,#f43f5e) 30%,transparent)}
+
+.pf-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-top:16px}
+.pf-card h2{font-size:.95rem;margin:0 0 14px}
+.pf-accent-card{border-color:color-mix(in srgb,var(--pf-accent,#f43f5e) 45%,var(--border));
+  background:linear-gradient(160deg,color-mix(in srgb,var(--pf-accent,#f43f5e) 10%,var(--surface)),var(--surface))}
+.pf-looking{font-size:1.05rem;line-height:1.6;margin:0;color:var(--text);font-weight:500}
+.pf-bio{font-size:.92rem;line-height:1.85;margin:0;color:var(--text);white-space:pre-line}
+.pf-hint{font-size:.78rem;color:var(--text-dim);line-height:1.6}
+
+/* 表單欄位 */
+.pf-field{display:block;margin-bottom:16px}
+.pf-field:last-child{margin-bottom:0}
+.pf-field>span{display:block;font-size:.82rem;color:var(--text-dim);margin-bottom:6px}
+.pf-field input,.pf-field textarea{width:100%;padding:11px 13px;background:var(--bg);
+  border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.92rem;font-family:inherit}
+.pf-field input:focus,.pf-field textarea:focus{outline:2px solid var(--pf-accent,#f43f5e);outline-offset:1px;border-color:transparent}
+.pf-field textarea{resize:vertical;line-height:1.7}
+
+/* 頭像上傳列 */
+.pf-avatar-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.pf-avatar-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pf-file{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+
+/* 配色選擇器 */
+.pf-theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px}
+.pf-swatch{cursor:pointer;text-align:center}
+.pf-swatch input{position:absolute;opacity:0;width:0;height:0}
+.pf-swatch-chip{display:block;height:44px;border-radius:10px;border:2px solid transparent;
+  background:linear-gradient(135deg,var(--sw-from),var(--sw-to));transition:transform .12s,border-color .12s}
+.pf-swatch-name{display:block;font-size:.74rem;color:var(--text-dim);margin-top:5px}
+.pf-swatch:hover .pf-swatch-chip{transform:translateY(-2px)}
+.pf-swatch input:checked + .pf-swatch-chip{border-color:var(--text);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--text)}
+.pf-swatch input:checked ~ .pf-swatch-name{color:var(--text);font-weight:600}
+.pf-swatch input:focus-visible + .pf-swatch-chip{outline:2px solid #fff;outline-offset:2px}
+
+/* 公開開關 */
+.pf-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem}
+.pf-toggle input{position:absolute;opacity:0;width:0;height:0}
+.pf-toggle-track{width:42px;height:24px;border-radius:99px;background:var(--surface2);
+  border:1px solid var(--border);position:relative;transition:background .16s;flex:none}
+.pf-toggle-dot{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:var(--text-dim);transition:transform .16s,background .16s}
+.pf-toggle input:checked + .pf-toggle-track{background:var(--pf-accent,#f43f5e);border-color:transparent}
+.pf-toggle input:checked + .pf-toggle-track .pf-toggle-dot{transform:translateX(18px);background:#fff}
+.pf-toggle input:focus-visible + .pf-toggle-track{outline:2px solid var(--pf-accent,#f43f5e);outline-offset:2px}
+
+/* 公開頁的屬性標籤 */
+.pf-trait-chip{display:inline-block;padding:8px 16px;border-radius:99px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--pf-from,#f43f5e),var(--pf-to,#fb7185))}
+.pf-trait-cta{display:inline-block;margin-top:14px;font-size:.85rem;color:var(--pf-accent,#f43f5e)}
+
+/* ── 個人頁編輯:移除鈕、橫幅縮圖、裁切彈窗(九宮格) ── */
+.pf-remove-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.82rem;
+  padding:7px 14px;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);transition:.15s;line-height:1.1}
+.pf-remove-btn:hover{color:var(--text)}
+.pf-remove-btn input{position:absolute;opacity:0;width:0;height:0}
+.pf-remove-btn:has(input:checked){color:#fff;background:#dc2626;border-color:#dc2626}
+
+.pf-banner-thumb{height:96px;border-radius:12px;border:1px solid var(--border);
+  background:linear-gradient(135deg,var(--pf-from,#f43f5e),var(--pf-to,#fb7185));
+  background-size:cover;background-position:center}
+
+.pf-crop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;
+  background:rgba(0,0,0,.62);backdrop-filter:blur(3px)}
+.pf-crop[hidden]{display:none}
+.pf-crop-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:20px;width:100%;max-width:540px;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);text-align:center}
+.pf-crop-box h3{font-size:1.05rem;font-weight:700;margin:0 0 14px}
+/* 顯示整張圖;stage 依圖片大小收縮,方框在圖上移動 */
+.pf-crop-stage{position:relative;display:inline-block;line-height:0;overflow:hidden;border-radius:10px;
+  background:#0b0d14;max-width:100%}
+#pf-crop-src{display:block;max-width:min(86vw,470px);max-height:52vh;width:auto;height:auto;
+  -webkit-user-drag:none;user-select:none}
+/* 選取框:外面用超大 box-shadow 壓暗,框內清楚 */
+.pf-crop-sel{position:absolute;box-sizing:border-box;border:2px solid #fff;cursor:move;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.55)}
+.pf-crop-sel.is-round{border-radius:50%}
+.pf-crop-grid{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.45) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.45) 1px,transparent 1px);
+  background-size:100% 33.333%,33.333% 100%}
+.pf-crop-handle{position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;
+  background:var(--pf-accent,#f43f5e);border:2px solid #fff;cursor:nwse-resize;touch-action:none}
+.pf-crop-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+/* ── 右下角成功/錯誤 toast(含倒數進度條) ── */
+.app-toast{position:fixed;right:20px;bottom:20px;z-index:1100;display:flex;align-items:center;gap:11px;
+  max-width:360px;padding:13px 14px 15px;border-radius:12px;background:var(--surface);
+  border:1px solid var(--border);box-shadow:0 18px 44px -14px rgba(0,0,0,.6);overflow:hidden;cursor:pointer;
+  animation:appToastIn .34s cubic-bezier(.22,.61,.36,1)}
+@keyframes appToastIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.app-toast.leaving{opacity:0;transform:translateY(14px);transition:.3s ease}
+.app-toast-ico{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff}
+.app-toast.is-ok .app-toast-ico{background:#22c55e}
+.app-toast.is-err .app-toast-ico{background:#ef4444}
+.app-toast-ico svg{width:16px;height:16px}
+.app-toast-msg{font-size:.9rem;color:var(--text);line-height:1.45;flex:1}
+.app-toast-x{background:none;border:0;color:var(--text-dim);cursor:pointer;padding:2px;flex:none;display:grid;place-items:center}
+.app-toast-x:hover{color:var(--text)}
+.app-toast-x svg{width:15px;height:15px}
+.app-toast-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent-hover))}
+.app-toast.is-err .app-toast-bar{background:#ef4444}
+@media(max-width:480px){.app-toast{right:12px;left:12px;bottom:12px;max-width:none}}
+
+/* ── 通知鈴鐺(右上角) ── */
+/* 用 .nav-dropdown-toggle 的 flex 對齊(display:flex;align-items:center),不要自己
+   改 display,否則會和其他導覽項目對不齊(跑版)。只調 padding 與 icon 尺寸。 */
+.nav-notif-toggle{position:relative;padding:6px 8px;color:var(--text-dim);background:none}
+.nav-notif-toggle:hover{color:var(--text)}
+/* 純圖示的開關不要 ▾:多出來的箭頭會把按鈕撐寬,絕對定位的未讀紅點
+   (掛在按鈕右上角)就會落在箭頭上,而不是鈴鐺的角上。 */
+.nav-notif-toggle::after{content:none}
+.nav-notif-ico{width:19px;height:19px;display:block}
+.nav-notif-dot{position:absolute;top:2px;right:2px;min-width:15px;height:15px;padding:0 4px;border-radius:999px;
+  background:var(--accent);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+/* 通知面板置中(走 .nav-dropdown-menu 基準的 left:50% + translateX(-50%)),
+   只調寬度與內距。不要在這裡覆寫 transform —— 蓋掉 translateX(-50%) 就不置中了。 */
+.nav-notif-menu{min-width:280px;padding:0!important}
+.nav-notif-head{padding:12px 16px;font-weight:700;font-size:.9rem;border-bottom:1px solid var(--border)}
+.nav-notif-empty{padding:34px 20px;text-align:center;color:var(--text-dim)}
+.nav-notif-empty-ico{width:34px;height:34px;opacity:.45;margin-bottom:8px}
+.nav-notif-empty p{font-size:.85rem;margin:0}
+
+/* ── 公開頁:棋盤清單、編輯頁的子開關 ── */
+.pf-subtoggles{margin-top:4px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
+.pf-boards{display:flex;flex-direction:column;gap:8px}
+.pf-board-chip{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;
+  border:1px solid var(--border);border-radius:10px;background:var(--bg);transition:border-color .14s,transform .14s;color:inherit}
+.pf-board-chip:hover{border-color:var(--pf-accent,#f43f5e);transform:translateY(-1px)}
+.pf-board-name{font-weight:600;font-size:.9rem;color:var(--text)}
+.pf-board-meta{font-size:.76rem;color:var(--pf-accent,#f43f5e);white-space:nowrap}
+
+/* ── 性壓抑指數測驗 ────────────────────────────────────────────────
+   版面、題目、長條、FAQ 全部沿用上面的 tt-*:兩個測驗是同一個東西的兩種問法,
+   長得不一樣只會讓人以為走錯站。這裡只補「屬性測驗沒有」的四樣:
+   面向清單、指數的大數字、五個級距的刻度尺,以及免責聲明。 */
+
+/* 面向清單。題目還沒展開之前,這是這一頁唯一說得出「在測什麼」的內容,
+   所以放在封面正下方,不是塞在結果頁。 */
+.rp-dims{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rp-dim{display:grid;grid-template-columns:6.5em 1fr;gap:10px;align-items:baseline;
+  padding:9px 12px;border-radius:10px;background:var(--bg);border-left:2px solid var(--tt,var(--gold))}
+.rp-dim strong{font-size:.84rem;color:var(--text)}
+.rp-dim span{font-size:.78rem;color:var(--text-dim);line-height:1.7}
+@media(max-width:480px){
+  .rp-dim{grid-template-columns:1fr;gap:2px}
+}
+
+/* 指數本身。這一頁的主角是一個數字,所以它要比屬性名還大 ——
+   tabular-nums 是為了讓 8 和 88 的寬度一致,重新整理不會跳動。 */
+.rp-index{font-size:clamp(2.6rem,9vw,3.6rem);font-weight:800;line-height:1;letter-spacing:-.03em;
+  color:var(--tt,var(--gold));font-variant-numeric:tabular-nums;margin-bottom:6px}
+.rp-index small{font-size:.32em;font-weight:600;color:var(--text-dim);margin-left:4px;letter-spacing:0}
+
+/* 五個級距的刻度尺。同時是三件事:自己落在哪、整條線長什麼樣、通往另外四頁的
+   內部連結。用 ol 是因為它本來就有順序。 */
+.rp-scale{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rp-step a{display:block;padding:10px 6px;border-radius:10px;background:var(--bg);
+  border:1px solid var(--border);border-top:3px solid var(--tt,var(--gold));
+  text-align:center;color:inherit;transition:transform .14s,border-color .14s}
+.rp-step a:hover{transform:translateY(-2px);border-color:var(--tt,var(--gold))}
+.rp-step.is-current a{background:var(--surface2);border-color:var(--tt,var(--gold))}
+.rp-step-label{display:block;font-size:.72rem;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.rp-step-name{display:block;font-size:.76rem;font-weight:600;margin-top:3px;color:var(--text);
+  line-height:1.35;text-wrap:balance}
+@media(max-width:560px){
+  /* 五格擠在手機寬度會把「幾乎不壓抑」折成五行。橫向捲比折行好讀,
+     而且刻度尺本來就是一條線,捲動的手勢和它的語意一致。 */
+  .rp-scale{grid-template-columns:repeat(5,minmax(96px,1fr));overflow-x:auto;
+    scroll-snap-type:x mandatory;padding-bottom:4px}
+  .rp-step{scroll-snap-align:start}
+}
+
+/* 免責聲明。刻意不做成警示紅框 —— 這不是錯誤訊息,是一句該讀到的話。 */
+.rp-disclaimer{font-size:.76rem;color:var(--text-dim);line-height:1.8;margin:0 0 16px;
+  padding:12px 14px;border:1px dashed var(--border);border-radius:10px}
+
+.rp-cross{font-size:.82rem;color:var(--text-dim);text-align:center;margin:18px 0 0}
+.rp-cross a{color:var(--gold);text-decoration:underline;text-underline-offset:3px}
+
+/* ── 年齡確認覆蓋層(age_gate_mode = overlay)─────────────────────────
+   舊的做法是「沒確認就換一頁」,那讓 Googlebot 與真人拿到不同內容 —— 也就是
+   cloaking。改成覆蓋層之後兩邊 HTML 一致,遮蔽這件事全部交給這裡的 CSS。
+
+   底下的頁面確實在 DOM 裡,所以遮要遮得夠實:不透明度高的底色 + 強模糊,
+   讓內容在確認之前是看不清楚的,而不是「半透明還讀得到」。 */
+body.age-locked{overflow:hidden}
+
+.age-overlay{
+  position:fixed;inset:0;z-index:2000;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:rgba(8,10,16,.92);
+  /* 沒有 backdrop-filter 的瀏覽器上,上面那層底色本身就已經幾乎不透明了 ——
+     模糊是加分,不是這道遮蔽的唯一依靠。 */
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  overscroll-behavior:contain;overflow-y:auto;
+}
+.age-overlay-card{
+  position:relative;overflow:hidden;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:44px 36px;max-width:440px;width:100%;text-align:center;
+  box-shadow:0 20px 48px rgba(0,0,0,.5);
+}
+.age-overlay-card::before{
+  content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:320px;max-width:100%;height:220px;pointer-events:none;
+  background:radial-gradient(ellipse at center, rgba(244,63,94,.14) 0%, transparent 70%);
+}
+.age-overlay-card > *{position:relative}
+.age-overlay-card h2{font-size:1.4rem;color:var(--text);margin-bottom:16px;font-weight:800;letter-spacing:-.2px}
+.age-overlay-card p{line-height:1.75;margin-bottom:12px;font-size:.92rem;color:var(--text-dim)}
+.age-overlay-card .warning{font-size:.98rem;color:var(--text);margin-bottom:26px;line-height:1.7}
+
+/* 下面這幾個 class 名稱和獨立閘門頁一樣,但那一頁自帶 inline <style>、
+   是另一份文件,兩邊不會互相影響。名稱刻意一致,改文案時才不用兩套心智模型。 */
+.age-overlay .age-badge{
+  display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--accent);background:rgba(244,63,94,.1);
+  border:1px solid rgba(244,63,94,.3);padding:4px 14px;border-radius:20px;margin-bottom:20px;
+}
+.age-overlay .age-gate-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.age-overlay .age-gate-btns form{flex:1;min-width:140px}
+.age-overlay .btn-enter{
+  background:var(--accent);color:#fff;border:none;border-radius:8px;padding:13px 32px;
+  font-size:.95rem;font-weight:700;cursor:pointer;width:100%;
+  transition:background .15s ease,transform .1s ease;
+}
+.age-overlay .btn-enter:hover{background:#fb7185}
+.age-overlay .btn-enter:active{transform:scale(.98)}
+.age-overlay .btn-leave{
+  background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:8px;
+  padding:13px 32px;font-size:.95rem;cursor:pointer;flex:1;min-width:100px;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+.age-overlay .btn-leave:hover{background:var(--surface2);color:var(--text)}
+.age-overlay .age-gate-links{font-size:.8rem;color:var(--text-dim);margin-top:16px}
+.age-overlay .age-gate-links a{color:var(--text-dim);text-decoration:underline;margin:0 8px}
+.age-overlay .age-gate-links a:hover{color:var(--accent)}

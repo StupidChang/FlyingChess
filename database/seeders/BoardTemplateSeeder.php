@@ -29,8 +29,12 @@ class BoardTemplateSeeder extends Seeder
     {
         // ── Square layout templates ──
 
+        /* 名稱刻意和預設棋盤不同。兩張都叫「輕度暖身版」的時候(預設棋盤 44 格、
+           這個範本 32 格),兩頁的 <title> 一模一樣 —— 棋盤頁的 title 完全來自
+           name,所以撞名就是自己跟自己搶排名。見 Board::isPubliclyIndexable()
+           與 SitemapConsistencyTest 裡的重複標題檢查。 */
         $this->createTemplate(
-            '輕度暖身版',
+            '浪漫暖身版',
             '適合剛開始的情侶，溫馨浪漫的互動任務',
             false,
             [
@@ -717,7 +721,7 @@ class BoardTemplateSeeder extends Seeder
         Board::whereNull('user_id')
             ->where('is_template', true)
             ->whereNotIn('name', [
-                '情侶飛行棋 V2.0', '輕度暖身版', '飲酒派對版', '初戀重溫版',
+                '情侶飛行棋 V2.0', '浪漫暖身版', '飲酒派對版', '初戀重溫版',
                 '健身後升溫版', '成人派對互動版', '居家放鬆版', '旅館升溫版',
                 '角色扮演版', '曖昧升溫版', '情侶深度互動版', '極限派對挑戰版',
                 '新婚之夜版', '感官覺醒版',

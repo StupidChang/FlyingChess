@@ -34,12 +34,23 @@ return [
         'USD' => ['symbol' => 'US$', 'decimals' => 2],
         'TWD' => ['symbol' => 'NT$', 'decimals' => 0],
         'JPY' => ['symbol' => '¥', 'decimals' => 0],
+        'CNY' => ['symbol' => '¥', 'decimals' => 0],
     ],
 
-    // 語系 → 幣別。空的 = 全部顯示 default_currency。加之前請先讀上面的說明。
+    /*
+     * 語系 → 幣別。每個語系顯示自己的幣別與價格(價格在下面 plans.*.amounts 各幣別
+     * 各自標,不做匯率換算)。要改某個語系的價格,改對應幣別的 amounts 即可。
+     *
+     * ⚠ 目前金流是 DisabledGateway(結帳一律擋下,線上實際生效的是「看廣告解鎖」),
+     *   所以這裡開著只影響**顯示**,不會發生「顯示這個幣別、卻扣另一個幣別」的問題。
+     *   等接上真的金流時,務必確認那個金流商能結算這裡列出的每一種幣別,否則要把
+     *   不能結算的語系從這裡拿掉(寧可顯示 default_currency,也不要顯示假幣別)。
+     */
     'locale_currency' => [
-        // 'zh_TW' => 'TWD',
-        // 'ja'    => 'JPY',
+        'zh_TW' => 'TWD',
+        'zh_CN' => 'CNY',
+        'ja' => 'JPY',
+        'en' => 'USD',
     ],
 
     // 文案裡「起價」引用的方案(首頁 FAQ、meta description 等)
@@ -51,11 +62,11 @@ return [
     'plans' => [
         'monthly' => [
             'days' => 30,
-            'amounts' => ['USD' => 7.99, 'TWD' => 249, 'JPY' => 1200],
+            'amounts' => ['USD' => 7.99, 'TWD' => 249, 'JPY' => 1200, 'CNY' => 45],
         ],
         'yearly' => [
             'days' => 365,
-            'amounts' => ['USD' => 34.99, 'TWD' => 1090, 'JPY' => 5200],
+            'amounts' => ['USD' => 34.99, 'TWD' => 1090, 'JPY' => 5200, 'CNY' => 198],
         ],
     ],
 

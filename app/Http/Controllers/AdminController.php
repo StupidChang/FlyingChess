@@ -7,10 +7,13 @@ use App\Models\Feedback;
 use App\Models\Game;
 use App\Models\GamePrompt;
 use App\Models\PageView;
+use App\Models\Setting;
 use App\Models\TruthDareCard;
 use App\Models\User;
 use App\Models\WheelSegment;
 use App\Rules\NoBlockedWords;
+use App\Support\LocaleHelper;
+use App\Support\Pricing;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -298,6 +301,65 @@ class AdminController extends Controller
     }
 
     // ── Dashboard ──
+
+    /**
+     * 定價管理。價格結構(有哪些幣別、方案幾天)仍在 config/premium.php,這一頁
+     * 只讓管理員覆寫「各方案在各幣別的金額」與「各語系顯示哪種幣別」,存進 settings
+     * 表,由 AppServiceProvider::mergePricingOverrides 疊回 config。
+     */
+    public function pricing()
+    {
+        return view('admin.pricing.index', [
+            'plans' => config('premium.plans', []),
+            'currencies' => config('premium.currencies', []),
+            'localeCurrency' => config('premium.locale_currency', []),
+            'defaultCurrency' => Pricing::defaultCurrency(),
+            'locales' => LocaleHelper::supported(),
+        ]);
+    }
+
+    public function updatePricing(Request $request)
+    {
+        $knownCurrencies = array_keys((array) config('premium.currencies', []));
+        $planKeys = array_keys((array) config('premium.plans', []));
+        $localeCodes = array_keys(LocaleHelper::supported());   // available_locales 以語系碼為鍵
+
+        $request->validate([
+            'amounts' => ['array'],
+            'amounts.*' => ['array'],
+            'amounts.*.*' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'locale_currency' => ['array'],
+            'locale_currency.*' => ['nullable', Rule::in($knownCurrencies)],
+        ]);
+
+        // 只收「已定義的方案 × 已定義的幣別」的金額;空白代表沿用 config 預設。
+        $amounts = [];
+        foreach ((array) $request->input('amounts', []) as $plan => $byCurrency) {
+            if (! in_array($plan, $planKeys, true)) {
+                continue;
+            }
+            foreach ((array) $byCurrency as $cur => $amount) {
+                if (in_array($cur, $knownCurrencies, true) && is_numeric($amount)) {
+                    $amounts[$plan][$cur] = 0 + $amount;
+                }
+            }
+        }
+
+        // 語系 → 幣別。空值代表該語系用 default_currency。
+        $localeCurrency = [];
+        foreach ((array) $request->input('locale_currency', []) as $locale => $cur) {
+            if (in_array($locale, $localeCodes, true) && in_array($cur, $knownCurrencies, true)) {
+                $localeCurrency[$locale] = $cur;
+            }
+        }
+
+        Setting::setValue('pricing', [
+            'amounts' => $amounts,
+            'locale_currency' => $localeCurrency,
+        ]);
+
+        return redirect()->route('admin.pricing')->with('success', '定價已更新');
+    }
 
     public function dashboard()
     {

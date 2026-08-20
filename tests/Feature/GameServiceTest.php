@@ -35,7 +35,7 @@ class GameServiceTest extends TestCase
     public function test_tab_identity_fits_database_column(): void
     {
         $response = $this->withoutMiddleware(ValidateCsrfToken::class)
-            ->withHeader('User-Agent', 'Googlebot')
+            ->asAgeVerified()
             ->withHeader('X-Tab-Id', str_repeat('x', 500))
             ->post('/tw/games', [
                 'player_name' => 'Host',

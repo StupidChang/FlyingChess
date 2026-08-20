@@ -21,6 +21,20 @@ class BoardController extends Controller
         }
     }
 
+    /**
+     * 已上架(送審中/已核准)的棋盤,只要改到「玩起來會看到的內容」就退回 pending
+     * 重審。少了這個,可以先送一個溫和版本過審、核准後再改成任意內容,而棋盤仍掛在
+     * /community 對所有訪客放送 —— 等於繞過人工審核。以前只有 update()/updateSquare()
+     * 有這個檢查,其餘七個 mutator(rules/canvas/path/bulk/store/destroy/preset)沒有,
+     * 那正是破口。集中成一個 helper,新增 mutator 時照呼叫即可。
+     */
+    private function requeueIfPublished(Board $board): void
+    {
+        if ($board->isPublished()) {
+            $board->update(['publish_status' => Board::PUBLISH_PENDING]);
+        }
+    }
+
     public function index()
     {
         $boards = Board::withCount('squares')
@@ -203,6 +217,8 @@ class BoardController extends Controller
                 : null,
         ]);
 
+        $this->requeueIfPublished($board);
+
         return response()->json(['success' => true]);
     }
 
@@ -215,6 +231,8 @@ class BoardController extends Controller
             'canvas_cols' => 'required|integer|min:3|max:30',
         ]);
         $board->update($data);
+
+        $this->requeueIfPublished($board);
 
         return response()->json(['success' => true]);
     }
@@ -246,6 +264,8 @@ class BoardController extends Controller
             'female' => empty($data['female']) ? null : $data['female'],
         ]]);
 
+        $this->requeueIfPublished($board);
+
         return response()->json(['success' => true]);
     }
 
@@ -265,6 +285,8 @@ class BoardController extends Controller
                 ->where('position', $sq['position'])
                 ->update(['grid_row' => $sq['grid_row'], 'grid_col' => $sq['grid_col']]);
         }
+
+        $this->requeueIfPublished($board);
 
         return response()->json(['success' => true]);
     }
@@ -293,6 +315,8 @@ class BoardController extends Controller
             'grid_row' => $data['grid_row'],
             'grid_col' => $data['grid_col'],
         ]);
+
+        $this->requeueIfPublished($board);
 
         return response()->json(['success' => true, 'position' => $nextPos, 'square' => [
             'text' => '',
@@ -324,6 +348,8 @@ class BoardController extends Controller
             }
         }
         $board->update(['path_data' => $pd]);
+
+        $this->requeueIfPublished($board);
 
         return response()->json(['success' => true]);
     }
@@ -385,6 +411,8 @@ class BoardController extends Controller
             }
             $board->update(['canvas_rows' => 11, 'canvas_cols' => 11, 'path_data' => ['all' => range(0, 20), 'male' => null, 'female' => null]]);
         }
+
+        $this->requeueIfPublished($board);
 
         $board->load('squares');
 

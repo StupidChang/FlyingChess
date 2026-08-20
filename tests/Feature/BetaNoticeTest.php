@@ -79,6 +79,11 @@ class BetaNoticeTest extends TestCase
     {
         config(['beta.notice' => true]);
 
+        /* 測的是**獨立**的年齡確認頁,所以要把模式釘在 interstitial —— 預設的
+           overlay 模式下訪客拿到的是完整頁面加一層覆蓋層,那一頁本來就有公告卡,
+           只是被 z-index 2000 的覆蓋層蓋住(見 public/css/app.css)。 */
+        config(['content.age_gate_mode' => 'interstitial']);
+
         // 這一頁是獨立版型,而且是使用者看到的第一個畫面 —— 不要在上面再疊一張卡
         $this->withMiddleware(AgeVerification::class)
             ->get('/tw')

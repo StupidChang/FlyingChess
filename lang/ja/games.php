@@ -209,6 +209,8 @@ return [
     'copy_link' => 'リンクをコピー',
     'copied' => 'コピーしました ✓',
     'role_partner' => 'あなたはパートナーです',
+    'claim_partner_hint' => '招待されたパートナーですか?下のボタンで参加すると、追加や投票ができます。',
+    'claim_partner_btn' => 'パートナーとして参加',
     'role_owner_short' => '作成者',
     'role_partner_short' => 'パートナー',
     'delete_btn' => '削除',

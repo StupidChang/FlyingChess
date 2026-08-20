@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Setting;
 use App\Support\LocaleHelper;
 use App\Support\Payments\PaymentGateway;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -11,6 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->mergePricingOverrides();
+
         $resetUrl = function ($notifiable, string $token) {
             $prefix = LocaleHelper::localeToPrefix(app()->getLocale())
                 ?? LocaleHelper::localeToPrefix(LocaleHelper::defaultLocale());
@@ -101,5 +105,55 @@ class AppServiceProvider extends ServiceProvider
                 ->line(__('mail.reset_line3'))
                 ->salutation(__('mail.salutation'));
         });
+    }
+
+    /**
+     * 把後台改過的定價覆寫進 runtime config。
+     *
+     * 價格「結構」(有哪些幣別、方案幾天)仍以 config/premium.php 為準;這裡只把
+     * 管理員在 /admin/pricing 存進 settings 表的**金額**與**語系→幣別對應**疊上去。
+     * 因為只動既有的鍵、且以 config 定義的幣別/方案為白名單,後台填錯不會污染設定。
+     *
+     * 放在 boot():即使 config 被 cache,boot 每個請求都會跑,所以覆寫照樣生效;
+     * DB 讀取有 Setting 的快取,不會每個請求打一次 DB。整段包在 try 裡 —— migrate
+     * 之前(settings 表還沒建)不該讓整站起不來。
+     */
+    private function mergePricingOverrides(): void
+    {
+        try {
+            $override = Setting::getValue('pricing');
+        } catch (Throwable) {
+            return;   // 資料表還沒建 / DB 尚未就緒
+        }
+
+        if (! is_array($override)) {
+            return;
+        }
+
+        $knownCurrencies = array_keys((array) config('premium.currencies', []));
+
+        // 金額:plans.{plan}.amounts.{currency}
+        foreach ((array) ($override['amounts'] ?? []) as $plan => $byCurrency) {
+            if (! is_array(config("premium.plans.{$plan}"))) {
+                continue;   // 不是已定義的方案就跳過
+            }
+            foreach ((array) $byCurrency as $cur => $amount) {
+                if (! in_array($cur, $knownCurrencies, true) || ! is_numeric($amount)) {
+                    continue;
+                }
+                config(["premium.plans.{$plan}.amounts.{$cur}" => 0 + $amount]);
+            }
+        }
+
+        // 語系 → 幣別。只收「值是已定義幣別」的項目。
+        if (is_array($override['locale_currency'] ?? null)) {
+            $map = [];
+            foreach ($override['locale_currency'] as $locale => $cur) {
+                if (in_array($cur, $knownCurrencies, true)) {
+                    $map[$locale] = $cur;
+                }
+            }
+            config(['premium.locale_currency' => $map]);
+        }
     }
 }
