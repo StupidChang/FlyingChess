@@ -58,7 +58,7 @@
    顏色只用 --accent(玫瑰)當編輯用的強調色。--gold 在這個站是付費/金錢專用
    (見 CLAUDE.md 的設計代幣),文章內容不該借用它,不然「金色 = 要付錢」
    這個訊號會被稀釋。 */
-.gd-page{--gd-body:#c5cad8;max-width:720px;margin:0 auto;padding:36px 20px 72px}
+.gd-page{--gd-body:#c5cad8;max-width:900px;margin:0 auto;padding:36px 20px 72px}
 [data-theme="light"] .gd-page{--gd-body:#3f4658}
 .gd-crumb{font-size:.8rem;color:var(--text-dim);margin-bottom:14px}
 .gd-crumb a{color:var(--text-dim);text-decoration:underline;text-underline-offset:3px}
@@ -68,8 +68,8 @@
 .gd-meta{font-size:.78rem;color:var(--text-dim);margin-bottom:22px}
 
 /* 導言。比內文大一級、左邊一條主色 —— 一眼看得出「這一段是總結」。 */
-.gd-lead{font-size:1.04rem;line-height:1.95;color:var(--text);margin:0 0 30px;
-  padding:2px 0 2px 16px;border-left:3px solid var(--accent)}
+.gd-lead{font-size:clamp(1.02rem,.98rem + .3vw,1.2rem);line-height:1.95;color:var(--text);
+  margin:0 0 30px;padding:2px 0 2px 18px;border-left:3px solid var(--accent)}
 
 /* 目錄。長文沒有目錄的話,從搜尋進來的人看不出這一頁有沒有他要的東西就跳掉了。 */
 .gd-toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:40px}
@@ -85,8 +85,8 @@
 /* 段落之間拉開,並用一條細線收尾 —— 捲動的時候看得出上一節結束了。 */
 .gd-section{margin:0 0 14px;padding-bottom:26px;border-bottom:1px solid var(--border);scroll-margin-top:80px}
 .gd-section:last-of-type{border-bottom:0}
-.gd-section h2{display:flex;align-items:center;gap:10px;font-size:1.16rem;font-weight:800;
-  line-height:1.45;margin:28px 0 14px}
+.gd-section h2{display:flex;align-items:center;gap:11px;font-size:clamp(1.14rem,1.06rem + .3vw,1.32rem);
+  font-weight:800;line-height:1.45;margin:30px 0 15px}
 .gd-h2-mark{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;
   color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
   border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
@@ -96,22 +96,26 @@
   font-variant-numeric:tabular-nums;opacity:.55}
 
 /* 內文比標題暗一階。全部同一個白的時候,標題等於沒有存在感。 */
-.gd-section p{line-height:1.95;margin:0 0 14px;color:var(--gd-body)}
+/* 字級跟著版面一起長。中文一行超過大約 50 字就會開始跳行 —— 版面加寬之後
+   不把字級一起帶上去,每行的字數會爆掉,反而更難讀。 */
+.gd-section p{font-size:clamp(.96rem,.92rem + .3vw,1.12rem);line-height:2;
+  margin:0 0 16px;color:var(--gd-body)}
 .gd-section p strong,.gd-lead strong{color:var(--text);font-weight:700;
   background:linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 26%, transparent) 62%)}
 
 /* 清單。自訂圓點,而且第一層縮排跟內文對齊。 */
 .gd-list{margin:16px 0;padding-left:2px;list-style:none}
-.gd-list li{position:relative;padding-left:20px;line-height:1.9;margin-bottom:12px;color:var(--gd-body)}
+.gd-list li{position:relative;padding-left:22px;font-size:clamp(.95rem,.91rem + .28vw,1.1rem);
+  line-height:1.95;margin-bottom:13px;color:var(--gd-body)}
 .gd-list li::before{content:'';position:absolute;left:4px;top:.72em;width:6px;height:6px;
   border-radius:50%;background:var(--accent);opacity:.8}
 .gd-list strong{color:var(--text);font-weight:700}
 
 /* 重點框。一節裡最該被記住的那一句 —— 掃頁的人只讀這些也拿得到重點。 */
-.gd-section p.gd-note{margin:16px 0 4px;padding:13px 15px;border-radius:10px;
+.gd-section p.gd-note{margin:18px 0 4px;padding:14px 17px;border-radius:10px;
   background:color-mix(in srgb, var(--accent) 9%, var(--surface));
   border:1px solid color-mix(in srgb, var(--accent) 26%, transparent);
-  color:var(--text);font-size:.93rem;line-height:1.85}
+  color:var(--text);font-size:clamp(.94rem,.9rem + .25vw,1.07rem);line-height:1.9}
 .gd-note-tag{font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--accent);
   margin-right:6px;vertical-align:1px}
 
@@ -127,12 +131,13 @@
 .gd-faq{margin-top:44px}
 .gd-faq h2{font-size:1.16rem;font-weight:800;margin-bottom:14px}
 .gd-faq-item{border-bottom:1px solid var(--border);padding:14px 0}
-.gd-faq-item summary{cursor:pointer;font-weight:700;font-size:.94rem;line-height:1.6;
+.gd-faq-item summary{cursor:pointer;font-weight:700;font-size:clamp(.95rem,.91rem + .2vw,1.03rem);line-height:1.6;
   display:flex;gap:9px;align-items:baseline;list-style:none}
 .gd-faq-item summary::-webkit-details-marker{display:none}
 .gd-faq-item summary::before{content:'Q';flex:0 0 auto;font-size:.76rem;color:var(--accent);font-weight:800}
 .gd-faq-item[open] summary{color:var(--accent)}
-.gd-faq-item p{margin:10px 0 0 19px;line-height:1.9;color:var(--gd-body);font-size:.9rem}
+.gd-faq-item p{margin:10px 0 0 19px;line-height:1.95;color:var(--gd-body);
+  font-size:clamp(.92rem,.88rem + .2vw,1rem)}
 
 .gd-related{margin-top:44px;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:18px 20px}
 .gd-related h2{font-size:1rem;margin-bottom:4px}
