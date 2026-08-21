@@ -552,20 +552,11 @@
   transform-style: preserve-3d;
   transform: rotateX(0) rotateY(0);
 }
-/* Two-stage roll: fast tumble (0–60%) → decelerating settle (60–100%) */
-.dice-cube.rolling {
-  animation: diceRoll3d .9s cubic-bezier(.2,.45,.35,1) forwards;
-}
-.dice-cube.landing {
-  transition: transform .55s cubic-bezier(.22,.68,.36,1.2);
-}
-@keyframes diceRoll3d {
-  0%   { transform: rotateX(0)      rotateY(0)      rotateZ(0)      scale(1); }
-  30%  { transform: rotateX(540deg) rotateY(380deg) rotateZ(170deg) scale(1.08); }
-  60%  { transform: rotateX(810deg) rotateY(580deg) rotateZ(280deg) scale(1.04); }
-  85%  { transform: rotateX(880deg) rotateY(690deg) rotateZ(340deg) scale(1); }
-  100% { transform: rotateX(900deg) rotateY(720deg) rotateZ(360deg) scale(1); }
-}
+/* 翻滾與落面都由 JS 驅動(見 board.js 的 roll3dDice)。
+   這裡刻意**沒有** keyframe:舊版的 @keyframes diceRoll3d 結束在
+   rotateX(900deg) rotateY(720deg),而 900 ≡ 180、720 ≡ 0 —— 等於每次都停在
+   同一個面,然後才轉去真正的點數。動畫的最後一格必須就是結果,
+   而那件事只有知道結果的 JS 做得到。 */
 /* Landing squash & stretch bounce (applied on the scene so cube rotation is untouched) */
 .dice-scene.dice-landed { animation: diceSquash3d .45s cubic-bezier(.34,1.56,.64,1); }
 @keyframes diceSquash3d {
@@ -591,8 +582,7 @@
   box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
 }
 @media (prefers-reduced-motion: reduce) {
-  .dice-cube.rolling { animation: none; }
-  .dice-cube.landing { transition: none; }
+  .dice-cube { transition: none !important; }
   .dice-scene.dice-landed { animation: none; }
   .dice-overlay,
   .dice-overlay.active { transition: none; backdrop-filter: none; -webkit-backdrop-filter: none; }

@@ -152,18 +152,40 @@ function build3dCube() {
 }
 
 // Rotation to show each face value
-const FACE_ROTATIONS = {
-  1: 'rotateX(0deg) rotateY(0deg)',
-  2: 'rotateX(-90deg) rotateY(0deg)',
-  3: 'rotateX(0deg) rotateY(90deg)',
-  4: 'rotateX(0deg) rotateY(-90deg)',
-  5: 'rotateX(90deg) rotateY(0deg)',
-  6: 'rotateX(0deg) rotateY(180deg)',
+const FACE_ROT = {
+  1: { x: 0, y: 0 },
+  2: { x: -90, y: 0 },
+  3: { x: 0, y: 90 },
+  4: { x: 0, y: -90 },
+  5: { x: 90, y: 0 },
+  6: { x: 0, y: 180 },
 };
+const FACE_ROTATIONS = Object.fromEntries(
+  Object.entries(FACE_ROT).map(([v, r]) => [v, `rotateX(${r.x}deg) rotateY(${r.y}deg)`])
+);
 
-/** Animate 3D dice roll and resolve with value */
+/** 0–359 的等效角度。往前收的時候要用它算「還要再轉多少才會到那一面」。 */
+function mod360(deg) {
+  return ((deg % 360) + 360) % 360;
+}
+
+/**
+ * 擲骰動畫。**動畫停下來的那一面就是骰出來的點數。**
+ *
+ * 舊版是兩段式,而且兩段是壞的:
+ *
+ *   1. CSS 的 @keyframes diceRoll3d 結束在 rotateX(900deg) rotateY(720deg) ——
+ *      900 ≡ 180、720 ≡ 0,也就是**每次都停在同一個面**(玩家看到的「六」)。
+ *   2. 那段動畫只有 0.9s,但 JS 是在 1400ms 才切到 landing —— 中間那 500ms
+ *      骰子凍在那個固定面上(玩家說的「停一下」)。
+ *   3. 然後 landing 要從 900deg 倒轉回目標角度,倒轉本身又是一段看得見的動畫,
+ *      所以看起來像「先骰出六,再跳成真正的點數」。
+ *
+ * 現在改成 rAF 自己轉,收尾**往前**收到結果面(加上到那一面的差角再多轉一圈),
+ * 全程同一個方向、同一條時間軸。秒數只寫在這裡一份,不會再和 CSS 對不上。
+ */
 function roll3dDice() {
-  return new Promise(function(resolve) {
+  return new Promise(function (resolve) {
     const overlay = document.getElementById('dice-overlay');
     const cube = document.getElementById('dice-cube');
     const result = Math.floor(Math.random() * 6) + 1;
@@ -175,46 +197,89 @@ function roll3dDice() {
     const reduced = window.matchMedia
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Show overlay
     overlay.classList.add('active');
 
     if (reduced) {
       // Reduced motion: show the result face directly, briefly
       cube.className = 'dice-cube';
+      cube.style.transition = 'none';
       cube.style.transform = FACE_ROTATIONS[result];
-      setTimeout(function() {
+      setTimeout(function () {
         overlay.classList.remove('active');
         resolve(result);
       }, 650);
       return;
     }
 
-    // Stage 1: fast tumble → decelerating settle (CSS keyframe, .9s)
-    cube.className = 'dice-cube rolling';
-    cube.style.transform = '';
+    const TUMBLE_MS = 1000;   // 自由翻滾
+    const LAND_MS = 720;      // 減速落到結果面
+    const HOLD_MS = 620;      // 停在結果上讓人看清楚
 
-    /* 時間點要跟 board.css 的 .dice-cube.rolling / .landing 對齊:
-       翻滾 1.4s → 落面 0.68s(1400 起算)→ 觸地彈跳 → 收掉。
-       改 CSS 的秒數就要一起改這裡,不然會在動畫還沒跑完時切到下一段。 */
+    // ── 自由翻滾:三軸各自的角速度,每一場都不一樣 ──
+    const s = {
+      rx: 0, ry: 0, rz: 0,
+      vx: 700 + Math.random() * 320,   // deg/s
+      vy: 560 + Math.random() * 320,
+      vz: (Math.random() < .5 ? -1 : 1) * (200 + Math.random() * 160),
+      last: performance.now(),
+      raf: 0,
+    };
+    cube.className = 'dice-cube';
+    cube.style.transition = 'none';
 
-    // Stage 2: land on result face (overshoot bezier transition)
-    setTimeout(function() {
-      cube.className = 'dice-cube landing';
-      cube.style.transform = FACE_ROTATIONS[result];
-    }, 1400);
+    const step = function (now) {
+      const dt = Math.min((now - s.last) / 1000, .05);
+      s.last = now;
+      s.rx += s.vx * dt;
+      s.ry += s.vy * dt;
+      s.rz += s.vz * dt;
+      cube.style.transform =
+        'rotateX(' + s.rx.toFixed(1) + 'deg) rotateY(' + s.ry.toFixed(1) + 'deg) rotateZ(' + s.rz.toFixed(1) + 'deg)';
+      s.raf = requestAnimationFrame(step);
+    };
+    s.raf = requestAnimationFrame(step);
 
-    // Stage 3: squash & stretch bounce on touchdown
-    setTimeout(function() {
+    // ── 落面:往前收,不倒轉 ──
+    setTimeout(function () {
+      cancelAnimationFrame(s.raf);
+      const tgt = FACE_ROT[result];
+      /* 加「到那一面的差角」再多轉一圈,所以永遠是繼續往前轉、減速停住。
+         Z 收回整數圈(差角取最短),不然骰面的點會是斜的。 */
+      const fx = s.rx + mod360(tgt.x - s.rx) + 360;
+      const fy = s.ry + mod360(tgt.y - s.ry) + 360;
+      const dz = mod360(-s.rz);
+      const fz = s.rz + (dz > 180 ? dz - 360 : dz);
+
+      /* 先把翻滾的最後姿態「釘」成一個沒有過渡的明確值,強制一次 reflow,
+         再換上過渡與目標 —— 少了這一步,瀏覽器可能把兩次樣式變更併成一次,
+         過渡的起點會變成翻滾**開始前**的角度:實測有三分之一的次數骰面停在
+         上一輪的點數上,而那就是回報的「停在六再跳掉」。 */
+      cube.style.transition = 'none';
+      cube.style.transform =
+        'rotateX(' + s.rx.toFixed(1) + 'deg) rotateY(' + s.ry.toFixed(1) + 'deg) rotateZ(' + s.rz.toFixed(1) + 'deg)';
+      void cube.offsetHeight;
+
+      cube.style.transition = 'transform ' + (LAND_MS / 1000) + 's cubic-bezier(.17,.85,.3,1.01)';
+      cube.style.transform =
+        'rotateX(' + fx.toFixed(1) + 'deg) rotateY(' + fy.toFixed(1) + 'deg) rotateZ(' + fz.toFixed(1) + 'deg)';
+    }, TUMBLE_MS);
+
+    // ── 觸地彈跳 ──
+    setTimeout(function () {
       if (scene) scene.classList.add('dice-landed');
-    }, 2080);
+    }, TUMBLE_MS + LAND_MS - 60);
 
-    // Hide overlay after landing — 多留 500ms 讓人看清楚停在幾點
-    setTimeout(function() {
+    // ── 收掉 ──
+    setTimeout(function () {
       overlay.classList.remove('active');
-      cube.className = 'dice-cube';
       if (scene) scene.classList.remove('dice-landed');
+      /* 骰面留在結果上(不重設成面 1)—— 重設會讓它在關掉的瞬間轉回去,那一下
+         也是一種「跳」。但要把過渡關掉並把角度收成該面的標準值:留著過渡的話,
+         下一輪的起點會是「還在過渡中」的狀態,誤差會一輪一輪累積。 */
+      cube.style.transition = 'none';
+      cube.style.transform = FACE_ROTATIONS[result];
       resolve(result);
-    }, 2600);
+    }, TUMBLE_MS + LAND_MS + HOLD_MS);
   });
 }
 
