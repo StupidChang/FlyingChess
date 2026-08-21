@@ -124,6 +124,11 @@
         <section class="tt-card">
             <h2>{{ __('repression.result.dimensions_title') }}</h2>
             <p class="tt-hint">{{ __('repression.result.dimensions_hint') }}</p>
+
+            {{-- 形狀先看,數字後看:全面偏高和只有一項突出是兩種狀態,
+                 長條圖要一條一條比才看得出來 --}}
+            @include('partials.repression-radar')
+
             <div id="tt-bars">
                 @foreach($result['dimensions'] as $d)
                 <div class="tt-bar {{ $d['pct'] < 40 ? 'is-dim' : '' }}">

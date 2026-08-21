@@ -326,6 +326,32 @@ class TraitTestTest extends TestCase
         );
     }
 
+    public function test_the_compass_plots_the_axes_and_only_when_there_is_a_score(): void
+    {
+        /* 象限圖是伺服器端算好座標的 SVG(沒有 JS)。這裡守兩件事:落點必須在畫布
+           範圍內 —— 算錯的話點會跑到圖外面,而畫面上只會看起來「沒有點」;
+           以及沒有分數的人不該看到一張空圖。 */
+        $service = app(TraitTestService::class);
+        $result = $service->score($this->allAnswers(2));
+
+        $html = $this->withSession(['trait_result' => $result])
+            ->get('/tw/trait-test/'.__('traits.items.'.$result['top'].'.slug'))
+            ->assertOk()
+            ->getContent();
+
+        preg_match_all('/tt-map-dot" cx="([0-9.]+)" cy="([0-9.]+)"/', $html, $m);
+        $this->assertCount(2, $m[1], '四條光譜要畫成兩張圖');
+
+        foreach (array_merge($m[1], $m[2]) as $coord) {
+            $this->assertGreaterThanOrEqual(0, (float) $coord);
+            $this->assertLessThanOrEqual(100, (float) $coord);
+        }
+
+        $this->get('/tw/trait-test/'.__('traits.items.tease.slug'))
+            ->assertOk()
+            ->assertDontSee('tt-map-dot', false);
+    }
+
     public function test_the_axis_reading_follows_the_actual_score(): void
     {
         $service = app(TraitTestService::class);

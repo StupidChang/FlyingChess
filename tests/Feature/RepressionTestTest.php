@@ -260,6 +260,48 @@ class RepressionTestTest extends TestCase
             ]));
     }
 
+    public function test_the_radar_keeps_the_config_order_not_the_score_order(): void
+    {
+        /* 雷達的價值在「形狀可以跨人比較」,而那只在五個角的順序固定時才成立。
+           照分數排序的話每個人的軸都不一樣,形狀就沒有意義了 —— 而畫面上看起來
+           完全正常,所以只有測試抓得到。 */
+        $service = app(RepressionTestService::class);
+
+        /* 造一份只有「表達受阻」偏高、其他偏低的答案卷。全部答同一邊的話五個面向
+           都是 100%,排序後仍然是 config 順序 —— 那樣測不出任何東西。 */
+        $answers = [];
+        foreach (config('repression.questions') as $i => $q) {
+            $high = ($q['dim'] ?? null) === 'voice';
+            $toward = ($q['dir'] ?? 1) > 0 ? $high : ! $high;
+            $answers[$i] = $toward ? RepressionTestService::MAX : RepressionTestService::MIN;
+        }
+        $result = $service->score($answers);
+
+        // 分數排序後的第一名不是 config 的第一項,才驗得出這件事
+        $this->assertNotSame(
+            array_key_first((array) config('repression.dimensions')),
+            $result['dimensions'][0]['key'],
+            '這份答案卷剛好照 config 順序,換一份才測得出排序問題'
+        );
+
+        $html = $this->asAgeVerified()
+            ->withSession(['repression_result' => $result])
+            ->get('/tw/repression-test/'.$service->slug($result['band']))
+            ->assertOk()
+            ->getContent();
+
+        preg_match_all('/rp-radar-name[^>]*>([^<]+)</', $html, $m);
+        $expected = array_map(
+            fn ($key) => trans("repression.dimensions.{$key}.name", [], 'zh_TW'),
+            array_keys((array) config('repression.dimensions'))
+        );
+        $this->assertSame($expected, $m[1]);
+
+        // 五個面向 = 五個頂點,而且多邊形不能塌成一個點
+        preg_match('/rp-radar-area" points="([^"]+)"/', $html, $poly);
+        $this->assertCount(count($expected), explode(' ', $poly[1]));
+    }
+
     public function test_the_structured_data_only_claims_what_the_page_shows(): void
     {
         // articleBody 寫了頁面上沒有的東西就是 cloaking

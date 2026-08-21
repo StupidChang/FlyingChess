@@ -2301,6 +2301,40 @@ a.gh-name{color:var(--accent)}
   border-radius:50%;background:var(--surface2);color:var(--gold);font-size:.7rem;font-weight:700;
   display:grid;place-items:center;font-variant-numeric:tabular-nums}
 
+/* ── 象限定位圖(屬性測驗)──
+   兩張圖並排,標籤用 HTML 放在 SVG 外面而不是 <text>:手機上字級與換行都好控制。 */
+.tt-maps{display:grid;grid-template-columns:1fr;gap:18px;margin:14px 0 6px}
+@media(min-width:520px){ .tt-maps{grid-template-columns:1fr 1fr} }
+.tt-map{margin:0}
+.tt-map-grid{position:relative;padding:18px 30px}
+.tt-map-svg{display:block;width:100%;height:auto;overflow:visible}
+.tt-map-bg{fill:var(--bg);stroke:var(--border);stroke-width:.8}
+.tt-map-q{stroke:var(--border);stroke-width:.4;opacity:.55}
+.tt-map-axis{stroke:var(--border);stroke-width:.8}
+.tt-map-ray{stroke:var(--gold);stroke-width:1.1;opacity:.5}
+.tt-map-halo{fill:var(--gold);opacity:.16}
+.tt-map-dot{fill:var(--gold);stroke:var(--bg);stroke-width:1}
+.tt-map-lbl{position:absolute;font-size:.68rem;color:var(--text-dim);white-space:nowrap}
+.tt-map-lbl.is-top{top:0;left:50%;transform:translateX(-50%)}
+.tt-map-lbl.is-bottom{bottom:0;left:50%;transform:translateX(-50%)}
+.tt-map-lbl.is-left{left:0;top:50%;transform:translateY(-50%)}
+.tt-map-lbl.is-right{right:0;top:50%;transform:translateY(-50%)}
+.tt-map-cap{font-size:.76rem;color:var(--text-dim);text-align:center;margin:6px 0 0}
+.tt-map-cap b{color:var(--gold);font-weight:600}
+
+/* ── 五邊形雷達(性壓抑)── */
+.rp-radar-wrap{margin:12px 0 18px}
+.rp-radar{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;overflow:visible}
+.rp-radar-ring{fill:none;stroke:var(--border);stroke-width:.6;opacity:.6}
+.rp-radar-ring.is-outer{opacity:1;stroke-width:.9}
+.rp-radar-spoke{stroke:var(--border);stroke-width:.5;opacity:.7}
+.rp-radar-area{fill:var(--accent);fill-opacity:.20;stroke:var(--accent);stroke-width:1.6;
+  stroke-linejoin:round}
+.rp-radar-dot{fill:var(--accent);stroke:var(--bg);stroke-width:.8}
+.rp-radar-name{fill:var(--text);font-size:8px;font-weight:600}
+.rp-radar-pct{fill:var(--gold);font-size:7.5px;font-variant-numeric:tabular-nums}
+.rp-radar-hint{text-align:center;max-width:44ch;margin:4px auto 0}
+
 .rp-disclaimer{font-size:.76rem;color:var(--text-dim);line-height:1.8;margin:0 0 16px;
   padding:12px 14px;border:1px dashed var(--border);border-radius:10px}
 

@@ -51,7 +51,7 @@ return [
     'axes' => ['DS', 'PE', 'OR', 'IG'],
 
     /*
-     * 90 題,分六段。
+     * 102 題,分七段。
      *
      *   section  分段標題的 key(只在該段第一題出現)
      *   axis     [光譜, 方向]。方向 0 表示這題不計入任何光譜,只餵屬性
@@ -166,6 +166,35 @@ return [
         ['axis' => ['DS', 1], 'weights' => ['coach' => 3, 'caregiver' => 1]],
         ['axis' => ['DS', -1], 'weights' => ['sub' => 2, 'devotee' => 1]],
         ['axis' => ['OR', -1], 'weights' => ['guardian' => 3]],
+
+        /* ── 90-101 角色、觀看與抵抗 ──
+           2026-08-21 補題。加在**全部末尾**而不是各段末尾:插在中間會把後面所有
+           題號往後推,而題號是使用者回報問題時唯一的座標。
+
+           為什麼補這三個屬性:switch 原本只有 3 題、而且權重全是 3,百分比只有
+           七種可能的取值(0/17/33/50/67/83/100),使用者看到的是跳格不是分數;
+           voyeur 3 題、brat 4 題同樣偏低。題目數少還有第二個後果 —— 變異大、
+           容易衝到極端,所以隨機作答時 voyeur 當上主屬性的機率是 devotee 的
+           二十倍,結果頁的流量會極度不均。
+
+           新題的權重刻意混用 1/2/3。全部給 3 的話取值只能跳三格,補題也補不到
+           解析度 —— 那正是 switch 原本的問題。 */
+        ['section' => 'flow', 'axis' => ['DS', 0], 'weights' => ['switch' => 2, 'coach' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['switch' => 3]],
+        ['axis' => ['DS', 0], 'weights' => ['switch' => 2, 'explorer' => 1]],
+        /* 只餵 switch、權重 1:解析度需要一個「跳一格」的題目。原本這題還加了
+           dom+1 與 sub+1(壓人和被壓都享受,兩邊確實都算),但那會抵掉第 8 題的
+           switch+3/dom-1/sub-1 —— 共現表上 switch 和 dom 的淨值變成 0,
+           「容易互為反面」那一區就少了最該出現的一組。留單一權重乾淨得多。 */
+        ['axis' => ['DS', 0], 'weights' => ['switch' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['switch' => 3, 'pleaser' => 1]],
+        ['axis' => ['OR', 1], 'weights' => ['voyeur' => 2, 'exhib' => 1]],
+        ['axis' => ['OR', 1], 'weights' => ['voyeur' => 1, 'verbal' => 1]],
+        ['axis' => ['OR', 1], 'weights' => ['voyeur' => 2, 'tease' => 1]],
+        ['axis' => ['OR', 0], 'weights' => ['voyeur' => 3, 'sensual' => -1]],
+        ['axis' => ['DS', -1], 'weights' => ['brat' => 2, 'tease' => 1]],
+        ['axis' => ['DS', -1], 'weights' => ['brat' => 3, 'verbal' => 1]],
+        ['axis' => ['DS', 0], 'weights' => ['brat' => 1, 'guardian' => 1]],
     ],
 
     /*

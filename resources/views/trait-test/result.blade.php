@@ -141,6 +141,10 @@
         <section class="tt-card">
             <h2>{{ __('traits.result.spectrums') }}</h2>
             <p class="tt-hint">{{ __('traits.result.spectrums_hint') }}</p>
+
+            {{-- 圖先、逐條後:先看到「我在哪」,再看四條線各自的數字 --}}
+            @include('partials.trait-compass')
+
             @foreach($axes as $id => $a)
                 @php
                     $v = $result['axes'][$id] ?? 0;
