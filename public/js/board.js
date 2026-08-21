@@ -239,13 +239,54 @@ function updateHeaderVar() {
 /* Size the board to the wrap's actual free space (padding excluded),
    preserving the grid's aspect ratio. */
 /* 一格的可讀下限。52px 試過,字級只有 8.8px —— 看得到有字,但讀不出寫什麼。
-   64px 對應到約 10.9px,是這個字量下實際讀得動的最小尺寸。 */
-const MIN_CELL = 64;
+   78px 是實測 30 字左右的格子讀得動的下限(13 欄的原版復刻盤面就是這個字量)。
+   低於下限不再縮,改讓棋盤超出視窗由 .board-wrap 捲動。 */
+const MIN_CELL = 78;
+
+/**
+ * 格子裡字級相對於格子邊長的比例。
+ *
+ * 固定比例做不到:短字的棋盤(「喝一口」)給 .19 才不會顯得空,而 30 字的格子
+ * 用 .19 會直接被裁掉一半。所以照這張棋盤**實際的字量**決定,由 JS 寫進
+ * --sq-text-factor,CSS 拿它算 font-size。
+ *
+ * 數字是從「n 行 × 每行幾字 ≥ 字數」推回來的:可用高度 ÷ (1.3 × 字級) 是行數,
+ * 可用寬度 ÷ 字級 是每行字數。
+ */
+function textFactorFor(squares) {
+  /* SQUARES_DATA 是以 position 當 key 的。position 剛好是 0..n-1 的時候 json_encode
+     給出陣列,中間有缺號就變成物件 —— 直接 .map 會 TypeError,而那會讓整張棋盤
+     畫不出來(比字太小嚴重得多)。 */
+  const list = Array.isArray(squares) ? squares : Object.values(squares || {});
+  const lengths = list
+    .map(sq => (sq && sq.text ? String(sq.text).replace(/\s/g, '').length : 0))
+    .sort((a, b) => b - a);
+  if (lengths.length === 0) return .19;
+
+  // 用第二長的字量當基準:只有一格特別長的話,不該讓整盤的字都跟著縮
+  const longest = lengths[Math.min(1, lengths.length - 1)];
+
+  /* 門檻是從容量公式回推的,不是憑感覺調的:
+       每行字數 ≈ (格子邊長 - 內距) / 字級
+       行數     ≈ (格子邊長 - 內距) / (1.28 × 字級)
+     兩個相乘要 ≥ 字數,而且要留約 1.3 倍的餘裕給「行末塞不下就換行」的截斷。
+     解出來 字級 ≤ (邊長 - 9) / √(1.28 × 字數 × 1.3)。
+
+     注意容量跟格子大小**無關** —— 寬高一起放大時字級也一起放大,能放的字數
+     是比例的函數。所以格子變大只會讓同樣的字變好讀,不會讓更多字放得進去。 */
+  if (longest <= 12) return .19;
+  if (longest <= 20) return .15;
+  if (longest <= 30) return .125;
+
+  return .11;
+}
 
 function sizeGameBoard(board, cols, rows) {
   const wrap = board.closest('.board-wrap');
   const ar = cols / rows;
-  let maxW = Math.min(window.innerWidth * 0.96, 960);
+  /* 桌機的寬度上限。原本一律 960px,13 欄的棋盤每格只剩 73px、字被上限卡在
+     11px 還放不完 —— 欄數多的棋盤本來就需要更寬的版面。 */
+  let maxW = Math.min(window.innerWidth * 0.96, cols >= 12 ? 1200 : 1040);
   let maxH = window.innerHeight - 205; // fallback if wrap not measurable yet
   if (wrap) {
     const cs = getComputedStyle(wrap);
@@ -272,6 +313,8 @@ function sizeGameBoard(board, cols, rows) {
   board.style.maxWidth = 'none';
   // 格子邊長給 CSS 用:格子裡的字級跟著它走,見 board.css 的 .sq-text。
   board.style.setProperty('--cell', Math.floor(bw / cols) + 'px');
+  // 字級比例照這張棋盤的字量調(見 textFactorFor)
+  board.style.setProperty('--sq-text-factor', textFactorFor(window.SQUARES_DATA));
 }
 
 /** 輪到的玩家現在應該在的位置:還沒進場是轉盤,進場了是他所在的格子。 */

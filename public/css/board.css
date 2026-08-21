@@ -134,7 +134,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 3px 4px;
+  padding: 2px 3px;
   border: 1px solid var(--border, #2a2f42);
   border-top: 3px solid var(--border, #2a2f42);
   cursor: default;
@@ -176,21 +176,28 @@
 /* 字級跟著格子走(--cell 由 sizeGameBoard 寫進 #game-board),不是跟著視窗。
    綁 vw 的話,手機上不管我們把格子放到多大,字都會停在 clamp 的下限。 */
 .sq-text {
-  font-size: clamp(7px, calc(var(--cell, 60px) * .17), 0.7rem);
-  line-height: 1.3;
+  /* 比例由 JS 照這張棋盤的字量寫進 --sq-text-factor(見 board.js 的 textFactorFor);
+     上限從 0.7rem 拉到 1.05rem —— 原本格子變大了字也不會變大,大螢幕上整張棋盤
+     的字都停在 11px。 */
+  font-size: clamp(7px, calc(var(--cell, 60px) * var(--sq-text-factor, .17)), 1.05rem);
+  line-height: 1.28;
   color: var(--text, #e9ebf2);
   font-weight: 600;
   word-break: break-word;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 5;
+  /* 原本卡在 5 行。30 字的格子需要 7 行才放得完,而 max-height:100% 本來就會
+     擋住溢出 —— 行數放寬只是「放得下就顯示」,不會讓格子被撐開。 */
+  -webkit-line-clamp: 7;
   -webkit-box-orient: vertical;
   max-height: 100%;
 }
 .board-sq.color-start .sq-text,
 .board-sq.color-end   .sq-text {
   font-weight: 800;
-  font-size: clamp(8px, calc(var(--cell, 60px) * .2), .8rem);
+  /* 只加粗,不放大 —— 終點那一格往往是整盤最長的一段(復刻盤面是 50 字),
+     字級再加大只會被裁掉更多。放不完的部分落格時會在視窗裡完整顯示。 */
+  font-size: clamp(8px, calc(var(--cell, 60px) * var(--sq-text-factor, .17)), 1.05rem);
 }
 
 /* ---- Position number badge ---- */
