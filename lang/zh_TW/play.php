@@ -77,6 +77,18 @@ return [
     'capture_help' => '關掉之後，棋子可以疊在同一格，誰都不會被送回起點。',
     'err_wheel_needs_enter' => '轉盤至少要有一格設定為「進場」，否則棋子永遠上不了場。',
     'sq_normal' => '普通',
+    'sq_start' => '起點',
+    'sq_end' => '終點',
+
+    /* 點格子看完整內容。格子小的時候文字一定會被裁掉(那是方形格子的幾何限制,
+       見 board.js 的 textFactorFor),所以要有一個看得到全文的地方。 */
+    'sq_info_title' => '第 :n 格',
+    'sq_info_close' => '關閉',
+    'sq_info_fly' => '停在這一格可以飛到第 :n 格',
+    'sq_info_move' => '停在這一格會移動 :n 格',
+    'sq_info_skip' => '停在這一格會跳過下一輪',
+    'sq_info_offpath' => '這一格不在這條路線上（是別的顏色的家門）',
+    'sq_info_hint' => '點任一格可看完整內容',
     'canvas_size' => '畫布大小：',
     'row_short' => '行',
     'col_short' => '列',

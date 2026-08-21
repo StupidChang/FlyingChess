@@ -122,6 +122,22 @@
 {{-- 進場轉盤沒有彈窗:擲完點數之後棋子直接在棋盤上那顆轉盤裡移到對應的扇形,
      結果寫在轉盤下方的標籤。見 board.js 的 spinEntryWheel。 --}}
 
+{{-- 格子詳情(唯讀)。方形格子放不下長文字是幾何限制,不是可以調掉的樣式問題 ——
+     所以要有一個看得到全文的地方。玩的時候點任一格都會開,不影響回合。 --}}
+<div id="sq-info-modal" class="modal sq-info-modal" role="dialog" aria-modal="true" aria-labelledby="sq-info-title">
+    <div class="modal-overlay" onclick="closeModal('sq-info-modal')"></div>
+    <div class="modal-box sq-info-box">
+        <button class="modal-close" onclick="closeModal('sq-info-modal')" aria-label="{{ __('play.sq_info_close') }}">✕</button>
+        <div id="sq-info-bar" class="sq-info-bar"></div>
+        <div class="sq-info-head">
+            <span id="sq-info-title" class="sq-info-num"></span>
+            <span id="sq-info-cat" class="sq-info-cat"></span>
+        </div>
+        <p id="sq-info-text" class="sq-info-text"></p>
+        <ul id="sq-info-notes" class="sq-info-notes"></ul>
+    </div>
+</div>
+
 <div id="action-modal" class="modal action-modal" role="dialog" aria-modal="true">
     <div class="modal-overlay"></div>
     <div class="modal-box action-box">
@@ -297,6 +313,23 @@
         'wheelWaiting' => __('play.js_wheel_waiting'),
         'winTitle'     => __('play.js_win_title'),
         'winText'      => __('play.js_win_text'),
+        // 點格子看完整內容
+        'sqInfoTitle'  => __('play.sq_info_title'),
+        'sqInfoFly'    => __('play.sq_info_fly'),
+        'sqInfoMove'   => __('play.sq_info_move'),
+        'sqInfoSkip'   => __('play.sq_info_skip'),
+        'sqInfoOffPath' => __('play.sq_info_offpath'),
+        'catAction'    => __('play.sq_action'),
+        'catDrink'     => __('play.sq_drink'),
+        'catDare'      => __('play.sq_dare'),
+        'catTruth'     => __('play.sq_truth'),
+        'catStrip'     => __('play.sq_strip'),
+        'catMove'      => __('play.sq_move'),
+        'catNormal'    => __('play.sq_normal'),
+        'catStart'     => __('play.sq_start'),
+        'catEnd'       => __('play.sq_end'),
+        'catMale'      => __('play.sq_male'),
+        'catFemale'    => __('play.sq_female'),
     ];
 @endphp
 

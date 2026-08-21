@@ -284,6 +284,64 @@ function roll3dDice() {
 }
 
 /* ═══════════════════════════════════════════════════
+   SQUARE INFO (read-only, play mode)
+   ═══════════════════════════════════════════════════ */
+
+const SQ_CATEGORY_KEY = {
+  action: 'catAction', drink: 'catDrink', dare: 'catDare', truth: 'catTruth',
+  strip: 'catStrip', move: 'catMove', normal: 'catNormal', start: 'catStart',
+  end: 'catEnd', male: 'catMale', female: 'catFemale',
+};
+
+/**
+ * 點格子看完整內容(唯讀)。
+ *
+ * 為什麼需要:格子裡放得下幾個字是「字級比例」的函數,跟格子多大無關
+ * (見 sizeGameBoard 上面那段)。長文字的棋盤 —— 例如逐格復刻的原版盤面,
+ * 最長的一格 50 字 —— 在方形格子裡一定會被裁掉。與其把字縮到看不清,
+ * 不如讓人點開來看。
+ *
+ * 不影響回合:純顯示,沒有任何狀態改變,隨時可以關。
+ */
+function openSqInfo(pos) {
+  const sq = (window.SQUARES_DATA || {})[pos];
+  const modal = document.getElementById('sq-info-modal');
+  if (!sq || !modal) return;
+
+  const bar = document.getElementById('sq-info-bar');
+  if (bar) bar.className = 'sq-info-bar color-' + (sq.color || 'normal');
+
+  const title = document.getElementById('sq-info-title');
+  if (title) title.textContent = tp('sqInfoTitle').replace(':n', pos);
+
+  const cat = document.getElementById('sq-info-cat');
+  if (cat) cat.textContent = tp(SQ_CATEGORY_KEY[sq.color] || 'catNormal');
+
+  const text = document.getElementById('sq-info-text');
+  if (text) text.textContent = sq.text || '';
+
+  /* 這一格會發生什麼事(飛行/移動/停一輪),以及它是不是不在這條路線上 ——
+     復刻的四人盤面上有 15 格是別人的家門,點開來看得出「這格你走不到」。 */
+  const notes = document.getElementById('sq-info-notes');
+  if (notes) {
+    notes.innerHTML = '';
+    const lines = [];
+    if (sq.fly_to != null) lines.push(tp('sqInfoFly').replace(':n', sq.fly_to));
+    if (sq.move_steps) lines.push(tp('sqInfoMove').replace(':n', sq.move_steps));
+    if (sq.skip_turn) lines.push(tp('sqInfoSkip'));
+    if (getEffectivePath('all').indexOf(pos) === -1) lines.push(tp('sqInfoOffPath'));
+    lines.forEach(function (line) {
+      const li = document.createElement('li');
+      li.textContent = line;
+      notes.appendChild(li);
+    });
+  }
+
+  openModal('sq-info-modal');
+}
+window.openSqInfo = openSqInfo;
+
+/* ═══════════════════════════════════════════════════
    BOARD RENDERING  (content + play modes)
    ═══════════════════════════════════════════════════ */
 let lastGrid = null;
@@ -495,7 +553,20 @@ function buildBoard() {
       ${isEditMode ? '<span class="edit-icon">✏</span>' : ''}
     `;
 
-    if (isEditMode) div.addEventListener('click', () => openSqModal(pos));
+    if (isEditMode) {
+      div.addEventListener('click', () => openSqModal(pos));
+    } else {
+      /* 遊玩模式:點格子看完整內容。方形格子放不下長文字是幾何限制(見
+         textFactorFor 的說明),所以一定要有一個看得到全文的地方。
+         也給鍵盤使用者一個入口 —— 只有滑鼠能開的資訊等於沒有。 */
+      div.tabIndex = 0;
+      div.setAttribute('role', 'button');
+      div.title = sq.text || '';
+      div.addEventListener('click', () => openSqInfo(pos));
+      div.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSqInfo(pos); }
+      });
+    }
     board.appendChild(div);
   });
 

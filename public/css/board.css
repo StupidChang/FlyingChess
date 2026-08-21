@@ -1150,3 +1150,47 @@
    單純一排文字按鈕會擠成一團看不出差別。 */
 .layout-preset-btn{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.25}
 .layout-preset-btn small{font-size:.62rem;opacity:.62;font-weight:400}
+
+/* ── 格子詳情(唯讀,遊玩模式點格子開啟)──
+   方形格子放不下長文字是幾何限制,不是可以調掉的樣式問題(見 board.js 的
+   textFactorFor)。這個視窗是「看得到全文」的那個地方。 */
+.sq-info-box { max-width: 460px; padding-top: 0; overflow: hidden; }
+.sq-info-bar { height: 5px; margin: 0 -24px 16px; background: var(--border, #2a2f42); }
+.sq-info-bar.color-action { background: var(--sq-action); }
+.sq-info-bar.color-drink  { background: var(--sq-drink); }
+.sq-info-bar.color-dare   { background: var(--sq-dare); }
+.sq-info-bar.color-truth  { background: var(--sq-truth); }
+.sq-info-bar.color-strip  { background: var(--sq-strip); }
+.sq-info-bar.color-move   { background: var(--sq-move); }
+.sq-info-bar.color-start  { background: var(--sq-start); }
+.sq-info-bar.color-end    { background: var(--sq-end); }
+.sq-info-bar.color-male   { background: var(--sq-male); }
+.sq-info-bar.color-female { background: var(--sq-female); }
+.sq-info-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.sq-info-num { font-size: .82rem; color: var(--text-dim, #9aa1b5); font-variant-numeric: tabular-nums; }
+.sq-info-cat {
+  font-size: .74rem; font-weight: 700; padding: 3px 10px; border-radius: 99px;
+  background: var(--surface2, #1d2130); color: var(--text, #e9ebf2);
+}
+/* 全文:這裡不裁字,想看的人就是為了看完 */
+.sq-info-text {
+  font-size: 1.02rem; line-height: 1.85; color: var(--text, #e9ebf2);
+  white-space: pre-wrap; margin: 0 0 4px; word-break: break-word;
+}
+.sq-info-notes { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
+.sq-info-notes li {
+  font-size: .84rem; line-height: 1.6; color: var(--text-dim, #9aa1b5);
+  padding-left: 18px; position: relative;
+}
+.sq-info-notes li::before {
+  content: '›'; position: absolute; left: 4px; color: var(--gold, #d9a441); font-weight: 700;
+}
+
+/* 遊玩模式的格子看得出可以點 */
+.play-mode .board-sq { cursor: pointer; }
+.play-mode .board-sq:hover,
+.play-mode .board-sq:focus-visible {
+  filter: brightness(1.18);
+  outline: 1px solid color-mix(in srgb, var(--gold, #d9a441) 55%, transparent);
+  outline-offset: -1px;
+}
