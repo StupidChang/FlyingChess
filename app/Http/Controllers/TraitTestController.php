@@ -99,6 +99,12 @@ class TraitTestController extends Controller
             'hreflangLocales' => LocaleHelper::hreflangSet((array) config('traits.translated', [])),
             'unlocked' => $unlocked,
             'axisReading' => $unlocked && $result ? $this->service->axisReading($result['axes']) : [],
+            /* 依據與共現都是從權重表現算的,**不上鎖**。免費的人至少要拿得到
+               「這一型是什麼」與「這個數字怎麼來的」;鎖住的是「你該怎麼做」
+               那一半(深入解讀、配對、光譜逐條)。 */
+            'basis' => $this->service->basis($key),
+            'related' => $this->service->related($key),
+            'confidence' => $result ? $this->service->confidence($result) : [],
         ]);
     }
 }

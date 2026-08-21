@@ -2032,6 +2032,41 @@ a.gh-name{color:var(--accent)}
 .tt-partner-quote{font-size:1rem;line-height:1.85;color:var(--text);margin:0;padding-left:16px;
   border-left:3px solid var(--accent);font-style:normal;text-wrap:pretty}
 
+/* ── 免費區:典型表現、日常、共現、依據 ──
+   這幾塊是從搜尋進來的人唯一讀得到的內容,所以排版要能單獨站得住,
+   不能假設上面有分數卡片。 */
+.tt-signals{margin:0;padding:0;list-style:none}
+.tt-signals li{position:relative;padding:7px 0 7px 22px;font-size:.88rem;line-height:1.7;
+  color:var(--text);border-bottom:1px solid var(--border)}
+.tt-signals li:last-child{border-bottom:0;padding-bottom:0}
+.tt-signals li::before{content:'';position:absolute;left:4px;top:15px;width:6px;height:6px;
+  border-radius:50%;background:var(--tt,var(--gold))}
+.tt-body{font-size:.9rem;line-height:1.9;color:var(--text-dim);margin:8px 0 0;max-width:60ch}
+
+/* 共現屬性:卡片本身就是連結,附一句總結才有點進去的理由 */
+.tt-rel{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+@media(min-width:560px){ .tt-rel{grid-template-columns:1fr 1fr} }
+.tt-rel-item{display:block;border:1px solid var(--border);border-left:3px solid var(--tt,var(--gold));
+  border-radius:0 12px 12px 0;background:var(--bg);padding:11px 14px;transition:border-color .16s,transform .16s}
+.tt-rel-item:hover{border-color:var(--tt,var(--gold));transform:translateY(-1px)}
+.tt-rel-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tt-rel-head strong{font-size:.86rem;color:var(--text)}
+.tt-rel-head em{font-style:normal;font-size:.7rem;color:var(--tt,var(--gold));white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.tt-rel-line{display:block;font-size:.78rem;line-height:1.65;color:var(--text-dim);margin-top:4px}
+
+/* 依據:數字用等寬對齊,看起來才像數據而不是文案 */
+.tt-basis-grid{display:grid;grid-template-columns:1fr;gap:1px;margin:14px 0 4px;
+  background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+@media(min-width:560px){ .tt-basis-grid{grid-template-columns:1fr 1fr} }
+.tt-basis-grid > div{background:var(--bg);padding:11px 14px}
+.tt-basis-grid dt{font-size:.72rem;color:var(--text-dim);margin-bottom:3px}
+.tt-basis-grid dd{font-size:.86rem;color:var(--text);margin:0;font-variant-numeric:tabular-nums}
+.tt-basis-list{margin:0;padding:0;list-style:none}
+.tt-basis-list li{position:relative;padding:6px 0 6px 20px;font-size:.85rem;line-height:1.75;color:var(--text)}
+.tt-basis-list li::before{content:'→';position:absolute;left:0;top:6px;color:var(--gold);font-size:.8rem}
+.tt-basis-p{font-size:.84rem;line-height:1.85;color:var(--text-dim);margin:0;max-width:64ch}
+
 /* 手機上選項的字太小,而且五格擠成一排點不準 */
 @media(max-width:420px){
   .tt-scale{grid-template-columns:repeat(5,1fr);gap:3px}

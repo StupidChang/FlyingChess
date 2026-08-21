@@ -8,6 +8,15 @@
 @section('robots', $translated ? 'index,follow' : 'noindex,follow')
 
 @section('schema')
+{{-- articleBody 要對得上畫面上真的看得到的內容 —— 只放免費那幾段,鎖住的深入
+     解讀不進來。結構化資料寫了頁面上沒有的東西,是 cloaking。 --}}
+@php
+    $articleBody = implode("\n", array_filter(array_merge(
+        [$item['long']],
+        (array) ($item['signals'] ?? []),
+        [$item['bedroom'] ?? null, $item['everyday'] ?? null],
+    )));
+@endphp
 <script type="application/ld+json">
 {!! json_encode([
     '@context' => 'https://schema.org',
@@ -16,7 +25,7 @@
             '@type' => 'Article',
             'headline' => __('traits.seo.result_title', ['name' => $item['name']]),
             'description' => $item['line'],
-            'articleBody' => $item['long'],
+            'articleBody' => $articleBody,
             'url' => route('trait-test.result', ['slug' => $item['slug']]),
             'inLanguage' => str_replace('_', '-', app()->getLocale()),
             'isPartOf' => ['@type' => 'Quiz', 'name' => __('traits.title'), 'url' => route('trait-test.show')],
@@ -63,6 +72,35 @@
                 </p>
             @endif
         </article>
+
+        {{-- 免費區。從搜尋或分享連結進來的人沒有分數,這幾段就是他讀到的全部 ——
+             在這之前只有一句總結加一段介紹,20 個結果頁對搜尋引擎幾乎是同一頁。
+             這裡每一型都不一樣,下面的共現與依據則是從權重表現算的。 --}}
+        @if(!empty($item['signals']))
+        <section class="tt-card">
+            <h2>{{ __('traits.result.signals', ['name' => $item['name']]) }}</h2>
+            <p class="tt-hint">{{ __('traits.result.signals_hint') }}</p>
+            <ul class="tt-signals">
+                @foreach($item['signals'] as $signal)
+                <li>{{ $signal }}</li>
+                @endforeach
+            </ul>
+        </section>
+        @endif
+
+        @if(!empty($item['bedroom']))
+        <section class="tt-card">
+            <h2>{{ __('traits.result.bedroom', ['name' => $item['name']]) }}</h2>
+            <p class="tt-body">{{ $item['bedroom'] }}</p>
+        </section>
+        @endif
+
+        @if(!empty($item['everyday']))
+        <section class="tt-card">
+            <h2>{{ __('traits.result.everyday') }}</h2>
+            <p class="tt-body">{{ $item['everyday'] }}</p>
+        </section>
+        @endif
 
         @if($result)
         <section class="tt-card">
@@ -203,6 +241,110 @@
                 </button>
             @endif
         </section>
+
+        {{-- 依據。**不上鎖** —— 免費的人至少要知道這個數字是怎麼來的,不然「你 87%
+             像露出型」跟星座沒兩樣。數字全部從 config 的權重表現算,題目改了這裡
+             跟著改;手寫的話遲早對不上,而對不上的依據比沒有依據更糟。 --}}
+        <section class="tt-card tt-basis">
+            <h2>{{ __('traits.result.basis_title') }}</h2>
+            <p class="tt-hint">{{ __('traits.result.basis_hint') }}</p>
+
+            <dl class="tt-basis-grid">
+                <div>
+                    <dt>{{ __('traits.result.basis_questions') }}</dt>
+                    <dd>{{ __('traits.result.basis_questions_v', ['n' => $basis['count'], 'total' => $basis['total']]) }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('traits.result.basis_sections') }}</dt>
+                    {{-- 用斜線不用頓號:段落名本身就含頓號(表達、界線與收尾),
+                         串起來會讀成兩個段落 --}}
+                    <dd>{{ implode(' / ', $basis['sections']) }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('traits.result.basis_reverse') }}</dt>
+                    <dd>{{ $basis['reverse']
+                        ? __('traits.result.basis_reverse_v', ['n' => $basis['reverse']])
+                        : __('traits.result.basis_reverse_none') }}</dd>
+                </div>
+                @foreach($basis['axes'] as $axis)
+                <div>
+                    <dt>{{ $axis['label'] }}</dt>
+                    <dd>{{ __('traits.result.basis_axis_v', ['n' => $axis['n'], 'total' => $axis['total'], 'lean' => $axis['lean']]) }}</dd>
+                </div>
+                @endforeach
+            </dl>
+
+            {{-- 有分數的人多一段:主屬性領先多少、有沒有並列、作答夠不夠明確。
+                 領先 1% 也印一頂王冠是這類測驗最容易誤導人的地方。 --}}
+            @if($confidence)
+            @php
+                $tied = collect($confidence['tied']);
+                $tiedText = $tied->take(3)->implode('、')
+                    . ($tied->count() > 3 ? __('traits.result.basis_tied_more', ['n' => $tied->count() - 3]) : '');
+            @endphp
+            <h3 class="tt-deep-sub">{{ __('traits.result.basis_your_title') }}</h3>
+            <ul class="tt-basis-list">
+                <li>{{ __('traits.result.basis_gap', [
+                    'top' => $confidence['top'], 'pct' => $confidence['pct'], 'gap' => $confidence['gap']]) }}</li>
+                @if($tied->isNotEmpty())
+                <li>{{ __('traits.result.basis_tied', [
+                    'within' => \App\Services\TraitTestService::TIED_WITHIN, 'names' => $tiedText]) }}</li>
+                @endif
+                <li>{{ __('traits.result.basis_strong', [
+                    'n' => $confidence['strong'], 'at' => \App\Services\TraitTestService::STRONG_AT]) }}</li>
+                @if(!empty($confidence['meta']))
+                <li>{{ __('traits.result.basis_answers', [
+                    'decisive' => $confidence['meta']['decisive'], 'neutral' => $confidence['meta']['neutral']]) }}</li>
+                @endif
+            </ul>
+            @endif
+
+            <h3 class="tt-deep-sub">{{ __('traits.result.basis_formula_title') }}</h3>
+            <p class="tt-basis-p">{{ __('traits.result.basis_formula') }}</p>
+
+            <h3 class="tt-deep-sub">{{ __('traits.result.basis_limits_title') }}</h3>
+            <p class="tt-basis-p">{{ __('traits.result.basis_limits', ['total' => $basis['total']]) }}</p>
+        </section>
+
+        {{-- 共現。不是手寫的「相關屬性」清單,是權重表本身的結構:同一題正權重餵到
+             的兩個屬性天生會一起升高,一正一負的互為反面。手寫清單遲早跟題目脫節。 --}}
+        @if($related['together'])
+        <section class="tt-card">
+            <h2>{{ __('traits.result.related', ['name' => $item['name']]) }}</h2>
+            <p class="tt-hint">{{ __('traits.result.related_hint') }}</p>
+            <div class="tt-rel">
+                @foreach($related['together'] as $rel)
+                <a class="tt-rel-item tt-c-{{ $rel['colour'] }}"
+                   href="{{ route('trait-test.result', ['slug' => $rel['slug']]) }}">
+                    <span class="tt-rel-head">
+                        <strong>{{ $rel['name'] }}</strong>
+                        <em>{{ __('traits.result.related_shared', ['n' => $rel['shared']]) }}</em>
+                    </span>
+                    <span class="tt-rel-line">{{ $rel['line'] }}</span>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
+        @if($related['against'])
+        <section class="tt-card">
+            <h2>{{ __('traits.result.tension') }}</h2>
+            <p class="tt-hint">{{ __('traits.result.tension_hint', ['name' => $item['name']]) }}</p>
+            <div class="tt-rel">
+                @foreach($related['against'] as $rel)
+                <a class="tt-rel-item tt-c-{{ $rel['colour'] }}"
+                   href="{{ route('trait-test.result', ['slug' => $rel['slug']]) }}">
+                    <span class="tt-rel-head">
+                        <strong>{{ $rel['name'] }}</strong>
+                        <em>{{ __('traits.result.tension_shared', ['n' => $rel['shared']]) }}</em>
+                    </span>
+                    <span class="tt-rel-line">{{ $rel['line'] }}</span>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
 
         {{-- 結果讀完了再放。剛揭曉就插一個廣告是這一頁最傷的位置。 --}}
         @include('partials.ad-unit', ['zone' => 'home_banner'])

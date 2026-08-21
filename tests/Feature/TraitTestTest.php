@@ -195,6 +195,123 @@ class TraitTestTest extends TestCase
             ->assertDontSee(__('traits.result.deep_locked'));
     }
 
+    public function test_a_visitor_without_a_score_still_gets_real_content(): void
+    {
+        /* 從搜尋進來的人沒有分數。在補上這幾段之前,他讀到的只有一句總結加一段
+           介紹 —— 20 個結果頁對搜尋引擎幾乎是同一頁。免費區必須自己站得住。 */
+        $item = __('traits.items.exhib');
+
+        $response = $this->get('/tw/trait-test/'.$item['slug'])->assertOk();
+
+        foreach ($item['signals'] as $signal) {
+            $response->assertSee($signal);
+        }
+        $response->assertSee($item['bedroom']);
+        $response->assertSee($item['everyday']);
+
+        // 而深入解讀還是鎖著的 —— 免費變多不等於把付費那半送出去
+        $response->assertDontSee($item['deep']);
+        $response->assertDontSee($item['partner_line']);
+    }
+
+    public function test_every_trait_has_the_free_content_filled_in(): void
+    {
+        // 少一型就是少一頁內容,而那一頁照樣會被收錄
+        foreach (__('traits.items') as $key => $item) {
+            $this->assertCount(4, $item['signals'] ?? [], "{$key} 的典型表現不是四條");
+            $this->assertNotEmpty($item['bedroom'] ?? null, "{$key} 少了「在床上長什麼樣子」");
+            $this->assertNotEmpty($item['everyday'] ?? null, "{$key} 少了「不只在床上」");
+        }
+    }
+
+    public function test_the_measurement_basis_is_computed_from_the_weight_table(): void
+    {
+        /* 依據如果是手寫的,題目一改就對不上,而對不上的依據比沒有依據更糟。
+           所以這裡拿 config 自己數一遍,跟頁面上的數字對。 */
+        $expected = 0;
+        $reverse = 0;
+        foreach (config('traits.questions') as $q) {
+            $w = $q['weights']['exhib'] ?? 0;
+            if ($w !== 0) {
+                $expected++;
+                $w < 0 and $reverse++;
+            }
+        }
+
+        $basis = app(TraitTestService::class)->basis('exhib');
+
+        $this->assertSame($expected, $basis['count']);
+        $this->assertSame($reverse, $basis['reverse']);
+        $this->assertSame(count(config('traits.questions')), $basis['total']);
+
+        $this->get('/tw/trait-test/'.__('traits.items.exhib.slug'))
+            ->assertOk()
+            ->assertSee(__('traits.result.basis_questions_v', ['n' => $expected, 'total' => $basis['total']]))
+            ->assertSee(__('traits.result.basis_formula'))
+            ->assertSee(__('traits.result.basis_limits', ['total' => $basis['total']]));
+    }
+
+    public function test_a_trait_measured_by_too_few_questions_claims_no_axis_lean(): void
+    {
+        /* 一兩題就宣稱「這個屬性偏某一側」是拿雜訊當依據。少於 AXIS_MIN 題不列 ——
+           寧可少講一條,這一段的用途就是可信。 */
+        foreach (app(TraitTestService::class)->basis('dom')['axes'] as $axis) {
+            $this->assertGreaterThanOrEqual(TraitTestService::AXIS_MIN, $axis['total']);
+        }
+    }
+
+    public function test_related_traits_come_from_shared_questions(): void
+    {
+        $service = app(TraitTestService::class);
+        $related = $service->related('voyeur');
+
+        // 偷窺與露出共用題目(「知道有人在看」那幾題兩邊都餵),所以必須互相連得到
+        $keys = array_column($related['together'], 'key');
+        $this->assertContains('exhib', $keys);
+
+        // 反面清單只放真的反向計分的:Switch 的題目給 S/M 各 -1
+        $this->assertContains('dom', array_column($service->related('switch')['against'], 'key'));
+
+        $this->get('/tw/trait-test/'.__('traits.items.voyeur.slug'))
+            ->assertOk()
+            ->assertSee(route('trait-test.result', ['slug' => __('traits.items.exhib.slug')]), false);
+    }
+
+    public function test_the_result_says_when_the_top_traits_are_tied(): void
+    {
+        /* 領先一個百分點也印一頂王冠,是這類測驗最容易誤導人的地方。
+           全部答「完全是」的話 20 種都是 100%,那就該講出來。 */
+        $service = app(TraitTestService::class);
+        $result = $service->score($this->allAnswers(2));
+        $confidence = $service->confidence($result);
+
+        $this->assertSame(0, $confidence['gap']);
+        $this->assertNotEmpty($confidence['tied']);
+        $this->assertSame(count(config('traits.traits')), $confidence['strong']);
+
+        $this->withSession(['trait_result' => $result])
+            ->get('/tw/trait-test/'.__('traits.items.'.$result['top'].'.slug'))
+            ->assertOk()
+            ->assertSee(__('traits.result.basis_your_title'))
+            ->assertSee(__('traits.result.basis_answers', [
+                'decisive' => count(config('traits.questions')), 'neutral' => 0,
+            ]));
+    }
+
+    public function test_the_structured_data_only_claims_what_the_page_shows(): void
+    {
+        /* articleBody 寫了頁面上沒有的東西就是 cloaking。鎖住的深入解讀不能進去。 */
+        $item = __('traits.items.tease');
+        $html = $this->get('/tw/trait-test/'.$item['slug'])->assertOk()->getContent();
+
+        $json = json_encode($item['signals'][0], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $this->assertStringContainsString(trim($json, '"'), $html);
+        $this->assertStringNotContainsString(
+            trim(json_encode($item['deep'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), '"'),
+            $html
+        );
+    }
+
     public function test_the_axis_reading_follows_the_actual_score(): void
     {
         $service = app(TraitTestService::class);
