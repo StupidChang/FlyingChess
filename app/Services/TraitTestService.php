@@ -32,6 +32,17 @@ class TraitTestService
     public const AXIS_MIN = 3;
 
     /**
+     * 兩型並排時,一條光譜上的距離要多遠才算「各據一邊」、多近才算「同一邊」。
+     *
+     * 位置只會落在 0(持平)或 ±0.6…±1.0(偏一邊,見 axisLean() 的門檻),所以
+     * 距離也只有三種量級:同側 ≤0.4、一側對持平 0.6…1.0、對側 ≥1.2。門檻取在
+     * 空隙中間,不是憑感覺調的。
+     */
+    public const CMP_ALIGNED = 0.4;
+
+    public const CMP_APART = 1.2;
+
+    /**
      * 顯示用的題目。只有文字與段落標題 —— 權重留在伺服器。
      *
      * @return array<int, array{n:int, text:string, section:?string}>
@@ -146,7 +157,6 @@ class TraitTestService
         $weight = 0;
         $reverse = 0;
         $sections = [];
-        $tally = [];
         $section = null;
 
         foreach ($structure as $q) {
@@ -171,31 +181,24 @@ class TraitTestService
                 $sections[] = $name;
             }
 
-            [$axisId, $dir] = $q['axis'] ?? [null, 0];
-            if ($w > 0 && $axisId && $dir !== 0) {
-                $side = $dir > 0 ? 'left' : 'right';
-                $tally[$axisId][$side] = ($tally[$axisId][$side] ?? 0) + 1;
-            }
         }
+
+        $tally = $this->axisTally($key);
 
         /* 只留下真的偏一邊的光譜。兩側題數差不多還說「偏某一側」是誤導 ——
            這一段是要當依據用的,寧可少講一條。 */
         $axes = [];
         foreach ($tally as $id => $t) {
-            $left = $t['left'] ?? 0;
-            $right = $t['right'] ?? 0;
-            $total = $left + $right;
-            // 一兩題就宣稱「這個屬性偏某一側」沒有意義,少於三題不列
-            if ($total < self::AXIS_MIN || $left === $right || max($left, $right) / $total < 0.6) {
+            $lean = $this->axisLean($t);
+            if ($lean === null) {
                 continue;
             }
 
-            $lean = $left > $right ? 'left' : 'right';
             $axes[] = [
                 'label' => ($axisNames[$id]['left'] ?? '').' ⇄ '.($axisNames[$id]['right'] ?? ''),
-                'lean' => $axisNames[$id][$lean] ?? '',
-                'n' => max($left, $right),
-                'total' => $total,
+                'lean' => $axisNames[$id][$lean['side']] ?? '',
+                'n' => $lean['n'],
+                'total' => $lean['total'],
             ];
         }
 
@@ -218,6 +221,226 @@ class TraitTestService
      *
      * @return array{together: list<array<string,mixed>>, against: list<array<string,mixed>>}
      */
+    /**
+     * 這一型在每一條光譜上各有幾題偏左、幾題偏右。basis() 與 axisProfile() 共用 ——
+     * 「偏哪一側」的判斷只能有一套,兩邊各算一次遲早會給出互相矛盾的答案。
+     *
+     * @return array<string, array{left:int, right:int}>
+     */
+    private function axisTally(string $key): array
+    {
+        $tally = [];
+
+        foreach (config('traits.questions') as $q) {
+            $w = (int) ($q['weights'][$key] ?? 0);
+            [$axisId, $dir] = $q['axis'] ?? [null, 0];
+
+            if ($w > 0 && $axisId && $dir !== 0) {
+                $side = $dir > 0 ? 'left' : 'right';
+                $tally[$axisId][$side] = ($tally[$axisId][$side] ?? 0) + 1;
+            }
+        }
+
+        return $tally;
+    }
+
+    /**
+     * 偏一邊,還是不分上下。題數太少或兩側差不多就回 null ——
+     * 一兩題就宣稱「這個屬性偏某一側」沒有意義。
+     *
+     * @param  array{left?:int, right?:int}  $tally
+     * @return array{side:string, n:int, total:int, ratio:float}|null
+     */
+    private function axisLean(array $tally): ?array
+    {
+        $left = $tally['left'] ?? 0;
+        $right = $tally['right'] ?? 0;
+        $total = $left + $right;
+
+        if ($total < self::AXIS_MIN || $left === $right || max($left, $right) / $total < 0.6) {
+            return null;
+        }
+
+        return [
+            'side' => $left > $right ? 'left' : 'right',
+            'n' => max($left, $right),
+            'total' => $total,
+            'ratio' => round(max($left, $right) / $total, 3),
+        ];
+    }
+
+    /**
+     * 這一型在四條光譜上的位置:-1(最左)…0(持平)…+1(最右)。
+     *
+     * 這是**型別**的位置,不是某個人的分數 —— 個人分數要 score() 之後才有,而且只
+     * 存在 session 裡。對照頁比的是兩個型別,所以用這個。
+     *
+     * @return array<string, array{side:?string, pos:float, ratio:float, label:string}>
+     */
+    public function axisProfile(string $key): array
+    {
+        $names = $this->axes();
+        $tally = $this->axisTally($key);
+        $out = [];
+
+        foreach (array_keys($names) as $id) {
+            $lean = $this->axisLean($tally[$id] ?? []);
+
+            $out[$id] = [
+                'side' => $lean['side'] ?? null,
+                'pos' => $lean === null ? 0.0 : ($lean['side'] === 'left' ? -$lean['ratio'] : $lean['ratio']),
+                'ratio' => $lean['ratio'] ?? 0.0,
+                'label' => $lean === null ? '' : (string) ($names[$id][$lean['side']] ?? ''),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * 兩型並排比。每一條光譜給雙方的位置與距離,另外挑出最一致與差最大的那一條。
+     *
+     * 用途是對照頁 —— 免費就看得到的那一半,因為它是從計分依據算出來的「描述」,
+     * 跟 basis() 同一個層級;「該怎麼做」那一半(合拍／磨合／給對方的話)仍然
+     * 鎖在付費後面,見 trait-test/compare.blade.php。
+     *
+     * @return array{rows:array<int, array<string, mixed>>, aligned:array<int, string>, tension:?array<string, mixed>}
+     */
+    public function comparison(string $a, string $b): array
+    {
+        $names = $this->axes();
+        $pa = $this->axisProfile($a);
+        $pb = $this->axisProfile($b);
+
+        $rows = [];
+        $blank = [];
+        $aligned = [];
+        $tension = null;
+
+        foreach ($names as $id => $axis) {
+            /* 兩邊都沒有偏向的那條線不畫。型別在四條光譜上的訊號很稀疏(20 型裡
+               15 型只偏一條、3 型完全不偏),四條全畫的話多數組合會看到三條
+               「兩人都在正中間」的軌道 —— 那不是資訊,是版面。沒訊號的軸改成
+               下面一行帶過。 */
+            if ($pa[$id]['side'] === null && $pb[$id]['side'] === null) {
+                $blank[] = trim(($axis['left'] ?? '').'／'.($axis['right'] ?? ''), '／');
+
+                continue;
+            }
+
+            $gap = round(abs($pa[$id]['pos'] - $pb[$id]['pos']), 3);
+
+            $state = match (true) {
+                $gap >= self::CMP_APART => 'apart',
+                $gap <= self::CMP_ALIGNED => 'aligned',
+                default => 'mixed',
+            };
+
+            $row = [
+                'id' => $id,
+                'left' => (string) ($axis['left'] ?? ''),
+                'right' => (string) ($axis['right'] ?? ''),
+                /* 摘要句裡要用的名字。`note` 是問句(「你偏 S 還是 M」),塞進
+                   「你們在…這幾條線上站得很近」會變成病句,所以另外給一個。 */
+                'name' => trim(($axis['left'] ?? '').'／'.($axis['right'] ?? ''), '／'),
+                'note' => (string) ($axis['note'] ?? ''),
+                'a' => $pa[$id],
+                'b' => $pb[$id],
+                'gap' => $gap,
+                'state' => $state,
+            ];
+
+            $rows[] = $row;
+
+            /* 兩邊都持平的那一條不算「一致」—— 說「你們在這條線上很像」而依據是
+               雙方都沒有偏好,講了等於沒講。 */
+            if ($state === 'aligned' && ($pa[$id]['side'] !== null || $pb[$id]['side'] !== null)) {
+                $aligned[] = $id;
+            }
+
+            if ($tension === null || $gap > $tension['gap']) {
+                $tension = $row;
+            }
+        }
+
+        // 差最大的那一條若其實沒差,就不要硬指一條出來當地雷。
+        if ($tension !== null && $tension['gap'] <= self::CMP_ALIGNED) {
+            $tension = null;
+        }
+
+        return [
+            'rows' => $rows,
+            'blank' => $blank,
+            'aligned' => $aligned,
+            'tension' => $tension,
+            'signal' => $this->pairSignal($a, $b),
+            'named' => $this->pairNamed($a, $b),
+        ];
+    }
+
+    /**
+     * 這一組在題庫裡的共現:幾題同時把兩型往上推(同向)、幾題把一型往上另一型
+     * 往下(反向)。
+     *
+     * 為什麼需要這個:四條光譜對**型別**來說很稀疏,但共現是逐組算的。190 組
+     * 裡有 64 組有數字 —— 覆蓋率不高,所以是「有就講、沒有就不提」的加分項,
+     * 不是這一頁的骨架。
+     *
+     * @return array{same:int, opposite:int}
+     */
+    public function pairSignal(string $a, string $b): array
+    {
+        $same = 0;
+        $opposite = 0;
+
+        foreach (config('traits.questions') as $q) {
+            $wa = (int) ($q['weights'][$a] ?? 0);
+            $wb = (int) ($q['weights'][$b] ?? 0);
+
+            if ($wa === 0 || $wb === 0) {
+                continue;
+            }
+
+            if (($wa > 0) === ($wb > 0)) {
+                $same++;
+            } else {
+                $opposite++;
+            }
+        }
+
+        return ['same' => $same, 'opposite' => $opposite];
+    }
+
+    /**
+     * 這一組有沒有被寫進手寫的名單裡 —— `match`／`friction` 是逐型手寫的,裡面
+     * 直接點名了其他型別(「和『M屬性』『忠犬型』最順」)。
+     *
+     * 回傳的是**布林值,不是文字**。名單本身是付費內容,這裡只揭露「這一組有沒有
+     * 被寫到」:那是結論(描述),而付費的是為什麼與該怎麼做。190 組裡 34 組有。
+     *
+     * @return array{match:bool, friction:bool}
+     */
+    public function pairNamed(string $a, string $b): array
+    {
+        $items = $this->lang('items');
+        $out = ['match' => false, 'friction' => false];
+
+        foreach ([[$a, $b], [$b, $a]] as [$self, $other]) {
+            $name = (string) ($items[$other]['name'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+
+            foreach (['match', 'friction'] as $field) {
+                if (str_contains((string) ($items[$self][$field] ?? ''), $name)) {
+                    $out[$field] = true;
+                }
+            }
+        }
+
+        return $out;
+    }
+
     public function related(string $key, int $limit = 6): array
     {
         $items = $this->lang('items');

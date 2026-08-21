@@ -115,6 +115,11 @@
                    class="tt-chip tt-c-{{ config('traits.traits.'.$k.'.colour', 'gold') }}">{{ $item['name'] }}</a>
                 @endforeach
             </div>
+
+            {{-- 兩人對照的入口。那一頁是 noindex 的工具頁,所以只從站內連進去。 --}}
+            <p class="tt-cmp-cta">
+                <a class="btn btn-outline" href="{{ route('trait-test.compare') }}">{{ __('traits.compare.title') }}</a>
+            </p>
         </section>
 
         <section class="tt-faq">

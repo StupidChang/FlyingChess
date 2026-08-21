@@ -342,6 +342,9 @@ Route::prefix('{locale}')
         Route::get('/trait-test', [TraitTestController::class, 'show'])->name('trait-test.show');
         Route::post('/trait-test', [TraitTestController::class, 'submit'])
             ->name('trait-test.submit')->middleware('throttle:20,1');
+        /* 兩人對照。要排在 {slug} 之前 —— 不然 compare 會被當成一個屬性代稱吃掉
+           (現在會 404,因為找不到那個 slug,但這種順序依賴不該留給下一個人踩)。 */
+        Route::get('/trait-test/compare', [TraitTestController::class, 'compare'])->name('trait-test.compare');
         Route::get('/trait-test/{slug}', [TraitTestController::class, 'result'])->name('trait-test.result');
         /* 分享卡片。20 型各一張,之前 20 個網址共用同一張站台預設圖,分享出去
            看不出對方測到什麼。見 App\Services\OgImageService。 */

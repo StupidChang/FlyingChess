@@ -76,6 +76,34 @@ class TraitTestController extends Controller
      * 從搜尋或分享連結進來的人沒有分數,看到的是這個屬性本身的介紹 ——
      * 同一個網址,兩種深度。這樣頁面對搜尋引擎永遠有內容。
      */
+    /**
+     * 兩人對照(工具頁)。兩邊的型別放在網址上,所以整頁是可分享、可回訪的 ——
+     * 但**刻意 noindex**:20 型兩兩就是 190 種組合,內容是同一批文字重新排列,
+     * 生成成可索引的頁面等於自己跟自己搶字。要吃 SEO 的話該手寫精選幾組,
+     * 不是把組合數當頁數。
+     */
+    public function compare(Request $request)
+    {
+        $a = $this->service->keyFromSlug((string) $request->query('a', ''));
+        $b = $this->service->keyFromSlug((string) $request->query('b', ''));
+
+        /* 深入那一段(合拍／磨合／給對方的話)在結果頁就是付費內容,這裡必須是
+           同一條線 —— 不然對照頁就成了繞過付費牆的入口。免費看得到的是四條
+           光譜怎麼疊,那跟計分依據同一個層級。 */
+        $unlocked = PremiumAccess::content($request->user());
+
+        return view('trait-test.compare', [
+            'items' => (array) trans('traits.items'),
+            'aKey' => $a,
+            'bKey' => $b,
+            'a' => $a === null ? null : $this->service->item($a),
+            'b' => $b === null ? null : $this->service->item($b),
+            'comparison' => $a === null || $b === null ? null : $this->service->comparison($a, $b),
+            'translated' => $this->service->isTranslated(),
+            'unlocked' => $unlocked,
+        ]);
+    }
+
     public function result(Request $request, string $slug)
     {
         $key = $this->service->keyFromSlug($slug);

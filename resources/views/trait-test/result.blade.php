@@ -375,6 +375,10 @@
             <a href="{{ route('trait-test.show') }}" class="btn btn-primary btn-xl">
                 {{ $result ? __('traits.retake') : __('traits.start') }}
             </a>
+            {{-- 對照頁帶著這一型進去,對方只要在那一頁選自己的型就好 —— 不必先叫他也去測一次。 --}}
+            <a href="{{ route('trait-test.compare', ['a' => $item['slug']]) }}" class="btn btn-outline">
+                {{ __('traits.compare.from_result') }}
+            </a>
             <button type="button" class="btn btn-outline" id="tt-share">{{ __('traits.result.share') }}</button>
         </div>
 
