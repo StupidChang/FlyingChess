@@ -143,8 +143,153 @@ class RepressionTestTest extends TestCase
            訪客(未解鎖)拿到的頁面裡不該出現那段建議的任何一個字。 */
         $band = trans('repression.bands.very_high', [], 'zh_TW');
 
-        $this->visit('/tw/repression-test/very-high')
+        $response = $this->visit('/tw/repression-test/very-high')->assertOk();
+
+        $response->assertDontSee($band['advice']);
+        $response->assertDontSee($band['partner']);
+        foreach ($band['steps'] as $step) {
+            $response->assertDontSee($step);
+        }
+    }
+
+    public function test_watching_an_ad_unlocks_the_deep_reading(): void
+    {
+        /* 反過來也要測:鎖住時不洩漏之外,解鎖後必須真的顯示。少了這條,
+           付費區的欄位名打錯字會靜靜地什麼都不渲染,而畫面上看不出差別。 */
+        $band = trans('repression.bands.high', [], 'zh_TW');
+
+        $token = $this->asAgeVerified()->postJson('/tw/ad-unlock/start')->json('token');
+        $this->travel(config('premium.rewarded.min_watch_seconds', 15) + 1)->seconds();
+        $this->asAgeVerified()->postJson('/tw/ad-unlock/claim', ['token' => $token])
+            ->assertJsonPath('ok', true);
+
+        $response = $this->visit('/tw/repression-test/high')->assertOk();
+
+        $response->assertSee($band['advice'])->assertSee($band['partner']);
+        foreach ($band['steps'] as $step) {
+            $response->assertSee($step);
+        }
+        $response->assertDontSee(__('repression.result.deep_locked'));
+    }
+
+    public function test_a_visitor_without_a_score_still_gets_real_content(): void
+    {
+        /* 從搜尋或分享連結進來的人沒有分數。在補上這幾段之前,他讀到的只有一句
+           總結加一段介紹 —— 五個級距頁對搜尋引擎幾乎是同一頁。 */
+        $band = trans('repression.bands.high', [], 'zh_TW');
+
+        $response = $this->visit('/tw/repression-test/high')->assertOk();
+
+        foreach ($band['signals'] as $signal) {
+            $response->assertSee($signal);
+        }
+        $response->assertSee($band['bedroom']);
+        $response->assertSee($band['misread']);
+
+        // 免費變厚不等於把付費那半送出去
+        $response->assertDontSee($band['advice']);
+    }
+
+    public function test_every_band_has_the_free_and_paid_content_filled_in(): void
+    {
+        // 少一格就是少一頁內容,而那一頁照樣會被收錄
+        foreach (trans('repression.bands', [], 'zh_TW') as $key => $band) {
+            $this->assertCount(4, $band['signals'] ?? [], "{$key} 的典型表現不是四條");
+            $this->assertCount(3, $band['steps'] ?? [], "{$key} 的具體做法不是三條");
+            foreach (['bedroom', 'misread', 'advice', 'partner'] as $field) {
+                $this->assertNotEmpty($band[$field] ?? null, "{$key} 少了 {$field}");
+            }
+        }
+    }
+
+    public function test_the_measurement_basis_is_computed_from_the_config(): void
+    {
+        /* 依據如果是手寫的,加題或改反向題就對不上,而對不上的依據比沒有依據更糟。
+           所以這裡拿 config 自己數一遍。 */
+        $basis = app(RepressionTestService::class)->basis();
+
+        $this->assertSame(count(config('repression.questions')), $basis['total']);
+        $this->assertTrue($basis['symmetric'], '正反向不對稱的話,依據那一段會宣告一件不成立的事');
+        $this->assertCount(count(config('repression.dimensions')), $basis['dimensions']);
+        foreach ($basis['dimensions'] as $d) {
+            $this->assertSame($d['forward'], $d['reverse'], "{$d['key']} 的正反向題數不相等");
+        }
+
+        $this->visit('/tw/repression-test/high')
             ->assertOk()
-            ->assertDontSee($band['advice']);
+            ->assertSee(__('repression.result.basis_total_v', ['n' => $basis['total']]))
+            ->assertSee(__('repression.result.basis_formula'));
+    }
+
+    public function test_band_bounds_come_from_the_config_not_the_label_text(): void
+    {
+        /* lang 檔的 label(「60–80」)只是給人看的字串。上界必須由下一個級距的
+           min 算出來,不然改了 config 而忘了改文案,頁面會顯示一個假的區間。 */
+        $service = app(RepressionTestService::class);
+
+        $this->assertSame(['min' => 60, 'max' => 80], $service->range('high'));
+        $this->assertSame(100, $service->range('very_high')['max'], '最高的一格上界是 100');
+        $this->assertSame(0, $service->range('very_low')['min']);
+    }
+
+    public function test_a_score_near_a_band_boundary_says_so(): void
+    {
+        /* 61 分和 59 分會被分到不同的頁、拿到不同的解讀,但那兩分之差在一份 40 題
+           的自陳量表裡沒有意義。不講的話,這一頁看起來比它實際上更確定。 */
+        $service = app(RepressionTestService::class);
+
+        $near = $service->confidence($this->fakeResult(61, 'high'));
+        $this->assertTrue($near['near_edge']);
+        $this->assertSame(1, $near['edge']['dist']);
+
+        $middle = $service->confidence($this->fakeResult(70, 'high'));
+        $this->assertFalse($middle['near_edge']);
+
+        $this->asAgeVerified()
+            ->withSession(['repression_result' => $this->fakeResult(61, 'high')])
+            ->get('/tw/repression-test/high')
+            ->assertOk()
+            ->assertSee(__('repression.result.basis_edge', [
+                'name' => trans('repression.bands.moderate.name', [], 'zh_TW'),
+                'dist' => 1,
+                'total' => count(config('repression.questions')),
+            ]));
+    }
+
+    public function test_the_structured_data_only_claims_what_the_page_shows(): void
+    {
+        // articleBody 寫了頁面上沒有的東西就是 cloaking
+        $band = trans('repression.bands.moderate', [], 'zh_TW');
+        $html = $this->visit('/tw/repression-test/moderate')->assertOk()->getContent();
+
+        $this->assertStringContainsString($this->forJson($band['bedroom']), $html);
+        $this->assertStringNotContainsString($this->forJson($band['advice']), $html);
+    }
+
+    /** JSON-LD 裡的樣子:json_encode 會轉義引號,直接比字串會找不到。 */
+    private function forJson(string $text): string
+    {
+        return trim(json_encode($text, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG), '"');
+    }
+
+    /**
+     * 造一份指定指數的結果,用來測邊界提示 —— 真的去湊出 61 分的答案卷很脆弱,
+     * 改一題就壞。
+     *
+     * @return array<string, mixed>
+     */
+    private function fakeResult(int $index, string $band): array
+    {
+        $dimensions = [];
+        foreach (array_keys((array) config('repression.dimensions')) as $i => $key) {
+            $dimensions[] = ['key' => $key, 'pct' => max(0, $index - $i)];
+        }
+
+        return [
+            'index' => $index,
+            'band' => $band,
+            'dimensions' => $dimensions,
+            'meta' => ['total' => count(config('repression.questions')), 'decisive' => 10, 'neutral' => 5],
+        ];
     }
 }

@@ -89,6 +89,12 @@ class RepressionTestController extends Controller
             'hreflangLocales' => LocaleHelper::hreflangSet((array) config('repression.translated', [])),
             'unlocked' => $unlocked,
             'reading' => $unlocked && $result ? $this->service->dimensionReading($result['dimensions']) : [],
+            /* 依據**不上鎖**。免費的人至少要知道這個數字怎麼來的,不然「你 68 分」
+               跟星座沒兩樣;鎖住的是「你該怎麼做」那一半(建議、三步、給對方的話、
+               五個面向逐條)。 */
+            'basis' => $this->service->basis(),
+            'range' => $this->service->range($key),
+            'confidence' => $result ? $this->service->confidence($result) : [],
         ]);
     }
 }

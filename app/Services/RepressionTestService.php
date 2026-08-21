@@ -20,6 +20,9 @@ class RepressionTestService
 
     public const MAX = 4;
 
+    /** 離級距邊界這麼近就要提醒:重測很可能換一格。 */
+    public const EDGE_NEAR = 5;
+
     /**
      * 顯示用的題目。只有文字與段落標題 —— 正反向留在伺服器。
      *
@@ -97,10 +100,24 @@ class RepressionTestService
         // 同分時照 config 的順序,「最明顯的一項」才不會每次重整就換一個
         usort($dimensions, fn ($x, $y) => $y['pct'] <=> $x['pct']);
 
+        /* 作答本身的統計。每題都選中間的人和每題都選兩端的人可以拿到很接近的
+           指數,但前者的結果幾乎沒有區辨力 —— 只有這裡看得出來。 */
+        $meta = ['total' => count(config('repression.questions')), 'decisive' => 0, 'neutral' => 0];
+        $mid = (self::MAX + self::MIN) / 2;
+        foreach (config('repression.questions') as $i => $q) {
+            $a = max(self::MIN, min(self::MAX, (int) ($answers[$i] ?? 0)));
+            if ($a === self::MIN || $a === self::MAX) {
+                $meta['decisive']++;
+            } elseif ((float) $a === $mid) {
+                $meta['neutral']++;
+            }
+        }
+
         return [
             'index' => $index,
             'band' => $this->bandFor($index),
             'dimensions' => $dimensions,
+            'meta' => $meta,
         ];
     }
 
@@ -122,6 +139,125 @@ class RepressionTestService
         }
 
         return $hit;
+    }
+
+    /**
+     * 這份測驗的量測依據:幾題、五個面向各幾題、正反向對不對稱、量表幾點。
+     *
+     * 全部從 config 現算,不是寫死的數字 —— 加題、改反向題,頁面上跟著改。
+     * 手寫的話遲早對不上,而對不上的「依據」比沒有依據更糟。
+     */
+    public function basis(): array
+    {
+        $meta = $this->lang('dimensions');
+        $tally = [];
+
+        foreach (config('repression.questions') as $q) {
+            $dim = $q['dim'] ?? null;
+            if ($dim === null) {
+                continue;
+            }
+
+            $side = ($q['dir'] ?? 1) < 0 ? 'reverse' : 'forward';
+            $tally[$dim][$side] = ($tally[$dim][$side] ?? 0) + 1;
+        }
+
+        $dimensions = [];
+        $symmetric = true;
+        foreach ($tally as $key => $t) {
+            $forward = $t['forward'] ?? 0;
+            $reverse = $t['reverse'] ?? 0;
+            if ($forward !== $reverse) {
+                $symmetric = false;   // 對稱壞了要看得出來,不是靜靜偏高
+            }
+
+            $dimensions[] = [
+                'key' => $key,
+                'name' => $meta[$key]['name'] ?? $key,
+                'count' => $forward + $reverse,
+                'forward' => $forward,
+                'reverse' => $reverse,
+            ];
+        }
+
+        return [
+            'total' => count((array) config('repression.questions')),
+            'points' => self::MAX - self::MIN + 1,
+            'dimensions' => $dimensions,
+            'symmetric' => $symmetric,
+        ];
+    }
+
+    /**
+     * 一個級距的上下界。
+     *
+     * 上界由**下一個級距的 min** 決定,所以 config 的 bands 是唯一的真相 ——
+     * lang 檔裡的 label(「60–80」)只是給人看的文字,不參與判斷。
+     *
+     * @return array{min:int, max:int}
+     */
+    public function range(string $key): array
+    {
+        $bands = (array) config('repression.bands');
+        $keys = array_keys($bands);
+        $i = array_search($key, $keys, true);
+        $next = $i !== false && isset($keys[$i + 1]) ? $keys[$i + 1] : null;
+
+        return [
+            'min' => (int) ($bands[$key]['min'] ?? 0),
+            'max' => $next !== null ? (int) ($bands[$next]['min'] ?? 100) : 100,
+        ];
+    }
+
+    /**
+     * 這一份結果有多站得住腳。
+     *
+     * 62 分和 59 分會被分到不同的頁、拿到不同的解讀,但那三分之差在一份 40 題的
+     * 自陳量表裡沒有意義。落在邊界附近就該講出來 —— 不講的話,這一頁看起來
+     * 比它實際上更確定。
+     */
+    public function confidence(array $result): array
+    {
+        $meta = $this->lang('dimensions');
+        $dimensions = $result['dimensions'] ?? [];
+        if (! $dimensions) {
+            return [];
+        }
+
+        $index = (int) ($result['index'] ?? 0);
+        $band = $result['band'] ?? $this->bandFor($index);
+        $range = $this->range($band);
+
+        $keys = array_keys((array) config('repression.bands'));
+        $i = array_search($band, $keys, true);
+        $lower = $i > 0 ? ($keys[$i - 1] ?? null) : null;
+        $upper = $keys[$i + 1] ?? null;
+        $toLower = $index - $range['min'];
+        $toUpper = $range['max'] - $index;
+
+        // 只看真的有鄰居的那一側:最低與最高那一格各只有一邊
+        $edge = null;
+        if ($lower !== null && ($upper === null || $toLower <= $toUpper)) {
+            $edge = ['dist' => $toLower, 'name' => $this->band($lower)['name'] ?? $lower];
+        } elseif ($upper !== null) {
+            $edge = ['dist' => $toUpper, 'name' => $this->band($upper)['name'] ?? $upper];
+        }
+
+        $top = $dimensions[0];
+        $bottom = end($dimensions);
+
+        return [
+            'index' => $index,
+            'range' => $range,
+            'edge' => $edge,
+            'near_edge' => $edge !== null && $edge['dist'] <= self::EDGE_NEAR,
+            'top' => $meta[$top['key']]['name'] ?? $top['key'],
+            'top_pct' => $top['pct'],
+            'low' => $meta[$bottom['key']]['name'] ?? $bottom['key'],
+            'low_pct' => $bottom['pct'],
+            'spread' => $top['pct'] - $bottom['pct'],
+            'meta' => $result['meta'] ?? null,
+        ];
     }
 
     /**

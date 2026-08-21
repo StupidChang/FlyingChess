@@ -2292,6 +2292,15 @@ a.gh-name{color:var(--accent)}
 }
 
 /* 免責聲明。刻意不做成警示紅框 —— 這不是錯誤訊息,是一句該讀到的話。 */
+/* 付費區的三步:編號要看得出順序,那是這一段的價值 */
+.rp-steps{list-style:none;counter-reset:rp;margin:12px 0 4px;padding:0}
+.rp-steps li{counter-increment:rp;position:relative;padding:9px 0 9px 32px;font-size:.86rem;
+  line-height:1.75;color:var(--text);border-bottom:1px solid var(--border)}
+.rp-steps li:last-child{border-bottom:0}
+.rp-steps li::before{content:counter(rp);position:absolute;left:0;top:9px;width:20px;height:20px;
+  border-radius:50%;background:var(--surface2);color:var(--gold);font-size:.7rem;font-weight:700;
+  display:grid;place-items:center;font-variant-numeric:tabular-nums}
+
 .rp-disclaimer{font-size:.76rem;color:var(--text-dim);line-height:1.8;margin:0 0 16px;
   padding:12px 14px;border:1px dashed var(--border);border-radius:10px}
 

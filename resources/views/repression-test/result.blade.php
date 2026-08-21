@@ -8,6 +8,15 @@
 @section('robots', $translated ? 'index,follow' : 'noindex,follow')
 
 @section('schema')
+{{-- articleBody 要對得上畫面上真的看得到的內容 —— 只放免費那幾段,鎖住的深入
+     解讀不進來。結構化資料寫了頁面上沒有的東西,是 cloaking。 --}}
+@php
+    $articleBody = implode("\n", array_filter(array_merge(
+        [$band['long']],
+        (array) ($band['signals'] ?? []),
+        [$band['bedroom'] ?? null, $band['misread'] ?? null],
+    )));
+@endphp
 <script type="application/ld+json">
 {!! json_encode([
     '@context' => 'https://schema.org',
@@ -16,7 +25,7 @@
             '@type' => 'Article',
             'headline' => __('repression.seo.result_title', ['name' => $band['name'], 'label' => $band['label']]),
             'description' => $band['line'],
-            'articleBody' => $band['long'],
+            'articleBody' => $articleBody,
             'url' => route('repression-test.result', ['slug' => $band['slug']]),
             'inLanguage' => str_replace('_', '-', app()->getLocale()),
             'isPartOf' => ['@type' => 'Quiz', 'name' => __('repression.title'), 'url' => route('repression-test.show')],
@@ -50,6 +59,36 @@
             <p class="tt-line">{{ $band['line'] }}</p>
             <p class="tt-long">{{ $band['long'] }}</p>
         </article>
+
+
+        {{-- 免費區。從搜尋或分享連結進來的人沒有分數,這幾段就是他讀到的全部。
+             語氣刻意直白 —— 講「實際會發生什麼」比講「你的心理狀態」有用,而且
+             「性冷感」這種誤解正是搜尋的人真正在找的東西。 --}}
+        @if(!empty($band['signals']))
+        <section class="tt-card">
+            <h2>{{ __('repression.result.signals', ['name' => $band['name']]) }}</h2>
+            <p class="tt-hint">{{ __('repression.result.signals_hint') }}</p>
+            <ul class="tt-signals">
+                @foreach($band['signals'] as $signal)
+                <li>{{ $signal }}</li>
+                @endforeach
+            </ul>
+        </section>
+        @endif
+
+        @if(!empty($band['bedroom']))
+        <section class="tt-card">
+            <h2>{{ __('repression.result.bedroom') }}</h2>
+            <p class="tt-body">{{ $band['bedroom'] }}</p>
+        </section>
+        @endif
+
+        @if(!empty($band['misread']))
+        <section class="tt-card">
+            <h2>{{ __('repression.result.misread') }}</h2>
+            <p class="tt-body">{{ $band['misread'] }}</p>
+        </section>
+        @endif
 
         {{-- 五個級距的刻度尺。有分數的人看得到自己落在哪一格,沒分數的人看到的是
              這個級距在整條線上的位置 —— 順便是通往其他四頁的內部連結。 --}}
@@ -114,6 +153,26 @@
                     <p>{{ $band['advice'] }}</p>
                 </div>
 
+                @if(!empty($band['steps']))
+                <h3 class="tt-deep-sub">{{ __('repression.result.steps_title') }}</h3>
+                <ol class="rp-steps">
+                    @foreach($band['steps'] as $step)
+                    <li>{{ $step }}</li>
+                    @endforeach
+                </ol>
+                @endif
+
+                {{-- 給對方看的一段話。這種事自己解釋半天,常常不如一句寫好的話。 --}}
+                @if(!empty($band['partner']))
+                <div class="tt-partner">
+                    <div class="tt-partner-head">
+                        <span class="tt-partner-title">{{ __('repression.result.partner_title') }}</span>
+                        <span class="tt-partner-hint">{{ __('repression.result.partner_hint') }}</span>
+                    </div>
+                    <blockquote class="tt-partner-quote">{{ $band['partner'] }}</blockquote>
+                </div>
+                @endif
+
                 @if($reading)
                 <h3 class="tt-deep-sub">{{ __('repression.result.reading_title') }}
                     <em>{{ __('repression.result.reading_personal') }}</em></h3>
@@ -143,6 +202,70 @@
                     {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
                 </button>
             @endif
+        </section>
+
+        {{-- 依據。**不上鎖** —— 免費的人至少要知道這個數字怎麼來的。數字全部從
+             config 現算,題目或反向題一改,這裡跟著改。 --}}
+        <section class="tt-card tt-basis">
+            <h2>{{ __('repression.result.basis_title') }}</h2>
+            <p class="tt-hint">{{ __('repression.result.basis_hint') }}</p>
+
+            <dl class="tt-basis-grid">
+                <div>
+                    <dt>{{ __('repression.result.basis_total') }}</dt>
+                    <dd>{{ __('repression.result.basis_total_v', ['n' => $basis['total']]) }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('repression.result.basis_range') }}</dt>
+                    <dd>{{ __('repression.result.basis_range_v', ['min' => $range['min'], 'max' => $range['max']]) }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('repression.result.basis_symmetry') }}</dt>
+                    <dd>{{ $basis['symmetric']
+                        ? __('repression.result.basis_symmetry_ok')
+                        : __('repression.result.basis_symmetry_off') }}</dd>
+                </div>
+                @foreach($basis['dimensions'] as $d)
+                <div>
+                    <dt>{{ $d['name'] }}</dt>
+                    <dd>{{ __('repression.result.basis_dim_v', [
+                        'count' => $d['count'], 'forward' => $d['forward'], 'reverse' => $d['reverse']]) }}</dd>
+                </div>
+                @endforeach
+            </dl>
+
+            {{-- 有分數的人多一段。62 分和 59 分會被分到不同的頁、拿到不同的解讀,
+                 但那三分之差在一份自陳量表裡沒有意義 —— 不講的話,這一頁看起來
+                 比它實際上更確定。 --}}
+            @if($confidence)
+            <h3 class="tt-deep-sub">{{ __('repression.result.basis_your_title') }}</h3>
+            <ul class="tt-basis-list">
+                <li>{{ __('repression.result.basis_index', [
+                    'index' => $confidence['index'], 'name' => $band['name'],
+                    'min' => $confidence['range']['min'], 'max' => $confidence['range']['max']]) }}</li>
+                @if($confidence['near_edge'])
+                <li>{{ __('repression.result.basis_edge', [
+                    'name' => $confidence['edge']['name'], 'dist' => $confidence['edge']['dist'],
+                    'total' => $basis['total']]) }}</li>
+                @endif
+                <li>{{ $confidence['spread'] >= 15
+                    ? __('repression.result.basis_spread', [
+                        'top' => $confidence['top'], 'top_pct' => $confidence['top_pct'],
+                        'low' => $confidence['low'], 'low_pct' => $confidence['low_pct'],
+                        'spread' => $confidence['spread']])
+                    : __('repression.result.basis_flat', ['spread' => $confidence['spread']]) }}</li>
+                @if(!empty($confidence['meta']))
+                <li>{{ __('repression.result.basis_answers', [
+                    'decisive' => $confidence['meta']['decisive'], 'neutral' => $confidence['meta']['neutral']]) }}</li>
+                @endif
+            </ul>
+            @endif
+
+            <h3 class="tt-deep-sub">{{ __('repression.result.basis_formula_title') }}</h3>
+            <p class="tt-basis-p">{{ __('repression.result.basis_formula') }}</p>
+
+            <h3 class="tt-deep-sub">{{ __('repression.result.basis_limits_title') }}</h3>
+            <p class="tt-basis-p">{{ __('repression.result.basis_limits', ['total' => $basis['total']]) }}</p>
         </section>
 
         <p class="rp-disclaimer">{{ __('repression.disclaimer') }}</p>
