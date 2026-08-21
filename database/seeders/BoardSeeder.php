@@ -81,100 +81,100 @@ class BoardSeeder extends Seeder
        Board 2: 輕度暖身版 (romantic, mild)
        ======================================================== */
     private const WARMUP_SQUARES = [
-        0 => ['text' => "起點\n出發囉！",                       'color' => 'start'],
-        1 => ['text' => '前進2格',                              'color' => 'move'],
-        2 => ['text' => "輕抱對方\n30秒",                       'color' => 'action'],
-        3 => ['text' => "真心話\n說一件喜歡對方的事",           'color' => 'truth'],
-        4 => ['text' => '親吻對方額頭',                         'color' => 'action'],
+        0 => ['text' => "起點\n從最輕的開始，慢慢往上", 'color' => 'start'],
+        1 => ['text' => "前進2格\n再做：盯著對方看 15 秒，誰先笑誰輸", 'color' => 'move'],
+        2 => ['text' => '十指交扣，額頭抵著額頭 20 秒', 'color' => 'action'],
+        3 => ['text' => '你今天最想從我這裡拿到什麼？', 'color' => 'truth'],
+        4 => ['text' => '親對方的臉頰，然後停在耳邊呵一口氣', 'color' => 'action'],
         5 => ['text' => "轉角\n牽著手對視 15 秒", 'color' => 'action'],
-        6 => ['text' => "大冒險！\n由對方出題（溫和版）",       'color' => 'dare'],
-        7 => ['text' => "握著對方的手\n說一句甜蜜的話",         'color' => 'action'],
-        8 => ['text' => "真心話\n說出第一次見面的感覺",         'color' => 'truth'],
-        9 => ['text' => '後退1格',                              'color' => 'move'],
-        10 => ['text' => "幫對方按摩肩膀\n1分鐘",                'color' => 'action'],
-        11 => ['text' => '跳過一輪',                             'color' => 'move'],
-        12 => ['text' => '親吻對方臉頰',                         'color' => 'action'],
-        13 => ['text' => '大冒險！',                             'color' => 'dare'],
-        14 => ['text' => "♀ 女生\n撒嬌說一句話",                'color' => 'female'],
-        15 => ['text' => "輕撫對方頭髮\n30秒",                   'color' => 'action'],
-        16 => ['text' => "真心話\n最近最開心的一件事",           'color' => 'truth'],
-        17 => ['text' => '前進1格',                              'color' => 'move'],
-        18 => ['text' => "♂ 男生\n說一句讚美的話",              'color' => 'male'],
+        6 => ['text' => '在對方耳邊說一句你平常不好意思說的話', 'color' => 'dare'],
+        7 => ['text' => '從背後抱住對方，手扣在腰上 20 秒', 'color' => 'action'],
+        8 => ['text' => '我身上你最喜歡看的是哪裡？', 'color' => 'truth'],
+        9 => ['text' => "後退1格\n再做：親對方的脖子 10 秒", 'color' => 'move'],
+        10 => ['text' => '舌吻，數到 30 才准分開', 'color' => 'action'],
+        11 => ['text' => "跳過一輪\n再做：從肩膀一路摸到腰，30 秒", 'color' => 'move'],
+        12 => ['text' => '親到鎖骨，停在那裡 10 秒', 'color' => 'action'],
+        13 => ['text' => '幫對方脫掉最外面那一件', 'color' => 'dare'],
+        14 => ['text' => "♀ 女生\n指出你現在最想被碰的一個地方", 'color' => 'female'],
+        15 => ['text' => '坐到對方腿上，面對面貼著 30 秒', 'color' => 'action'],
+        16 => ['text' => '你比較喜歡我主動，還是等你來？', 'color' => 'truth'],
+        17 => ['text' => "前進1格\n再做：隔著衣服摸對方的胸口 20 秒", 'color' => 'move'],
+        18 => ['text' => "♂ 男生\n說出你現在最想做的一件事", 'color' => 'male'],
         19 => ['text' => "轉角\n說一句你今天沒說出口的話", 'color' => 'truth'],
-        20 => ['text' => "對方出題\n唱一首情歌片段",             'color' => 'dare'],
-        21 => ['text' => "互相對視\n10秒不說話",                 'color' => 'action'],
-        22 => ['text' => "拿手機\n選一張最喜歡的合照",           'color' => 'action'],
-        23 => ['text' => "大冒險！\n扮鬼臉逗對方笑",            'color' => 'dare'],
-        24 => ['text' => "坐到對方腿上\n貼緊30秒",                'color' => 'action'],
-        25 => ['text' => '後退2格',                              'color' => 'move'],
-        26 => ['text' => '說出對方最可愛的小習慣',               'color' => 'truth'],
-        27 => ['text' => '幫對方整理頭髮',                       'color' => 'action'],
-        28 => ['text' => '前進2格',                              'color' => 'move'],
-        29 => ['text' => "轉角\n從背後輕輕抱住對方", 'color' => 'action'],
-        30 => ['text' => "互相說一個\n小秘密",                   'color' => 'truth'],
-        31 => ['text' => "做一個\n愛心手勢",                     'color' => 'action'],
-        32 => ['text' => "真心話\n最想一起去的地方",             'color' => 'truth'],
-        33 => ['text' => "一起唱\n生日快樂歌",                   'color' => 'action'],
-        34 => ['text' => "大冒險！\n模仿對方走路",               'color' => 'dare'],
-        35 => ['text' => "誇獎對方\n外表一個優點",               'color' => 'action'],
-        36 => ['text' => "真心話\n說出最想要的禮物",             'color' => 'truth'],
-        37 => ['text' => "手牽手\n走一圈",                       'color' => 'action'],
-        38 => ['text' => '後退1格',                              'color' => 'move'],
-        39 => ['text' => "轉角\n親一下對方自己指的位置", 'color' => 'dare'],
-        40 => ['text' => '前進1格',                              'color' => 'move'],
-        41 => ['text' => "說出一個\n約會夢想清單",               'color' => 'truth'],
-        42 => ['text' => "對方親你\n一下",                       'color' => 'action'],
-        43 => ['text' => "終點\n抱著對方說今晚還想繼續",         'color' => 'end'],
+        20 => ['text' => '幫對方再脫一件，這次自己選', 'color' => 'dare'],
+        21 => ['text' => '用嘴含住對方的乳頭，數 20 秒', 'color' => 'action'],
+        22 => ['text' => '按摩大腿內側 30 秒，越靠越裡面', 'color' => 'action'],
+        23 => ['text' => '手伸進衣襬，貼著皮膚摸到胸口', 'color' => 'dare'],
+        24 => ['text' => '隔著衣物磨蹭 30 秒', 'color' => 'action'],
+        25 => ['text' => "後退2格\n再做：讓對方指一個地方，你要親那裡 20 秒", 'color' => 'move'],
+        26 => ['text' => '貼著耳朵，說出你今晚最想做的一件事', 'color' => 'truth'],
+        27 => ['text' => '慢慢脫掉自己一件，讓對方看著', 'color' => 'action'],
+        28 => ['text' => "前進2格\n再做：隔著內褲用手掌貼住對方 20 秒", 'color' => 'move'],
+        29 => ['text' => "轉角\n從背後抱住對方，手往下放", 'color' => 'action'],
+        30 => ['text' => '你現在硬了／濕了嗎？', 'color' => 'truth'],
+        31 => ['text' => '親大腿內側，一路往上但先停住', 'color' => 'action'],
+        32 => ['text' => '接下來手還是嘴，你挑一個', 'color' => 'truth'],
+        33 => ['text' => '幫對方脫到只剩內衣褲', 'color' => 'action'],
+        34 => ['text' => '隔著內褲，用手指沿著私密處的形狀慢慢描 30 秒', 'color' => 'dare'],
+        35 => ['text' => '隔著內褲用嘴呵氣，再隔著布料舔一下', 'color' => 'action'],
+        36 => ['text' => '剛剛哪一下最有感覺？', 'color' => 'truth'],
+        37 => ['text' => '換人，換他隔著內褲對你做一樣的事', 'color' => 'action'],
+        38 => ['text' => "後退1格\n再做：跨坐上去，貼著磨 30 秒", 'color' => 'move'],
+        39 => ['text' => "轉角\n說出你今晚最想被怎麼對待", 'color' => 'dare'],
+        40 => ['text' => "前進1格\n再做：照他剛說的，做給他看 1 分鐘", 'color' => 'move'],
+        41 => ['text' => '棋盤到這裡就停了 —— 你想停在這，還是自己接下去？', 'color' => 'truth'],
+        42 => ['text' => '抱著對方，什麼都不做 30 秒', 'color' => 'action'],
+        43 => ['text' => "終點\n棋盤到這裡結束，剩下的自己決定", 'color' => 'end'],
     ];
 
     /* ========================================================
        Board 3: 飲酒開嗨版 (drinking game focused)
        ======================================================== */
     private const DRINKING_SQUARES = [
-        0 => ['text' => "起點\n乾杯開始！",                     'color' => 'start'],
-        1 => ['text' => '喝一口',                               'color' => 'drink'],
-        2 => ['text' => '前進2格',                              'color' => 'move'],
-        3 => ['text' => "真心話\n說出最近喝掛的故事",           'color' => 'truth'],
-        4 => ['text' => '喝半杯',                               'color' => 'drink'],
-        5 => ['text' => "轉角\n和對方乾一杯", 'color' => 'drink'],
-        6 => ['text' => "大冒險！\n學動物叫",                   'color' => 'dare'],
-        7 => ['text' => "喝一口\n並往前跑一格",                 'color' => 'drink',  'fly_to' => 7],
-        8 => ['text' => "真心話\n說出最不想被問的事",           'color' => 'truth'],
-        9 => ['text' => "罰喝1杯\n大輸家！",                    'color' => 'drink'],
-        10 => ['text' => "大冒險！\n比賽喝最快",                 'color' => 'dare'],
-        11 => ['text' => '跳過一輪',                             'color' => 'move'],
-        12 => ['text' => '喝一口',                               'color' => 'drink'],
-        13 => ['text' => "大冒險！\n用腳夾東西走路",             'color' => 'dare'],
-        14 => ['text' => "♀ 女生\n幫男生倒酒",                  'color' => 'female'],
-        15 => ['text' => '喝半杯',                               'color' => 'drink'],
-        16 => ['text' => "真心話\n說出最想去的地方",             'color' => 'truth'],
-        17 => ['text' => '後退2格',                              'color' => 'move'],
-        18 => ['text' => "♂ 男生\n乾一杯",                      'color' => 'male'],
-        19 => ['text' => "轉角\n說出在場你最想灌醉的人", 'color' => 'truth'],
-        20 => ['text' => "大冒險！\n模仿對方喝酒",               'color' => 'dare'],
-        21 => ['text' => "喝一口\n說出一個秘密",                 'color' => 'drink'],
-        22 => ['text' => '前進1格',                              'color' => 'move'],
-        23 => ['text' => "大冒險！\n兩人輪流喝",                 'color' => 'dare'],
-        24 => ['text' => "坐到對方腿上\n喝一口再親20秒",           'color' => 'action'],
-        25 => ['text' => '後退2格',                              'color' => 'move'],
-        26 => ['text' => '喝兩口',                               'color' => 'drink'],
-        27 => ['text' => '前進2格',                              'color' => 'move'],
-        28 => ['text' => "大冒險！\n唱廣告歌",                   'color' => 'dare'],
-        29 => ['text' => "轉角\n輸的人喝一口", 'color' => 'drink'],
-        30 => ['text' => '喝一口',                               'color' => 'drink'],
-        31 => ['text' => "真心話\n說最近最尷尬的事",             'color' => 'truth'],
-        32 => ['text' => "罰喝\n若說不出，喝一口",               'color' => 'drink'],
-        33 => ['text' => "大冒險！\n原地旋轉5圈再走",            'color' => 'dare'],
-        34 => ['text' => '喝半杯',                               'color' => 'drink'],
-        35 => ['text' => '前進1格',                              'color' => 'move'],
-        36 => ['text' => "真心話\n今天最想說的話",               'color' => 'truth'],
-        37 => ['text' => '喝一口',                               'color' => 'drink'],
-        38 => ['text' => "大冒險！\n雙手背後開瓶蓋",             'color' => 'dare'],
-        39 => ['text' => "轉角\n讓對方指定你做一件事", 'color' => 'dare'],
-        40 => ['text' => '後退1格',                              'color' => 'move'],
-        41 => ['text' => '喝一口',                               'color' => 'drink'],
-        42 => ['text' => "大冒險！\n連說5個繞口令",              'color' => 'dare'],
-        43 => ['text' => "終點\n喝一口再抱緊對方",              'color' => 'end'],
+        0 => ['text' => "起點\n規則：每一格可以選做，或選喝", 'color' => 'start'],
+        1 => ['text' => "喝一口\n再做：盯著對方看 15 秒，先笑的再喝一口", 'color' => 'drink'],
+        2 => ['text' => "前進2格\n再做：在對方耳邊講一句撩人的話", 'color' => 'move'],
+        3 => ['text' => '你喝多之後最容易對誰動手動腳？', 'color' => 'truth'],
+        4 => ['text' => "喝半杯\n再做：從背後抱住對方 20 秒", 'color' => 'drink'],
+        5 => ['text' => "轉角\n親對方 10 秒，不親就喝一口", 'color' => 'action'],
+        6 => ['text' => '親對方的脖子 10 秒，留不留痕跡自己決定', 'color' => 'dare'],
+        7 => ['text' => "喝一口\n並往前跑一格\n再做：說出對方身上最讓你想咬一口的地方", 'color' => 'drink', 'fly_to' => 7],
+        8 => ['text' => '你最近一次喝完就直接上床是什麼時候？', 'color' => 'truth'],
+        9 => ['text' => "罰喝1杯\n大輸家！\n再做：讓贏的人親你一個地方", 'color' => 'drink'],
+        10 => ['text' => '用嘴把一口酒餵給對方', 'color' => 'dare'],
+        11 => ['text' => "跳過一輪\n再做：從肩膀摸到腰，中途停手就喝一口", 'color' => 'move'],
+        12 => ['text' => "喝一口\n再做：親到鎖骨停住 10 秒，先動的再喝", 'color' => 'drink'],
+        13 => ['text' => '幫對方脫一件，不脫就乾一杯', 'color' => 'dare'],
+        14 => ['text' => "♀ 女生\n舌吻對方 30 秒，或連喝兩口", 'color' => 'female'],
+        15 => ['text' => "喝半杯\n再做：坐到對方腿上貼緊 20 秒", 'color' => 'drink'],
+        16 => ['text' => '你喝醉之後最想被怎麼對待？', 'color' => 'truth'],
+        17 => ['text' => "後退2格\n再做：隔著衣服摸胸口 20 秒，不摸就喝半杯", 'color' => 'move'],
+        18 => ['text' => "♂ 男生\n說出你現在最想脫掉對方哪一件", 'color' => 'male'],
+        19 => ['text' => "轉角\n幫對方脫掉一件，不脫的人喝一口", 'color' => 'strip'],
+        20 => ['text' => '用冰塊在對方身上滑一圈，融化前不准停', 'color' => 'dare'],
+        21 => ['text' => "喝一口\n說出一個秘密\n再做：舌吻對方 30 秒，分開就再喝", 'color' => 'drink'],
+        22 => ['text' => "前進1格\n再做：按摩大腿內側 30 秒，手抖了就喝", 'color' => 'move'],
+        23 => ['text' => '手伸進衣襬，貼著皮膚一路摸到胸口', 'color' => 'dare'],
+        24 => ['text' => '隔著衣物磨蹭 30 秒，笑場的喝一口', 'color' => 'action'],
+        25 => ['text' => "後退2格\n再做：對方指一個地方，你親 20 秒，不親喝一杯", 'color' => 'move'],
+        26 => ['text' => "喝兩口\n再做：貼著耳朵說出你今晚想做的事", 'color' => 'drink'],
+        27 => ['text' => "前進2格\n再做：慢慢脫掉自己一件", 'color' => 'move'],
+        28 => ['text' => '含住對方的乳頭 20 秒，做不到就喝兩口', 'color' => 'dare'],
+        29 => ['text' => "轉角\n從背後抱住，手往下放，放不下去就喝", 'color' => 'action'],
+        30 => ['text' => "喝一口\n再做：隔著內褲用手掌貼住 20 秒，抽手就喝", 'color' => 'drink'],
+        31 => ['text' => '你現在硬了／濕了嗎？說謊被抓到罰一杯', 'color' => 'truth'],
+        32 => ['text' => "罰喝\n若說不出，喝一口\n再做：說出你今晚最想被怎麼對待，說不出來就再喝", 'color' => 'drink'],
+        33 => ['text' => '幫對方脫到只剩內衣褲，不脫就自己乾一杯', 'color' => 'dare'],
+        34 => ['text' => "喝半杯\n再做：隔著內褲用手指描 30 秒，抽手就喝", 'color' => 'drink'],
+        35 => ['text' => "前進1格\n再做：隔著內褲用嘴呵氣 20 秒，笑場罰一杯", 'color' => 'move'],
+        36 => ['text' => '剛剛那一分鐘，你腦袋裡在想什麼？', 'color' => 'truth'],
+        37 => ['text' => "喝一口\n再做：換他隔著內褲對你做一樣的事，出聲就喝", 'color' => 'drink'],
+        38 => ['text' => '跨坐上去磨 30 秒，站起來就喝', 'color' => 'dare'],
+        39 => ['text' => "轉角\n說出你現在最想被摸哪裡，說謊罰一杯", 'color' => 'truth'],
+        40 => ['text' => "後退1格\n再做：照他剛說的地方摸 1 分鐘，停手就喝", 'color' => 'move'],
+        41 => ['text' => "喝一口\n再做：兩個人都脫到只剩內衣褲，誰不脫誰喝", 'color' => 'drink'],
+        42 => ['text' => '從背後抱住對方磨 30 秒，數出聲', 'color' => 'dare'],
+        43 => ['text' => "終點\n酒還有，棋盤玩完了，剩下的自己談", 'color' => 'end'],
     ];
 
     private function seedBoard(
@@ -186,10 +186,6 @@ class BoardSeeder extends Seeder
         bool $isPremium = false,
         bool $hasStartWheel = false,
     ): void {
-        if (! $isPremium) {
-            $squares = $this->adultFreeSquares($squares);
-        }
-
         $board = Board::firstOrCreate(
             ['name' => $name],
             [
@@ -255,58 +251,6 @@ class BoardSeeder extends Seeder
         $board->squares()->whereNotIn('position', array_keys($squares))->delete();
     }
 
-    /** Give every free system board an adult tone that rises gradually. */
-    private function adultFreeSquares(array $squares): array
-    {
-        $pools = [
-            1 => [
-                '盯著對方放電15秒', '牽手貼近說一句撩人的話', '從臉頰慢慢親到耳邊',
-                '從背後抱緊對方20秒', '親對方脖子10秒', '說出對方最性感的地方',
-            ],
-            2 => [
-                '舌吻對方30秒', '坐到對方腿上貼緊20秒', '隔著衣服摸胸口20秒',
-                '從肩膀摸到腰30秒', '親到鎖骨再停10秒', '幫對方脫一件外層衣物',
-            ],
-            3 => [
-                '慢慢脫掉自己一件衣物', '按摩大腿內側30秒', '手伸進衣襬摸腰30秒',
-                '隔著衣物磨蹭30秒', '讓對方親一個敏感部位20秒', '貼著耳朵說今晚最想做什麼',
-            ],
-            4 => [
-                '再脫一件衣物，不用一次脫光', '隔著內褲摸私密處30秒', '親大腿內側30秒',
-                '手伸進內褲挑逗20秒', '跨坐磨蹭30秒', '互相說出一個想玩的成人任務',
-            ],
-        ];
-
-        $last = array_key_last($squares);
-
-        foreach ($squares as $position => &$square) {
-            if ($position === 0) {
-                $square['text'] = "起點\n先從調情慢慢升溫";
-                $square['color'] = 'start';
-
-                continue;
-            }
-
-            if ($position === $last) {
-                $square['text'] = "終點\n抱緊對方，接下來自己決定";
-                $square['color'] = 'end';
-
-                continue;
-            }
-
-            $stage = min(4, max(1, (int) ceil($position / max(1, $last) * 4)));
-            $adult = $pools[$stage][($position - 1) % count($pools[$stage])];
-            $original = $square['text'];
-            $square['text'] = in_array($square['color'], ['move', 'drink'], true)
-                ? $original."\n再做：".$adult
-                : $adult;
-        }
-
-        unset($square);
-
-        return $squares;
-    }
-
     public function run(): void
     {
         $this->seedBoard(
@@ -321,7 +265,7 @@ class BoardSeeder extends Seeder
 
         $this->seedBoard(
             '輕度暖身版',
-            '溫馨甜蜜風格，適合剛開始約會或想來點浪漫互動的情侶（40格，十字棋盤）',
+            '成人漸進版｜站上的標準線，也是新建棋盤的起點：從對視、耳語一路走到口交與插入，44 格走完一輪',
             true,
             self::WARMUP_SQUARES,
             null,
@@ -331,7 +275,7 @@ class BoardSeeder extends Seeder
 
         $this->seedBoard(
             '飲酒開嗨版',
-            '以喝酒罰則為主題，歡樂派對必備！適合多人聚會或好友一起玩（40格，十字棋盤）',
+            '成人漸進版｜酒是機制不是裝飾：每一格都是「做，或者喝」二選一，一路賭到最後',
             false,
             self::DRINKING_SQUARES,
             null,
