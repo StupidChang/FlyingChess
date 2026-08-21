@@ -50,10 +50,16 @@
 .gdx-item{border:1px solid var(--border);border-radius:14px;background:var(--surface);
   padding:20px 22px;transition:border-color .14s,transform .14s}
 .gdx-item:hover{border-color:var(--accent);transform:translateY(-2px)}
-.gdx-item h2{font-size:1.05rem;line-height:1.5;margin-bottom:8px}
+.gdx-item h2{display:flex;align-items:flex-start;gap:10px;font-size:1.05rem;line-height:1.5;margin-bottom:8px}
 .gdx-item h2 a{color:var(--text)}
 .gdx-item h2 a:hover{color:var(--accent)}
+/* 卡片圖示。六張卡片全是文字的時候,清單看起來像一份目錄而不是六篇文章。 */
+.gdx-mark{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:9px;
+  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
+.gdx-mark .gd-icon{width:17px;height:17px;display:block}
 .gdx-item p{font-size:.88rem;line-height:1.8;color:var(--text-dim);margin-bottom:10px}
+.gdx-item p strong{color:var(--text);font-weight:700}
 .gdx-more{font-size:.82rem;color:var(--gold)}
 .gdx-date{font-size:.75rem;color:var(--text-dim);margin-left:10px}
 </style>
@@ -71,8 +77,12 @@
         <article class="gdx-item">
             {{-- 標題本身就是連結:列表頁通往文章的唯一路徑,錨文字就是文章標題,
                  這對搜尋引擎理解那一頁在講什麼是最直接的訊號。 --}}
-            <h2><a href="{{ route('guide.show', ['slug' => $a['slug']]) }}">{{ $a['h1'] }}</a></h2>
-            <p>{{ $a['lead'] }}</p>
+            <h2>
+                <span class="gdx-mark">@include('partials.guide-icon', ['icon' => $a['icon']])</span>
+                <a href="{{ route('guide.show', ['slug' => $a['slug']]) }}">{{ $a['h1'] }}</a>
+            </h2>
+            {{-- 導言裡有 **粗體**,要跟文章頁一樣轉換 —— 不轉的話卡片上會出現星號 --}}
+            <p>{!! inline_emphasis($a['lead']) !!}</p>
             <a class="gdx-more" href="{{ route('guide.show', ['slug' => $a['slug']]) }}">{{ __('guides.read_more') }} →</a>
             @if($a['updated'])
             <span class="gdx-date">{{ __('guides.updated_at', ['date' => $a['updated']]) }}</span>

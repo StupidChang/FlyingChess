@@ -73,6 +73,8 @@ class GuideController extends Controller
                 'h1' => $article['h1'] ?? $slug,
                 'lead' => $article['lead'] ?? '',
                 'updated' => $meta['updated'] ?? null,
+                // 卡片上的圖示沿用第一節的圖示 —— 不必再維護第二份對照表
+                'icon' => $article['sections'][0]['icon'] ?? 'dot',
             ];
         }
 

@@ -82,6 +82,10 @@ class GuideTest extends TestCase
 
     public function test_no_raw_bold_markers_leak_into_the_page(): void
     {
+        /* 列表頁也要檢查:它印的是每篇的導言,而導言裡有粗體 —— 忘了轉換的話
+           卡片上會出現一排星號,而文章頁看起來完全正常。 */
+        $this->assertStringNotContainsString('**', $this->visit('/tw/guide')->assertOk()->getContent(), '列表頁有沒被處理的 ** 標記');
+
         foreach ($this->slugs() as $slug) {
             $html = $this->visit("/tw/guide/{$slug}")->assertOk()->getContent();
 
