@@ -36,17 +36,17 @@ return [
      */
     'articles' => [
         'couple-home-games' => [
-            'updated' => '2026-08-19',
+            'updated' => '2026-08-21',
             'priority' => '0.7',
             'related' => ['games.lobby', 'truth-dare.lobby', 'play'],
         ],
         'date-awkward-silence' => [
-            'updated' => '2026-08-19',
+            'updated' => '2026-08-21',
             'priority' => '0.7',
             'related' => ['who-most-likely.show', 'truth-dare.lobby', 'trait-test.show'],
         ],
         'two-player-games' => [
-            'updated' => '2026-08-19',
+            'updated' => '2026-08-21',
             'priority' => '0.7',
             'related' => ['play', 'games.lobby', 'card-game.show'],
         ],
