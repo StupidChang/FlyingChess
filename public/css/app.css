@@ -2471,3 +2471,23 @@ body.age-locked{overflow:hidden}
 .tt-cmp-sig-opp{color:var(--accent)}
 .tt-cmp-sig-read{font-size:.88rem;line-height:1.85;color:var(--text);margin:0 0 10px}
 .tt-cmp-blank{margin:14px 0 0}
+
+/* ── 測驗開場:一句重點 + 三個要點 ──
+   原本是一段一百多字的 .tt-intro,置中、灰字、沒有任何落點 —— 掃頁的人抓不到
+   這測驗在測什麼。重點句放大並靠左(置中的長句每一行的起點都不一樣,更難讀),
+   三個要點用標籤 + 內容的兩欄式。 */
+.tt-lead{max-width:54ch;margin:0 auto 22px;padding:2px 0 2px 16px;text-align:left;
+  border-left:3px solid var(--accent);font-size:1.02rem;line-height:1.9;color:var(--text)}
+.tt-lead strong{color:var(--text);font-weight:700;
+  background:linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 28%, transparent) 62%)}
+.tt-points{max-width:54ch;margin:0 auto;text-align:left;display:grid;gap:10px}
+.tt-point{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline}
+.tt-point dt{font-size:.74rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;
+  color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  border-radius:99px;padding:3px 10px}
+.tt-point dd{margin:0;font-size:.92rem;line-height:1.85;color:var(--text-dim)}
+@media (max-width:520px){
+  .tt-point{grid-template-columns:1fr;gap:4px}
+  .tt-point dt{justify-self:start}
+}

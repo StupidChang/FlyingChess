@@ -50,7 +50,17 @@
         <header class="tt-head">
             <h1>{{ __('traits.title') }}</h1>
             <p class="tt-tagline">{{ __('traits.tagline') }}</p>
-            <p class="tt-intro">{{ __('traits.intro') }}</p>
+            {{-- 一句重點 + 三個要點。原本是一整段一百多字的文字牆,畫面上沒有任何
+                 落點,掃頁的人抓不到「這測驗在測什麼」。 --}}
+            <p class="tt-lead">{!! inline_emphasis(__('traits.intro_lead')) !!}</p>
+            <dl class="tt-points">
+                @foreach(__('traits.intro_points') as $point)
+                <div class="tt-point">
+                    <dt>{{ $point['k'] }}</dt>
+                    <dd>{{ $point['v'] }}</dd>
+                </div>
+                @endforeach
+            </dl>
 
             {{-- 封面。一進來就攤開 30 題會勸退,先給一個「開始」的緩衝。
                  題目仍然在 HTML 裡(SEO 與沒有 JS 的情況都要拿得到),
