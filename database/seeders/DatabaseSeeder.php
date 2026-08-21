@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             TruthDareCardSeeder::class,
             WheelSegmentSeeder::class,
             BoardTemplateSeeder::class,
+            // 逐格復刻的原版飛行棋盤(格子照原圖轉錄,不是自己寫的內容)
+            FlyingChessV8ReplicaSeeder::class,
             DevAccountSeeder::class,
         ]);
     }

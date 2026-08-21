@@ -717,6 +717,10 @@ class BoardTemplateSeeder extends Seeder
                 '情侶互換飛行棋 V8.0（四人版）', '情侶／炮友飛行棋 V1.0',
                 // 後補的四張(建立在下面,但白名單要先寫進來,不然下一次會先被刪掉再重建)
                 '久違重逢版', '主導與臣服版', '玩具開箱版', '鏡頭前版',
+                /* 逐格復刻的原版盤面(FlyingChessV8ReplicaSeeder 建的)。**一定要
+                   列在這裡** —— 這支 seeder 會刪掉白名單外的所有系統範本,漏了
+                   它就會出現「跑完 db:seed 那張盤面消失」而且沒有任何錯誤。 */
+                FlyingChessV8ReplicaSeeder::BOARD_NAME,
             ])
             ->delete();
 
