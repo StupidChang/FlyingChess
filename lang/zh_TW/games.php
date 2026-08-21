@@ -35,14 +35,14 @@ return [
     'start_game' => '開始遊戲',
 
     // Game-hall card descriptions
-    'desc_flying_chess' => '經典飛行棋對戰，2–4 人或 AI 對手，擲骰前進、互相捕捉',
-    'desc_truth_dare' => '1–6 人同樂，情侶、派對題庫隨機抽牌，進階題庫等你解鎖',
-    'desc_card' => '2–6 人抽牌配對，牌大的指揮、牌小的服從，越玩越刺激',
-    'desc_dice' => '擲出命運骰子，隨機決定動作與對象，派對破冰神器',
-    'desc_king' => '國王號令全場，抽到國王的人可以命令其他玩家執行任務',
+    'desc_flying_chess' => '經典飛行棋對戰，2–4 人或 AI 對手；踩到哪一格就做哪一格，棋盤從暖身版一路到做完',
+    'desc_truth_dare' => '1–6 人輪流抽牌，情侶題與派對題分開；付費那一層是口交、用手與指定體位',
+    'desc_card' => '2–6 人抽牌配對，牌大的指揮、牌小的服從；最重那一層是口交、用手與指定體位',
+    'desc_dice' => '骰出動作＋部位＋時間；狂野骰面直接骰到口交、插入與陰蒂、肛門',
+    'desc_king' => '抽到國王的人號令全場，指定誰對誰做什麼；最重那一層連口交都在指令裡',
     'also_includes' => '同一頁也包含「:name」玩法，可直接切換',
     'desc_wml' => '大家一起投票，看看你們之中誰最騷、最主動、最忍不住，成人辣度題庫',
-    'desc_wheel' => '轉動命運之輪，隨機指定任務或懲罰，讓緣分來決定',
+    'desc_wheel' => '轉到哪一格就做哪一格，從牽手一路轉到口交與指定體位',
     'desc_pure_wheel' => '手機平放桌面，按一下讓指針隨機指向在座的某個人',
     'pure_wheel_seo_title' => '純轉盤 — 同房遊戲隨機點名',
     'pure_wheel_seo_meta' => '手機平放桌面，按一下讓指針隨機指向在座的某個人。同房遊戲、多人遊戲派對的隨機點名工具。',
@@ -50,10 +50,10 @@ return [
     'templates_short' => '棋盤模板',
 
     // Bucket list / time capsule
-    'bucket_list' => '共同清單',
-    'desc_bucket' => '你提，我投，整理「兩人都想做」的旅遊、約會、嘗試清單',
+    'bucket_list' => '性愛清單',
+    'desc_bucket' => '你提一個想試的姿勢、玩具或場景，兩個人都投「想做」才算數',
     'time_capsule' => '時間膠囊',
-    'desc_capsule' => '今天回答 10 個問題，封存到未來的開封日，一起重溫此刻',
+    'desc_capsule' => '今天把最想被怎麼對待寫下來，封存到開封日再一起打開',
 
     // Flying chess lobby
     'fc_lobby_title' => '飛行棋大廳',
@@ -73,7 +73,7 @@ return [
     'my_boards_short' => '我的棋盤',
     'my_boards_desc' => '建立和編輯專屬自訂棋盤',
     'desc_card_short' => '2-6 人抽牌配對，牌大的指揮、牌小的服從',
-    'desc_truth_short' => '經典派對遊戲，輪流抽取挑戰',
+    'desc_truth_short' => '輪流抽真心話或大冒險，尺度一層一層往上加',
     'play_short' => '開始玩',
 
     // Truth-dare lobby
@@ -197,12 +197,12 @@ return [
     'js_dice_value' => '骰子點數 __N__',
 
     // Bucket list / Time capsule lobby
-    'bl_title' => '情侶共同清單 — 一起列出想做的事',
-    'bl_meta' => '情侶共同清單：你提，我投，一起整理「兩人想做」的旅遊、約會、嘗試清單。完全免費，分享連結就能一起編輯。',
-    'bl_og_desc' => '你提，我投，一起整理「兩人想做」的清單。免費玩，分享連結就能一起編輯。',
-    'tc_title' => '情侶時間膠囊 — 寫給未來的我們',
-    'tc_meta' => '情侶時間膠囊：今天回答 10 個問題，封存到未來的開封日。一年後一起打開，看看當時的自己與對方。免費玩。',
-    'tc_og_desc' => '今天回答 10 個問題，封存到未來。一年後一起打開，重溫此刻心情。',
+    'bl_title' => '情侶性愛清單 — 想試的姿勢、玩具、場景一起列',
+    'bl_meta' => '情侶性愛願望清單：你提一個想試的姿勢、玩具或場景，對方投「想做／再看看／不要」，兩個人都想要才算數。完全免費，分享連結就能一起寫。',
+    'bl_og_desc' => '你提一個想試的，我投想做或不要 —— 兩個人都想要的才留下來。免費，分享連結就能一起寫。',
+    'tc_title' => '情侶時間膠囊 — 把現在最想要的寫下來，封到開封日',
+    'tc_meta' => '情侶時間膠囊：今天回答 10 個關於身體與慾望的問題，封存到未來的開封日。一年後一起打開，看看當時的自己想被怎麼對待。免費玩。',
+    'tc_og_desc' => '今天寫下最想被怎麼對待，封存到未來。一年後一起打開。',
 
     // Shared (bucket list / time capsule rooms)
     'share_link_label' => '分享連結（傳給另一半）',
@@ -217,28 +217,28 @@ return [
     'confirm_delete_item' => '確定刪除？',
 
     // Bucket list lobby
-    'bl_h1' => '情侶共同清單',
-    'bl_hero_line1' => '一起整理「我們兩個都想做」的事',
-    'bl_hero_line2' => '你提，我投，找出共同願望',
-    'bl_feature_1' => '輪流提想做的事',
-    'bl_feature_2' => '兩人都投票',
-    'bl_feature_3' => '兩人都同意 = 達成',
+    'bl_h1' => '情侶性愛清單',
+    'bl_hero_line1' => '把想試的姿勢、玩具、場景全部列出來',
+    'bl_hero_line2' => '你提，我投，兩個人都想要的才算數',
+    'bl_feature_1' => '輪流提想試的',
+    'bl_feature_2' => '各自投票，不用當面說',
+    'bl_feature_3' => '兩個人都想要 = 排進行程',
     'bl_create_h2' => '建立新清單',
-    'bl_title_placeholder' => '清單名稱（例：今年想一起做的 30 件事）',
+    'bl_title_placeholder' => '清單名稱（例：今年想一起試的 30 件事）',
     'bl_create_btn' => '開始建立',
     'bl_create_tip' => '建立後會產生分享連結，把連結傳給另一半就能一起編輯',
 
     // Bucket list room
-    'bl_room_meta' => '情侶共同清單：一起整理想做的事。',
+    'bl_room_meta' => '情侶性愛清單：一起列出想試的姿勢、玩具與場景。',
     'bl_role_owner' => '你是清單創建者',
     'bl_role_viewer' => '訪客模式（無編輯權）',
     'bl_stat_total' => '總數',
     'bl_stat_agreed' => '兩人同意',
     'bl_stat_pending' => '待投票',
     'bl_stat_rejected' => '不同意',
-    'bl_item_placeholder' => '想做的事...',
+    'bl_item_placeholder' => '想試的姿勢、玩具、場景…',
     'bl_add_btn' => '新增',
-    'bl_empty' => '還沒有任何項目，新增第一件想做的事吧',
+    'bl_empty' => '還沒有任何項目，先寫一件你想試的',
     'bl_status_agreed' => '兩人同意',
     'bl_status_rejected' => '有人不同意',
     'bl_status_maybe' => '再看看',
@@ -250,7 +250,7 @@ return [
 
     // Time capsule lobby
     'tc_h1' => '情侶時間膠囊',
-    'tc_hero_sub' => '今天的我們，寫一封信給未來的我們',
+    'tc_hero_sub' => '把現在最想要、又說不出口的，寫給以後的我們',
     'tc_feature_1' => '回答 10 個問題',
     'tc_feature_2' => '封存到開封日',
     'tc_feature_3' => '一起開封回顧',
@@ -263,7 +263,7 @@ return [
     'tc_create_tip' => '建立後產生分享連結，傳給另一半就能一起寫；填好後創建者按「封存」即鎖定，到開封日才能查看',
 
     // Time capsule room
-    'tc_room_meta' => '情侶時間膠囊：寫給未來的我們。',
+    'tc_room_meta' => '情侶時間膠囊：把現在最想要的寫下來，封到開封日。',
     'tc_open_date' => '開封日：:date',
     'tc_role_owner' => '你是膠囊創建者',
     'tc_role_viewer' => '訪客模式',
@@ -276,7 +276,7 @@ return [
     'tc_locked_hidden' => '膠囊已封存，內容隱藏中',
     'tc_days_left' => '還有 :days 天',
     'tc_unlock_on' => '到 :date 才會解鎖',
-    'tc_answer_placeholder' => '寫下你的回答...',
+    'tc_answer_placeholder' => '直接寫，反正到開封日才看得到…',
     'tc_save_btn' => '儲存回答',
     'tc_seal_confirm' => '封存後不能再修改，直到 :date 才能查看內容。確定要封存嗎？',
     'tc_seal_btn' => '封存膠囊',

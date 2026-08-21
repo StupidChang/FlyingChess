@@ -2,7 +2,7 @@
 
 return [
     'page_title' => '進階會員',
-    'page_description' => '解鎖完整功能、無廣告體驗',
+    'page_description' => '解鎖最重那一層：口交、插入、玩具與私處骰面，全站免廣告',
     'subscribe' => '訂閱',
     'monthly' => '月繳',
     'yearly' => '年繳',
@@ -30,11 +30,11 @@ return [
     'saving_badge' => '省 :percent%',
     'period_no_renew' => '每月 / 不自動續訂',
     'feat_no_ads' => '全站免廣告',
-    'feat_premium_deck' => '進階互動題庫（真心話大冒險 Premium 卡牌）',
+    'feat_premium_deck' => '最重那一層的題庫全開：真心話大冒險、撲克牌、轉盤、國王、誰最有可能（口交、用手、玩具、指定體位）',
     'feat_full_history' => '完整遊玩紀錄與時間軸（免費會員只保留最近 :count 場）',
     'feat_private_room' => '建立私人房間',
-    'feat_premium_board' => 'Premium 棋盤模板',
-    'feat_adult_content' => '18+ 會員專屬內容',
+    'feat_premium_board' => 'Premium 棋盤模板（走到最後真的做完的那幾張）',
+    'feat_adult_content' => '18+ 專屬：狂野骰子（部位骰到陰蒂、陰莖、肛門）、最重轉盤、成人棋盤',
     'cta_renew' => '續費延長',
     'cta_upgrade_now' => '立即升級',
     'cta_register_then' => '註冊後升級',
