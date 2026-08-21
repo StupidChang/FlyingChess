@@ -20,6 +20,12 @@ return [
     ],
     'submit' => '看結果',
     'retake' => '再測一次',
+
+    // 分享卡片(og:image)上的小標。見 App\Services\OgImageService。
+    'og' => [
+        'count' => ':n 種屬性',
+    ],
+
     'progress' => ':done / :total',
     'unanswered' => '還有 :n 題沒回答',
 

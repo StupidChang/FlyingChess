@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TraitResult;
+use App\Services\OgImageService;
 use App\Services\TraitTestService;
 use App\Support\LocaleHelper;
 use App\Support\PremiumAccess;
@@ -21,7 +22,10 @@ use Illuminate\Http\Request;
  */
 class TraitTestController extends Controller
 {
-    public function __construct(private readonly TraitTestService $service) {}
+    public function __construct(
+        private readonly TraitTestService $service,
+        private readonly OgImageService $og,
+    ) {}
 
     public function show()
     {
@@ -105,6 +109,10 @@ class TraitTestController extends Controller
             'basis' => $this->service->basis($key),
             'related' => $this->service->related($key),
             'confidence' => $result ? $this->service->confidence($result) : [],
+            /* 這一型專屬的分享卡片。`?v=` 是內容指紋 —— Facebook 這類抓取器按網址
+               記憶,不換網址的話改了文案也只會沿用它上次抓到的舊圖。 */
+            'ogImage' => route('trait-test.og', ['slug' => $slug]).'?v='
+                .$this->og->fingerprint('trait', $key, app()->getLocale()),
         ]);
     }
 }

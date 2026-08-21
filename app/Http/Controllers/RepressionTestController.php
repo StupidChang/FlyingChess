@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\OgImageService;
 use App\Services\RepressionTestService;
 use App\Support\LocaleHelper;
 use App\Support\PremiumAccess;
@@ -21,7 +22,10 @@ use Illuminate\Http\Request;
  */
 class RepressionTestController extends Controller
 {
-    public function __construct(private readonly RepressionTestService $service) {}
+    public function __construct(
+        private readonly RepressionTestService $service,
+        private readonly OgImageService $og,
+    ) {}
 
     public function show()
     {
@@ -95,6 +99,9 @@ class RepressionTestController extends Controller
             'basis' => $this->service->basis(),
             'range' => $this->service->range($key),
             'confidence' => $result ? $this->service->confidence($result) : [],
+            // 這個級距專屬的分享卡片。`?v=` 的作用見 TraitTestController。
+            'ogImage' => route('repression-test.og', ['slug' => $slug]).'?v='
+                .$this->og->fingerprint('repression', $key, app()->getLocale()),
         ]);
     }
 }

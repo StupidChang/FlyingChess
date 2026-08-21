@@ -16,6 +16,7 @@ use App\Http\Controllers\GuideController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KingGameController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlayController;
 use App\Http\Controllers\PremiumController;
@@ -342,6 +343,9 @@ Route::prefix('{locale}')
         Route::post('/trait-test', [TraitTestController::class, 'submit'])
             ->name('trait-test.submit')->middleware('throttle:20,1');
         Route::get('/trait-test/{slug}', [TraitTestController::class, 'result'])->name('trait-test.result');
+        /* 分享卡片。20 型各一張,之前 20 個網址共用同一張站台預設圖,分享出去
+           看不出對方測到什麼。見 App\Services\OgImageService。 */
+        Route::get('/trait-test/{slug}/og.png', [OgImageController::class, 'traitTest'])->name('trait-test.og');
 
         /* 性壓抑指數測驗。同樣的做法:五個級距 = 五個獨立的落地頁。
            和屬性測驗刻意不重疊 —— 那一份測「偏好哪一種」,這一份測「有多容易踩煞車」,
@@ -350,6 +354,7 @@ Route::prefix('{locale}')
         Route::post('/repression-test', [RepressionTestController::class, 'submit'])
             ->name('repression-test.submit')->middleware('throttle:20,1');
         Route::get('/repression-test/{slug}', [RepressionTestController::class, 'result'])->name('repression-test.result');
+        Route::get('/repression-test/{slug}/og.png', [OgImageController::class, 'repressionTest'])->name('repression-test.og');
 
         /* 玩法指南(站內文章)。吃資訊型意圖的關鍵字,遊戲頁吃工具型 ——
            兩者不能互相搶字,見 config/guides.php 開頭的說明。 */

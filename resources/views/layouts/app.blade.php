@@ -54,6 +54,10 @@
     <meta property="og:image" content="@yield('og_image', asset('images/174655ssvy4mu6pwyllysm.jpg'))">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="@yield('og_image_alt', config('app.name'))">
+    {{-- X(Twitter)不看 og:type,沒有這一行就只會顯示小方圖,1200×630 的卡片等於白做。
+         其餘欄位它會回頭讀 og:* —— 只補這裡沒有的那一個。 --}}
+    <meta name="twitter:card" content="summary_large_image">
     {{-- 粉色愛心 icon:SVG 給現代瀏覽器,ico 作為舊版與 /favicon.ico 直接請求的後備 --}}
     <link rel="icon" type="image/svg+xml" href="{{ asset_v('images/favicon.svg') }}">
     <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="{{ asset_v('favicon.ico') }}">

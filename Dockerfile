@@ -14,15 +14,23 @@ RUN apk add --no-cache \
         zip \
         unzip \
         oniguruma-dev \
-        libpng-dev
+        libpng-dev \
+        # 分享卡片(og:image)要用 GD 畫圖,而中文字要一份含 CJK 字符的字型 ——
+        # 少了 font-noto-cjk 的話卡片端點會整個退回站台預設圖(不會壞,但白做)。
+        # 見 config/og.php 與 App\Services\OgImageService。
+        freetype-dev \
+        libjpeg-turbo-dev \
+        font-noto-cjk
 
 # ── PHP extensions ─────────────────────────────────
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
         pdo \
         pdo_sqlite \
         mbstring \
         bcmath \
-        opcache
+        opcache \
+        gd
 
 # OPcache tuning for production
 RUN { \

@@ -5,6 +5,8 @@
 @section('og_title', __('traits.seo.result_title', ['name' => $item['name']]))
 @section('og_description', $item['line'])
 @section('canonical', route('trait-test.result', ['slug' => $item['slug']]))
+@section('og_image', $ogImage)
+@section('og_image_alt', __('traits.seo.result_title', ['name' => $item['name']]))
 @section('robots', $translated ? 'index,follow' : 'noindex,follow')
 
 @section('schema')

@@ -5,6 +5,8 @@
 @section('og_title', __('repression.seo.result_title', ['name' => $band['name'], 'label' => $band['label']]))
 @section('og_description', $band['line'])
 @section('canonical', route('repression-test.result', ['slug' => $band['slug']]))
+@section('og_image', $ogImage)
+@section('og_image_alt', __('repression.seo.result_title', ['name' => $band['name'], 'label' => $band['label']]))
 @section('robots', $translated ? 'index,follow' : 'noindex,follow')
 
 @section('schema')

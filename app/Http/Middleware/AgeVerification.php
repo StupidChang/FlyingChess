@@ -172,6 +172,17 @@ class AgeVerification
             return $this->interstitial();
         }
 
+        /* 分享卡片(og:image)是機器對機器的端點。各家連結預覽抓取器不帶 cookie、
+           也讀不懂年齡確認頁 —— 拿到 HTML 的話預覽就是一片空白,等於白做。
+           UA 白名單救不了這件事:LINE、Discord、Telegram、Slack 都不在裡面,
+           而在台灣分享大多是走 LINE。
+
+           刻意放在訓練型爬蟲那道**之後** —— 它們仍然什麼都拿不到。這裡放行的
+           只有一張圖,卡片上只用 `line`(暗示性的一句話),不是內容頁。 */
+        if (preg_match('#^(trait-test|repression-test)/[a-z0-9-]+/og\\.png$#', $path)) {
+            return $next($request);
+        }
+
         // Check cookie
         if ($request->cookie(self::COOKIE_NAME) === '1') {
             return $next($request);
