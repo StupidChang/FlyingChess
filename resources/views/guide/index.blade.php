@@ -42,7 +42,7 @@
 
 @section('styles')
 <style>
-.gdx-page{max-width:900px;margin:0 auto;padding:40px 20px 72px}
+.gdx-page{--gd-head:#f0dca4;max-width:900px;margin:0 auto;padding:40px 20px 72px}
 .gdx-head{margin-bottom:30px}
 .gdx-head h1{font-size:clamp(1.6rem,4.4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
 .gdx-lead{font-size:clamp(.98rem,.94rem + .22vw,1.08rem);line-height:1.9;color:var(--text-dim);max-width:62ch}
@@ -51,12 +51,12 @@
   padding:20px 22px;transition:border-color .14s,transform .14s}
 .gdx-item:hover{border-color:var(--accent);transform:translateY(-2px)}
 .gdx-item h2{display:flex;align-items:flex-start;gap:11px;font-size:clamp(1.05rem,1rem + .25vw,1.18rem);line-height:1.5;margin-bottom:9px}
-.gdx-item h2 a{color:var(--text)}
+.gdx-item h2 a{color:var(--gd-head)}
 .gdx-item h2 a:hover{color:var(--accent)}
 /* 卡片圖示。六張卡片全是文字的時候,清單看起來像一份目錄而不是六篇文章。 */
 .gdx-mark{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:9px;
-  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
-  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
+  color:var(--gd-head);background:color-mix(in srgb, var(--gd-head) 13%, transparent);
+  border:1px solid color-mix(in srgb, var(--gd-head) 28%, transparent)}
 .gdx-mark .gd-icon{width:17px;height:17px;display:block}
 .gdx-item p{font-size:clamp(.9rem,.86rem + .2vw,.98rem);line-height:1.85;color:var(--text-dim);margin-bottom:10px}
 .gdx-item p strong{color:var(--text);font-weight:700}

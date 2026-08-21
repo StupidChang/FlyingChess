@@ -60,8 +60,10 @@
    顏色只用 --accent(玫瑰)當編輯用的強調色。--gold 在這個站是付費/金錢專用
    (見 CLAUDE.md 的設計代幣),文章內容不該借用它,不然「金色 = 要付錢」
    這個訊號會被稀釋。 */
-.gd-page{--gd-body:#c5cad8;max-width:900px;margin:0 auto;padding:36px 20px 72px}
-[data-theme="light"] .gd-page{--gd-body:#3f4658}
+/* --gd-head 是標題專用的淺黃。刻意不是 --gold:那個代幣在這個站是付費/金錢
+   專用(見 CLAUDE.md),文章標題借用它,「金色 = 要付錢」的訊號會被稀釋。
+   這個是更淡的暖黃,和按鈕上那個飽和金色分得開。 */
+.gd-page{--gd-body:#c5cad8;--gd-head:#f0dca4;max-width:900px;margin:0 auto;padding:36px 20px 72px}
 .gd-crumb{font-size:.8rem;color:var(--text-dim);margin-bottom:14px}
 .gd-crumb a{color:var(--text-dim);text-decoration:underline;text-underline-offset:3px}
 .gd-crumb a:hover{color:var(--accent)}
@@ -75,7 +77,7 @@
 
 /* 目錄。長文沒有目錄的話,從搜尋進來的人看不出這一頁有沒有他要的東西就跳掉了。 */
 .gd-toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:40px}
-.gd-toc-title{font-size:.8rem;color:var(--accent);font-weight:700;letter-spacing:.04em;margin-bottom:10px}
+.gd-toc-title{font-size:.8rem;color:var(--gd-head);font-weight:700;letter-spacing:.04em;margin-bottom:10px}
 .gd-toc ol{margin:0;padding-left:0;list-style:none;counter-reset:gdtoc}
 .gd-toc li{counter-increment:gdtoc;margin:6px 0;font-size:.9rem;line-height:1.6;
   display:flex;gap:10px;align-items:baseline}
@@ -90,12 +92,12 @@
 .gd-section h2{display:flex;align-items:center;gap:11px;font-size:clamp(1.14rem,1.06rem + .3vw,1.32rem);
   font-weight:800;line-height:1.45;margin:30px 0 15px}
 .gd-h2-mark{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;
-  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
-  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
+  color:var(--gd-head);background:color-mix(in srgb, var(--gd-head) 13%, transparent);
+  border:1px solid color-mix(in srgb, var(--gd-head) 28%, transparent)}
 .gd-icon{width:18px;height:18px;display:block}
-.gd-h2-text{flex:1 1 auto;text-wrap:balance}
-.gd-h2-num{flex:0 0 auto;font-size:.72rem;font-weight:700;color:var(--text-dim);
-  font-variant-numeric:tabular-nums;opacity:.55}
+.gd-h2-text{flex:1 1 auto;text-wrap:balance;color:var(--gd-head)}
+.gd-h2-num{flex:0 0 auto;font-size:.72rem;font-weight:700;color:var(--gd-head);
+  font-variant-numeric:tabular-nums;opacity:.5}
 
 /* 內文比標題暗一階。全部同一個白的時候,標題等於沒有存在感。 */
 /* 字級跟著版面一起長。中文一行超過大約 50 字就會開始跳行 —— 版面加寬之後
@@ -149,7 +151,7 @@
 .gd-cta::after{content:' →';color:var(--gold)}
 
 .gd-faq{margin-top:44px}
-.gd-faq h2{font-size:1.16rem;font-weight:800;margin-bottom:14px}
+.gd-faq h2{font-size:1.16rem;font-weight:800;margin-bottom:14px;color:var(--gd-head)}
 .gd-faq-item{border-bottom:1px solid var(--border);padding:14px 0}
 .gd-faq-item summary{cursor:pointer;font-weight:700;font-size:clamp(.95rem,.91rem + .2vw,1.03rem);line-height:1.6;
   display:flex;gap:9px;align-items:baseline;list-style:none}
