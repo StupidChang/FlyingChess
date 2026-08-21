@@ -475,10 +475,11 @@ function buildDiceCube() {
     if (diceEl.parentElement) diceEl.parentElement.appendChild(diceSrEl);
 }
 
-function setCubeTransform(x, y, withTransition) {
+function setCubeTransform(x, y, withTransition, z) {
     if (!diceCubeEl) return;
     diceCubeEl.style.transition = withTransition ? 'transform .3s ease' : 'none';
-    diceCubeEl.style.transform = `rotateX(${x}deg) rotateY(${y}deg)`;
+    // Z 軸只在翻滾時用;落地時一定收在 360 的整數倍,骰面的點才是正的
+    diceCubeEl.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z || 0}deg)`;
 }
 
 function announceDice(val) {
@@ -490,6 +491,13 @@ function updateDice(val) {
     const v = val || null;
     if (!diceCubeEl) { if (diceEl) diceEl.textContent = v ? (DICE_FACES[v] || v) : '?'; return; }
     if (diceAnimating) { diceQueuedVal = v; return; }
+
+    /* 伺服器在回合結束時會把 dice_value 清成 null(擲骰 → 走棋 → 清空)。
+       跟著清的話,剛剛落地的點數會被轉回待機姿態 —— 那就是玩家看到的
+       「動畫停在 6,然後又跳一下」。骰過之後骰面代表「上一次骰出的點數」,
+       留著直到下一次擲骰;待機姿態只在整場還沒有人骰過的時候用。 */
+    if (v === null && dicePrevShown) return;
+
     if (v === dicePrevShown) return;
     dicePrevShown = v;
     diceEl.classList.toggle('dice-idle', !v);
@@ -505,10 +513,14 @@ function startDiceTumble() {
     if (!diceCubeEl || prefersReducedMotion()) return;
     diceEl.classList.remove('dice-idle');
     diceEl.classList.add('rolling3d');
+    /* 三個軸都轉。只轉 X/Y 的話骰子看起來像被兩根軸夾著的機構,不像被丟出去的
+       ——第三軸的角速度小一點(它主要是讓輪廓在翻滾中不對稱),而且落地時會被
+       收回 360 的整數倍,所以不影響最終骰面的方向。 */
     const s = {
-        rx: DICE_IDLE_ROT.x, ry: DICE_IDLE_ROT.y,
+        rx: DICE_IDLE_ROT.x, ry: DICE_IDLE_ROT.y, rz: 0,
         vx: 620 + Math.random() * 320,  // deg/s
         vy: 480 + Math.random() * 320,
+        vz: (Math.random() < .5 ? -1 : 1) * (200 + Math.random() * 160),
         last: performance.now(), raf: 0,
     };
     diceTumbleState = s;
@@ -517,8 +529,10 @@ function startDiceTumble() {
         s.last = now;
         s.rx += s.vx * dt;
         s.ry += s.vy * dt;
+        s.rz += s.vz * dt;
         diceCubeEl.style.transition = 'none';
-        diceCubeEl.style.transform = `rotateX(${s.rx.toFixed(1)}deg) rotateY(${s.ry.toFixed(1)}deg)`;
+        diceCubeEl.style.transform =
+            `rotateX(${s.rx.toFixed(1)}deg) rotateY(${s.ry.toFixed(1)}deg) rotateZ(${s.rz.toFixed(1)}deg)`;
         s.raf = requestAnimationFrame(step);
     };
     s.raf = requestAnimationFrame(step);
@@ -535,8 +549,23 @@ function stopDiceTumble() {
     updateDice(v);
 }
 
-/** Decelerate from the tumble into the correct face, then bounce (squash & stretch) */
-function landDiceOn(val) {
+/**
+ * Decelerate from the tumble into the correct face, then bounce (squash & stretch).
+ *
+ * 動畫結束的那一格**就是**最終點數,後面不會再跳。這件事以前是壞的:骰完之後
+ * rollDice() 又用 state.dice_value 蓋一次,而伺服器在人類擲完、沒有棋可走的時候
+ * 會順便把電腦的回合跑完 —— 於是 state.dice_value 是**最後一隻電腦**骰到的數字,
+ * 玩家看到的是「動畫停在 6,然後跳成 3」。輪詢也會做同一件事,只是慢一秒。
+ *
+ * 所以這裡刻意把在動畫期間排隊進來的輪詢值**丟掉**:一次落地是我們當下知道的
+ * 最新結果(它來自自己那個請求的回應),輪詢拿到的是同一份狀態或更舊的東西。
+ * 電腦骰的數字改成一顆一顆播(見 playBotDice),而不是動畫完再瞬間蓋掉。
+ *
+ * @param {number} val 最終點數
+ * @param {{quick?: boolean}} [opts] quick:電腦回合用的短版(轉一圈就落地)
+ */
+function landDiceOn(val, opts) {
+    const quick = !!(opts && opts.quick);
     return new Promise((resolve) => {
         const tgt = DICE_FACE_ROT[val] || DICE_FACE_ROT[1];
 
@@ -546,9 +575,7 @@ function landDiceOn(val) {
             if (diceEl) diceEl.classList.remove('dice-idle');
             announceDice(val);
             diceAnimating = false;
-            const queued = diceQueuedVal;
-            diceQueuedVal = null;
-            if (queued !== null && queued !== val) updateDice(queued);
+            diceQueuedVal = null;   // 落地就是最終值,排隊進來的舊值一律丟掉
             resolve();
         };
 
@@ -560,17 +587,24 @@ function landDiceOn(val) {
             return;
         }
 
-        const s = diceTumbleState || { rx: DICE_IDLE_ROT.x, ry: DICE_IDLE_ROT.y, raf: 0 };
+        const s = diceTumbleState || { rx: DICE_IDLE_ROT.x, ry: DICE_IDLE_ROT.y, rz: 0, raf: 0 };
         if (diceTumbleState) { cancelAnimationFrame(diceTumbleState.raf); diceTumbleState = null; }
 
-        // Target: 2 extra full turns above current rotation, easing out
-        const fx = tgt.x + (Math.ceil(s.rx / 360) + 2) * 360;
-        const fy = tgt.y + (Math.ceil(s.ry / 360) + 2) * 360;
+        // Target: 1-2 extra full turns above current rotation, easing out.
+        // 加的是 360 的整數倍,所以最後的姿態和 tgt 完全相同 —— finish() 把
+        // transform 收回 tgt 時不會有任何視覺變化。
+        const turns = quick ? 1 : 2;
+        const fx = tgt.x + (Math.ceil(s.rx / 360) + turns) * 360;
+        const fy = tgt.y + (Math.ceil(s.ry / 360) + turns) * 360;
+        // Z 一定收在整數圈上 —— 差一點的話骰面的點會是斜的
+        const fz = Math.round(s.rz / 360) * 360 + (s.rz >= 0 ? 360 : -360);
+        const dur = quick ? .42 : .9;
         diceCubeEl.style.transition = 'none';
-        diceCubeEl.style.transform = `rotateX(${s.rx.toFixed(1)}deg) rotateY(${s.ry.toFixed(1)}deg)`;
+        diceCubeEl.style.transform =
+            `rotateX(${s.rx.toFixed(1)}deg) rotateY(${s.ry.toFixed(1)}deg) rotateZ(${s.rz.toFixed(1)}deg)`;
         void diceCubeEl.offsetHeight; // reflow so the transition starts from the tumble pose
-        diceCubeEl.style.transition = 'transform .9s cubic-bezier(.16,.84,.3,1)';
-        diceCubeEl.style.transform = `rotateX(${fx}deg) rotateY(${fy}deg)`;
+        diceCubeEl.style.transition = `transform ${dur}s cubic-bezier(.16,.86,.28,1.02)`;
+        diceCubeEl.style.transform = `rotateX(${fx}deg) rotateY(${fy}deg) rotateZ(${fz}deg)`;
 
         let done = false;
         const onEnd = () => {
@@ -583,7 +617,7 @@ function landDiceOn(val) {
             setTimeout(() => diceEl.classList.remove('dice-land'), 520);
             finish();
         };
-        const fallback = setTimeout(onEnd, 1100);
+        const fallback = setTimeout(onEnd, quick ? 620 : 1100);
         diceCubeEl.addEventListener('transitionend', onEnd);
     });
 }
@@ -657,18 +691,44 @@ function hideBotThinking() {
     if (botStatusEl) botStatusEl.classList.add('hidden');
 }
 
-function displayBotActions(botActions) {
+function logBotAction(a) {
+    const colorLabel = COLOR_LABELS[a.color] || a.color;
+    if (a.action === 'three_sixes') {
+        addLog(t('botThreeSixes', { '__NAME__': colorLabel }));
+    } else if (a.action === 'no_moves') {
+        addLog(t('botNoMoves', { '__NAME__': colorLabel, '__N__': a.dice }));
+    } else {
+        addLog(t('botMoved', { '__NAME__': colorLabel, '__N__': a.dice, '__P__': (a.piece ?? 0) + 1 }));
+    }
+}
+
+/**
+ * 播電腦的骰子:一顆一顆轉、一顆一顆記錄。
+ *
+ * 以前是「所有記錄一次倒出來,骰子瞬間變成最後一隻電腦的點數」—— 那個瞬間變化
+ * 就是玩家看到的「動畫停了之後又跳一下」。改成每一顆都真的轉一次(短版),
+ * 骰面每一次變化都是一段動畫的結尾,而且最後停的那個數字就是伺服器狀態裡的值,
+ * 所以接下來的輪詢不會再把它蓋掉。
+ */
+async function playBotDice(botActions) {
     if (!botActions || botActions.length === 0) return;
-    botActions.forEach(a => {
-        const colorLabel = COLOR_LABELS[a.color] || a.color;
-        if (a.action === 'three_sixes') {
-            addLog(t('botThreeSixes', { '__NAME__': colorLabel }));
-        } else if (a.action === 'no_moves') {
-            addLog(t('botNoMoves', { '__NAME__': colorLabel, '__N__': a.dice }));
-        } else {
-            addLog(t('botMoved', { '__NAME__': colorLabel, '__N__': a.dice, '__P__': (a.piece ?? 0) + 1 }));
-        }
-    });
+
+    // 關掉動畫偏好的人不要被拖時間:全部記錄印出來,骰面直接給最後一個值
+    if (prefersReducedMotion() || !diceCubeEl) {
+        botActions.forEach(logBotAction);
+        const last = [...botActions].reverse().find(a => a.dice);
+        if (last) updateDice(last.dice);
+        return;
+    }
+
+    for (const a of botActions) {
+        logBotAction(a);
+        if (!a.dice) continue;
+        startDiceTumble();
+        await new Promise(r => setTimeout(r, 260));   // 短暫自由轉,看得出是「重新骰」
+        await landDiceOn(a.dice, { quick: true });
+        await new Promise(r => setTimeout(r, 180));   // 讓玩家看清楚這一顆
+    }
 }
 
 /* ---- Game Actions ---- */
@@ -694,14 +754,16 @@ window.rollDice = async function() {
         }
 
         // Show bot actions that ran after our roll with no moves
-        if (res.bot_actions) displayBotActions(res.bot_actions);
+        if (res.bot_actions) await playBotDice(res.bot_actions);
 
         if (res.state) {
             gameState = res.state;
             renderPieces(gameState);
             updateTurn(gameState);
             updateMyPieces(gameState);
-            updateDice(gameState.dice_value);
+            /* 這裡刻意不碰骰面。state.dice_value 是電腦回合跑完之後的值,而骰面
+               已經由 landDiceOn / playBotDice 一步一步走到那裡了 —— 再蓋一次
+               就是那個「多跳一下」。 */
         }
 
         if (res.winner) {
@@ -729,15 +791,18 @@ window.movePiece = async function(pieceIdx) {
         if (!res.success) { addLog(t('moveFailed', { '__MSG__': res.message || '' })); return; }
 
         gameState = res.state;
-        renderPieces(gameState);
-        updateTurn(gameState);
-        updateMyPieces(gameState);
-        updateDice(gameState.dice_value);
+        renderPieces(gameState);   // 棋子要馬上動,不能等電腦那幾顆骰子播完
 
         addLog(t('moved', { '__NAME__': COLOR_LABELS[myColor], '__N__': pieceIdx + 1 }));
 
-        // Show bot actions in log
-        if (res.bot_actions) displayBotActions(res.bot_actions);
+        // 電腦的骰子一顆一顆播;骰面每一次變化都是一段動畫的結尾
+        if (res.bot_actions) await playBotDice(res.bot_actions);
+
+        /* 「換誰的回合」與擲骰按鈕留到動畫播完才更新。提早放開的話,玩家可以在
+           電腦那幾顆骰子還在轉的時候按擲骰 —— 兩段動畫會打在一起,骰面會先落在
+           電腦的點數上再被自己的蓋掉。 */
+        updateTurn(gameState);
+        updateMyPieces(gameState);
 
         if (res.winner) {
             gameStatus = 'finished';
