@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('title', $article['seo_title'] . ' — ' . __('ui.site_name'))
-@section('meta_description', $article['seo_description'])
+@section('meta_description', article_plain($article['seo_description']))
 @section('og_title', $article['seo_title'])
-@section('og_description', $article['seo_description'])
+@section('og_description', article_plain($article['seo_description']))
 @section('canonical', route('guide.show', ['slug' => $slug]))
 
 {{-- 沒翻譯的語系標 noindex:中文內容配英文網址被收錄,對排名是扣分不是加分。
@@ -17,7 +17,7 @@
         '@context' => 'https://schema.org',
         '@type' => 'Article',
         'headline' => $article['h1'],
-        'description' => $article['seo_description'],
+        'description' => article_plain($article['seo_description']),
         'url' => route('guide.show', ['slug' => $slug]),
         'inLanguage' => str_replace('_', '-', app()->getLocale()),
         'dateModified' => $updated,
@@ -31,8 +31,10 @@
         '@type' => 'FAQPage',
         'mainEntity' => collect($article['faq'])->map(fn ($f) => [
             '@type' => 'Question',
-            'name' => $f['q'],
-            'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']],
+            'name' => article_plain($f['q']),
+            /* schema 裡一定要是純文字。行內語法留在這裡的話,Google 會照著把
+               星號跟反引號印在搜尋結果上。 */
+            'acceptedAnswer' => ['@type' => 'Answer', 'text' => article_plain($f['a'])],
         ])->all(),
     ] : null,
     [
@@ -102,6 +104,24 @@
   margin:0 0 16px;color:var(--gd-body)}
 .gd-section p strong,.gd-lead strong{color:var(--text);font-weight:700;
   background:linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 26%, transparent) 62%)}
+
+/* 可以照著講出口的句子。這幾篇文章裡這種句子很多,混在段落裡讀者會滑過去 ——
+   變成一個有顏色的塊之後,才看得出「這句可以照抄」。 */
+.ax-say{quotes:'「' '」';display:inline;padding:1px 5px;border-radius:5px;
+  background:color-mix(in srgb, var(--accent) 15%, transparent);
+  color:var(--text);font-weight:600;font-style:normal;
+  box-shadow:inset 0 -1px 0 color-mix(in srgb, var(--accent) 45%, transparent)}
+.ax-say::before{content:open-quote;opacity:.55}
+.ax-say::after{content:close-quote;opacity:.55}
+
+/* 反例。灰掉又劃掉,不用讀完就知道這是「不要這樣」。 */
+.ax-no{color:var(--text-dim);text-decoration-color:color-mix(in srgb, var(--accent) 70%, transparent);
+  text-decoration-thickness:2px}
+
+/* 段落中的站內連結。跟段落末尾的卡片不同層:這個是順著句子讀過去的。 */
+.ax-link{color:var(--accent);text-decoration:underline;text-underline-offset:3px;
+  text-decoration-thickness:1px;text-decoration-color:color-mix(in srgb, var(--accent) 45%, transparent)}
+.ax-link:hover{text-decoration-color:var(--accent)}
 
 /* 清單。自訂圓點,而且第一層縮排跟內文對齊。 */
 .gd-list{margin:16px 0;padding-left:2px;list-style:none}
@@ -175,10 +195,9 @@
     <p class="gd-meta">{{ __('guides.updated_at', ['date' => $updated]) }}</p>
     @endif
 
-    {{-- 導言與段落也吃 **粗體**:一段五六行的中文,沒有任何視覺落點會整段被跳過。
-         inline_emphasis 先 escape 再只還原 <strong>,所以不會有 XSS ——
-         見 app/Support/helpers.php。 --}}
-    <p class="gd-lead">{!! inline_emphasis($article['lead']) !!}</p>
+    {{-- 正文的行內語法:粗體、可以照著講的句子、反例、站內連結。
+         article_text() 先把整段轉義,再只還原那四種標籤 —— 見 app/Support/helpers.php。 --}}
+    <p class="gd-lead">{!! article_text($article['lead']) !!}</p>
 
     <nav class="gd-toc" aria-label="{{ __('guides.toc_title') }}">
         <p class="gd-toc-title">{{ __('guides.toc_title') }}</p>
@@ -201,15 +220,14 @@
         </h2>
 
         @foreach($s['p'] ?? [] as $para)
-        <p>{!! inline_emphasis($para) !!}</p>
+        <p>{!! article_text($para) !!}</p>
         @endforeach
 
         @if(! empty($s['ul']))
         <ul class="gd-list">
             @foreach($s['ul'] as $li)
-            {{-- inline_emphasis 會先 escape 再只還原 **粗體**,永遠只可能產出
-                 <strong> —— 見 app/Support/helpers.php 的說明。 --}}
-            <li>{!! inline_emphasis($li) !!}</li>
+            {{-- 同上:先轉義再只還原白名單裡的標籤 --}}
+            <li>{!! article_text($li) !!}</li>
             @endforeach
         </ul>
         @endif
@@ -217,12 +235,12 @@
         {{-- p2:列表之後的收尾段落。分開一個 key 是為了讓「段落→清單→結論」
              這個順序在文案裡就固定下來,不用在 view 裡判斷。 --}}
         @foreach($s['p2'] ?? [] as $para)
-        <p>{!! inline_emphasis($para) !!}</p>
+        <p>{!! article_text($para) !!}</p>
         @endforeach
 
         {{-- 這一節最該被記住的一句。文案端寫 'note' => '…',沒寫就不出現。 --}}
         @if(! empty($s['note']))
-        <p class="gd-note"><b class="gd-note-tag">{{ __('guides.note_tag') }}</b>{!! inline_emphasis($s['note']) !!}</p>
+        <p class="gd-note"><b class="gd-note-tag">{{ __('guides.note_tag') }}</b>{!! article_text($s['note']) !!}</p>
         @endif
 
         @if(! empty($s['cta']) && \Illuminate\Support\Facades\Route::has($s['cta']['route']))
@@ -237,7 +255,7 @@
         @foreach($article['faq'] as $f)
         <details class="gd-faq-item">
             <summary>{{ $f['q'] }}</summary>
-            <p>{{ $f['a'] }}</p>
+            <p>{!! article_text($f['a']) !!}</p>
         </details>
         @endforeach
     </section>

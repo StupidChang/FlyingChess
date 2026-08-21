@@ -60,6 +60,9 @@
 .gdx-mark .gd-icon{width:17px;height:17px;display:block}
 .gdx-item p{font-size:clamp(.9rem,.86rem + .2vw,.98rem);line-height:1.85;color:var(--text-dim);margin-bottom:10px}
 .gdx-item p strong{color:var(--text);font-weight:700}
+.gdx-item .ax-say{padding:1px 5px;border-radius:5px;color:var(--text);font-weight:600;font-style:normal;
+  background:color-mix(in srgb, var(--accent) 15%, transparent)}
+.gdx-item .ax-no{color:var(--text-dim)}
 .gdx-more{font-size:.82rem;color:var(--gold)}
 .gdx-date{font-size:.75rem;color:var(--text-dim);margin-left:10px}
 </style>
@@ -81,8 +84,8 @@
                 <span class="gdx-mark">@include('partials.guide-icon', ['icon' => $a['icon']])</span>
                 <a href="{{ route('guide.show', ['slug' => $a['slug']]) }}">{{ $a['h1'] }}</a>
             </h2>
-            {{-- 導言裡有 **粗體**,要跟文章頁一樣轉換 —— 不轉的話卡片上會出現星號 --}}
-            <p>{!! inline_emphasis($a['lead']) !!}</p>
+            {{-- 導言吃的是跟文章頁同一套行內語法 —— 不轉的話卡片上會出現星號與反引號 --}}
+            <p>{!! article_text($a['lead']) !!}</p>
             <a class="gdx-more" href="{{ route('guide.show', ['slug' => $a['slug']]) }}">{{ __('guides.read_more') }} →</a>
             @if($a['updated'])
             <span class="gdx-date">{{ __('guides.updated_at', ['date' => $a['updated']]) }}</span>

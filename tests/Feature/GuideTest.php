@@ -71,7 +71,7 @@ class GuideTest extends TestCase
             $this->visit("/tw/guide/{$slug}")
                 ->assertOk()
                 ->assertSee($article['h1'])
-                ->assertSee(inline_emphasis($article['lead']), false);
+                ->assertSee(article_text($article['lead']), false);
         }
     }
 
@@ -84,12 +84,20 @@ class GuideTest extends TestCase
     {
         /* 列表頁也要檢查:它印的是每篇的導言,而導言裡有粗體 —— 忘了轉換的話
            卡片上會出現一排星號,而文章頁看起來完全正常。 */
-        $this->assertStringNotContainsString('**', $this->visit('/tw/guide')->assertOk()->getContent(), '列表頁有沒被處理的 ** 標記');
+        $indexHtml = $this->visit('/tw/guide')->assertOk()->getContent();
+        $this->assertStringNotContainsString('**', $indexHtml, '列表頁有沒被處理的 ** 標記');
+        $this->assertStringNotContainsString('`', $indexHtml, '列表頁有沒被處理的 ` 標記');
 
         foreach ($this->slugs() as $slug) {
             $html = $this->visit("/tw/guide/{$slug}")->assertOk()->getContent();
 
             $this->assertStringNotContainsString('**', $html, "{$slug} 的頁面上有沒被處理的 ** 標記");
+
+            /* 反引號與波浪號同理。文案裡寫了 `句子` 但 view 忘了走 article_text()
+               的話,頁面上會出現一排反引號,而且不會有任何錯誤。 */
+            $this->assertStringNotContainsString('`', $html, "{$slug} 的頁面上有沒被處理的 ` 標記");
+            $this->assertStringNotContainsString('~~', $html, "{$slug} 的頁面上有沒被處理的 ~~ 標記");
+            $this->assertStringNotContainsString('[[', $html, "{$slug} 的頁面上有沒被處理的 [[ 連結");
         }
     }
 
