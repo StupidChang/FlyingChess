@@ -7,6 +7,35 @@ return [
     // 正式上線請使用 exoclick 或 trafficjunky。
     'adapter' => env('AD_ADAPTER', 'exoclick'),
 
+    /*
+     * 聯播網的後台網址,給 /admin 的廣告面板用。
+     *
+     * 放在這裡而不是寫死在 view 裡:adapter 的設定已經在這個檔案,「這個 adapter
+     * 的後台在哪」是同一件事的一部分。只放主控台首頁、不放深層連結 —— 聯播網
+     * 改版時深層連結會死掉,而死掉的後台連結沒有人會回報。
+     */
+    'networks' => [
+        'exoclick' => [
+            'label' => 'ExoClick',
+            'dashboard' => 'https://admin.exoclick.com/',
+            'site' => 'https://www.exoclick.com/',
+            'hint' => '版位在 Sites & Zones,收益與填充率在 Statistics。',
+        ],
+        'trafficjunky' => [
+            'label' => 'TrafficJunky',
+            'dashboard' => 'https://www.trafficjunky.com/login',
+            'site' => 'https://www.trafficjunky.com/',
+            'hint' => '版位叫 Ad Spot;要先通過站台審核才會有量。',
+        ],
+        'adsense' => [
+            'label' => 'Google AdSense',
+            'dashboard' => 'https://www.google.com/adsense/',
+            'site' => 'https://adsense.google.com/',
+            'hint' => '本站是成人向內容,啟用會違反 AdSense 政策並可能導致帳號停用。',
+            'forbidden' => true,
+        ],
+    ],
+
     // /ads.txt 內容：多行以 | 分隔，例如：
     // ADS_TXT_LINES="exoclick.com, 123456, DIRECT|google.com, pub-0000, DIRECT, f08c47fec0942fa0"
     'txt_lines' => env('ADS_TXT_LINES', ''),

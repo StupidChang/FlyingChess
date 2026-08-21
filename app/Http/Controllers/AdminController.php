@@ -405,10 +405,49 @@ class AdminController extends Controller
         $recentUsers = User::latest()->take(5)->get();
         $recentGames = Game::withCount('players')->latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentGames', 'dailySeries'));
+        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentGames', 'dailySeries') + [
+            'ads' => $this->adPanel(),
+        ]);
     }
 
     // ── Boards ──
+
+    /**
+     * 後台的廣告面板:現在用哪一家、後台在哪、以及哪幾個版位還沒設。
+     *
+     * 「哪個版位是空的」比連結本身有用 —— 版位沒填不會有任何錯誤,那一塊就只是
+     * 不出現,而不出現的廣告不會有人回報。zone id 設定在 .env,所以這裡只讀 config、
+     * 不碰資料庫。
+     *
+     * @return array<string, mixed>
+     */
+    private function adPanel(): array
+    {
+        $adapter = (string) config('ads.adapter');
+        $networks = (array) config('ads.networks', []);
+
+        /* 版位的 key 前綴每家不一樣(ExoClick 是 zone_、TrafficJunky 是 spot_、
+           AdSense 是 slot_),所以直接把該家的設定攤開來看哪些是空的。 */
+        $slots = [];
+        foreach ((array) config("ads.{$adapter}", []) as $key => $value) {
+            $slots[] = [
+                'key' => $key,
+                'value' => (string) $value,
+                'filled' => trim((string) $value) !== '',
+            ];
+        }
+
+        return [
+            'adapter' => $adapter,
+            'current' => $networks[$adapter] ?? null,
+            'networks' => $networks,
+            'slots' => $slots,
+            'filled' => count(array_filter($slots, fn ($s) => $s['filled'])),
+            'total' => count($slots),
+            // 空的時候 /ads.txt 回 404(那是刻意的),但聯播網會一直來要
+            'ads_txt' => trim((string) config('ads.txt_lines')),
+        ];
+    }
 
     public function boards(Request $request)
     {
