@@ -1148,3 +1148,8 @@
 @keyframes wheel-result {
   from { opacity: 0; transform: translateY(4px); }
 }
+
+/* 版型按鈕:名稱一行、尺寸與格數一行(小字)。版型從兩個變成十個之後,
+   單純一排文字按鈕會擠成一團看不出差別。 */
+.layout-preset-btn{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.25}
+.layout-preset-btn small{font-size:.62rem;opacity:.62;font-weight:400}

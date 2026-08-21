@@ -168,9 +168,9 @@ async function applyCanvasSize() {
 }
 
 /** Apply a preset (clears existing squares and creates preset) */
-async function applyPreset(preset) {
-  const names = { cross: tp('presetCross'), square: tp('presetSquare') };
-  if (!confirm(tp('confirmPreset', { '__NAME__': names[preset] || preset }))) return;
+async function applyPreset(preset, label) {
+  // 名字由呼叫端(Blade 的按鈕)帶進來 —— 版型清單住在 PHP,JS 這邊不再另外維護一份
+  if (!confirm(tp('confirmPreset', { '__NAME__': label || preset }))) return;
   try {
     const res = await fetch(window.BOARD_ROUTES.preset, {
       method : 'POST',

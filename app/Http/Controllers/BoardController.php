@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Board;
 use App\Models\BoardSquare;
 use App\Rules\NoBlockedWords;
+use App\Support\BoardShapes;
 use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class BoardController extends Controller
 {
@@ -359,58 +361,34 @@ class BoardController extends Controller
     {
         $this->checkOwnership($board);
         $data = $request->validate([
-            'preset' => 'required|string|in:cross,square',
+            'preset' => ['required', 'string', Rule::in(BoardShapes::KEYS)],
         ]);
 
         $board->squares()->delete();
 
-        if ($data['preset'] === 'cross') {
-            $map = [
-                0 => [1, 6, 'start', '起點\n擲骰子出發！'], 1 => [1, 7, 'move', '前進2格'],
-                2 => [2, 7, 'drink', '喝一口'], 3 => [3, 7, 'action', '舔對方耳根10秒'],
-                4 => [4, 7, 'move', '後退2格\n並脫一件衣物'], 5 => [5, 8, 'dare', '大冒險！\n由對方出題'],
-                6 => [5, 9, 'strip', '為對方口交\n至流水或堅挺10秒'], 7 => [5, 10, 'truth', '真心話\n說出最近的秘密幻想'],
-                8 => [5, 11, 'drink', '用嘴餵對方\n喝一口酒'], 9 => [5, 12, 'action', '咬吸對方脖子\n種一顆草莓'],
-                10 => [5, 13, 'move', '下一輪休息\n跳過下次擲骰'], 11 => [6, 13, 'action', '與對方舌吻\n整整1分鐘'],
-                12 => [7, 13, 'dare', '大冒險！'], 13 => [7, 12, 'female', '♀ 女生拍一張性感照片'],
-                14 => [7, 11, 'action', '手伸對方內褲裡\n隨意發揮30秒'], 15 => [7, 10, 'truth', '真心話\n說出最想讓對方做的事'],
-                16 => [7, 9, 'drink', '喝半杯'], 17 => [7, 8, 'male', '♂ 男生停留此格\n後插對方1分鐘'],
-                18 => [8, 7, 'action', '為對方擋管或\n指逼1分鐘'], 19 => [9, 7, 'strip', '選一個姿勢\n讓對方插至少10下'],
-                20 => [10, 7, 'action', '對方口交\n1分鐘'], 21 => [11, 7, 'dare', '打對方屁股\n3下'],
-                22 => [11, 6, 'end', '終點\n恭喜！為愛鼓掌！'], 23 => [11, 5, 'move', '後退3格\n並脫一件衣物'],
-                24 => [10, 5, 'strip', '露出私處\n允許對方拍照一張'], 25 => [9, 5, 'action', '從背後抱住\n隨意撫摸1分鐘'],
-                26 => [8, 5, 'action', '舔對方大腿內側\n對方若笑則罰喝半杯'], 27 => [7, 4, 'action', '對方乳交\n1分鐘'],
-                28 => [7, 3, 'female', '♀ 女生坐在\n男生臉上摩擦'], 29 => [7, 2, 'drink', '喝一口'],
-                30 => [7, 1, 'action', '和對方用觀音坐蓮\n自己動至少10下'], 31 => [6, 1, 'dare', '大冒險！\n由對方出題'],
-                32 => [5, 1, 'action', '為對方口交\n3分鐘'], 33 => [5, 2, 'truth', '真心話\n說出最喜歡的體位'],
-                34 => [5, 3, 'action', '讓對方從耳根\n舔到胸口'], 35 => [5, 4, 'action', '手伸對方內褲裡\n隨意發揮30秒'],
-                36 => [4, 5, 'drink', '喝半杯'], 37 => [3, 5, 'move', '前進2格'],
-                38 => [2, 5, 'strip', '自己脫一件衣物'], 39 => [1, 5, 'dare', '嚼對方口水\n喝下'],
-            ];
-            foreach ($map as $pos => [$row, $col, $color, $text]) {
-                BoardSquare::create(['board_id' => $board->id, 'position' => $pos, 'text' => str_replace('\n', "\n", $text), 'color' => $color, 'grid_row' => $row, 'grid_col' => $col]);
-            }
-            $board->update(['canvas_rows' => 11, 'canvas_cols' => 13, 'path_data' => ['all' => range(0, 22), 'male' => null, 'female' => null]]);
-        } else { // square ring
-            $positions = [];
-            $i = 0;
-            for ($c = 1; $c <= 11; $c++) {
-                $positions[$i++] = [1, $c];
-            }      // top row
-            for ($r = 2; $r <= 10; $r++) {
-                $positions[$i++] = [$r, 11];
-            }     // right col
-            for ($c = 11; $c >= 1; $c--) {
-                $positions[$i++] = [11, $c];
-            }     // bottom row
-            for ($r = 10; $r >= 2; $r--) {
-                $positions[$i++] = [$r, 1];
-            }      // left col
-            foreach ($positions as $pos => [$row,$col]) {
-                BoardSquare::create(['board_id' => $board->id, 'position' => $pos, 'text' => '', 'color' => $pos === 0 ? 'start' : ($pos === 20 ? 'end' : 'normal'), 'grid_row' => $row, 'grid_col' => $col]);
-            }
-            $board->update(['canvas_rows' => 11, 'canvas_cols' => 11, 'path_data' => ['all' => range(0, 20), 'male' => null, 'female' => null]]);
+        /* 版型的幾何在 App\Support\BoardShapes ——「哪些格子、走哪個順序」跟
+           「誰能改這張棋盤」是兩件事,混在同一個方法裡的話,加一個形狀就得動
+           controller。那邊也寫著兩條不能違反的規則(只能正交相鄰、不能重複)。 */
+        $shape = BoardShapes::make($data['preset']);
+
+        foreach ($shape['cells'] as $pos => $cell) {
+            BoardSquare::create([
+                'board_id' => $board->id,
+                'position' => $pos,
+                'text' => $cell['text'],
+                'color' => $cell['color'],
+                'grid_row' => $cell['row'],
+                'grid_col' => $cell['col'],
+            ]);
         }
+
+        /* 路徑由版型自己決定。多數版型就是全部格子,但十字鷹架的路徑只走前 23 格
+           (第 22 格就是終點,後面是裝飾用的另外兩條臂)—— 見 BoardShapes::make()。 */
+        $board->update([
+            'canvas_rows' => $shape['rows'],
+            'canvas_cols' => $shape['cols'],
+            'path_data' => ['all' => $shape['path'], 'male' => null, 'female' => null],
+        ]);
 
         $this->requeueIfPublished($board);
 

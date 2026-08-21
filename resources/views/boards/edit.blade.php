@@ -74,10 +74,18 @@
                               class="canvas-size-input" value="{{ $board->canvas_cols }}"></label>
             <button onclick="applyCanvasSize()" class="btn btn-sm">{{ __('play.apply_size') }}</button>
         </div>
+        {{-- 版型按鈕從 BoardShapes::KEYS 長出來 —— 加一個形狀只要改那一支類別,
+             這一頁不用動。尺寸與格數也是現算的,不會跟實際版型對不上。 --}}
         <div class="layout-preset-controls">
             <span class="layout-label">{{ __('play.apply_preset') }}</span>
-            <button onclick="applyPreset('cross')"  class="btn btn-sm">{{ __('play.preset_cross') }}</button>
-            <button onclick="applyPreset('square')" class="btn btn-sm">{{ __('play.preset_square') }}</button>
+            @foreach(\App\Support\BoardShapes::dimensions() as $shapeKey => $shapeDim)
+            @php $shapeName = __('play.preset_'.$shapeKey); @endphp
+            <button type="button" class="btn btn-sm layout-preset-btn"
+                    onclick="applyPreset('{{ $shapeKey }}', {{ Js::from($shapeName) }})">
+                {{ $shapeName }}
+                <small>{{ __('play.preset_cells', ['rows' => $shapeDim['rows'], 'cols' => $shapeDim['cols'], 'n' => $shapeDim['count']]) }}</small>
+            </button>
+            @endforeach
         </div>
         <div class="layout-preset-controls">
             <button id="add-wheel-btn" type="button" onclick="addStartWheel()" class="btn btn-sm btn-gold">
