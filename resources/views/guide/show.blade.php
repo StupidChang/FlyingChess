@@ -117,7 +117,10 @@
     <p class="gd-meta">{{ __('guides.updated_at', ['date' => $updated]) }}</p>
     @endif
 
-    <p class="gd-lead">{{ $article['lead'] }}</p>
+    {{-- 導言與段落也吃 **粗體**:一段五六行的中文,沒有任何視覺落點會整段被跳過。
+         inline_emphasis 先 escape 再只還原 <strong>,所以不會有 XSS ——
+         見 app/Support/helpers.php。 --}}
+    <p class="gd-lead">{!! inline_emphasis($article['lead']) !!}</p>
 
     <nav class="gd-toc" aria-label="{{ __('guides.toc_title') }}">
         <p class="gd-toc-title">{{ __('guides.toc_title') }}</p>
@@ -133,7 +136,7 @@
         <h2>{{ $s['h2'] }}</h2>
 
         @foreach($s['p'] ?? [] as $para)
-        <p>{{ $para }}</p>
+        <p>{!! inline_emphasis($para) !!}</p>
         @endforeach
 
         @if(! empty($s['ul']))
@@ -149,7 +152,7 @@
         {{-- p2:列表之後的收尾段落。分開一個 key 是為了讓「段落→清單→結論」
              這個順序在文案裡就固定下來,不用在 view 裡判斷。 --}}
         @foreach($s['p2'] ?? [] as $para)
-        <p>{{ $para }}</p>
+        <p>{!! inline_emphasis($para) !!}</p>
         @endforeach
 
         @if(! empty($s['cta']) && \Illuminate\Support\Facades\Route::has($s['cta']['route']))

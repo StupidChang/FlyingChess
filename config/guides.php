@@ -50,6 +50,24 @@ return [
             'priority' => '0.7',
             'related' => ['play', 'games.lobby', 'card-game.show'],
         ],
+        /* 紀念日、異地戀、性需求溝通。三篇都刻意避開站內已經有頁面在吃的字:
+           寫一篇「真心話大冒險」會直接跟 /truth-dare 互搶,而「約會後怎麼加溫」
+           會跟上面那篇 date-awkward-silence 的後半段重疊。 */
+        'anniversary-at-home' => [
+            'updated' => '2026-08-21',
+            'priority' => '0.7',
+            'related' => ['play', 'boards.templates', 'truth-dare.lobby'],
+        ],
+        'long-distance-couples' => [
+            'updated' => '2026-08-21',
+            'priority' => '0.7',
+            'related' => ['trait-test.compare', 'time-capsule.lobby', 'play'],
+        ],
+        'talk-about-sex-needs' => [
+            'updated' => '2026-08-21',
+            'priority' => '0.8',
+            'related' => ['repression-test.show', 'trait-test.show', 'truth-dare.lobby'],
+        ],
     ],
 
     /*

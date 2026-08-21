@@ -66,10 +66,12 @@ class GuideTest extends TestCase
         foreach ($this->slugs() as $slug) {
             $article = (array) trans("guides.articles.{$slug}", [], 'zh_TW');
 
+            /* 導言與段落會經過 inline_emphasis(**粗體** → <strong>),所以要拿
+               轉換後的字串比對 —— 直接比原文的話,只要文案裡出現一個粗體就會失敗。 */
             $this->visit("/tw/guide/{$slug}")
                 ->assertOk()
                 ->assertSee($article['h1'])
-                ->assertSee($article['lead']);
+                ->assertSee(inline_emphasis($article['lead']), false);
         }
     }
 
