@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Board;
 use App\Support\LocaleHelper;
+use Carbon\Carbon;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -52,7 +53,41 @@ class SitemapController extends Controller
                 'currentLocale' => $locale,
                 'supported' => $supported,
                 'boards' => $boards,
+                'stamps' => $this->contentStamps($locale),
             ])
             ->header('Content-Type', 'application/xml; charset=utf-8');
+    }
+
+    /**
+     * `<lastmod>` 用的時間戳。
+     *
+     * 這個站的內容住在語系檔裡(見 CLAUDE.md),而這台機器上改 lang 檔是存檔即
+     * 生效 —— 所以檔案的 mtime 就是那一批頁面真正的「上次更新」,比塞一個
+     * `now()` 誠實得多。每次抓都宣稱剛改過,Google 會學會不信這個欄位。
+     *
+     * @return array<string, string> ISO 8601 時間字串,key 是內容群組
+     */
+    private function contentStamps(string $locale): array
+    {
+        $stamp = function (string ...$files) use ($locale): string {
+            $times = [];
+
+            foreach ($files as $file) {
+                $path = lang_path("{$locale}/{$file}.php");
+                if (is_file($path)) {
+                    $times[] = filemtime($path);
+                }
+            }
+
+            return Carbon::createFromTimestamp($times === [] ? filemtime(base_path('composer.json')) : max($times))
+                ->toAtomString();
+        };
+
+        return [
+            'site' => $stamp('ui', 'seo', 'home', 'games', 'play', 'minigame'),
+            'guides' => $stamp('guides'),
+            'traits' => $stamp('traits'),
+            'repression' => $stamp('repression'),
+        ];
     }
 }

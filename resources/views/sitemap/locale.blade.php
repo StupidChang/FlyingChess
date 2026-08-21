@@ -2,6 +2,8 @@
 echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 use App\Support\LocaleHelper;
 
+/* lastmod 由控制器算(語系檔的 mtime)——見 SitemapController::contentStamps()。
+   每一頁都宣稱「剛剛才改」的 sitemap,Google 會學會整個欄位都不信。 */
 $paths = [
     ['path' => '',                'priority' => '1.0', 'changefreq' => 'weekly'],
     ['path' => 'play',            'priority' => '0.9', 'changefreq' => 'weekly'],
@@ -34,7 +36,7 @@ $paths = [
 if (in_array($currentLocale, (array) config('traits.translated', []), true)) {
     foreach ((array) trans('traits.items', [], $currentLocale) as $item) {
         if (! empty($item['slug'])) {
-            $paths[] = ['path' => 'trait-test/'.$item['slug'], 'priority' => '0.6', 'changefreq' => 'monthly'];
+            $paths[] = ['path' => 'trait-test/'.$item['slug'], 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $stamps['traits']];
         }
     }
 }
@@ -42,7 +44,7 @@ if (in_array($currentLocale, (array) config('traits.translated', []), true)) {
 /* 站內文章。每一篇都是一個獨立落地頁,而且是這個站接資訊型查詢的唯一入口。 */
 if (in_array($currentLocale, (array) config('guides.translated', []), true)) {
     foreach ((array) config('guides.articles') as $slug => $meta) {
-        $paths[] = ['path' => 'guide/'.$slug, 'priority' => $meta['priority'] ?? '0.6', 'changefreq' => 'monthly'];
+        $paths[] = ['path' => 'guide/'.$slug, 'priority' => $meta['priority'] ?? '0.6', 'changefreq' => 'monthly', 'lastmod' => $stamps['guides']];
     }
 }
 
@@ -50,13 +52,14 @@ if (in_array($currentLocale, (array) config('guides.translated', []), true)) {
 if (in_array($currentLocale, (array) config('repression.translated', []), true)) {
     foreach ((array) trans('repression.bands', [], $currentLocale) as $band) {
         if (! empty($band['slug'])) {
-            $paths[] = ['path' => 'repression-test/'.$band['slug'], 'priority' => '0.6', 'changefreq' => 'monthly'];
+            $paths[] = ['path' => 'repression-test/'.$band['slug'], 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $stamps['repression']];
         }
     }
 }
 
 foreach ($boards as $b) {
-    $paths[] = ['path' => 'play/share/'.$b->share_code, 'priority' => '0.6', 'changefreq' => 'monthly'];
+    // 棋盤有自己的 updated_at —— 內容改過就會動,比語系檔的時間更準
+    $paths[] = ['path' => 'play/share/'.$b->share_code, 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $b->updated_at?->toAtomString()];
 }
 ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -68,6 +71,7 @@ foreach ($boards as $b) {
         <xhtml:link rel="alternate" hreflang="{{ $meta['hreflang'] }}" href="{{ LocaleHelper::localizedUrl($locale, $p['path']) }}"/>
         @endforeach
         <xhtml:link rel="alternate" hreflang="x-default" href="{{ LocaleHelper::localizedUrl(LocaleHelper::defaultLocale(), $p['path']) }}"/>
+        <lastmod>{{ $p['lastmod'] ?? $stamps['site'] }}</lastmod>
         <changefreq>{{ $p['changefreq'] }}</changefreq>
         <priority>{{ $p['priority'] }}</priority>
     </url>

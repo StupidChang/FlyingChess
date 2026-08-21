@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureNotBanned;
 use App\Http\Middleware\EnsurePremium;
 use App\Http\Middleware\RedirectUnprefixedUrl;
+use App\Http\Middleware\RetiredUrls;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackPageView;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -91,6 +92,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Order matters: RedirectUnprefixedUrl 301s legacy non-prefixed URLs
         // before AgeVerification renders the age gate, avoiding wasted renders.
         $middleware->prepend(RedirectUnprefixedUrl::class);
+
+        /* 前一手 Shopify 商店的網址回 410。**必須排在語系轉址之前**(prepend 是
+           往前插,所以寫在後面的這一行才會先跑)—— 排在後面的話那些網址拿到的是
+           301,永遠走不到這裡。見 RetiredUrls 的說明。 */
+        $middleware->prepend(RetiredUrls::class);
         $middleware->append(AgeVerification::class);
 
         // 流量紀錄排在年齡閘之後:被年齡閘擋下的那一次不是真的看到內容,

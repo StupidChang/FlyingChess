@@ -191,4 +191,59 @@ class SitemapConsistencyTest extends TestCase
             $this->assertStringContainsString('sitemap-'.$meta['prefix'].'.xml', $xml);
         }
     }
+
+    public function test_every_sitemap_url_carries_a_lastmod(): void
+    {
+        /* 沒有 lastmod 的 sitemap,Google 只能靠自己猜什麼時候該回來重抓。
+           這個站的內容住在語系檔裡,檔案 mtime 就是誠實的答案 —— 但**不能**
+           每次都塞 now():每一頁都宣稱剛改過的話,這個欄位會整個被忽略。 */
+        $xml = $this->get('/sitemap-tw.xml')->assertOk()->getContent();
+
+        $urls = substr_count($xml, '<loc>');
+        $stamps = substr_count($xml, '<lastmod>');
+
+        $this->assertGreaterThan(0, $urls);
+        $this->assertSame($urls, $stamps, 'sitemap 裡有網址沒有 lastmod');
+
+        // 時間必須是可解析的 ISO 8601,而且不能是未來
+        preg_match_all('#<lastmod>([^<]+)</lastmod>#', $xml, $m);
+        foreach (array_unique($m[1]) as $value) {
+            $parsed = strtotime($value);
+            $this->assertNotFalse($parsed, "lastmod 解析不了:{$value}");
+            $this->assertLessThanOrEqual(time() + 60, $parsed, "lastmod 是未來時間:{$value}");
+        }
+    }
+
+    public function test_the_previous_owners_store_urls_are_gone_not_missing(): void
+    {
+        /* 這個網域的前一手是一間 Shopify 商店,搜尋引擎至今還在抓它的網址。
+           404 的意思是「暫時找不到」,所以會一直被重抓;410 才是「永久沒有了」。
+
+           兩種形式都要測:原始網址,以及被我們自己的語系轉址加上前綴之後的
+           第二跳 —— 少測後者的話,301 → 404 的鏈子會活得好好的。 */
+        foreach ([
+            '/products/powerprostick',
+            '/collections/all',
+            '/sq/collections/all?page=4',
+            '/nl/products/musicpunch',
+            '/tw/products/powerprostick',
+            '/tw/collections/all',
+            '/cart',
+            '/pages/about-us',
+        ] as $url) {
+            $this->get($url)->assertStatus(410);
+        }
+    }
+
+    public function test_real_pages_are_not_caught_by_the_retired_url_rule(): void
+    {
+        /* 規則寫太寬的話會把自己的頁面也埋掉,而且是靜靜地埋掉。
+           這裡挑的是不需要任何資料就能渲染的頁面 —— /play 要有預設棋盤,
+           那是別的測試的守備範圍。 */
+        $this->get('/tw')->assertOk();
+        $this->get('/tw/guide')->assertOk();
+        $this->get('/tw/templates')->assertOk();
+        $this->get('/tw/community')->assertOk();
+        $this->get('/tw/premium')->assertOk();
+    }
 }
