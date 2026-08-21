@@ -28,6 +28,16 @@ class TraitTestTest extends TestCase
         return array_fill(0, count(config('traits.questions')), $v);
     }
 
+    public function test_question_text_and_structure_stay_aligned(): void
+    {
+        /* 第 N 句題目配第 N 個結構(權重與光譜方向)。錯位不會報錯,也不會讓
+           畫面壞掉 —— 只會讓每個人被算成錯的屬性。改題目的時候最容易踩到。 */
+        $this->assertCount(
+            count(config('traits.questions')),
+            (array) trans('traits.questions', [], 'zh_TW'),
+        );
+    }
+
     public function test_the_quiz_page_lists_every_question(): void
     {
         $response = $this->get('/tw/trait-test')->assertOk();
