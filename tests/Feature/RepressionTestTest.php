@@ -184,6 +184,9 @@ class RepressionTestTest extends TestCase
             $response->assertSee($signal);
         }
         $response->assertSee($band['bedroom']);
+        foreach ($band['stuck'] as $item) {
+            $response->assertSee($item);
+        }
         $response->assertSee($band['misread']);
 
         // 免費變厚不等於把付費那半送出去
@@ -196,6 +199,7 @@ class RepressionTestTest extends TestCase
         foreach (trans('repression.bands', [], 'zh_TW') as $key => $band) {
             $this->assertCount(4, $band['signals'] ?? [], "{$key} 的典型表現不是四條");
             $this->assertCount(3, $band['steps'] ?? [], "{$key} 的具體做法不是三條");
+            $this->assertCount(4, $band['stuck'] ?? [], "{$key} 的卡點不是四條");
             foreach (['bedroom', 'misread', 'advice', 'partner'] as $field) {
                 $this->assertNotEmpty($band[$field] ?? null, "{$key} 少了 {$field}");
             }

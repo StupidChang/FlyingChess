@@ -14,6 +14,7 @@
     $articleBody = implode("\n", array_filter(array_merge(
         [$band['long']],
         (array) ($band['signals'] ?? []),
+        (array) ($band['stuck'] ?? []),
         [$band['bedroom'] ?? null, $band['misread'] ?? null],
     )));
 @endphp
@@ -80,6 +81,18 @@
         <section class="tt-card">
             <h2>{{ __('repression.result.bedroom') }}</h2>
             <p class="tt-body">{{ $band['bedroom'] }}</p>
+        </section>
+        @endif
+
+        @if(!empty($band['stuck']))
+        <section class="tt-card">
+            <h2>{{ __('repression.result.stuck') }}</h2>
+            <p class="tt-hint">{{ __('repression.result.stuck_hint') }}</p>
+            <ul class="tt-signals">
+                @foreach($band['stuck'] as $item)
+                <li>{{ $item }}</li>
+                @endforeach
+            </ul>
         </section>
         @endif
 

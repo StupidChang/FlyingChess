@@ -217,6 +217,9 @@ class TraitTestTest extends TestCase
             $response->assertSee($signal);
         }
         $response->assertSee($item['bedroom']);
+        foreach ($item['likes'] as $like) {
+            $response->assertSee($like);
+        }
         $response->assertSee($item['everyday']);
 
         // 而深入解讀還是鎖著的 —— 免費變多不等於把付費那半送出去
@@ -230,6 +233,7 @@ class TraitTestTest extends TestCase
         foreach (__('traits.items') as $key => $item) {
             $this->assertCount(4, $item['signals'] ?? [], "{$key} 的典型表現不是四條");
             $this->assertNotEmpty($item['bedroom'] ?? null, "{$key} 少了「在床上長什麼樣子」");
+            $this->assertCount(4, $item['likes'] ?? [], "{$key} 的常見偏好不是四條");
             $this->assertNotEmpty($item['everyday'] ?? null, "{$key} 少了「不只在床上」");
         }
     }

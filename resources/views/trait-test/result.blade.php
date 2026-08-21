@@ -14,6 +14,7 @@
     $articleBody = implode("\n", array_filter(array_merge(
         [$item['long']],
         (array) ($item['signals'] ?? []),
+        (array) ($item['likes'] ?? []),
         [$item['bedroom'] ?? null, $item['everyday'] ?? null],
     )));
 @endphp
@@ -92,6 +93,21 @@
         <section class="tt-card">
             <h2>{{ __('traits.result.bedroom', ['name' => $item['name']]) }}</h2>
             <p class="tt-body">{{ $item['bedroom'] }}</p>
+        </section>
+        @endif
+
+        {{-- 常出現的偏好。這一段是「把百分比換成可以對照的東西」—— 這個測驗真正
+             被拿來用的地方。安全提示放在區塊層級講一次,不要每一條都加註解:
+             逐條加會讓整段變成免責文字,而免責文字沒有人讀。 --}}
+        @if(!empty($item['likes']))
+        <section class="tt-card">
+            <h2>{{ __('traits.result.likes', ['name' => $item['name']]) }}</h2>
+            <p class="tt-hint">{{ __('traits.result.likes_hint') }}</p>
+            <ul class="tt-signals">
+                @foreach($item['likes'] as $like)
+                <li>{{ $like }}</li>
+                @endforeach
+            </ul>
         </section>
         @endif
 
