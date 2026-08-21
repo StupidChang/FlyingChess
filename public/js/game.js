@@ -559,7 +559,7 @@ function stopDiceTumble() {
  *
  * 所以這裡刻意把在動畫期間排隊進來的輪詢值**丟掉**:一次落地是我們當下知道的
  * 最新結果(它來自自己那個請求的回應),輪詢拿到的是同一份狀態或更舊的東西。
- * 電腦骰的數字改成一顆一顆播(見 playBotDice),而不是動畫完再瞬間蓋掉。
+ * 電腦骰到幾點完全不動這顆骰子,只寫進記錄(見 displayBotActions)。
  *
  * @param {number} val 最終點數
  * @param {{quick?: boolean}} [opts] quick:電腦回合用的短版(轉一圈就落地)
@@ -703,32 +703,19 @@ function logBotAction(a) {
 }
 
 /**
- * 播電腦的骰子:一顆一顆轉、一顆一顆記錄。
+ * 電腦的回合:只寫進記錄,**不動骰面**。
  *
- * 以前是「所有記錄一次倒出來,骰子瞬間變成最後一隻電腦的點數」—— 那個瞬間變化
- * 就是玩家看到的「動畫停了之後又跳一下」。改成每一顆都真的轉一次(短版),
- * 骰面每一次變化都是一段動畫的結尾,而且最後停的那個數字就是伺服器狀態裡的值,
- * 所以接下來的輪詢不會再把它蓋掉。
+ * 這裡試過兩個版本,兩個都被回報成「動畫停了之後又跳一下」:
+ *   v1 動畫完直接把骰面設成電腦的點數(瞬間變號)
+ *   v2 每一顆都播一段 0.26 秒的短動畫(太短,看起來還是瞬間變號)
+ *
+ * 結論是這顆骰子屬於**按下擲骰的那個人**。玩家的預期是「動畫停下來的那一格就是
+ * 我骰到的點數」,而任何在那之後的變化 —— 不管有沒有動畫 —— 都會被讀成 bug。
+ * 電腦骰到幾點寫在右邊的記錄裡就夠了,那裡本來就是講「剛剛發生了什麼」的地方。
  */
-async function playBotDice(botActions) {
+function displayBotActions(botActions) {
     if (!botActions || botActions.length === 0) return;
-
-    // 關掉動畫偏好的人不要被拖時間:全部記錄印出來,骰面直接給最後一個值
-    if (prefersReducedMotion() || !diceCubeEl) {
-        botActions.forEach(logBotAction);
-        const last = [...botActions].reverse().find(a => a.dice);
-        if (last) updateDice(last.dice);
-        return;
-    }
-
-    for (const a of botActions) {
-        logBotAction(a);
-        if (!a.dice) continue;
-        startDiceTumble();
-        await new Promise(r => setTimeout(r, 260));   // 短暫自由轉,看得出是「重新骰」
-        await landDiceOn(a.dice, { quick: true });
-        await new Promise(r => setTimeout(r, 180));   // 讓玩家看清楚這一顆
-    }
+    botActions.forEach(logBotAction);
 }
 
 /* ---- Game Actions ---- */
@@ -753,17 +740,17 @@ window.rollDice = async function() {
             if (validMoves.length === 0) addLog(t('noMoves'));
         }
 
-        // Show bot actions that ran after our roll with no moves
-        if (res.bot_actions) await playBotDice(res.bot_actions);
+        // 電腦骰到幾點只寫記錄,骰面留著玩家自己的點數(見 displayBotActions)
+        if (res.bot_actions) displayBotActions(res.bot_actions);
 
         if (res.state) {
             gameState = res.state;
             renderPieces(gameState);
             updateTurn(gameState);
             updateMyPieces(gameState);
-            /* 這裡刻意不碰骰面。state.dice_value 是電腦回合跑完之後的值,而骰面
-               已經由 landDiceOn / playBotDice 一步一步走到那裡了 —— 再蓋一次
-               就是那個「多跳一下」。 */
+            /* 這裡刻意不碰骰面。骰面已經由 landDiceOn 停在玩家骰到的點數上,
+               而 state.dice_value 是電腦回合跑完之後的值(通常是 null)——
+               再蓋一次就是那個「多跳一下」。 */
         }
 
         if (res.winner) {
@@ -795,12 +782,9 @@ window.movePiece = async function(pieceIdx) {
 
         addLog(t('moved', { '__NAME__': COLOR_LABELS[myColor], '__N__': pieceIdx + 1 }));
 
-        // 電腦的骰子一顆一顆播;骰面每一次變化都是一段動畫的結尾
-        if (res.bot_actions) await playBotDice(res.bot_actions);
+        // 電腦骰到幾點只寫記錄,骰面留著玩家自己的點數(見 displayBotActions)
+        if (res.bot_actions) displayBotActions(res.bot_actions);
 
-        /* 「換誰的回合」與擲骰按鈕留到動畫播完才更新。提早放開的話,玩家可以在
-           電腦那幾顆骰子還在轉的時候按擲骰 —— 兩段動畫會打在一起,骰面會先落在
-           電腦的點數上再被自己的蓋掉。 */
         updateTurn(gameState);
         updateMyPieces(gameState);
 
@@ -863,7 +847,10 @@ async function fetchState() {
                 gameState = res.game_state;
                 renderPieces(gameState);
                 updateTurn(gameState);
-                updateDice(gameState.dice_value);
+                /* 單人局(對電腦)的骰面屬於玩家自己:電腦的回合是在玩家那個
+                   請求裡跑完的,輪詢讀到的 dice_value 只會是 null 或電腦的點數,
+                   兩種都會把剛剛落地的數字蓋掉。多人局才需要靠輪詢看到別人骰幾點。 */
+                if (!isSolo) updateDice(gameState.dice_value);
                 if (validMoves.length === 0) updateMyPieces(gameState);
             }
             if (res.status === 'finished' && gameState?.winner) {
