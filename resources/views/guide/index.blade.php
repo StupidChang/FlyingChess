@@ -42,28 +42,26 @@
 
 @section('styles')
 <style>
-/* 卡片的色盤與文章頁同一組 —— 點進去顏色是接得上的。 */
-.gdx-page{--c1:var(--accent);--c2:#38bdf8;--c3:#4ade80;--c4:#a78bfa;
-  max-width:900px;margin:0 auto;padding:40px 20px 72px}
+.gdx-page{max-width:900px;margin:0 auto;padding:40px 20px 72px}
 .gdx-head{margin-bottom:30px}
 .gdx-head h1{font-size:clamp(1.6rem,4.4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
 .gdx-lead{font-size:clamp(.98rem,.94rem + .22vw,1.08rem);line-height:1.9;color:var(--text-dim);max-width:62ch}
 .gdx-list{display:grid;gap:14px}
 .gdx-item{border:1px solid var(--border);border-radius:14px;background:var(--surface);
   padding:20px 22px;transition:border-color .14s,transform .14s}
-.gdx-item:hover{border-color:var(--sec,var(--accent));transform:translateY(-2px)}
+.gdx-item:hover{border-color:var(--accent);transform:translateY(-2px)}
 .gdx-item h2{display:flex;align-items:flex-start;gap:11px;font-size:clamp(1.05rem,1rem + .25vw,1.18rem);line-height:1.5;margin-bottom:9px}
 .gdx-item h2 a{color:var(--text)}
-.gdx-item h2 a:hover{color:var(--sec,var(--accent))}
+.gdx-item h2 a:hover{color:var(--accent)}
 /* 卡片圖示。六張卡片全是文字的時候,清單看起來像一份目錄而不是六篇文章。 */
 .gdx-mark{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:9px;
-  color:var(--sec,var(--accent));background:color-mix(in srgb, var(--sec,var(--accent)) 15%, transparent);
-  border:1px solid color-mix(in srgb, var(--sec,var(--accent)) 32%, transparent)}
+  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
 .gdx-mark .gd-icon{width:17px;height:17px;display:block}
 .gdx-item p{font-size:clamp(.9rem,.86rem + .2vw,.98rem);line-height:1.85;color:var(--text-dim);margin-bottom:10px}
 .gdx-item p strong{color:var(--text);font-weight:700}
 .gdx-item .ax-say{padding:1px 5px;border-radius:5px;color:var(--text);font-weight:600;font-style:normal;
-  background:color-mix(in srgb, var(--c3) 17%, transparent)}
+  background:color-mix(in srgb, var(--accent) 15%, transparent)}
 .gdx-item .ax-no{color:var(--text-dim)}
 .gdx-more{font-size:.82rem;color:var(--gold)}
 .gdx-date{font-size:.75rem;color:var(--text-dim);margin-left:10px}
@@ -79,7 +77,7 @@
 
     <div class="gdx-list">
         @foreach($articles as $a)
-        <article class="gdx-item" style="--sec:var(--c{{ $loop->index % 4 + 1 }})">
+        <article class="gdx-item">
             {{-- 標題本身就是連結:列表頁通往文章的唯一路徑,錨文字就是文章標題,
                  這對搜尋引擎理解那一頁在講什麼是最直接的訊號。 --}}
             <h2>

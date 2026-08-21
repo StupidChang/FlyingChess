@@ -60,11 +60,8 @@
    顏色只用 --accent(玫瑰)當編輯用的強調色。--gold 在這個站是付費/金錢專用
    (見 CLAUDE.md 的設計代幣),文章內容不該借用它,不然「金色 = 要付錢」
    這個訊號會被稀釋。 */
-/* 文章用的色盤。--c1 跟著主題走(玫瑰或靛),其餘三個固定 —— 兩個主題都是深底,
-   所以這三個色在哪一個主題上都讀得清楚。刻意沒有金色/琥珀色:金色在這個站是
-   付費專用(見 CLAUDE.md 的設計代幣),文章拿來當裝飾會稀釋那個訊號。 */
-.gd-page{--gd-body:#c5cad8;--c1:var(--accent);--c2:#38bdf8;--c3:#4ade80;--c4:#a78bfa;
-  max-width:900px;margin:0 auto;padding:36px 20px 72px}
+.gd-page{--gd-body:#c5cad8;max-width:900px;margin:0 auto;padding:36px 20px 72px}
+[data-theme="light"] .gd-page{--gd-body:#3f4658}
 .gd-crumb{font-size:.8rem;color:var(--text-dim);margin-bottom:14px}
 .gd-crumb a{color:var(--text-dim);text-decoration:underline;text-underline-offset:3px}
 .gd-crumb a:hover{color:var(--accent)}
@@ -82,50 +79,43 @@
 .gd-toc ol{margin:0;padding-left:0;list-style:none;counter-reset:gdtoc}
 .gd-toc li{counter-increment:gdtoc;margin:6px 0;font-size:.9rem;line-height:1.6;
   display:flex;gap:10px;align-items:baseline}
-.gd-toc li::before{content:counter(gdtoc,decimal-leading-zero);color:var(--sec,var(--accent));
+.gd-toc li::before{content:counter(gdtoc,decimal-leading-zero);color:var(--accent);
   font-size:.74rem;font-weight:700;font-variant-numeric:tabular-nums;flex:0 0 auto}
 .gd-toc a{color:var(--text-dim)}
 .gd-toc a:hover{color:var(--accent)}
 
 /* 段落之間拉開,並用一條細線收尾 —— 捲動的時候看得出上一節結束了。 */
-.gd-section{position:relative;margin:0 0 14px;padding-bottom:26px;
-  border-bottom:1px solid var(--border);scroll-margin-top:80px}
-/* 分隔線最左邊 48px 換成該節的顏色 —— 一整頁看下來,顏色會一節一節換。 */
-.gd-section::after{content:'';position:absolute;left:0;bottom:-1px;width:48px;height:1px;
-  background:var(--sec,var(--accent))}
-.gd-section:last-of-type::after{display:none}
+.gd-section{margin:0 0 14px;padding-bottom:26px;border-bottom:1px solid var(--border);scroll-margin-top:80px}
 .gd-section:last-of-type{border-bottom:0}
 .gd-section h2{display:flex;align-items:center;gap:11px;font-size:clamp(1.14rem,1.06rem + .3vw,1.32rem);
   font-weight:800;line-height:1.45;margin:30px 0 15px}
 .gd-h2-mark{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;
-  color:var(--sec,var(--accent));background:color-mix(in srgb, var(--sec,var(--accent)) 15%, transparent);
-  border:1px solid color-mix(in srgb, var(--sec,var(--accent)) 32%, transparent)}
+  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
 .gd-icon{width:18px;height:18px;display:block}
 .gd-h2-text{flex:1 1 auto;text-wrap:balance}
-.gd-h2-num{flex:0 0 auto;font-size:.72rem;font-weight:700;color:var(--sec,var(--text-dim));
-  font-variant-numeric:tabular-nums;opacity:.75}
+.gd-h2-num{flex:0 0 auto;font-size:.72rem;font-weight:700;color:var(--text-dim);
+  font-variant-numeric:tabular-nums;opacity:.55}
 
 /* 內文比標題暗一階。全部同一個白的時候,標題等於沒有存在感。 */
 /* 字級跟著版面一起長。中文一行超過大約 50 字就會開始跳行 —— 版面加寬之後
    不把字級一起帶上去,每行的字數會爆掉,反而更難讀。 */
 .gd-section p{font-size:clamp(.96rem,.92rem + .3vw,1.12rem);line-height:2;
   margin:0 0 16px;color:var(--gd-body)}
-.gd-section p strong,.gd-section li strong{color:var(--text);font-weight:700;
-  background:linear-gradient(transparent 62%, color-mix(in srgb, var(--sec,var(--accent)) 30%, transparent) 62%)}
-.gd-lead strong{color:var(--text);font-weight:700;
-  background:linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 28%, transparent) 62%)}
+.gd-section p strong,.gd-lead strong{color:var(--text);font-weight:700;
+  background:linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 26%, transparent) 62%)}
 
 /* 可以照著講出口的句子。這幾篇文章裡這種句子很多,混在段落裡讀者會滑過去 ——
    變成一個有顏色的塊之後,才看得出「這句可以照抄」。 */
 .ax-say{quotes:'「' '」';display:inline;padding:1px 5px;border-radius:5px;
-  background:color-mix(in srgb, var(--c3) 17%, transparent);
+  background:color-mix(in srgb, var(--accent) 15%, transparent);
   color:var(--text);font-weight:600;font-style:normal;
-  box-shadow:inset 0 -1px 0 color-mix(in srgb, var(--c3) 55%, transparent)}
-.ax-say::before{content:open-quote;color:var(--c3);opacity:.8}
-.ax-say::after{content:close-quote;color:var(--c3);opacity:.8}
+  box-shadow:inset 0 -1px 0 color-mix(in srgb, var(--accent) 45%, transparent)}
+.ax-say::before{content:open-quote;opacity:.55}
+.ax-say::after{content:close-quote;opacity:.55}
 
 /* 反例。灰掉又劃掉,不用讀完就知道這是「不要這樣」。 */
-.ax-no{color:var(--text-dim);text-decoration-color:color-mix(in srgb, var(--c1) 85%, transparent);
+.ax-no{color:var(--text-dim);text-decoration-color:color-mix(in srgb, var(--accent) 70%, transparent);
   text-decoration-thickness:2px}
 
 /* 段落中的站內連結。跟段落末尾的卡片不同層:這個是順著句子讀過去的。 */
@@ -138,14 +128,15 @@
 .gd-list li{position:relative;padding-left:22px;font-size:clamp(.95rem,.91rem + .28vw,1.1rem);
   line-height:1.95;margin-bottom:13px;color:var(--gd-body)}
 .gd-list li::before{content:'';position:absolute;left:4px;top:.72em;width:6px;height:6px;
-  border-radius:50%;background:var(--sec,var(--accent));opacity:.9}
+  border-radius:50%;background:var(--accent);opacity:.8}
+.gd-list strong{color:var(--text);font-weight:700}
 
 /* 重點框。一節裡最該被記住的那一句 —— 掃頁的人只讀這些也拿得到重點。 */
 .gd-section p.gd-note{margin:18px 0 4px;padding:14px 17px;border-radius:10px;
-  background:color-mix(in srgb, var(--c2) 10%, var(--surface));
-  border:1px solid color-mix(in srgb, var(--c2) 30%, transparent);
+  background:color-mix(in srgb, var(--accent) 9%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--accent) 26%, transparent);
   color:var(--text);font-size:clamp(.94rem,.9rem + .25vw,1.07rem);line-height:1.9}
-.gd-note-tag{font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--c2);
+.gd-note-tag{font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--accent);
   margin-right:6px;vertical-align:1px}
 
 /* 段落中的內部連結。做成一張小卡而不是一句話裡的連結 —— 讀者掃過長文的時候
@@ -212,15 +203,13 @@
         <p class="gd-toc-title">{{ __('guides.toc_title') }}</p>
         <ol>
             @foreach($article['sections'] as $i => $s)
-            <li style="--sec:var(--c{{ $i % 4 + 1 }})"><a href="#s{{ $i }}">{{ $s['h2'] }}</a></li>
+            <li><a href="#s{{ $i }}">{{ $s['h2'] }}</a></li>
             @endforeach
         </ol>
     </nav>
 
     @foreach($article['sections'] as $i => $s)
-    {{-- 每一節換一個顏色(四色輪替)。整篇只有一個主色的時候,捲下來所有段落
-         看起來都一樣 —— 顏色會換,眼睛才知道自己換了一節。 --}}
-    <section class="gd-section" id="s{{ $i }}" style="--sec:var(--c{{ $i % 4 + 1 }})">
+    <section class="gd-section" id="s{{ $i }}">
         {{-- 圖示 + 編號 + 標題。長文全白字的時候,讀者掃不出段落在哪裡結束 ——
              這一排的功能是給眼睛一個落點,不是裝飾。圖示是自己畫的 inline SVG
              (見 partials/guide-icon),沒有外部圖檔也沒有授權問題。 --}}
