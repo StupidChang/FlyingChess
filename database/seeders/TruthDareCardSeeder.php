@@ -9,6 +9,21 @@ class TruthDareCardSeeder extends Seeder
 {
     public function run(): void
     {
+        /* 只在題庫是空的時候跑 —— 這支是**全新安裝的基準**,不是同步工具。
+
+           踩過一次:比對鍵是 (category, content),而題目上線之後是在後台逐題改字的,
+           改過字就比不到 —— 於是 firstOrCreate 把 67 張的**原始版本**整批復活,
+           跟後台那份編輯後的並存。從卡數看是「多了 67 張」,從玩家看是抽到兩種寫法
+           的同一題。既有的題目一個字都沒被改,但那不是安全,只是剛好沒被 update。
+
+           要在正式站補題就直接寫進資料庫或走後台,順手把同一列補到下面的清單裡,
+           讓全新安裝拿得到。 */
+        if (TruthDareCard::query()->exists()) {
+            $this->command?->info('Truth-dare cards already present — skipping (this seeder is install-only).');
+
+            return;
+        }
+
         /* 每一列是 [類型, 適用人數, 內容, 尺度]。
            類型是真心話／大冒險,人數是情侶／多人／通用 —— 兩個軸分開,
            不然多人場會抽到指名「另一半」的題目。尺度是輕度／中度／重度,
@@ -159,16 +174,80 @@ class TruthDareCardSeeder extends Seeder
             ['dare', 'party', '讓大家指定，你和其中一人維持對視到有人先笑', 'medium'],
             ['dare', 'party', '脫掉一件不影響見人的衣物，撐到這輪結束', 'intense'],
             ['dare', 'party', '讓左邊的人在你手臂上寫字，你要猜出寫了什麼', 'medium'],
+
+            /* ─────────────────────────────────────────────
+               以下是後補的題目。上面每一列都是原本就有的,一列都沒動 ——
+               補的是階梯上空掉的兩級(情侶的輕中與中重)和太薄的頂層。
+               ───────────────────────────────────────────── */
+
+            // ── 情侶・輕中(免費) —— 原本這一級是空的,mild 直接跳 medium ──
+            ['truth', 'couple', '你最想被我用哪一種方式叫醒？', 'mild_plus'],
+            ['truth', 'couple', '今天有哪一刻，你突然想到我們上次的樣子？', 'mild_plus'],
+            ['truth', 'couple', '我做過哪一個動作，讓你當下就想把我拉過來？', 'mild_plus'],
+            ['truth', 'couple', '你比較喜歡被慢慢撩，還是我直接一點？', 'mild_plus'],
+            ['truth', 'couple', '我身上哪一件衣服，最讓你想動手？', 'mild_plus'],
+            ['dare', 'couple', '把對方的手貼在自己胸口，讓他感覺你的心跳 20 秒', 'mild_plus'],
+            ['dare', 'couple', '從對方的手腕一路親到手肘內側', 'mild_plus'],
+            ['dare', 'couple', '咬住對方的下唇 3 秒再放開', 'mild_plus'],
+            ['dare', 'couple', '把對方的頭髮撥到耳後，然後在那裡停 5 秒', 'mild_plus'],
+            ['dare', 'couple', '雙手扣住對方的手腕，貼近到只剩一個拳頭的距離', 'mild_plus'],
+
+            // ── 情侶・中重(付費) —— 另一級空的。medium_plus 不在 DEFAULT_PAID_LEVELS,所以付費要明寫 ──
+            ['truth', 'couple', '你想要我先用手、先用嘴，還是直接進去？', 'medium_plus', 'any', true],
+            ['truth', 'couple', '你自己弄的時候，最常想到我們哪一次？', 'medium_plus', 'any', true],
+            ['truth', 'couple', '有沒有哪個地方，你其實希望我更用力一點？', 'medium_plus', 'any', true],
+            ['truth', 'couple', '我在幫你的時候，你最想聽到我說什麼？', 'medium_plus', 'any', true],
+            ['truth', 'couple', '你想被我看著到最後，還是想閉著眼睛？', 'medium_plus', 'any', true],
+            ['dare', 'couple', '幫對方脫到身上什麼都不剩，然後只是看著他 10 秒', 'medium_plus', 'any', true],
+            ['dare', 'couple', '用嘴含住對方的乳頭，另一隻手不准閒著，30 秒', 'medium_plus', 'any', true],
+            ['dare', 'couple', '隔著內褲用嘴呵氣，再隔著布料舔一次', 'medium_plus', 'any', true],
+            ['dare', 'couple', '用手指進去，深淺快慢全部由對方喊，1 分鐘', 'medium_plus', 'any', true],
+            ['dare', 'couple', '拿一樣玩具出來，先在對方身上找一個地方試', 'medium_plus', 'any', true],
+
+            // ── 情侶・重度(付費) —— 原本只有 8 張,付費玩兩輪就重複 ──
+            ['truth', 'couple', '你最想試、但一直沒開口的體位是哪一個？', 'intense'],
+            ['truth', 'couple', '你想被壓著做，還是想騎在上面？', 'intense'],
+            ['truth', 'couple', '你最想在家裡哪個地方被我進去？', 'intense'],
+            ['truth', 'couple', '你希望我最後射在哪裡？', 'intense'],
+            ['truth', 'couple', '你有沒有想過找第三個人加入？誠實說', 'intense'],
+            ['truth', 'couple', '今天想做到你受不了，還是做到我受不了？', 'intense'],
+            ['dare', 'couple', '換一個你們沒試過的體位，插進去做 2 分鐘', 'intense'],
+            ['dare', 'couple', '換成騎乘，由上面的人決定快慢深淺 1 分鐘', 'intense'],
+            ['dare', 'couple', '後入式抽插 30 下，數出聲', 'intense'],
+            ['dare', 'couple', '一邊插一邊用手照顧對方前面，1 分鐘', 'intense'],
+            ['dare', 'couple', '玩具和身體一起來，兩個地方同時 1 分鐘', 'intense'],
+            ['dare', 'couple', '做到其中一個人先喊停為止，喊停的人要說原因', 'intense'],
+
+            // ── 情侶・指定性別 —— 確定是誰抽到的時候就不用代稱,直接寫器官 ──
+            ['dare', 'couple', '讓對方用手指專心照顧你的陰蒂 1 分鐘，快慢你自己喊', 'medium_plus', 'female', true],
+            ['dare', 'couple', '騎上去，自己決定要吃到多深，動 30 下', 'intense', 'female'],
+            ['truth', 'couple', '你比較容易被陰蒂弄到，還是被插到就可以？', 'intense', 'female'],
+            ['dare', 'couple', '讓對方用手從根部到龜頭來回 1 分鐘，力道你自己說', 'medium_plus', 'male', true],
+            ['dare', 'couple', '插進去之後停住 10 秒不准動，再開始', 'intense', 'male'],
+            ['truth', 'couple', '你被含住的時候，最受不了哪一下？', 'intense', 'male'],
+
+            // ── 多人・重度(付費) —— 原本 5 張,跟情侶線一起補 ──
+            ['dare', 'party', '找一位同意的異性，傳教士抽插 1 分鐘，其他人可以看', 'intense'],
+            ['dare', 'party', '三個人一組上床，維持 2 分鐘，組合自己談', 'intense'],
+            ['dare', 'party', '同時吃兩位男生的肉棒，各 30 秒', 'intense', 'female'],
+            ['dare', 'party', '從後面抽插一位女生 30 下，由她數出聲', 'intense', 'male'],
+            ['truth', 'party', '這一局結束後，你打算跟誰走？現在講', 'intense'],
         ];
 
-        foreach ($cards as [$category, $audience, $content, $level]) {
+        /* 第五、六欄(性別、付費)是後來加的,舊的四欄列一列都不用改。
+           gender 不寫就是 any;is_paid 不寫就照 defaultIsPaid() —— 而那個只認
+           intense,所以 medium_plus 要收費就得明寫。 */
+        foreach ($cards as $row) {
+            [$category, $audience, $content, $level] = $row;
+
             TruthDareCard::firstOrCreate(
                 ['category' => $category, 'content' => $content],
                 [
                     'level' => $level,
                     'audience' => $audience,
+                    'gender' => $row[4] ?? 'any',
                     // 預設界線;之後在後台逐題調整,中度也可以設成付費。
-                    'is_paid' => TruthDareCard::defaultIsPaid($level),
+                    'is_paid' => $row[5] ?? TruthDareCard::defaultIsPaid($level),
                 ]
             );
         }
