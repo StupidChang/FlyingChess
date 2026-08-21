@@ -33,9 +33,29 @@ class BoardShapes
         'triangle',
         'horseshoe',
         'serpentine',
+        'vserpentine',
         'spiral',
+        'meander',
+        'zigzag',
+        'staircase',
         'heart',
         'double_ring',
+    ];
+
+    /**
+     * 可以「照指定格數長出來」的版型。
+     *
+     * 系統棋盤要換形狀時,格數必須**剛好**對上原本的格數 —— 內容順序不動、只換
+     * 座標,少一格就有一格內容掉在棋盤外。菱形、六角、愛心這些是固定幾何,
+     * 格數不能調,所以不在這裡。
+     */
+    public const FITTABLE = [
+        'square',
+        'serpentine',
+        'vserpentine',
+        'spiral',
+        'meander',
+        'zigzag',
     ];
 
     /**
@@ -56,8 +76,12 @@ class BoardShapes
             'hexagon' => self::hexagon(),
             'triangle' => self::triangle(),
             'horseshoe' => self::horseshoe(),
-            'serpentine' => self::serpentine(),
-            'spiral' => self::spiral(),
+            'serpentine' => self::serpentineFit(31, 9),
+            'vserpentine' => self::vserpentineFit(31, 7),
+            'spiral' => self::spiralFit(39),
+            'meander' => self::meanderFit(36),
+            'zigzag' => self::zigzagFit(36),
+            'staircase' => self::staircase(),
             'heart' => self::heart(),
             'double_ring' => self::doubleRing(),
             default => self::ring(11, 11),
@@ -71,6 +95,70 @@ class BoardShapes
             'cells' => $cells,
             'path' => $shape['path'] ?? range(0, count($cells) - 1),
         ];
+    }
+
+    /**
+     * 照指定格數長出一個版型。
+     *
+     * 用在換系統棋盤的形狀:內容(文字與順序)完全不動,只換每一格的座標,
+     * 所以格數必須剛好。不支援的版型會回 null —— 呼叫端要自己決定是退回原本的
+     * 版型還是報錯,不要默默少畫幾格。
+     *
+     * @return array{rows:int, cols:int, cells:array<int, array{row:int, col:int, color:string, text:string}>, path:array<int, int>}|null
+     */
+    public static function fit(string $family, int $count): ?array
+    {
+        if ($count < 12 || ! in_array($family, self::FITTABLE, true)) {
+            return null;
+        }
+
+        $shape = match ($family) {
+            'square' => self::ringFit($count),
+            'serpentine' => self::serpentineFit($count, 9),
+            'vserpentine' => self::vserpentineFit($count, 7),
+            'spiral' => self::spiralFit($count),
+            'meander' => self::meanderFit($count),
+            'zigzag' => self::zigzagFit($count),
+            default => null,
+        };
+
+        if ($shape === null || count($shape['cells']) !== $count) {
+            return null;
+        }
+
+        $cells = self::paint($shape['cells']);
+
+        return [
+            'rows' => $shape['rows'],
+            'cols' => $shape['cols'],
+            'cells' => $cells,
+            'path' => range(0, $count - 1),
+        ];
+    }
+
+    /**
+     * 換一張既有棋盤的形狀時用這個。可調格數的版型照格數長;固定幾何的版型
+     * 只有在格數剛好對上時才給(例如菱形正好 32 格,32 格的棋盤就換得過去)。
+     *
+     * 對不上就回 null —— **不要**默默少畫幾格,那會讓最後幾格內容掉在棋盤外面。
+     * `cross` 不從這裡走:它的格子自帶鷹架文字,套到有內容的棋盤上會蓋掉內容。
+     *
+     * @return array{rows:int, cols:int, cells:array<int, array{row:int, col:int, color:string, text:string}>, path:array<int, int>}|null
+     */
+    public static function forCount(string $shape, int $count): ?array
+    {
+        if ($shape === 'cross' || ! in_array($shape, self::KEYS, true)) {
+            return null;
+        }
+
+        $fitted = self::fit($shape, $count);
+        if ($fitted !== null) {
+            return $fitted;
+        }
+
+        $made = self::make($shape);
+
+        return count($made['cells']) === $count ? $made : null;
     }
 
     /**
@@ -328,76 +416,6 @@ class BoardShapes
     }
 
     /**
-     * 蛇行(7×9)。三條橫排,排與排之間隔兩列,靠端點的兩格垂直連起來。
-     *
-     * 隔兩列是為了看得出是三條分開的排 —— 隔一列的話整片會看起來像實心方塊。
-     */
-    private static function serpentine(): array
-    {
-        $cells = [];
-        $rows = [1, 4, 7];
-
-        foreach ($rows as $i => $row) {
-            $range = $i % 2 === 0 ? range(1, 9) : range(9, 1);
-            foreach ($range as $c) {
-                $cells[] = [$row, $c];
-            }
-
-            if ($i < count($rows) - 1) {
-                // 轉折:停在剛剛那排的末端那一列,往下兩格接到下一排
-                $col = $i % 2 === 0 ? 9 : 1;
-                $cells[] = [$row + 1, $col];
-                $cells[] = [$row + 2, $col];
-            }
-        }
-
-        return ['rows' => 7, 'cols' => 9, 'cells' => $cells];
-    }
-
-    /** 螺旋(7×9)。從外圈一路繞到中心,終點在最裡面 —— 走到中間就是走完。 */
-    private static function spiral(): array
-    {
-        $cells = [];
-        $top = 1;
-        $bottom = 7;
-        $left = 1;
-        $right = 9;
-
-        while ($top <= $bottom && $left <= $right) {
-            for ($c = $left; $c <= $right; $c++) {
-                $cells[] = [$top, $c];
-            }
-            for ($r = $top + 1; $r <= $bottom; $r++) {
-                $cells[] = [$r, $right];
-            }
-            if ($top < $bottom) {
-                for ($c = $right - 1; $c >= $left; $c--) {
-                    $cells[] = [$bottom, $c];
-                }
-            }
-            if ($left < $right) {
-                // 往上停在 $top + 2:$top + 1 那一列要留空,不然下一圈會貼上這一圈
-                for ($r = $bottom - 1; $r >= $top + 2; $r--) {
-                    $cells[] = [$r, $left];
-                }
-            }
-
-            $top += 2;
-            $bottom -= 2;
-            $left += 2;
-            $right -= 2;
-
-            /* 往內收的那一步。少了這格走道,上一圈的尾端與下一圈的開頭會隔一格 ——
-               路徑看起來是斷的,箭頭也接不上(computeArrowMap 只認相鄰兩格)。 */
-            if ($top <= $bottom && $left <= $right) {
-                $cells[] = [$top, $left - 1];
-            }
-        }
-
-        return ['rows' => 7, 'cols' => 9, 'cells' => $cells];
-    }
-
-    /**
      * 愛心(9×11)。手工排的閉合外框 —— 心形的曲線用階梯逼近,每一步都是上下左右。
      *
      * 從左上凹處出發,順時針:左半上緣 → 右半上緣 → 右側往下收 → 底部尖端 →
@@ -421,6 +439,291 @@ class BoardShapes
         ];
 
         return ['rows' => 9, 'cols' => 11, 'cells' => $cells];
+    }
+
+    /**
+     * 直蛇行(垂直來回)。跟蛇行同一個道理,轉 90 度 —— 高瘦的版面。
+     *
+     * @param  int  $count  要幾格
+     * @param  int  $height  每一直排幾格
+     */
+    private static function vserpentineFit(int $count, int $height): array
+    {
+        $cells = [];
+        $col = 1;
+        $down = true;
+
+        while (count($cells) < $count) {
+            $range = $down ? range(1, $height) : range($height, 1);
+            foreach ($range as $r) {
+                $cells[] = [$r, $col];
+                if (count($cells) === $count) {
+                    return self::bounded($cells);
+                }
+            }
+
+            // 轉折:從剛剛那排的末端往右兩格接到下一排(隔一欄,才看得出是分開的排)
+            $row = $down ? $height : 1;
+            for ($n = 1; $n <= 2; $n++) {
+                $cells[] = [$row, $col + $n];
+                if (count($cells) === $count) {
+                    return self::bounded($cells);
+                }
+            }
+
+            $col += 3;
+            $down = ! $down;
+        }
+
+        return self::bounded($cells);
+    }
+
+    /**
+     * 蜿蜒。段長不規則的蛇行 —— 每一段長度不一樣,轉彎的位置就跟著飄,
+     * 看起來像手畫的而不是排出來的。
+     *
+     * 段長取一組寫死的循環而不是隨機:同一張棋盤每次 seed 都要長一樣,
+     * 不然每次 db:seed 版面都在變。
+     */
+    private static function meanderFit(int $count, int $maxCols = 11): array
+    {
+        $lengths = [6, 4, 8, 5, 7, 3, 9];
+        $cells = [];
+        $row = 1;
+        $col = 1;
+        $dir = 1;
+        $i = 0;
+
+        while (count($cells) < $count) {
+            $len = $lengths[$i % count($lengths)];
+            $i++;
+
+            for ($n = 0; $n < $len; $n++) {
+                // 撞到邊就這一段收在這裡 —— 段長被切短反而更不規則
+                if ($col < 1 || $col > $maxCols) {
+                    break;
+                }
+                $cells[] = [$row, $col];
+                if (count($cells) === $count) {
+                    return self::bounded($cells);
+                }
+                $col += $dir;
+            }
+            $col -= $dir;
+
+            for ($n = 1; $n <= 2; $n++) {
+                $cells[] = [$row + $n, $col];
+                if (count($cells) === $count) {
+                    return self::bounded($cells);
+                }
+            }
+
+            /* 下一段從**同一欄**接下去(走道正下方),不要再左右挪一格 ——
+               挪了的話走道與下一段的第一格就變成斜的,箭頭會消失。 */
+            $row += 3;
+            $dir = -$dir;
+        }
+
+        return self::bounded($cells);
+    }
+
+    /**
+     * 鋸齒。橫走兩格、下一格,一路斜著掃到邊,再折回來掃 —— 像一排連續的山稜線。
+     *
+     * 斜線本身是階梯(橫一步、直一步),因為斜著相鄰的格子不會有箭頭。
+     */
+    private static function zigzagFit(int $count, int $maxCols = 11): array
+    {
+        $cells = [[1, 1]];
+        $row = 1;
+        $col = 1;
+        $dir = 1;
+
+        while (count($cells) < $count) {
+            // 橫走兩格
+            for ($n = 0; $n < 2; $n++) {
+                $next = $col + $dir;
+                if ($next < 1 || $next > $maxCols) {
+                    break;
+                }
+                $col = $next;
+                $cells[] = [$row, $col];
+                if (count($cells) === $count) {
+                    return self::bounded($cells);
+                }
+            }
+
+            // 撞到邊就換方向,下一列繼續掃回來
+            if ($col + $dir < 1 || $col + $dir > $maxCols) {
+                $dir = -$dir;
+            }
+
+            $row++;
+            $cells[] = [$row, $col];
+            if (count($cells) === $count) {
+                return self::bounded($cells);
+            }
+        }
+
+        return self::bounded($cells);
+    }
+
+    /** 階梯(固定版型)。從左下一路踩到右上,橫一步、直一步。 */
+    private static function staircase(): array
+    {
+        $cells = [[13, 1]];
+        $r = 13;
+        $c = 1;
+
+        for ($n = 0; $n < 12; $n++) {
+            $cells[] = [--$r, $c];
+            $cells[] = [$r, ++$c];
+        }
+
+        return ['rows' => 13, 'cols' => 13, 'cells' => $cells];
+    }
+
+    /**
+     * 矩形環,照指定格數挑長寬。格數必須是偶數(環的周長一定是偶數)。
+     *
+     * 偏扁不偏方:棋盤畫在寬螢幕上,高瘦的環會被壓得很小。
+     */
+    private static function ringFit(int $count): ?array
+    {
+        if ($count % 2 !== 0) {
+            return null;
+        }
+
+        $half = $count / 2 + 2;          // rows + cols
+        $rows = (int) floor(($half - 2) / 2);
+        $rows = max(5, $rows % 2 === 0 ? $rows + 1 : $rows);
+        $cols = $half - $rows;
+
+        if ($cols < 5) {
+            return null;
+        }
+
+        return ['rows' => $rows, 'cols' => $cols, 'cells' => self::ringCells(1, 1, $rows, $cols)];
+    }
+
+    /**
+     * 蛇行,照指定格數。最後一排走不完就停在半路 —— 那是刻意的,總格數優先。
+     */
+    private static function serpentineFit(int $count, int $width): array
+    {
+        $cells = [];
+        $row = 1;
+        $right = true;
+
+        while (count($cells) < $count) {
+            $range = $right ? range(1, $width) : range($width, 1);
+            foreach ($range as $c) {
+                $cells[] = [$row, $c];
+                if (count($cells) === $count) {
+                    return self::bounded($cells);
+                }
+            }
+
+            $col = $right ? $width : 1;
+            for ($n = 1; $n <= 2; $n++) {
+                $cells[] = [$row + $n, $col];
+                if (count($cells) === $count) {
+                    return self::bounded($cells);
+                }
+            }
+
+            $row += 3;
+            $right = ! $right;
+        }
+
+        return self::bounded($cells);
+    }
+
+    /** 螺旋,照指定格數。畫布先長到夠大,再切到剛好。 */
+    private static function spiralFit(int $count): array
+    {
+        // 先找一個裝得下的方框。間隔兩格的螺旋大約用掉一半的格子,寬一點比高一點好看
+        $rows = 5;
+        $cols = 7;
+        while (true) {
+            $cells = self::spiralCells($rows, $cols);
+            if (count($cells) >= $count) {
+                return self::bounded(array_slice($cells, 0, $count));
+            }
+            $rows += 2;
+            $cols += 2;
+        }
+    }
+
+    /**
+     * 間隔兩格、由外往內的方形螺旋。
+     *
+     * @return array<int, array{0:int, 1:int}>
+     */
+    private static function spiralCells(int $rows, int $cols): array
+    {
+        $cells = [];
+        $top = 1;
+        $bottom = $rows;
+        $left = 1;
+        $right = $cols;
+
+        while ($top <= $bottom && $left <= $right) {
+            for ($c = $left; $c <= $right; $c++) {
+                $cells[] = [$top, $c];
+            }
+            for ($r = $top + 1; $r <= $bottom; $r++) {
+                $cells[] = [$r, $right];
+            }
+            if ($top < $bottom) {
+                for ($c = $right - 1; $c >= $left; $c--) {
+                    $cells[] = [$bottom, $c];
+                }
+            }
+            if ($left < $right) {
+                for ($r = $bottom - 1; $r >= $top + 2; $r--) {
+                    $cells[] = [$r, $left];
+                }
+            }
+
+            $top += 2;
+            $bottom -= 2;
+            $left += 2;
+            $right -= 2;
+
+            // 往內收的走道。少了這格,兩圈之間的路徑是斷的
+            if ($top <= $bottom && $left <= $right) {
+                $cells[] = [$top, $left - 1];
+            }
+        }
+
+        return $cells;
+    }
+
+    /**
+     * 把座標平移到左上角,並回報實際用到的畫布大小。
+     *
+     * 生成器可能從中間某一格開始、或最後一排沒走完,直接宣告原本的方框會讓
+     * 棋盤偏在一角、旁邊留一片空白。
+     *
+     * @param  array<int, array{0:int, 1:int}>  $cells
+     * @return array{rows:int, cols:int, cells:array<int, array{0:int, 1:int}>}
+     */
+    private static function bounded(array $cells): array
+    {
+        $minRow = min(array_column($cells, 0));
+        $minCol = min(array_column($cells, 1));
+
+        $shifted = [];
+        foreach ($cells as [$r, $c]) {
+            $shifted[] = [$r - $minRow + 1, $c - $minCol + 1];
+        }
+
+        return [
+            'rows' => max(array_column($shifted, 0)),
+            'cols' => max(array_column($shifted, 1)),
+            'cells' => $shifted,
+        ];
     }
 
     /**

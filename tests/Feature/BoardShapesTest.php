@@ -6,6 +6,7 @@ use App\Http\Middleware\AgeVerification;
 use App\Models\Board;
 use App\Models\User;
 use App\Support\BoardShapes;
+use Database\Seeders\BoardTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -186,6 +187,86 @@ class BoardShapesTest extends TestCase
         $this->assertCount(40, $shape['cells']);
         $this->assertSame(range(0, 22), $shape['path']);
         $this->assertSame('end', $shape['cells'][22]['color']);
+    }
+
+    public function test_fittable_shapes_hit_the_exact_square_count(): void
+    {
+        /* 換系統棋盤的形狀時,格數必須**剛好** —— 少一格的症狀是最後幾格內容
+           全部疊在起點那一格上(gridPos[$pos] ?? gridPos[0]),棋盤看起來正常,
+           但有幾格內容永遠不會出現。 */
+        foreach (BoardShapes::FITTABLE as $family) {
+            foreach ([28, 31, 32, 36, 40, 44, 48] as $count) {
+                // 環形的周長一定是偶數 —— 奇數格長不出環,那是幾何不是 bug
+                if ($family === 'square' && $count % 2 !== 0) {
+                    $this->assertNull(BoardShapes::fit($family, $count));
+
+                    continue;
+                }
+
+                $shape = BoardShapes::fit($family, $count);
+
+                $this->assertNotNull($shape, "版型 {$family} 長不出 {$count} 格");
+                $this->assertCount($count, $shape['cells'], "版型 {$family} 的格數不是 {$count}");
+                $this->assertSame(range(0, $count - 1), $shape['path']);
+
+                $seen = [];
+                foreach ($shape['cells'] as $i => $cell) {
+                    $coord = $cell['row'].','.$cell['col'];
+                    $this->assertArrayNotHasKey($coord, $seen, "版型 {$family}({$count} 格)有格子重疊");
+                    $seen[$coord] = $i;
+
+                    if ($i > 0) {
+                        $prev = $shape['cells'][$i - 1];
+                        $this->assertSame(
+                            1,
+                            abs($prev['row'] - $cell['row']) + abs($prev['col'] - $cell['col']),
+                            "版型 {$family}({$count} 格)的第 {$i} 格不是上下左右相鄰"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    public function test_a_fixed_shape_only_fits_a_board_with_the_same_count(): void
+    {
+        // 菱形正好 32 格:32 格的棋盤換得過去,36 格的不行 —— 寧可回 null 也不要硬塞
+        $this->assertNotNull(BoardShapes::forCount('diamond', 32));
+        $this->assertNull(BoardShapes::forCount('diamond', 36));
+
+        // 十字的格子自帶鷹架文字,套到有內容的棋盤上會蓋掉內容,所以永遠不給
+        $this->assertNull(BoardShapes::forCount('cross', 40));
+    }
+
+    public function test_every_system_template_is_laid_out_without_losing_content(): void
+    {
+        /* 這一條是**換形狀之後**的守門:每一張系統棋盤的格子不能疊在一起、不能
+           掉出畫布、路徑要蓋住每一格。少一格內容不會報錯,只會有一格永遠抽不到。
+           seeder 自己在格數對不上時會丟 RuntimeException,所以跑得完也是斷言。 */
+        $this->seed(BoardTemplateSeeder::class);
+
+        $templates = Board::with('squares')->where('is_template', true)->get();
+        $this->assertGreaterThanOrEqual(15, $templates->count());
+
+        foreach ($templates as $board) {
+            $seen = [];
+            foreach ($board->squares as $square) {
+                $coord = $square->grid_row.','.$square->grid_col;
+                if (isset($seen[$coord])) {
+                    $this->fail("棋盤「{$board->name}」的第 {$square->position} 格與第 {$seen[$coord]} 格疊在一起");
+                }
+                $seen[$coord] = $square->position;
+
+                $this->assertLessThanOrEqual($board->canvas_rows, $square->grid_row, "棋盤「{$board->name}」有格子掉出畫布");
+                $this->assertLessThanOrEqual($board->canvas_cols, $square->grid_col, "棋盤「{$board->name}」有格子掉出畫布");
+            }
+
+            $this->assertSame(
+                range(0, $board->squares->count() - 1),
+                $board->path_data['all'],
+                "棋盤「{$board->name}」的路徑沒有蓋住全部格子"
+            );
+        }
     }
 
     public function test_every_shape_has_a_name_in_the_editor(): void

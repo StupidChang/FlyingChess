@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Board;
 use App\Models\BoardSquare;
+use App\Support\BoardShapes;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class BoardTemplateSeeder extends Seeder
 {
@@ -71,7 +73,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'action', '從背後抱住對方，貼著磨 30 秒'],
                 [31, 'end', '終點\n剩下的不用棋盤了，想做多久做多久'],
             ],
-            'square'
+            'diamond'
         );
 
         $this->createTemplate(
@@ -112,7 +114,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'action', '成對的可以離桌，剩下的重新洗牌再一輪'],
                 [31, 'end', '終點\n桌上這局結束，酒留給還想玩的人'],
             ],
-            'square'
+            'legacy_square'
         );
 
         $this->createTemplate(
@@ -153,7 +155,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'truth', '下一個「第一次」，你想跟我試什麼？'],
                 [31, 'end', '終點\n第一次結束了，現在開始算第二次'],
             ],
-            'square'
+            'legacy_square'
         );
 
         $this->createTemplate(
@@ -194,7 +196,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'action', '最後怎麼收尾，由對方決定'],
                 [31, 'end', '終點\n這次真的可以去洗澡了'],
             ],
-            'square'
+            'legacy_square'
         );
 
         // ── Rectangle layout templates ──
@@ -237,7 +239,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'dare', '配好對的各自進房，沒配到的繼續轉下一輪'],
                 [31, 'end', '終點\n這一局結束，接下來各自談'],
             ],
-            'rect'
+            'legacy_rect'
         );
 
         $this->createTemplate(
@@ -278,7 +280,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'dare', '最後 1 分鐘的玩法由對方指定'],
                 [31, 'end', '終點\n躺著別動，晚點還有'],
             ],
-            'rect'
+            'hexagon'
         );
 
         $this->createTemplate(
@@ -319,7 +321,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'dare', '最後 1 分鐘怎麼做，由對方決定'],
                 [31, 'end', '終點\n離退房還有時間，要不要再一次隨你們'],
             ],
-            'rect'
+            'legacy_rect'
         );
 
         $this->createTemplate(
@@ -360,7 +362,7 @@ class BoardTemplateSeeder extends Seeder
                 [30, 'truth', '哪一個角色的你比較敢？'],
                 [31, 'end', '終點\n殺青了，可以出戲了 —— 不出也行'],
             ],
-            'rect'
+            'legacy_rect'
         );
 
         // ── Cross layout templates (11x13) ──
@@ -407,7 +409,7 @@ class BoardTemplateSeeder extends Seeder
                 [34, 'action', '從背後抱住對方磨 30 秒，最後五秒要慢'],
                 [35, 'end', '終點\n曖昧到此為止，接下來是別的關係了'],
             ],
-            'cross'
+            'meander'
         );
 
         $this->createTemplate(
@@ -452,7 +454,7 @@ class BoardTemplateSeeder extends Seeder
                 [34, 'dare', '兩個人各說一個界線，剩下的自己決定'],
                 [35, 'end', '終點\n享受今晚吧'],
             ],
-            'cross'
+            'spiral'
         );
 
         $this->createTemplate(
@@ -497,7 +499,7 @@ class BoardTemplateSeeder extends Seeder
                 [34, 'drink', '今晚還沒被摸過的人自罰一杯'],
                 [35, 'end', '終點\n桌上這局結束，剩下的自己配對'],
             ],
-            'cross'
+            'legacy_cross'
         );
 
         $this->createTemplate(
@@ -542,7 +544,7 @@ class BoardTemplateSeeder extends Seeder
                 [34, 'action', '挑一個你們都想試的體位，直接開始'],
                 [35, 'end', '終點\n美好的夜晚開始了'],
             ],
-            'cross'
+            'zigzag'
         );
 
         $this->createTemplate(
@@ -587,7 +589,7 @@ class BoardTemplateSeeder extends Seeder
                 [34, 'action', '拿掉眼罩，看著對方，把剩下的做完'],
                 [35, 'end', '終點\n感官全開'],
             ],
-            'cross'
+            'vserpentine'
         );
 
         $this->createReferenceTemplate(
@@ -766,6 +768,7 @@ class BoardTemplateSeeder extends Seeder
                 [34, 'dare', '最後由對方決定怎麼結束'],
                 [35, 'end', '終點\n補回來了嗎？沒有的話再走一圈'],
             ],
+            'square'
         );
 
         $this->createTemplate(
@@ -810,6 +813,7 @@ class BoardTemplateSeeder extends Seeder
                 [34, 'dare', '由現在在下面的人喊停，喊了才准停'],
                 [35, 'end', '終點\n解除角色，抱一下再結束'],
             ],
+            'serpentine'
         );
 
         $this->createTemplate(
@@ -968,23 +972,35 @@ class BoardTemplateSeeder extends Seeder
         $board->squares()->where('position', '>=', count($squares))->delete();
     }
 
-    private function createTemplate(string $name, string $desc, bool $isPremium, array $squares, string $shape = 'cross'): void
+    private function createTemplate(string $name, string $desc, bool $isPremium, array $squares, string $shape = 'legacy_cross'): void
     {
         if (! $isPremium) {
             $desc = '成人漸進版｜'.$desc;
         }
 
-        $gridPos = match ($shape) {
-            'square' => self::SQUARE_POS,
-            'rect' => self::RECT_POS,
-            default => self::CROSS_POS,
+        /* 三個舊版型留著寫死的座標表 —— 沿用它們的棋盤不該因為這次擴充而變樣。
+           其他版型一律從 App\Support\BoardShapes 照格數長出來:內容順序不動,
+           只換座標。對不上就直接爆,不要默默少畫幾格(最後幾格內容會掉在棋盤外)。 */
+        $legacy = match ($shape) {
+            'legacy_square' => [self::SQUARE_POS, 9, 9],
+            'legacy_rect' => [self::RECT_POS, 7, 11],
+            'legacy_cross' => [self::CROSS_POS, 11, 13],
+            default => null,
         };
 
-        [$canvasRows, $canvasCols] = match ($shape) {
-            'square' => [9, 9],
-            'rect' => [7, 11],
-            default => [11, 13],
-        };
+        if ($legacy !== null) {
+            [$gridPos, $canvasRows, $canvasCols] = $legacy;
+        } else {
+            $layout = BoardShapes::forCount($shape, count($squares));
+
+            if ($layout === null) {
+                throw new RuntimeException("版型 {$shape} 產不出 ".count($squares)." 格(棋盤:{$name})");
+            }
+
+            $gridPos = array_map(fn ($cell) => [$cell['row'], $cell['col']], $layout['cells']);
+            $canvasRows = $layout['rows'];
+            $canvasCols = $layout['cols'];
+        }
 
         $referenceImage = $isPremium
             ? ($name === '角色扮演版'
