@@ -49,6 +49,18 @@ production. Two traps it documents, worth knowing before adding a case:
   `ja` → `jp`. Requesting `/ja` returns a 301, which reads like a broken
   locale. See `config('app.available_locales')`.
 
+**跨請求的 session 身分測不出來**（房間、玩家、任何靠 session 認人的東西）：
+Laravel 的測試 client 沒有 cookie jar，每個請求 `StartSession` 都拿不到 cookie
+而 `setId(null)`，於是**每個請求都是新的 session id**。症狀是測試綠燈但真實瀏覽器
+壞掉 —— 兩邊都在變，卻剛好都算成同一種 fallback。`RoomIdentityAcrossRedirectTest`
+是範本：
+
+- 要沿用 session，得把**明文** session id 當 cookie 帶上
+  （`$this->withCookie(config('session.cookie'), session()->getId())`）。把回應的
+  `Set-Cookie` 原封不動接回去沒用 —— `prepareCookiesForRequest()` 會再加密一次。
+- `getJson()` 在沒呼叫 `withCredentials()` 前**完全不帶 cookie**，所以輪詢端點會
+  落在一個新 session 上。真實的同源 `fetch()` 是會帶 cookie 的。
+
 ### Linting / Formatting
 ```bash
 composer run lint       # Laravel Pint (PHP code style fixer)
