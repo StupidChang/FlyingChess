@@ -99,6 +99,9 @@ class HornyTestController extends Controller
             /* 色度的判定。只有自己作答過才有 —— 從搜尋進來的人沒有分數,那一頁
                的主角是象限本身。 */
             'level' => $result ? $this->service->desireLevel((int) ($result['axes']['desire'] ?? 0)) : null,
+            /* 照這個人自己的數字算出來的幾句重點。免費 —— 這是「描述」不是「行動」,
+               而免費結果原本幾乎沒有任何屬於他自己的內容。 */
+            'highlights' => $result ? $this->service->highlights($result) : [],
         ]);
     }
 }

@@ -117,6 +117,30 @@ if (! function_exists('play_i18n')) {
     }
 }
 
+if (! function_exists('optional_image')) {
+    /**
+     * 「有就顯示、沒有就當它不存在」的圖片位置。
+     *
+     * 用途是先把版位留好,圖片之後再補。回傳 null 的時候呼叫端整段不渲染 ——
+     * 不是給一張佔位圖,因為線上就是線上:訪客看到的空框或灰底比沒有那一塊更糟。
+     *
+     * 副檔名照 $exts 的順序找第一個存在的,所以補上 .webp 之後不用改任何程式;
+     * 網址一律走 asset_v(),圖片換掉之後不會有人卡在舊快取。
+     *
+     * @param  string  $base  public/ 底下的路徑,不含副檔名(例:images/horny-test/open)
+     */
+    function optional_image(string $base, array $exts = ['webp', 'jpg', 'png']): ?string
+    {
+        foreach ($exts as $ext) {
+            if (is_file(public_path("{$base}.{$ext}"))) {
+                return asset_v("{$base}.{$ext}");
+            }
+        }
+
+        return null;
+    }
+}
+
 if (! function_exists('article_text')) {
     /**
      * 文章正文的行內語法。只有玩法指南在用。

@@ -108,7 +108,7 @@ class RepressionTestService
             $a = max(self::MIN, min(self::MAX, (int) ($answers[$i] ?? 0)));
             if ($a === self::MIN || $a === self::MAX) {
                 $meta['decisive']++;
-            } elseif ((float) $a === $mid) {
+            } elseif ((float) $a === (float) $mid) {   // 兩邊都轉 float:MAX+MIN 是整數除法,=== 會因為型別不同永遠不成立
                 $meta['neutral']++;
             }
         }

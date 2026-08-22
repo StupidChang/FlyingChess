@@ -69,6 +69,16 @@
             @endif
             <h1 class="tt-name">{{ $quad['name'] }}</h1>
             <p class="tt-pct">{{ $quad['label'] }}</p>
+
+            {{-- 這一格的主視覺版位。沒有圖就整段不渲染,見 optional_image()。
+                 檔名是象限的 slug,尺寸與內容方向見 public/images/horny-test/README.md --}}
+            @php $hero = optional_image('images/horny-test/'.$quad['slug']); @endphp
+            @if($hero)
+            <figure class="tt-hero-img is-inset">
+                <img src="{{ $hero }}" alt="{{ $quad['name'] }}｜{{ $quad['label'] }}"
+                     loading="lazy" decoding="async">
+            </figure>
+            @endif
             <p class="tt-line">{{ $quad['line'] }}</p>
             <p class="tt-long">{{ $quad['long'] }}</p>
         </article>
@@ -82,6 +92,21 @@
             <p class="tt-also">{{ __('horny.result.middle_note', ['band' => $confidence['middle_band']]) }}</p>
             @endif
         </section>
+
+        {{-- 你這一份的重點。這一塊是免費結果裡唯一真正屬於這個人的內容,所以排在
+             象限的通則之前 —— 反過來的話,他要滑過四張「這一格的人通常怎樣」才會
+             看到自己的東西。 --}}
+        @if($highlights)
+        <section class="tt-card">
+            <h2>{{ __('horny.result.highlights_title') }}</h2>
+            <p class="tt-hint">{{ __('horny.result.highlights_hint') }}</p>
+            <ul class="hm-highlights">
+                @foreach($highlights as $h)
+                <li>{{ __('horny.result.highlights.'.$h['key'], $h['params']) }}</li>
+                @endforeach
+            </ul>
+        </section>
+        @endif
 
         {{-- 免費區。從搜尋或分享連結進來的人沒有分數,這幾段就是他讀到的全部。
              語氣刻意直白 —— 講「實際會發生什麼」比講「你的心理狀態」有用,而且

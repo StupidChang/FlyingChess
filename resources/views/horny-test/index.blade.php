@@ -52,6 +52,15 @@
             <p class="tt-tagline">{{ __('horny.tagline') }}</p>
             {{-- 一句重點 + 三個要點。原本是一整段一百多字的文字牆,畫面上沒有任何
                  落點,掃頁的人抓不到「這測驗在測什麼」。 --}}
+            {{-- 封面圖的版位。圖片還沒有的時候整段不渲染 —— 線上就是線上,
+                 空框比沒有那一塊更糟。檔名與尺寸見 public/images/horny-test/README.md --}}
+            @php $cover = optional_image('images/horny-test/cover'); @endphp
+            @if($cover)
+            <figure class="tt-hero-img">
+                <img src="{{ $cover }}" alt="{{ __('horny.h1') }}" loading="lazy" decoding="async">
+            </figure>
+            @endif
+
             <p class="tt-lead">{!! inline_emphasis(__('horny.intro_lead')) !!}</p>
             <dl class="tt-points">
                 @foreach(__('horny.intro_points') as $point)

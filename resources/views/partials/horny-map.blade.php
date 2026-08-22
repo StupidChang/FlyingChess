@@ -19,10 +19,12 @@
 @endphp
 <figure class="hm-fig tt-c-{{ $byKey[$key]['colour'] ?? 'neutral' }}">
     <div class="hm-grid">
-        <span class="tt-map-lbl is-top">{{ $axes['brake']['name'] }}{{ $axes['brake']['high'] }}</span>
-        <span class="tt-map-lbl is-bottom">{{ $axes['brake']['name'] }}{{ $axes['brake']['low'] }}</span>
-        <span class="tt-map-lbl is-left">{{ $axes['desire']['name'] }}{{ $axes['desire']['low'] }}</span>
-        <span class="tt-map-lbl is-right">{{ $axes['desire']['name'] }}{{ $axes['desire']['high'] }}</span>
+        {{-- 四邊只印 low/high,不接軸名:那兩個標籤本身就寫成看得懂的完整詞
+             (「偏保守」「色度濃」),接上軸名會變成「保守程度偏保守」。 --}}
+        <span class="tt-map-lbl is-top">{{ $axes['brake']['high'] }}</span>
+        <span class="tt-map-lbl is-bottom">{{ $axes['brake']['low'] }}</span>
+        <span class="tt-map-lbl is-left">{{ $axes['desire']['low'] }}</span>
+        <span class="tt-map-lbl is-right">{{ $axes['desire']['high'] }}</span>
 
         @foreach([['low','high','tl'], ['high','high','tr'], ['low','low','bl'], ['high','low','br']] as [$d, $b, $pos])
             @php $c = $corner($d, $b); @endphp

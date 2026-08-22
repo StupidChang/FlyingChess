@@ -119,7 +119,7 @@ class HornyTestService
             $a = max(self::MIN, min(self::MAX, (int) ($answers[$i] ?? 0)));
             if ($a === self::MIN || $a === self::MAX) {
                 $meta['decisive']++;
-            } elseif ((float) $a === $mid) {
+            } elseif ((float) $a === (float) $mid) {   // 兩邊都轉 float:MAX+MIN 是整數除法,=== 會因為型別不同永遠不成立
                 $meta['neutral']++;
             }
         }
@@ -302,6 +302,120 @@ class HornyTestService
             'low_pct' => $bottom['pct'],
             'meta' => $result['meta'] ?? null,
         ];
+    }
+
+    /**
+     * 這一份結果的重點 —— **照這個人自己的數字算出來的**,不是象限的範本。
+     *
+     * 為什麼需要:免費的人拿到的個人化內容原本只有兩個數字加一條「最明顯的一項」,
+     * 其餘全是「這一格的人通常怎樣」——同一格的每個人讀到一模一樣的東西。而最有
+     * 用的訊息其實都在**面向之間的關係**裡,那些關係不用多寫任何文案就算得出來:
+     *
+     *   - 兩條軸差多少(想要的和敢做的差額)
+     *   - 煞車集中在哪一條,又有哪一條其實已經沒問題
+     *   - 油門的形狀:腦子裡很多卻不出手、身體比腦子快…
+     *   - 答題型態:中間選太多的話,這份結果本身就偏保守
+     *
+     * 回傳的是 [key, params] 的清單,句子在 lang 檔。最多四條 —— 再多就變成
+     * 一牆重點,而一牆重點等於沒有重點。
+     */
+    public function highlights(array $result): array
+    {
+        $dims = collect($result['dimensions'] ?? []);
+        if ($dims->isEmpty()) {
+            return [];
+        }
+
+        $meta = $this->lang('dimensions');
+        $name = fn (?string $key) => $meta[$key]['name'] ?? $key;
+        $desire = (int) ($result['axes']['desire'] ?? 0);
+        $brake = (int) ($result['axes']['brake'] ?? 0);
+
+        $byAxis = fn (string $axis) => $dims->where('axis', $axis)->sortByDesc('pct')->values();
+        $brakes = $byAxis('brake');
+        $gas = $byAxis('desire');
+        $pct = fn ($collection, string $key) => (int) ($collection->firstWhere('key', $key)['pct'] ?? 0);
+
+        $out = [];
+
+        /* 1. 兩條軸的落差。這是整份結果最有訊息量的一個數字 —— 象限只講象限,
+              講不出「差多少」,而差額正是那種說不上來的不滿足感。 */
+        $gap = $desire - $brake;
+        if ($gap >= 20) {
+            $out[] = ['key' => 'gap_desire', 'params' => ['gap' => $gap]];
+        } elseif ($gap <= -20) {
+            $out[] = ['key' => 'gap_brake', 'params' => ['gap' => abs($gap)]];
+        } elseif (abs($gap) <= 10) {
+            $out[] = ['key' => 'gap_even', 'params' => ['gap' => abs($gap)]];
+        }
+
+        /* 2. 煞車到底集中在哪。「你最明顯的一項是 X」講一半就停了 —— 真正有用的是
+              「動 X、不用管 Y」。 */
+        if ($brakes->count() >= 2) {
+            $top = $brakes->first();
+            $low = $brakes->last();
+            $spread = $top['pct'] - $low['pct'];
+
+            if ($spread >= 25) {
+                $out[] = ['key' => 'brake_focused', 'params' => [
+                    'top' => $name($top['key']), 'top_pct' => $top['pct'],
+                    'low' => $name($low['key']), 'low_pct' => $low['pct'],
+                ]];
+            } elseif ($spread <= 12) {
+                $out[] = ['key' => 'brake_flat', 'params' => [
+                    'low_pct' => $low['pct'], 'top_pct' => $top['pct'],
+                ]];
+            }
+        }
+
+        /* 3. 油門的形狀。四條線之間的落差比它們各自的高低有意思 ——
+              「幻想很多卻不出手」和「身體比腦子快」需要的東西完全不同。
+              只取第一個成立的:四條同時講就沒有重點了。 */
+        $shapes = [
+            ['fantasy', 'initiate', 'shape_head_not_hands'],
+            ['initiate', 'fantasy', 'shape_hands_not_head'],
+            ['drive', 'arousal', 'shape_mind_first'],
+            ['arousal', 'drive', 'shape_body_first'],
+        ];
+        foreach ($shapes as [$hi, $lo, $key]) {
+            $a = $pct($gas, $hi);
+            $b = $pct($gas, $lo);
+            if ($a - $b >= 25) {
+                $out[] = ['key' => $key, 'params' => [
+                    'high' => $name($hi), 'high_pct' => $a,
+                    'low' => $name($lo), 'low_pct' => $b,
+                ]];
+                break;
+            }
+        }
+
+        /* 4. 已經沒問題的那一條。整頁都在講哪裡卡住,至少要有一句是「這條你本來
+              就沒在踩」—— 而且它是真的從分數來的,不是安慰。 */
+        if ($brakes->isNotEmpty()) {
+            $low = $brakes->last();
+            if ($low['pct'] <= 40) {
+                $out[] = ['key' => 'brake_clear', 'params' => [
+                    'name' => $name($low['key']), 'pct' => $low['pct'],
+                ]];
+            }
+        }
+
+        /* 5. 答題型態。中間選很多的人拿到的兩條軸都會被拉往 50,而那不是他的狀態,
+              是答法的結果 —— 不講的話這一頁看起來比它實際上更確定。 */
+        $metaAnswers = $result['meta'] ?? null;
+        if ($metaAnswers && ($metaAnswers['total'] ?? 0) > 0) {
+            $total = (int) $metaAnswers['total'];
+            $neutral = (int) ($metaAnswers['neutral'] ?? 0);
+            $decisive = (int) ($metaAnswers['decisive'] ?? 0);
+
+            if ($neutral / $total >= 0.35) {
+                $out[] = ['key' => 'answers_neutral', 'params' => ['n' => $neutral, 'total' => $total]];
+            } elseif ($decisive / $total >= 0.7) {
+                $out[] = ['key' => 'answers_decisive', 'params' => ['n' => $decisive, 'total' => $total]];
+            }
+        }
+
+        return array_slice($out, 0, 4);
     }
 
     /**

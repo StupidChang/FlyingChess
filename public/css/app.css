@@ -2360,6 +2360,18 @@ a.gh-name{color:var(--accent)}
 .hm-corner.is-bl{bottom:22px;left:36px}
 .hm-corner.is-br{bottom:22px;right:36px}
 
+/* 圖片版位。圖還沒進來的時候這一段根本不會被渲染(見 optional_image()),
+   所以這裡只負責「有圖的時候長什麼樣」:固定 16:9 的框 + cover,換一張不同
+   尺寸的圖不會把版面推歪。 */
+.tt-hero-img{margin:0 0 18px;border-radius:14px;overflow:hidden;border:1px solid var(--border);
+    background:var(--surface2)}
+.tt-hero-img.is-inset{margin:14px 0 16px}
+.tt-hero-img img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+/* 深色站上,圖的下緣直接切斷會很硬 —— 壓一層由下往上的漸層讓它沉進背景 */
+.tt-hero-img{position:relative}
+.tt-hero-img::after{content:'';position:absolute;inset:auto 0 0;height:38%;pointer-events:none;
+    background:linear-gradient(to top,var(--surface) 4%,transparent)}
+
 /* 色度判定。這一塊要比 h1(象限名)更搶眼 —— 這份測驗的主角是「你有多色」,
    象限是第二句話。 */
 .hm-verdict-num{font-size:clamp(3.4rem,12vw,5rem);font-weight:800;line-height:.95;
@@ -2390,6 +2402,15 @@ a.gh-name{color:var(--accent)}
 .hm-score-v{display:block;font-size:1.9rem;font-weight:800;line-height:1.1;color:var(--gold);
     font-variant-numeric:tabular-nums}
 .hm-score-k{display:block;font-size:.76rem;color:var(--text-dim);margin-top:2px}
+
+/* 「你這一份的重點」。條列但每一條是完整的句子,所以行距要接近內文而不是清單 ——
+   這幾句是要被讀完的,不是掃過去的。 */
+.hm-highlights{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:12px}
+.hm-highlights li{position:relative;padding:12px 14px 12px 16px;border-radius:10px;
+    background:var(--surface2);border:1px solid var(--border);
+    font-size:.9rem;line-height:1.9;color:var(--text)}
+.hm-highlights li::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:3px;
+    border-radius:0 3px 3px 0;background:var(--tt,var(--accent))}
 
 /* 五種位置的清單(2×2 + 中央) */
 .hm-all{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0 0}

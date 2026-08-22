@@ -56,6 +56,33 @@ class HornyTestTest extends TestCase
         return $out;
     }
 
+    /**
+     * 逐**面向**指定的答案卷。整條軸一起拉滿的話每個面向都一樣高,
+     * 「煞車集中在哪一條」這種重點就永遠測不到。
+     *
+     * @param  array<string, string>  $targets  面向 => 'high' | 'low' | 'mid'
+     * @return array<int, int>
+     */
+    private function answersByDim(array $targets, string $default = 'mid'): array
+    {
+        $out = [];
+
+        foreach (config('horny.questions') as $i => $q) {
+            $target = $targets[$q['dim']] ?? $default;
+
+            if ($target === 'mid') {
+                $out[$i] = 2;
+
+                continue;
+            }
+
+            $high = ($q['dir'] ?? 1) > 0 ? HornyTestService::MAX : HornyTestService::MIN;
+            $out[$i] = $target === 'high' ? $high : ($high === HornyTestService::MAX ? HornyTestService::MIN : HornyTestService::MAX);
+        }
+
+        return $out;
+    }
+
     public function test_question_text_and_structure_stay_aligned(): void
     {
         // 第 N 句題目配第 N 個結構。錯位不會報錯,只會讓每個人被算錯面向。
@@ -360,6 +387,146 @@ class HornyTestTest extends TestCase
             ->assertOk()
             ->assertDontSee(__('horny.result.crown'))
             ->assertDontSee(__('horny.desire_levels.extreme.line'));
+    }
+
+    public function test_the_highlights_are_computed_from_the_persons_own_numbers(): void
+    {
+        /* 免費結果原本幾乎沒有屬於這個人自己的內容 —— 兩個數字加一條「最明顯的
+           一項」,其餘都是「這一格的人通常怎樣」。這一塊必須真的隨分數改變。 */
+        $service = app(HornyTestService::class);
+
+        // 油門滿、煞車鬆 → 落差是往油門那邊
+        $keys = collect($service->highlights($service->score($this->answers('high', 'low'))))
+            ->pluck('key')->all();
+        $this->assertContains('gap_desire', $keys);
+        $this->assertNotContains('gap_brake', $keys);
+
+        // 反過來
+        $keys = collect($service->highlights($service->score($this->answers('low', 'high'))))
+            ->pluck('key')->all();
+        $this->assertContains('gap_brake', $keys);
+        $this->assertNotContains('gap_desire', $keys);
+
+        // 兩條軸都中間 → 落差很小,而且中間選太多要被提出來
+        $keys = collect($service->highlights($service->score($this->answers('mid', 'mid'))))
+            ->pluck('key')->all();
+        $this->assertContains('gap_even', $keys);
+        $this->assertContains('answers_neutral', $keys);
+
+        /* 煞車集中在「身體羞恥」、其餘四條放掉 → 要講「動這一條、別的不用管」,
+           而不是「全面性的」。整條軸一起拉滿的答案卷測不到這件事。 */
+        $keys = collect($service->highlights($service->score($this->answersByDim([
+            'shame' => 'high', 'guilt' => 'low', 'anxiety' => 'low', 'avoid' => 'low', 'voice' => 'low',
+        ]))))->pluck('key')->all();
+        $this->assertContains('brake_focused', $keys);
+        $this->assertNotContains('brake_flat', $keys);
+
+        // 幻想很多卻不出手
+        $keys = collect($service->highlights($service->score($this->answersByDim([
+            'fantasy' => 'high', 'initiate' => 'low',
+        ]))))->pluck('key')->all();
+        $this->assertContains('shape_head_not_hands', $keys);
+    }
+
+    public function test_the_highlights_never_flood_the_page(): void
+    {
+        // 一牆重點等於沒有重點
+        $service = app(HornyTestService::class);
+
+        foreach ([['high', 'high'], ['high', 'low'], ['low', 'high'], ['low', 'low'], ['mid', 'mid']] as [$d, $b]) {
+            $this->assertLessThanOrEqual(
+                4,
+                count($service->highlights($service->score($this->answers($d, $b)))),
+                "{$d}/{$b} 的重點超過四條",
+            );
+        }
+    }
+
+    public function test_every_highlight_key_has_a_sentence(): void
+    {
+        /* key 打錯字的話 __() 會把 key 本身印在畫面上(「gap_desire」),
+           而那看起來就像壞掉。所以逐一確認每個 key 都有句子。 */
+        $service = app(HornyTestService::class);
+        $sentences = (array) trans('horny.result.highlights', [], 'zh_TW');
+        $seen = [];
+
+        $sheets = [
+            $this->answers('high', 'high'), $this->answers('high', 'low'),
+            $this->answers('low', 'high'), $this->answers('low', 'low'),
+            $this->answers('mid', 'mid'),
+            // 逐面向的極端組合,才觸發得到「集中在哪一條」與油門的四種形狀
+            $this->answersByDim(['shame' => 'high', 'guilt' => 'low', 'anxiety' => 'low', 'avoid' => 'low', 'voice' => 'low']),
+            $this->answersByDim(['fantasy' => 'high', 'initiate' => 'low']),
+            $this->answersByDim(['initiate' => 'high', 'fantasy' => 'low']),
+            $this->answersByDim(['drive' => 'high', 'arousal' => 'low']),
+            $this->answersByDim(['arousal' => 'high', 'drive' => 'low']),
+        ];
+
+        foreach ($sheets as $sheet) {
+            foreach ($service->highlights($service->score($sheet)) as $h) {
+                $seen[$h['key']] = true;
+                $this->assertArrayHasKey($h['key'], $sentences, "重點 {$h['key']} 沒有對應的句子");
+            }
+        }
+
+        // 反過來:lang 檔裡不該躺著永遠不會被用到的句子
+        foreach (array_keys($sentences) as $key) {
+            $this->assertArrayHasKey($key, $seen, "句子 {$key} 在任何一種作答下都沒被用到");
+        }
+    }
+
+    public function test_the_neutral_answer_counter_actually_counts(): void
+    {
+        /* (float) $a === $mid 會因為型別不同永遠不成立(MAX+MIN 是整數除法),
+           所以「你有幾題選中間」一直是 0 —— 而那句話正是用來告訴人「這份結果偏
+           保守」的。性壓抑測驗那一份也踩同一個坑。 */
+        $service = app(HornyTestService::class);
+        $total = count(config('horny.questions'));
+
+        $allMid = $service->score(array_fill(0, $total, 2));
+        $this->assertSame($total, $allMid['meta']['neutral']);
+        $this->assertSame(0, $allMid['meta']['decisive']);
+
+        $allMax = $service->score(array_fill(0, $total, HornyTestService::MAX));
+        $this->assertSame(0, $allMax['meta']['neutral']);
+        $this->assertSame($total, $allMax['meta']['decisive']);
+    }
+
+    public function test_the_highlights_render_on_the_page_before_the_generic_sections(): void
+    {
+        $result = app(HornyTestService::class)->score($this->answers('high', 'low'));
+
+        $html = $this->asAgeVerified()
+            ->withSession(['horny_result' => $result])
+            ->get('/tw/horny-test/open')
+            ->assertOk()
+            ->assertSee(__('horny.result.highlights_title'))
+            ->getContent();
+
+        // 個人化的重點要排在「這一格的人通常怎樣」之前
+        $this->assertLessThan(
+            strpos($html, __('horny.result.signals', ['name' => trans('horny.quadrants.open.name')])),
+            strpos($html, __('horny.result.highlights_title')),
+            '重點應該排在象限的通則內容之前',
+        );
+    }
+
+    public function test_a_visitor_without_a_score_gets_no_highlights(): void
+    {
+        // 沒有分數就沒有「你這一份的重點」—— 不能憑空算
+        $this->visit('/tw/horny-test/open')
+            ->assertOk()
+            ->assertDontSee(__('horny.result.highlights_title'));
+    }
+
+    public function test_image_slots_stay_invisible_until_a_file_exists(): void
+    {
+        /* 圖片版位是先留好的。檔案還沒進來的時候整段不能渲染 —— 線上就是線上,
+           空框或灰底比沒有那一塊更糟。 */
+        $this->assertNull(optional_image('images/horny-test/does-not-exist'));
+
+        $this->visit('/tw/horny-test/open')->assertOk()->assertDontSee('tt-hero-img', false);
+        $this->visit('/tw/horny-test')->assertOk()->assertDontSee('tt-hero-img', false);
     }
 
     public function test_the_measurement_basis_is_computed_from_the_config(): void
