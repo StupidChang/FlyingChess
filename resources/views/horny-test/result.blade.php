@@ -73,8 +73,8 @@
             <p class="tt-pct">{{ $quad['label'] }}</p>
 
             {{-- 這一格的主視覺版位。沒有圖就整段不渲染,見 optional_image()。
-                 檔名是象限的 slug,尺寸與內容方向見 public/images/horny-test/README.md --}}
-            @php $hero = optional_image('images/horny-test/'.$quad['slug']); @endphp
+                 檔名是象限的 slug,尺寸與內容方向見 public/images/dual-control/README.md --}}
+            @php $hero = optional_image('images/dual-control/'.$quad['slug']); @endphp
             @if($hero)
             <figure class="tt-hero-img is-inset">
                 <img src="{{ $hero }}" alt="{{ $quad['name'] }}｜{{ $quad['label'] }}"

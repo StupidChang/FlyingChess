@@ -20,7 +20,7 @@ $paths = [
     ['path' => 'wheel',           'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'who-most-likely', 'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'trait-test',      'priority' => '0.8', 'changefreq' => 'monthly'],
-    ['path' => 'horny-test',      'priority' => '0.8', 'changefreq' => 'monthly'],
+    ['path' => 'dual-control',    'priority' => '0.8', 'changefreq' => 'monthly'],
     ['path' => 'guide',           'priority' => '0.7', 'changefreq' => 'weekly'],
     ['path' => 'custom-wheel',    'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
@@ -52,7 +52,7 @@ if (in_array($currentLocale, (array) config('guides.translated', []), true)) {
 if (in_array($currentLocale, (array) config('horny.translated', []), true)) {
     foreach ((array) trans('horny.quadrants', [], $currentLocale) as $quad) {
         if (! empty($quad['slug'])) {
-            $paths[] = ['path' => 'horny-test/'.$quad['slug'], 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $stamps['horny']];
+            $paths[] = ['path' => 'dual-control/'.$quad['slug'], 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $stamps['horny']];
         }
     }
 }

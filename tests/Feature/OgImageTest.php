@@ -44,7 +44,7 @@ class OgImageTest extends TestCase
         $this->skipWithoutFonts();
 
         $response = $this->withoutMiddleware(AgeVerification::class)
-            ->get('/tw/horny-test/simmering/og.png')->assertOk();
+            ->get('/tw/dual-control/simmering/og.png')->assertOk();
 
         $response->assertHeader('Content-Type', 'image/png');
 
@@ -70,9 +70,9 @@ class OgImageTest extends TestCase
     public function test_the_horny_result_page_points_at_its_own_card(): void
     {
         $this->withoutMiddleware(AgeVerification::class)
-            ->get('/tw/horny-test/open')
+            ->get('/tw/dual-control/open')
             ->assertOk()
-            ->assertSee('/tw/horny-test/open/og.png', false)
+            ->assertSee('/tw/dual-control/open/og.png', false)
             // X 不看 og:type,少了這個只會顯示小方圖
             ->assertSee('name="twitter:card" content="summary_large_image"', false);
     }
@@ -85,7 +85,7 @@ class OgImageTest extends TestCase
         $this->skipWithoutFonts();
 
         $this->withHeader('User-Agent', 'facebookexternalhit/1.1')
-            ->get('/tw/horny-test/simmering/og.png')
+            ->get('/tw/dual-control/simmering/og.png')
             ->assertOk()
             ->assertHeader('Content-Type', 'image/png');
     }
@@ -93,7 +93,7 @@ class OgImageTest extends TestCase
     public function test_an_unknown_quadrant_slug_is_404(): void
     {
         $this->withoutMiddleware(AgeVerification::class)
-            ->get('/tw/horny-test/no-such-quadrant/og.png')->assertNotFound();
+            ->get('/tw/dual-control/no-such-quadrant/og.png')->assertNotFound();
     }
 
     public function test_the_horny_fingerprint_follows_its_own_lang_file(): void

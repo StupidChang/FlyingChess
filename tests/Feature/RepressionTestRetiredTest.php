@@ -24,7 +24,7 @@ class RepressionTestRetiredTest extends TestCase
         $this->asAgeVerified()
             ->get('/tw/repression-test')
             ->assertStatus(301)
-            ->assertRedirect('/tw/horny-test');
+            ->assertRedirect('/tw/dual-control');
     }
 
     public function test_the_five_old_band_pages_all_land_on_the_new_test(): void
@@ -35,7 +35,7 @@ class RepressionTestRetiredTest extends TestCase
             $this->asAgeVerified()
                 ->get("/tw/repression-test/{$slug}")
                 ->assertStatus(301)
-                ->assertRedirect('/tw/horny-test');
+                ->assertRedirect('/tw/dual-control');
         }
     }
 
@@ -50,15 +50,15 @@ class RepressionTestRetiredTest extends TestCase
     public function test_the_redirect_keeps_the_locale(): void
     {
         // 轉址掉語系的話,英文訪客會被丟到中文頁
-        $this->asAgeVerified()->get('/en/repression-test')->assertRedirect('/en/horny-test');
-        $this->asAgeVerified()->get('/jp/repression-test')->assertRedirect('/jp/horny-test');
+        $this->asAgeVerified()->get('/en/repression-test')->assertRedirect('/en/dual-control');
+        $this->asAgeVerified()->get('/jp/repression-test')->assertRedirect('/jp/dual-control');
     }
 
     public function test_nothing_still_points_at_the_retired_pages(): void
     {
         /* 站內連到 301 是浪費爬取預算,而且使用者按下去會多跳一次。首頁、遊戲大廳、
            導覽列、llms.txt 都改指新測驗了 —— 這一條確認沒有漏。 */
-        foreach (['/tw', '/tw/game-hall', '/tw/guide', '/tw/horny-test'] as $path) {
+        foreach (['/tw', '/tw/game-hall', '/tw/guide', '/tw/dual-control'] as $path) {
             $this->asAgeVerified()->get($path)
                 ->assertOk()
                 ->assertDontSee('repression-test', false);

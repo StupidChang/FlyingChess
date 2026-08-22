@@ -88,7 +88,7 @@ Route::get('/llms.txt', function () {
         $link('wheel', 'games.pure_wheel').': '.__('games.desc_pure_wheel'),
         $link('who-most-likely', 'minigame.wml_title').': '.__('games.desc_wml'),
         $link('trait-test', 'traits.title').': '.__('traits.seo.description'),
-        $link('horny-test', 'horny.title').': '.__('horny.seo.description'),
+        $link('dual-control', 'horny.title').': '.__('horny.seo.description'),
         // Short labels on purpose: seo.play_title carries a :board placeholder and
         // the community/templates SEO titles are full sentences. A link label in
         // llms.txt should read as a page name, so use the plain UI strings here.
@@ -359,18 +359,27 @@ Route::prefix('{locale}')
            不是他當初讀到的東西。內容整併時把多頁 301 到那一頁,是正常做法。
 
            og.png 一併退場 —— 那些圖只被它自己的結果頁引用,沒有結果頁就沒有引用。 */
-        Route::permanentRedirect('/repression-test', '/{locale}/horny-test');
-        Route::permanentRedirect('/repression-test/{slug}', '/{locale}/horny-test');
-        Route::permanentRedirect('/repression-test/{slug}/og.png', '/{locale}/horny-test');
+        Route::permanentRedirect('/repression-test', '/{locale}/dual-control');
+        Route::permanentRedirect('/repression-test/{slug}', '/{locale}/dual-control');
+        Route::permanentRedirect('/repression-test/{slug}/og.png', '/{locale}/dual-control');
 
-        /* 色度測驗:色度(油門)× 煞車 兩條軸,結果是象限而不是級距。
-           一個數字分不出「想要卻踩著煞車」和「本來就不太想要」,而那兩種人需要的
-           東西剛好相反 —— 見 config/horny.php 的檔頭。 */
-        Route::get('/horny-test', [HornyTestController::class, 'show'])->name('horny-test.show');
-        Route::post('/horny-test', [HornyTestController::class, 'submit'])
+        /* 性反應雙軸量表:性興奮傾向 × 性抑制傾向,結果是象限而不是一個分數。
+           一個數字分不出「興奮起來了卻被攔住」和「興奮本身就不強」,而那兩種人需要
+           的東西剛好相反 —— 見 config/horny.php 的檔頭。
+
+           路由名稱與內部鍵仍然是 horny-*(config、service、CSS 前綴都是)。那是內部
+           代號,和對外的名字刻意分開 —— 改對外名稱不必動計分,也不必再做一次轉址。 */
+        Route::get('/dual-control', [HornyTestController::class, 'show'])->name('horny-test.show');
+        Route::post('/dual-control', [HornyTestController::class, 'submit'])
             ->name('horny-test.submit')->middleware('throttle:20,1');
-        Route::get('/horny-test/{slug}', [HornyTestController::class, 'result'])->name('horny-test.result');
-        Route::get('/horny-test/{slug}/og.png', [OgImageController::class, 'hornyTest'])->name('horny-test.og');
+        Route::get('/dual-control/{slug}', [HornyTestController::class, 'result'])->name('horny-test.result');
+        Route::get('/dual-control/{slug}/og.png', [OgImageController::class, 'hornyTest'])->name('horny-test.og');
+
+        /* 這份測驗 2026-08-22 當天先上在 /horny-test,同一天改成學術一點的包裝就換了
+           網址。舊網址只活了幾小時、幾乎不可能被收錄,但轉址是零成本的。 */
+        Route::permanentRedirect('/horny-test', '/{locale}/dual-control');
+        Route::permanentRedirect('/horny-test/{slug}', '/{locale}/dual-control');
+        Route::permanentRedirect('/horny-test/{slug}/og.png', '/{locale}/dual-control');
 
         /* 玩法指南(站內文章)。吃資訊型意圖的關鍵字,遊戲頁吃工具型 ——
            兩者不能互相搶字,見 config/guides.php 開頭的說明。 */

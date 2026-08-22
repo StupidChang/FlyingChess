@@ -144,7 +144,7 @@ class SitemapConsistencyTest extends TestCase
     {
         /* hreflang 指向一個 noindex 的頁面是自相矛盾的訊號,Google 會整組忽略。
            屬性測驗與性壓抑指數測驗只有繁中有文案,所以它們只該宣告繁中。 */
-        foreach (['/en/trait-test', '/en/horny-test'] as $path) {
+        foreach (['/en/trait-test', '/en/dual-control'] as $path) {
             $head = $this->asAgeVerified()->get($path)->assertOk()->getContent();
             $head = substr($head, 0, (int) strpos($head, '</head>'));
 
@@ -160,12 +160,12 @@ class SitemapConsistencyTest extends TestCase
 
     public function test_each_test_links_to_all_of_its_own_result_pages(): void
     {
-        /* 這兩個測驗的 SEO 價值就是它們的結果頁(屬性 20 頁、級距 5 頁)。母頁沒有
+        /* 這兩個測驗的 SEO 價值就是它們的結果頁(屬性 20 頁、象限 5 頁)。母頁沒有
            連過去的話,那些頁面只能從「別的結果頁」走到 —— 離首頁 4 層。新網域的
            爬取預算很少,4 層深很可能永遠不會被抓到。屬性測驗曾經就是這樣。 */
         $cases = [
             ['/tw/trait-test', array_column((array) trans('traits.items', [], 'zh_TW'), 'slug'), 'trait-test'],
-            ['/tw/horny-test', array_column((array) trans('horny.quadrants', [], 'zh_TW'), 'slug'), 'horny-test'],
+            ['/tw/dual-control', array_column((array) trans('horny.quadrants', [], 'zh_TW'), 'slug'), 'dual-control'],
         ];
 
         foreach ($cases as [$path, $slugs, $prefix]) {

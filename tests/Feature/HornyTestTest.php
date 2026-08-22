@@ -175,7 +175,7 @@ class HornyTestTest extends TestCase
     public function test_every_quadrant_page_renders(): void
     {
         foreach (app(HornyTestService::class)->quadrants() as $q) {
-            $this->visit('/tw/horny-test/'.$q['slug'])
+            $this->visit('/tw/dual-control/'.$q['slug'])
                 ->assertOk()
                 ->assertSee($q['name'])
                 ->assertDontSee('class="age-gate"', false);
@@ -184,7 +184,7 @@ class HornyTestTest extends TestCase
 
     public function test_the_question_page_renders(): void
     {
-        $this->visit('/tw/horny-test')
+        $this->visit('/tw/dual-control')
             ->assertOk()
             ->assertSee(__('horny.h1'))
             // 兩條軸的說明是這一頁對搜尋引擎唯一說得出「在測什麼」的內容
@@ -194,14 +194,14 @@ class HornyTestTest extends TestCase
 
     public function test_unknown_quadrant_slug_is_404(): void
     {
-        $this->visit('/tw/horny-test/not-a-quadrant')->assertNotFound();
+        $this->visit('/tw/dual-control/not-a-quadrant')->assertNotFound();
     }
 
     public function test_submitting_redirects_to_the_matching_quadrant(): void
     {
         $this->asAgeVerified()
-            ->post('/tw/horny-test', ['a' => $this->answers('high', 'high')])
-            ->assertRedirect('/tw/horny-test/simmering');
+            ->post('/tw/dual-control', ['a' => $this->answers('high', 'high')])
+            ->assertRedirect('/tw/dual-control/simmering');
     }
 
     public function test_incomplete_submission_is_rejected(): void
@@ -210,7 +210,7 @@ class HornyTestTest extends TestCase
         unset($answers[0]);
 
         $this->asAgeVerified()
-            ->post('/tw/horny-test', ['a' => $answers])
+            ->post('/tw/dual-control', ['a' => $answers])
             ->assertSessionHasErrors('a');
     }
 
@@ -220,7 +220,7 @@ class HornyTestTest extends TestCase
            訪客(未解鎖)拿到的頁面裡不該出現那段建議的任何一個字。 */
         $quad = trans('horny.quadrants.simmering', [], 'zh_TW');
 
-        $response = $this->visit('/tw/horny-test/simmering')->assertOk();
+        $response = $this->visit('/tw/dual-control/simmering')->assertOk();
 
         $response->assertDontSee($quad['advice']);
         $response->assertDontSee($quad['partner']);
@@ -240,7 +240,7 @@ class HornyTestTest extends TestCase
         $this->asAgeVerified()->postJson('/tw/ad-unlock/claim', ['token' => $token])
             ->assertJsonPath('ok', true);
 
-        $response = $this->visit('/tw/horny-test/open')->assertOk();
+        $response = $this->visit('/tw/dual-control/open')->assertOk();
 
         $response->assertSee($quad['advice'])->assertSee($quad['partner']);
         foreach ($quad['steps'] as $step) {
@@ -255,7 +255,7 @@ class HornyTestTest extends TestCase
            五個象限頁對搜尋引擎幾乎是同一頁。 */
         $quad = trans('horny.quadrants.locked', [], 'zh_TW');
 
-        $response = $this->visit('/tw/horny-test/locked')->assertOk();
+        $response = $this->visit('/tw/dual-control/locked')->assertOk();
 
         foreach ($quad['signals'] as $signal) {
             $response->assertSee($signal);
@@ -330,7 +330,7 @@ class HornyTestTest extends TestCase
 
         $html = $this->asAgeVerified()
             ->withSession(['horny_result' => $result])
-            ->get('/tw/horny-test/simmering')
+            ->get('/tw/dual-control/simmering')
             ->assertOk()
             ->assertSee(__('horny.desire_levels.extreme.name'))
             ->assertSee(__('horny.desire_levels.extreme.line'))
@@ -353,7 +353,7 @@ class HornyTestTest extends TestCase
 
         $this->asAgeVerified()
             ->withSession(['horny_result' => $result])
-            ->get('/tw/horny-test/easy')
+            ->get('/tw/dual-control/easy')
             ->assertOk()
             ->assertSee(__('horny.desire_levels.pure.name'))
             ->assertSee(__('horny.result.verdict_free'))
@@ -373,7 +373,7 @@ class HornyTestTest extends TestCase
 
         $this->asAgeVerified()
             ->withSession(['horny_result' => $result])
-            ->get('/tw/horny-test/simmering')
+            ->get('/tw/dual-control/simmering')
             ->assertOk()
             ->assertSee(__('horny.result.verdict_braked'))
             ->assertDontSee(__('horny.result.verdict_mid'));
@@ -383,7 +383,7 @@ class HornyTestTest extends TestCase
     {
         /* 從搜尋進來的人沒有分數,不能憑空給他一個色度判定 —— 那一頁的主角是
            象限本身。 */
-        $this->visit('/tw/horny-test/simmering')
+        $this->visit('/tw/dual-control/simmering')
             ->assertOk()
             ->assertDontSee(__('horny.result.crown'))
             ->assertDontSee(__('horny.desire_levels.extreme.line'));
@@ -498,7 +498,7 @@ class HornyTestTest extends TestCase
 
         $html = $this->asAgeVerified()
             ->withSession(['horny_result' => $result])
-            ->get('/tw/horny-test/open')
+            ->get('/tw/dual-control/open')
             ->assertOk()
             ->assertSee(__('horny.result.highlights_title'))
             ->getContent();
@@ -514,7 +514,7 @@ class HornyTestTest extends TestCase
     public function test_a_visitor_without_a_score_gets_no_highlights(): void
     {
         // 沒有分數就沒有「你這一份的重點」—— 不能憑空算
-        $this->visit('/tw/horny-test/open')
+        $this->visit('/tw/dual-control/open')
             ->assertOk()
             ->assertDontSee(__('horny.result.highlights_title'));
     }
@@ -523,10 +523,38 @@ class HornyTestTest extends TestCase
     {
         /* 圖片版位是先留好的。檔案還沒進來的時候整段不能渲染 —— 線上就是線上,
            空框或灰底比沒有那一塊更糟。 */
-        $this->assertNull(optional_image('images/horny-test/does-not-exist'));
+        $this->assertNull(optional_image('images/dual-control/does-not-exist'));
 
-        $this->visit('/tw/horny-test/open')->assertOk()->assertDontSee('tt-hero-img', false);
-        $this->visit('/tw/horny-test')->assertOk()->assertDontSee('tt-hero-img', false);
+        $this->visit('/tw/dual-control/open')->assertOk()->assertDontSee('tt-hero-img', false);
+        $this->visit('/tw/dual-control')->assertOk()->assertDontSee('tt-hero-img', false);
+    }
+
+    public function test_the_old_url_permanently_redirects(): void
+    {
+        /* 這份測驗當天先上在 /horny-test,同一天改包裝就換了網址。舊網址只活了幾
+           小時,但轉址是零成本的,而且它同時是「不要再串接兩層 301」的守門 ——
+           性壓抑那組轉址必須直接指到最終網址。 */
+        foreach (['/tw/horny-test', '/tw/horny-test/open', '/tw/horny-test/open/og.png'] as $old) {
+            $this->asAgeVerified()->get($old)
+                ->assertStatus(301)
+                ->assertRedirect('/tw/dual-control');
+        }
+
+        $this->asAgeVerified()->get('/tw/repression-test')
+            ->assertStatus(301)
+            ->assertRedirect('/tw/dual-control');
+    }
+
+    public function test_the_pages_no_longer_use_the_blunt_name(): void
+    {
+        /* 對外的包裝改成學術一點的講法(雙控模型),所以「你有多色」「色度」這種
+           講法不該再出現在頁面上 —— 改名字最容易漏的就是散在文案裡的那幾處。 */
+        foreach (['/tw/dual-control', '/tw/dual-control/simmering'] as $path) {
+            $this->visit($path)->assertOk()
+                ->assertDontSee('你有多色')
+                ->assertDontSee('色度')
+                ->assertSee(__('horny.title'));
+        }
     }
 
     public function test_the_measurement_basis_is_computed_from_the_config(): void
