@@ -179,7 +179,7 @@ class AgeVerification
 
            刻意放在訓練型爬蟲那道**之後** —— 它們仍然什麼都拿不到。這裡放行的
            只有一張圖,卡片上只用 `line`(暗示性的一句話),不是內容頁。 */
-        if (preg_match('#^trait-test/[a-z0-9-]+/og\\.png$#', $path)) {
+        if (preg_match('#^(trait-test|horny-test)/[a-z0-9-]+/og\\.png$#', $path)) {
             return $next($request);
         }
 

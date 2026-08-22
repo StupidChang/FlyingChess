@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\HornyTestService;
+use App\Services\OgImageService;
 use App\Support\LocaleHelper;
 use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class HornyTestController extends Controller
 {
     public function __construct(
         private readonly HornyTestService $service,
+        private readonly OgImageService $og,
     ) {}
 
     public function show()
@@ -102,6 +104,10 @@ class HornyTestController extends Controller
             /* 照這個人自己的數字算出來的幾句重點。免費 —— 這是「描述」不是「行動」,
                而免費結果原本幾乎沒有任何屬於他自己的內容。 */
             'highlights' => $result ? $this->service->highlights($result) : [],
+            /* 這一格專屬的分享卡片。`?v=` 是指紋:Facebook 這類抓取器按網址記憶,
+               不換網址,改了文案也只會沿用上次抓到的舊圖。 */
+            'ogImage' => route('horny-test.og', ['slug' => $slug]).'?v='
+                .$this->og->fingerprint('horny', $key, app()->getLocale()),
         ]);
     }
 }

@@ -370,6 +370,7 @@ Route::prefix('{locale}')
         Route::post('/horny-test', [HornyTestController::class, 'submit'])
             ->name('horny-test.submit')->middleware('throttle:20,1');
         Route::get('/horny-test/{slug}', [HornyTestController::class, 'result'])->name('horny-test.result');
+        Route::get('/horny-test/{slug}/og.png', [OgImageController::class, 'hornyTest'])->name('horny-test.og');
 
         /* 玩法指南(站內文章)。吃資訊型意圖的關鍵字,遊戲頁吃工具型 ——
            兩者不能互相搶字,見 config/guides.php 開頭的說明。 */

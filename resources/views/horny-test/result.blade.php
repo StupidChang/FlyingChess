@@ -5,6 +5,8 @@
 @section('og_title', __('horny.seo.result_title', ['name' => $quad['name'], 'label' => $quad['label']]))
 @section('og_description', $quad['line'])
 @section('canonical', route('horny-test.result', ['slug' => $quad['slug']]))
+@section('og_image', $ogImage)
+@section('og_image_alt', __('horny.seo.result_title', ['name' => $quad['name'], 'label' => $quad['label']]))
 @section('robots', $translated ? 'index,follow' : 'noindex,follow')
 
 @section('schema')

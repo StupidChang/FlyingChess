@@ -44,12 +44,16 @@ class OgImageService
     /**
      * 四個色系。刻意寫死十六進位、不讀 CSS 變數 —— app.css 裡 `--rose` 在深色
      * 主題下會被換成靛色,卡片沒有主題可言,跟著變只會讓同一型每次產出不同顏色。
-     */
+     *
+     * 數值和 app.css 的 tt-c-* 對齊(同一個亮度帶、低彩度)。原本是四個滿彩度的
+     * 顏色,而分享卡片是這個站在別人的動態裡的第一印象 —— 站上已經收斂了,卡片還
+     * 在喊的話,那是兩個不同的品牌。 */
     private const PALETTE = [
-        'rose' => '#f43f5e',
-        'indigo' => '#818cf8',
-        'gold' => '#d9a441',
-        'green' => '#4ade80',
+        'rose' => '#c0697d',
+        'indigo' => '#7d84ab',
+        'gold' => '#b08f5c',
+        'green' => '#6f9d81',
+        'neutral' => '#8a90a2',
     ];
 
     public function __construct(private readonly TraitTestService $traits) {}
@@ -111,6 +115,31 @@ class OgImageService
         return $this->png($im);
     }
 
+    /**
+     * 色度測驗:五個象限的卡片。回傳 PNG 二進位。
+     *
+     * 和屬性測驗那張的差別在右半邊那張小象限圖。這份測驗的招牌就是「你在哪一格」,
+     * 而四個角同時畫出來,分享卡片自己就把「還有另外三種人」講完了 —— 光寫名字的
+     * 卡片,五張只差三個字。
+     */
+    public function hornyCard(string $key): string
+    {
+        $quads = (array) trans('horny.quadrants');
+        $quad = (array) ($quads[$key] ?? []);
+        $accent = self::PALETTE[config("horny.quadrants.{$key}.colour", 'gold')] ?? self::PALETTE['gold'];
+
+        $im = $this->canvas($accent);
+
+        $this->eyebrow($im, $accent, (string) __('horny.title'), (string) ($quad['label'] ?? ''));
+        // 文字欄縮到 620:右邊 780 之後留給象限圖
+        $bodyTop = $this->heading($im, (string) ($quad['name'] ?? ''), $accent, 620);
+        $this->body($im, (string) ($quad['line'] ?? ''), $bodyTop, 620);
+        $this->quadMap($im, $key, $accent);
+        $this->footer($im, (string) __('horny.title'));
+
+        return $this->png($im);
+    }
+
     /* ────────────────────────── 版面 ────────────────────────── */
 
     /** 底色 + 面板 + 面板上緣那條主色。 */
@@ -150,10 +179,10 @@ class OgImageService
     }
 
     /** 大標(型別／級距名稱)。回傳下一段可以開始畫的 y。 */
-    private function heading(GdImage $im, string $name, string $accent): int
+    private function heading(GdImage $im, string $name, string $accent, int $maxWidth = 880): int
     {
         // 名字最長的是「情侶／炮友」這種帶符號的,72 級放得下;真的太長就縮一級。
-        $size = $this->textWidth($name, 78, true) > 880 ? 62 : 78;
+        $size = $this->textWidth($name, 78, true) > $maxWidth ? 62 : 78;
         $this->text($im, $name, 96, 250, $size, $accent, true);
 
         // 大標底下一段短的主色線,讓標題與內文之間有階層。
@@ -163,9 +192,9 @@ class OgImageService
     }
 
     /** 一句話概述。最多三行,超出的話收尾用刪節號。 */
-    private function body(GdImage $im, string $line, int $top): void
+    private function body(GdImage $im, string $line, int $top, ?int $maxWidth = null): void
     {
-        foreach ($this->wrap($line, 34, self::W - 96 - 96, 3) as $i => $text) {
+        foreach ($this->wrap($line, 34, $maxWidth ?? self::W - 96 - 96, 3) as $i => $text) {
             $this->text($im, $text, 96, $top + ($i * 52), 34, self::TEXT);
         }
     }
@@ -181,6 +210,73 @@ class OgImageService
             $this->roundedRect($im, $x, $y, $x + $w, $y + 52, 26, $this->rgb($im, self::TRACK));
             $this->text($im, $label, $x + 22, $y + 35, 25, $accent);
             $x += $w + 14;
+        }
+    }
+
+    /**
+     * 卡片右半邊的小象限圖:2×2 加上中央那一塊,落在的那一格點亮。
+     *
+     * 橫軸是色度(左淡右濃)、縱軸是保守程度(上緊下鬆)—— 和結果頁那張大圖同一個
+     * 方向,不然同一個人看到兩張圖會覺得對不起來。
+     */
+    private function quadMap(GdImage $im, string $activeKey, string $accent): void
+    {
+        $quads = (array) config('horny.quadrants');
+        $names = (array) trans('horny.quadrants');
+        if ($quads === []) {
+            return;
+        }
+
+        $x0 = 744;
+        $y0 = 232;
+        $cell = 132;
+        $gap = 8;
+
+        // 四個角:col 看色度(高在右)、row 看保守程度(高在上)
+        foreach ($quads as $qKey => $q) {
+            $desire = $q['desire'] ?? 'mid';
+            $brake = $q['brake'] ?? 'mid';
+            if ($desire === 'mid' || $brake === 'mid') {
+                continue;                       // 中央那一塊另外畫
+            }
+
+            $col = $desire === 'high' ? 1 : 0;
+            $row = $brake === 'high' ? 0 : 1;
+            $cx1 = $x0 + $col * ($cell + $gap);
+            $cy1 = $y0 + $row * ($cell + $gap);
+            $active = $qKey === $activeKey;
+
+            $this->roundedRect($im, $cx1, $cy1, $cx1 + $cell, $cy1 + $cell, 14,
+                $this->rgb($im, $active ? $accent : self::TRACK));
+
+            $name = (string) ($names[$qKey]['name'] ?? $qKey);
+            $size = 23;
+            $w = $this->textWidth($name, $size, $active);
+            $this->text($im, $name, $cx1 + (int) (($cell - $w) / 2), $cy1 + 78, $size,
+                $active ? self::BG : self::DIM, $active);
+        }
+
+        // 中央那一塊:兩條軸都在中間的人不屬於任何一個角
+        $mid = $x0 + $cell + (int) ($gap / 2);
+        $midY = $y0 + $cell + (int) ($gap / 2);
+        $isMiddle = ($quads[$activeKey]['desire'] ?? null) === 'mid';
+        if ($isMiddle) {
+            // 只點亮中心。不在圖下面再寫一次名字:大標已經寫著,而那個位置和右下角
+            // 的軸標籤會疊在一起。
+            imagefilledellipse($im, $mid, $midY, 34, 34, $this->rgb($im, $accent));
+        }
+
+        // 兩條軸的方向標:只標右邊與上面,四個角的名字已經把意思講完了
+        $axes = (array) trans('horny.axes');
+        $right = (string) ($axes['desire']['high'] ?? '');
+        $top = (string) ($axes['brake']['high'] ?? '');
+        if ($top !== '') {
+            $w = $this->textWidth($top, 21, false);
+            $this->text($im, $top, $x0 + $cell + (int) ($gap / 2) - (int) ($w / 2), $y0 - 16, 21, self::DIM);
+        }
+        if ($right !== '') {
+            $this->text($im, $right, $x0 + 2 * $cell + $gap - $this->textWidth($right, 21, false),
+                $y0 + 2 * $cell + $gap + 32, 21, self::DIM);
         }
     }
 
