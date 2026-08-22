@@ -269,6 +269,99 @@ class HornyTestTest extends TestCase
         }
     }
 
+    public function test_the_desire_level_boundaries_are_inclusive_of_their_lower_bound(): void
+    {
+        $service = app(HornyTestService::class);
+
+        $this->assertSame('pure', $service->desireLevel(0)['key']);
+        $this->assertSame('pure', $service->desireLevel(19)['key']);
+        $this->assertSame('mild', $service->desireLevel(20)['key']);
+        $this->assertSame('standard', $service->desireLevel(40)['key']);
+        $this->assertSame('very', $service->desireLevel(60)['key']);
+        $this->assertSame('extreme', $service->desireLevel(80)['key']);
+        $this->assertSame('extreme', $service->desireLevel(100)['key']);
+    }
+
+    public function test_every_desire_level_has_a_verdict(): void
+    {
+        // 少一句判定不會報錯,只會讓結果頁最上面那一塊變成空白
+        foreach (array_keys((array) config('horny.desire_levels')) as $key) {
+            $level = app(HornyTestService::class)->desireLevel(
+                (int) config("horny.desire_levels.{$key}.min")
+            );
+            $this->assertNotEmpty($level['name'], "色度級距 {$key} 少了名字");
+            $this->assertNotEmpty($level['line'], "色度級距 {$key} 少了判定句");
+        }
+    }
+
+    public function test_a_very_horny_result_says_so_before_anything_else(): void
+    {
+        /* 這份測驗的主角是「你有多色」。頁面上先出現的必須是色度的判定,象限是
+           第二句話 —— 反過來的話,很色的人讀完只會覺得又被分析了一次。 */
+        $result = app(HornyTestService::class)->score($this->answers('high', 'high'));
+        $this->assertSame(100, $result['axes']['desire']);
+
+        $html = $this->asAgeVerified()
+            ->withSession(['horny_result' => $result])
+            ->get('/tw/horny-test/simmering')
+            ->assertOk()
+            ->assertSee(__('horny.desire_levels.extreme.name'))
+            ->assertSee(__('horny.desire_levels.extreme.line'))
+            ->assertSee(__('horny.result.verdict_braked'))
+            ->getContent();
+
+        /* 判定要排在 h1(象限名)前面。比對的是 h1 那個元素而不是象限的名字本身 ——
+           名字在 <title> 與 og:title 裡也出現,那些都在 body 之前。 */
+        $this->assertLessThan(
+            strpos($html, 'class="tt-name"'),
+            strpos($html, __('horny.desire_levels.extreme.name')),
+            '色度判定應該出現在象限名字之前',
+        );
+    }
+
+    public function test_a_low_desire_result_gets_its_own_verdict(): void
+    {
+        // 色度淡的人不該被套上「你很色」,而且煞車鬆的那半句要跟著換
+        $result = app(HornyTestService::class)->score($this->answers('low', 'low'));
+
+        $this->asAgeVerified()
+            ->withSession(['horny_result' => $result])
+            ->get('/tw/horny-test/easy')
+            ->assertOk()
+            ->assertSee(__('horny.desire_levels.pure.name'))
+            ->assertSee(__('horny.result.verdict_free'))
+            ->assertDontSee(__('horny.desire_levels.extreme.name'));
+    }
+
+    public function test_the_brake_sentence_follows_the_quadrant_not_a_separate_threshold(): void
+    {
+        /* 煞車那半句如果自己設門檻,煞車剛好 50 的人會拿到「色度濃 · 煞車緊」的
+           標籤配上「而你的煞車在中間」的句子 —— 同一塊裡自己打自己。 */
+        $service = app(HornyTestService::class);
+        $answers = $this->answers('high', 'mid');   // 煞車全選中間 → 50
+        $result = $service->score($answers);
+
+        $this->assertSame(50, $result['axes']['brake']);
+        $this->assertSame('simmering', $result['quadrant']);   // 50 算「緊」那一邊
+
+        $this->asAgeVerified()
+            ->withSession(['horny_result' => $result])
+            ->get('/tw/horny-test/simmering')
+            ->assertOk()
+            ->assertSee(__('horny.result.verdict_braked'))
+            ->assertDontSee(__('horny.result.verdict_mid'));
+    }
+
+    public function test_a_visitor_without_a_score_sees_the_quadrant_not_a_verdict(): void
+    {
+        /* 從搜尋進來的人沒有分數,不能憑空給他一個色度判定 —— 那一頁的主角是
+           象限本身。 */
+        $this->visit('/tw/horny-test/simmering')
+            ->assertOk()
+            ->assertDontSee(__('horny.result.crown'))
+            ->assertDontSee(__('horny.desire_levels.extreme.line'));
+    }
+
     public function test_the_measurement_basis_is_computed_from_the_config(): void
     {
         /* 依據如果是手寫的,加題或改反向題就對不上,而對不上的依據比沒有依據更糟。

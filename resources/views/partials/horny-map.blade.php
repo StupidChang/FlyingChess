@@ -10,8 +10,8 @@
     // SVG 的 y 是往下長的,煞車高要在上面,所以要翻過來
     /* 夾在 8–92:落點壓到邊角的話會蓋在那一角的象限名字上,而滿分 100 的人
        正好落在那裡。差幾個 pixel 換到「看得出是哪一角」。 */
-    $x = $desire !== null ? max(8, min(92, $desire)) : null;
-    $y = $brake !== null ? max(8, min(92, 100 - $brake)) : null;
+    $x = $desire !== null ? max(14, min(86, $desire)) : null;
+    $y = $brake !== null ? max(14, min(86, 100 - $brake)) : null;
 
     $byKey = collect($quadrants)->keyBy('key');
     $corner = fn ($d, $b) => collect($quadrants)->first(fn ($q) => $q['desire'] === $d && $q['brake'] === $b);

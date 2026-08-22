@@ -133,6 +133,37 @@ class HornyTestService
         ];
     }
 
+    /**
+     * 色度 → 級距(判定用)。
+     *
+     * 由低往高找最後一個「分數 >= 下界」的級距,所以 config 的 desire_levels 順序
+     * (低到高)就是唯一的真相,不用在兩個地方各寫一次上下界。
+     *
+     * 為什麼象限之外還要這個:象限只講「你在哪一格」,講不出程度 —— 色度 62 和
+     * 色度 98 都落在同一個角,但那兩個人想聽到的話完全不同。而這份測驗的主角
+     * 是「你有多色」,不是「你卡在哪」。
+     */
+    public function desireLevel(int $pct): array
+    {
+        $levels = (array) config('horny.desire_levels');
+        $hit = (string) array_key_first($levels);
+
+        foreach ($levels as $key => $level) {
+            if ($pct >= ($level['min'] ?? 0)) {
+                $hit = $key;
+            }
+        }
+
+        $text = $this->lang('desire_levels')[$hit] ?? [];
+
+        return [
+            'key' => $hit,
+            'name' => $text['name'] ?? $hit,
+            'line' => $text['line'] ?? '',
+            'min' => (int) ($levels[$hit]['min'] ?? 0),
+        ];
+    }
+
     /** 中央那一塊的半徑(分)。 */
     public function middleBand(): int
     {

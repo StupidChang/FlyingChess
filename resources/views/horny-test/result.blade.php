@@ -49,15 +49,22 @@
     <div class="tt-main">
 
         <article class="tt-verdict tt-c-{{ $quad['colour'] }}">
-            @if($result)
+            @if($level)
+            {{-- 色度先講,而且講得比什麼都大。很色的人來做這個測驗,要的是有人把
+                 那件事講出來 —— 煞車、象限、九條面向都是後面的事。 --}}
             <div class="tt-crown">{{ __('horny.result.crown') }}</div>
-            <div class="hm-scores">
-                @foreach($axes as $ak => $axis)
-                <span class="hm-score">
-                    <b class="hm-score-v">{{ $result['axes'][$ak] ?? 0 }}</b>
-                    <span class="hm-score-k">{{ $axis['name'] }}</span>
-                </span>
-                @endforeach
+            <p class="hm-verdict-num">{{ $result['axes']['desire'] ?? 0 }}<small>/100</small></p>
+            <p class="hm-verdict-name">{{ $level['name'] }}</p>
+            <p class="hm-verdict-line">{{ $level['line'] }}</p>
+            <p class="hm-verdict-brake">
+                {{-- 煞車那半句照**象限自己的方向**講,不要另外設一個門檻:分開判的話
+                     煞車 50 會變成標籤寫「煞車緊」、句子寫「在中間」,自己打自己。 --}}
+                {{ ['high' => __('horny.result.verdict_braked'),
+                    'low' => __('horny.result.verdict_free')][$quad['brake']]
+                    ?? __('horny.result.verdict_mid') }}
+            </p>
+            <div class="hm-verdict-sep">
+                <span>{{ __('horny.result.position') }}</span>
             </div>
             @endif
             <h1 class="tt-name">{{ $quad['name'] }}</h1>

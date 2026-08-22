@@ -96,6 +96,9 @@ class HornyTestController extends Controller
                跟星座沒兩樣;鎖住的是「你該怎麼做」那一半。 */
             'basis' => $this->service->basis(),
             'confidence' => $result ? $this->service->confidence($result) : [],
+            /* 色度的判定。只有自己作答過才有 —— 從搜尋進來的人沒有分數,那一頁
+               的主角是象限本身。 */
+            'level' => $result ? $this->service->desireLevel((int) ($result['axes']['desire'] ?? 0)) : null,
         ]);
     }
 }
