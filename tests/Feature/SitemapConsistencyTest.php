@@ -158,14 +158,36 @@ class SitemapConsistencyTest extends TestCase
         }
     }
 
+    public function test_every_quadrant_page_links_to_the_other_four(): void
+    {
+        /* 母頁不列象限了,所以互連就是它們唯一的站內發現路徑。少了這個,五頁只剩
+           sitemap 一條路 —— 而 sitemap 是「請你來看」,內鏈才是「這幾頁有關係」。 */
+        $slugs = array_column((array) trans('horny.quadrants', [], 'zh_TW'), 'slug');
+        $this->assertCount(5, $slugs);
+
+        foreach ($slugs as $slug) {
+            $html = $this->asAgeVerified()->get("/tw/dual-control/{$slug}")->assertOk()->getContent();
+
+            foreach ($slugs as $other) {
+                $this->assertStringContainsString(
+                    "/tw/dual-control/{$other}",
+                    $html,
+                    "象限頁 {$slug} 沒有連到 {$other}",
+                );
+            }
+        }
+    }
+
     public function test_each_test_links_to_all_of_its_own_result_pages(): void
     {
         /* 這兩個測驗的 SEO 價值就是它們的結果頁(屬性 20 頁、象限 5 頁)。母頁沒有
            連過去的話,那些頁面只能從「別的結果頁」走到 —— 離首頁 4 層。新網域的
            爬取預算很少,4 層深很可能永遠不會被抓到。屬性測驗曾經就是這樣。 */
+        /* 性反應雙軸量表**刻意不在母頁列出**五個象限(做完才知道自己在哪一格),
+           所以它不在這裡。它的發現路徑改成 sitemap + 結果頁互連 —— 下面另外一條
+           測試守住「每一個象限頁都連到另外四頁」,不然那五頁就真的是孤島。 */
         $cases = [
             ['/tw/trait-test', array_column((array) trans('traits.items', [], 'zh_TW'), 'slug'), 'trait-test'],
-            ['/tw/dual-control', array_column((array) trans('horny.quadrants', [], 'zh_TW'), 'slug'), 'dual-control'],
         ];
 
         foreach ($cases as [$path, $slugs, $prefix]) {

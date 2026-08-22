@@ -1828,7 +1828,7 @@ a.gh-name{color:var(--accent)}
 /* 版面:測驗本體置中在一個舒適的閱讀寬度(720px)。側欄廣告只在夠寬的螢幕
    (≥1300px)以 fixed 掛在右側留白,不參與版面計算 —— 這樣測驗永遠是真正的
    置中,而不是「主欄 + 側欄」那種偏左的置中。 */
-.tt-page{max-width:720px;margin:0 auto;padding:40px 20px 72px;--tt-intro-w:46rem;
+.tt-page{max-width:720px;margin:0 auto;padding:40px 20px 72px;
   /* 測驗頁的主色比站台主色低一階彩度。這一頁要看很久(64 題),滿彩度的螢光粉
      出現在題號、段落標題、選項、進度條、指數上,整頁就會一直在喊。
      用 color-mix 而不是寫死色碼:主題切到 indigo 版時會跟著換色相。
@@ -2611,34 +2611,19 @@ body.age-locked{overflow:hidden}
    原本是一段一百多字的 .tt-intro,置中、灰字、沒有任何落點 —— 掃頁的人抓不到
    這測驗在測什麼。重點句放大並靠左(置中的長句每一行的起點都不一樣,更難讀),
    三個要點用標籤 + 內容的兩欄式。 */
-.tt-lead{max-width:54ch;margin:0 auto 22px;padding:2px 0 2px 16px;text-align:left;
+/* 開場的重點句與三個要點:寬度就是主欄的寬度,不另外設上限。ch 是拉丁字母的
+   寬度單位,中文用它一律少一半;而比主欄寬或窄都會讓這一區和底下的卡片對不齊。 */
+.tt-lead{margin:0 auto 22px;padding:2px 0 2px 16px;text-align:left;
   border-left:3px solid var(--accent);font-size:1.02rem;line-height:1.9;color:var(--text)}
 .tt-lead strong{color:var(--text);font-weight:700;
   background:linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 28%, transparent) 62%)}
-.tt-points{max-width:54ch;margin:0 auto;text-align:left;display:grid;gap:10px}
+.tt-points{margin:0 auto;text-align:left;display:grid;gap:10px}
 .tt-point{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline}
 .tt-point dt{font-size:.74rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;
   color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);
   border:1px solid color-mix(in srgb, var(--accent) 26%, transparent);
   border-radius:99px;padding:3px 10px}
 .tt-point dd{margin:0;font-size:.92rem;line-height:1.85;color:var(--text-dim)}
-/* 桌機:三個要點各自一整行。
-   量過的數字:最長那一列(性壓抑的「會得到什麼」)不換行需要 687px —— 標籤 84px
-   + gap 12px + 文字 592px。而主欄的內容寬只有 680px(.tt-page 720 - 左右各 20 的
-   padding),差 7px 就得斷 —— 中文的斷行點可以落在詞中間(「情慾迴／避」、
-   「是不敢被／看」),所以斷起來特別難看。
-   給 46rem(736px):兩份測驗最長的那一句都放得下(枕邊屬性測驗最長 556px),
-   而這一區只比下面的卡片往左右各多出 28px。
-   重點句一起變寬 —— 只放寬要點的話,兩塊的左緣會差一大截,看起來像沒對齊。 */
-@media (min-width:820px){
-  .tt-lead, .tt-points{
-    width:var(--tt-intro-w);max-width:none;
-    /* 比父容器寬又要維持置中:over-constrained 的時候 auto margin 會失效(整塊
-       往右溢出),所以自己算左邊界。 */
-    margin-left:calc(50% - var(--tt-intro-w) / 2);margin-right:0;
-  }
-  .tt-lead{margin-bottom:22px}
-}
 @media (max-width:520px){
   .tt-point{grid-template-columns:1fr;gap:4px}
   .tt-point dt{justify-self:start}

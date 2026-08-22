@@ -156,34 +156,10 @@
 
         <p class="rp-disclaimer">{{ __('horny.disclaimer') }}</p>
 
-        {{-- 這一頁只留這一個內文版位,而且放在交卷按鈕之後 —— 作答到一半被
-             廣告打斷是最傷的,主角是測驗本身。桌機另外有右側欄。 --}}
-
-        {{-- 五種位置先列出來:訪客還沒作答就看得到五頁的入口,對搜尋引擎則是
-             這一頁通往五個結果頁的內部連結。 --}}
-        <section class="tt-card">
-            {{-- 有幾種結果不先攤出來 —— 做完就知道了,先看名字反而像在挑答案。
-                 用 <details> 而不是 JS:連結完整留在 HTML 裡(收起來只是
-                 display:none),爬蟲照樣抓得到。這一頁的 SEO 價值就是通往結果頁的
-                 入口,不能為了畫面乾淨把它們拿掉。 --}}
-            <details class="tt-all-fold">
-                <summary>
-                    <span>{{ __('horny.result.quadrants_title') }}</span>
-                    <em>{{ __('horny.quadrants_hint') }}</em>
-                </summary>
-                <p class="tt-hint">{{ __('horny.result.map_hint') }}</p>
-                <div class="hm-all">
-                    @foreach($quadrants as $q)
-                    <a href="{{ route('horny-test.result', ['slug' => $q['slug']]) }}">
-                        <span class="hm-all-name">{{ $q['name'] }}</span>
-                        <span class="hm-all-label">{{ $q['label'] }}</span>
-                        <span class="hm-all-line">{{ $q['line'] }}</span>
-                    </a>
-                    @endforeach
-                </div>
-            </details>
-        </section>
-
+        {{-- 這一頁**不列出**有幾種結果 —— 做完就知道了。
+             代價要講清楚:五個象限頁因此少了一個從母頁進來的入口,發現路徑只剩
+             sitemap 與「結果頁互相連結」。它們仍然在 sitemap 裡、每一頁也都連到
+             另外四頁,所以不是孤島,但比有母頁入口弱一階。 --}}
         <section class="tt-faq">
             <h2>{{ __('horny.faq_title') }}</h2>
             @foreach(__('horny.faq') as $f)
