@@ -1828,17 +1828,28 @@ a.gh-name{color:var(--accent)}
 /* 版面:測驗本體置中在一個舒適的閱讀寬度(720px)。側欄廣告只在夠寬的螢幕
    (≥1300px)以 fixed 掛在右側留白,不參與版面計算 —— 這樣測驗永遠是真正的
    置中,而不是「主欄 + 側欄」那種偏左的置中。 */
-.tt-page{max-width:720px;margin:0 auto;padding:40px 20px 72px;--tt-intro-w:46rem}
+.tt-page{max-width:720px;margin:0 auto;padding:40px 20px 72px;--tt-intro-w:46rem;
+  /* 測驗頁的主色比站台主色低一階彩度。這一頁要看很久(64 題),滿彩度的螢光粉
+     出現在題號、段落標題、選項、進度條、指數上,整頁就會一直在喊。
+     用 color-mix 而不是寫死色碼:主題切到 indigo 版時會跟著換色相。
+     只覆寫在 .tt-page 這個範圍 —— 首頁、大廳、遊戲頁不動。 */
+  --accent: color-mix(in srgb, var(--rose) 55%, #9aa1b5);
+  --accent-hover: color-mix(in srgb, var(--rose) 72%, #9aa1b5)}
 .tt-main{min-width:0}
 .tt-rail{display:none}
 @media(min-width:1300px){
   .tt-rail{display:block;position:fixed;right:24px;top:88px;width:300px;z-index:4}
 }
 
-.tt-c-rose{--tt:#f43f5e}
-.tt-c-gold{--tt:#d9a441}
-.tt-c-indigo{--tt:#818cf8}
-.tt-c-green{--tt:#5fd08a}
+/* 四個色系刻意收在**同一個亮度帶、低彩度**:彼此的差別只有色相,所以並排時
+   讀起來是一個家族而不是四種螢光筆。原本是 #f43f5e / #d9a441 / #818cf8 /
+   #5fd08a 四個滿彩度的顏色,一頁上出現九條就變成調色盤展示。
+   多一個 neutral:給「兩軸都在中間」這種本來就該低調的東西用。 */
+.tt-c-rose{--tt:#c0697d}
+.tt-c-gold{--tt:#b08f5c}
+.tt-c-indigo{--tt:#7d84ab}
+.tt-c-green{--tt:#6f9d81}
+.tt-c-neutral{--tt:#8a90a2}
 
 /* 封面:置中,像一張正式的測驗開場 —— 標語用 accent 立刻建立「重點色」。 */
 .tt-head{text-align:center;padding:6px 0 28px;margin-bottom:6px}
@@ -1879,11 +1890,16 @@ a.gh-name{color:var(--accent)}
   font-size:.66rem;line-height:1.3;color:var(--text-dim);text-align:center;
   transition:border-color .16s,background .16s,color .16s,transform .12s}
 /* 五等量表:完全不(紅)→ 一半一半(灰)→ 完全是(綠),越同意越綠。 */
-.tt-opt-0{--opt:#ef4444}
-.tt-opt-1{--opt:#f59e0b}
-.tt-opt-2{--opt:#94a3b8}
-.tt-opt-3{--opt:#84cc16}
-.tt-opt-4{--opt:#22c55e}
+/* 五點量表。原本是紅→橙→灰→黃綠→綠,兩個問題:一頁 64 題,五個滿彩度的顏色
+   同時在畫面上是這一頁最吵的東西;而且紅配綠等於在說「這題答錯了」—— 這份測驗
+   兩條軸都沒有好的那一端,量表不該帶價值判斷。
+   改成低彩度的雙極:不符合走冷色、符合走暖色(和 tt-c-rose 同一個色),中間是
+   純中性。對稱仍在(找得到中間),但沒有對錯。 */
+.tt-opt-0{--opt:#69708c}
+.tt-opt-1{--opt:#7d849c}
+.tt-opt-2{--opt:#8a90a2}
+.tt-opt-3{--opt:#b1808f}
+.tt-opt-4{--opt:#c0697d}
 .tt-scale label:hover{border-color:var(--opt,var(--accent));color:var(--text);transform:translateY(-1px)}
 .tt-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--opt,currentColor);transition:background .16s,border-color .16s,transform .16s}
 .tt-scale input:checked + label{border-color:var(--opt,var(--accent));color:#fff;background:var(--opt,var(--accent))}
@@ -1897,7 +1913,7 @@ a.gh-name{color:var(--accent)}
 .tt-verdict{border:1px solid var(--border);border-radius:18px;background:var(--surface);
   padding:26px 22px;margin-bottom:16px;position:relative;overflow:hidden}
 .tt-verdict::before{content:'';position:absolute;inset:0 0 auto;height:3px;background:var(--tt,var(--gold))}
-.tt-crown{font-size:.7rem;letter-spacing:.18em;color:var(--gold);margin-bottom:8px}
+.tt-crown{font-size:.7rem;letter-spacing:.18em;color:var(--text-dim);margin-bottom:8px}
 .tt-name{font-size:clamp(1.8rem,5vw,2.5rem);font-weight:800;letter-spacing:-.02em;margin-bottom:4px;color:var(--tt,var(--gold))}
 .tt-pct{font-size:1rem;font-weight:700;color:var(--tt,var(--gold));margin-bottom:10px;font-variant-numeric:tabular-nums}
 .tt-line{font-size:1rem;margin-bottom:10px;max-width:50ch}
@@ -2326,6 +2342,11 @@ a.gh-name{color:var(--accent)}
    沿用屬性測驗的 .tt-map-* (背景、四分之一線、落點),多的是四個角上的象限名字:
    這張圖的價值不是「你偏多少」,是「你在哪一格,而旁邊那三格是什麼」。 */
 .hm-fig{margin:6px 0 2px}
+.hm-fig .tt-map-ray{stroke:var(--tt,var(--accent));opacity:.5}
+.hm-fig .tt-map-halo{fill:var(--tt,var(--accent));opacity:.15}
+.hm-fig .tt-map-dot{fill:var(--tt,var(--accent))}
+/* 圖說下面的兩個軸名不用金色 —— 這一頁已經有一個主色,金色留給付費 UI */
+.hm-fig .tt-map-cap b{color:var(--text)}
 .hm-grid{position:relative;padding:20px 34px;max-width:420px;margin:0 auto}
 .hm-mid{fill:none;stroke:var(--border);stroke-width:.5;stroke-dasharray:2 2;opacity:.9}
 .hm-corner{position:absolute;font-size:.7rem;font-weight:700;line-height:1;
@@ -2333,7 +2354,7 @@ a.gh-name{color:var(--accent)}
     color:var(--text-dim);background:var(--surface);border:1px solid var(--border);
     transition:color .15s,border-color .15s}
 .hm-corner:hover{color:var(--text)}
-.hm-corner.is-current{color:var(--tt-c,var(--gold));border-color:currentColor}
+.hm-corner.is-current{color:var(--tt,var(--accent));border-color:currentColor}
 .hm-corner.is-tl{top:22px;left:36px}
 .hm-corner.is-tr{top:22px;right:36px}
 .hm-corner.is-bl{bottom:22px;left:36px}
@@ -2342,7 +2363,7 @@ a.gh-name{color:var(--accent)}
 /* 色度判定。這一塊要比 h1(象限名)更搶眼 —— 這份測驗的主角是「你有多色」,
    象限是第二句話。 */
 .hm-verdict-num{font-size:clamp(3.4rem,12vw,5rem);font-weight:800;line-height:.95;
-    margin:2px 0 0;color:var(--accent);font-variant-numeric:tabular-nums}
+    margin:2px 0 0;color:var(--tt,var(--accent));font-variant-numeric:tabular-nums}
 .hm-verdict-num small{font-size:.28em;font-weight:600;color:var(--text-dim);margin-left:2px}
 .hm-verdict-name{font-size:clamp(1.5rem,5.5vw,2.1rem);font-weight:800;letter-spacing:-.01em;
     margin:2px 0 10px;color:var(--text)}
@@ -2361,7 +2382,7 @@ a.gh-name{color:var(--accent)}
 .hm-axis-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
     margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid var(--border)}
 .hm-axis-name{font-size:.9rem;font-weight:700;color:var(--text)}
-.hm-axis-score{font-size:1.1rem;font-weight:800;color:var(--gold);
+.hm-axis-score{font-size:1.1rem;font-weight:800;color:var(--text);
     font-variant-numeric:tabular-nums}
 .hm-axis-note{font-size:.76rem;color:var(--text-dim);margin:0 0 8px}
 .hm-scores{display:flex;justify-content:center;gap:22px;margin:2px 0 4px;flex-wrap:wrap}
@@ -2375,9 +2396,9 @@ a.gh-name{color:var(--accent)}
 @media(min-width:520px){ .hm-all{grid-template-columns:1fr 1fr} }
 .hm-all a{display:block;padding:10px 12px;border-radius:10px;text-decoration:none;
     background:var(--surface);border:1px solid var(--border)}
-.hm-all a.is-current{border-color:var(--gold)}
+.hm-all a.is-current{border-color:var(--tt,var(--accent))}
 .hm-all-name{display:block;font-weight:700;font-size:.92rem;color:var(--text)}
-.hm-all-label{display:block;font-size:.72rem;color:var(--gold);margin:1px 0 3px}
+.hm-all-label{display:block;font-size:.72rem;color:var(--text-dim);margin:1px 0 3px}
 .hm-all-line{display:block;font-size:.8rem;line-height:1.65;color:var(--text-dim)}
 
 /* ── 五邊形雷達(性壓抑)── */
@@ -2397,7 +2418,7 @@ a.gh-name{color:var(--accent)}
   padding:12px 14px;border:1px dashed var(--border);border-radius:10px}
 
 .rp-cross{font-size:.82rem;color:var(--text-dim);text-align:center;margin:18px 0 0}
-.rp-cross a{color:var(--gold);text-decoration:underline;text-underline-offset:3px}
+.rp-cross a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 
 /* ── 年齡確認覆蓋層(age_gate_mode = overlay)─────────────────────────
    舊的做法是「沒確認就換一頁」,那讓 Googlebot 與真人拿到不同內容 —— 也就是

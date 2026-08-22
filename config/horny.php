@@ -40,17 +40,20 @@ return [
      * 權重目前一律 1。有實際資料之前不要憑感覺加權,那只會讓分數難以解釋。
      */
     'dimensions' => [
-        // ── 油門 ──
+        /* 顏色**照軸分**,不照面向輪替。九條線用四個色系輪一輪的話,顏色就只是
+           裝飾;照軸分之後,暖色一眼就是油門、冷色一眼就是煞車 —— 而那正是這份
+           測驗要人看懂的第一件事。 */
+        // ── 油門(暖)──
         'drive' => ['axis' => 'desire', 'weight' => 1, 'colour' => 'rose'],
-        'fantasy' => ['axis' => 'desire', 'weight' => 1, 'colour' => 'indigo'],
-        'initiate' => ['axis' => 'desire', 'weight' => 1, 'colour' => 'gold'],
-        'arousal' => ['axis' => 'desire', 'weight' => 1, 'colour' => 'green'],
-        // ── 煞車 ──
-        'guilt' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'rose'],
+        'fantasy' => ['axis' => 'desire', 'weight' => 1, 'colour' => 'rose'],
+        'initiate' => ['axis' => 'desire', 'weight' => 1, 'colour' => 'rose'],
+        'arousal' => ['axis' => 'desire', 'weight' => 1, 'colour' => 'rose'],
+        // ── 煞車(冷)──
+        'guilt' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'indigo'],
         'shame' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'indigo'],
-        'anxiety' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'gold'],
-        'avoid' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'green'],
-        'voice' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'rose'],
+        'anxiety' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'indigo'],
+        'avoid' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'indigo'],
+        'voice' => ['axis' => 'brake', 'weight' => 1, 'colour' => 'indigo'],
     ],
 
     /*
@@ -186,11 +189,14 @@ return [
     'middle_band' => 10,
 
     'quadrants' => [
+        /* 顏色照**色度**那條軸分:色度濃的兩格是暖色、色度淡的兩格是冷色,中央
+           那一塊是中性。四格各一個顏色的話,象限圖上的顏色只是在標記位置;照色度
+           分之後,顏色本身就在講「你在右半邊還是左半邊」。 */
         'simmering' => ['desire' => 'high', 'brake' => 'high', 'colour' => 'rose'],
-        'open' => ['desire' => 'high', 'brake' => 'low', 'colour' => 'gold'],
-        'easy' => ['desire' => 'low', 'brake' => 'low', 'colour' => 'green'],
+        'open' => ['desire' => 'high', 'brake' => 'low', 'colour' => 'rose'],
+        'easy' => ['desire' => 'low', 'brake' => 'low', 'colour' => 'indigo'],
         'locked' => ['desire' => 'low', 'brake' => 'high', 'colour' => 'indigo'],
-        'middle' => ['desire' => 'mid', 'brake' => 'mid', 'colour' => 'gold'],
+        'middle' => ['desire' => 'mid', 'brake' => 'mid', 'colour' => 'neutral'],
     ],
 
     /*

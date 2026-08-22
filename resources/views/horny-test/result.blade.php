@@ -131,7 +131,7 @@
             <div class="hm-all">
                 @foreach($quadrants as $q)
                 <a href="{{ route('horny-test.result', ['slug' => $q['slug']]) }}"
-                   class="{{ $q['key'] === $key ? 'is-current' : '' }}">
+                   class="tt-c-{{ $q['colour'] }} {{ $q['key'] === $key ? 'is-current' : '' }}">
                     <span class="hm-all-name">{{ $q['name'] }}</span>
                     <span class="hm-all-label">{{ $q['label'] }}</span>
                     <span class="hm-all-line">{{ $q['line'] }}</span>

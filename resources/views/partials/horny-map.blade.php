@@ -13,10 +13,11 @@
     $x = $desire !== null ? max(14, min(86, $desire)) : null;
     $y = $brake !== null ? max(14, min(86, 100 - $brake)) : null;
 
+    // 這一格自己的顏色:射線與落點跟著它走(色度濃是暖色、色度淡是冷色)
     $byKey = collect($quadrants)->keyBy('key');
     $corner = fn ($d, $b) => collect($quadrants)->first(fn ($q) => $q['desire'] === $d && $q['brake'] === $b);
 @endphp
-<figure class="hm-fig">
+<figure class="hm-fig tt-c-{{ $byKey[$key]['colour'] ?? 'neutral' }}">
     <div class="hm-grid">
         <span class="tt-map-lbl is-top">{{ $axes['brake']['name'] }}{{ $axes['brake']['high'] }}</span>
         <span class="tt-map-lbl is-bottom">{{ $axes['brake']['name'] }}{{ $axes['brake']['low'] }}</span>
