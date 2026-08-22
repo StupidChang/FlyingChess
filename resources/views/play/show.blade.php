@@ -47,10 +47,18 @@
                 </div>
             </div>
             <button id="roll-btn" class="btn btn-gold btn-roll" onclick="rollDice()">{{ __('play.roll_dice') }}</button>
-            <button type="button" id="rules-toggle" class="btn btn-sm btn-outline btn-rules"
-                    onclick="toggleRules()" aria-expanded="false" aria-controls="rules-panel">
-                {{ __('play.rules_title') }}
-            </button>
+            <div class="turn-tools">
+                <button type="button" id="rules-toggle" class="btn btn-sm btn-outline btn-rules"
+                        onclick="toggleRules()" aria-expanded="false" aria-controls="rules-panel">
+                    {{ __('play.rules_title') }}
+                </button>
+                {{-- 棋盤大小:放大的格子讀長文字舒服,但欄數多的盤面在筆電上就得捲動。
+                     兩者各有適用場景,所以留成可切換的。文字由 board.js 依目前狀態寫入。 --}}
+                <button type="button" id="board-size-toggle" class="btn btn-sm btn-outline btn-size"
+                        onclick="toggleBoardSize()" aria-pressed="true">
+                    {{ __('play.js_board_smaller') }}
+                </button>
+            </div>
         </div>
 
         @if($playerCount >= 2)
@@ -313,6 +321,9 @@
         'wheelWaiting' => __('play.js_wheel_waiting'),
         'winTitle'     => __('play.js_win_title'),
         'winText'      => __('play.js_win_text'),
+        // 棋盤大小切換
+        'boardBigger'  => __('play.js_board_bigger'),
+        'boardSmaller' => __('play.js_board_smaller'),
         // 點格子看完整內容
         'sqInfoTitle'  => __('play.sq_info_title'),
         'sqInfoFly'    => __('play.sq_info_fly'),

@@ -361,10 +361,55 @@ function updateHeaderVar() {
 
 /* Size the board to the wrap's actual free space (padding excluded),
    preserving the grid's aspect ratio. */
-/* 一格的可讀下限。52px 試過,字級只有 8.8px —— 看得到有字,但讀不出寫什麼。
-   78px 是實測 30 字左右的格子讀得動的下限(13 欄的原版復刻盤面就是這個字量)。
-   低於下限不再縮,改讓棋盤超出視窗由 .board-wrap 捲動。 */
-const MIN_CELL = 78;
+/* 棋盤大小有兩組尺寸,由棋盤上方的按鈕切換(toggleBoardSize)。
+
+   `large` 是現在的預設:一格的可讀下限 78px —— 52px 試過,字級只有 8.8px,
+   看得到有字但讀不出寫什麼;78px 是實測 30 字左右的格子讀得動的下限(13 欄的
+   原版復刻盤面就是這個字量)。低於下限不再縮,改讓棋盤超出視窗由 .board-wrap 捲動。
+
+   `standard` 是放大之前的那一組。放大解決的是「字讀得吃力」,代價是欄數多的盤面
+   在筆電上就得捲動才看得到全盤 —— 想一眼看完整張棋盤的時候,小的那組才是對的。
+   兩者都留著、讓人自己選,比替他決定好。
+
+   maxW / maxWWide 是桌機的版面寬度上限:欄數多的棋盤需要更寬的版面,所以 12 欄
+   以上走 maxWWide。標準組兩者相同(原本就是一律 960)。 */
+const BOARD_SIZES = {
+  large:    { minCell: 78, maxW: 1040, maxWWide: 1200 },
+  standard: { minCell: 64, maxW: 960,  maxWWide: 960 },
+};
+const BOARD_SIZE_KEY = 'play_board_size';
+
+/** 目前選的尺寸。純顯示偏好,記在 localStorage(無痕模式下存取會 throw)。 */
+function boardSizePref() {
+  let v = null;
+  try { v = localStorage.getItem(BOARD_SIZE_KEY); } catch (e) { /* 無痕模式 */ }
+  return BOARD_SIZES[v] ? v : 'large';
+}
+
+/** 按鈕上的字是「按下去會變成什麼」,不是現在的狀態。 */
+function syncBoardSizeBtn() {
+  const btn = document.getElementById('board-size-toggle');
+  if (!btn) return;
+  const large = boardSizePref() === 'large';
+  btn.textContent = large ? tp('boardSmaller') : tp('boardBigger');
+  // aria-pressed:true = 現在是放大的
+  btn.setAttribute('aria-pressed', String(large));
+}
+
+function toggleBoardSize() {
+  const next = boardSizePref() === 'large' ? 'standard' : 'large';
+  try { localStorage.setItem(BOARD_SIZE_KEY, next); } catch (e) { /* 無痕模式 */ }
+  syncBoardSizeBtn();
+
+  const board = document.getElementById('game-board');
+  if (!board || !lastGrid) return;
+  sizeGameBoard(board, lastGrid.cols, lastGrid.rows);
+  /* 棋子的位置是從格子的 bounding box 算出來的,不重畫就會留在舊格子上
+     (跟 resize 同一個理由)。縮放之後輪到的棋子可能被捲出畫面,再跟一次。 */
+  if (typeof renderPieces === 'function') renderPieces();
+  followActivePiece(activePieceTarget());
+}
+window.toggleBoardSize = toggleBoardSize;
 
 /**
  * 格子裡字級相對於格子邊長的比例。
@@ -407,9 +452,10 @@ function textFactorFor(squares) {
 function sizeGameBoard(board, cols, rows) {
   const wrap = board.closest('.board-wrap');
   const ar = cols / rows;
-  /* 桌機的寬度上限。原本一律 960px,13 欄的棋盤每格只剩 73px、字被上限卡在
-     11px 還放不完 —— 欄數多的棋盤本來就需要更寬的版面。 */
-  let maxW = Math.min(window.innerWidth * 0.96, cols >= 12 ? 1200 : 1040);
+  const size = BOARD_SIZES[boardSizePref()];
+  /* 桌機的寬度上限。放大組把它從一律 960px 拉開 —— 13 欄的棋盤在 960px 下每格
+     只剩 73px、字被上限卡在 11px 還放不完,欄數多的棋盤本來就需要更寬的版面。 */
+  let maxW = Math.min(window.innerWidth * 0.96, cols >= 12 ? size.maxWWide : size.maxW);
   let maxH = window.innerHeight - 205; // fallback if wrap not measurable yet
   if (wrap) {
     const cs = getComputedStyle(wrap);
@@ -424,9 +470,9 @@ function sizeGameBoard(board, cols, rows) {
      低於下限就不再縮,改讓棋盤超出視窗由 .board-wrap 捲動(它本來就是
      overflow:auto),再由 followActivePiece() 自動捲到輪到的那顆棋子。
      寧可要捲動也不要一張讀不了的棋盤。 */
-  if (bw / cols < MIN_CELL) {
-    bw = cols * MIN_CELL;
-    bh = rows * MIN_CELL;
+  if (bw / cols < size.minCell) {
+    bw = cols * size.minCell;
+    bh = rows * size.minCell;
   }
 
   board.style.width  = Math.floor(bw) + 'px';
@@ -1588,6 +1634,8 @@ function closeModal(id) { document.getElementById(id)?.classList.remove('open');
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof window.EDIT_MODE === 'undefined') window.EDIT_MODE = false;
   buildBoard();
+  // 按鈕上的字要對上上次選的尺寸(Blade 印的是預設值)
+  syncBoardSizeBtn();
   build3dCube();
   const sqText = document.getElementById('sq-text');
   if (sqText) sqText.addEventListener('input', () => {
