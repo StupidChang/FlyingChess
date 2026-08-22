@@ -1828,7 +1828,7 @@ a.gh-name{color:var(--accent)}
 /* 版面:測驗本體置中在一個舒適的閱讀寬度(720px)。側欄廣告只在夠寬的螢幕
    (≥1300px)以 fixed 掛在右側留白,不參與版面計算 —— 這樣測驗永遠是真正的
    置中,而不是「主欄 + 側欄」那種偏左的置中。 */
-.tt-page{max-width:720px;margin:0 auto;padding:40px 20px 72px}
+.tt-page{max-width:720px;margin:0 auto;padding:40px 20px 72px;--tt-intro-w:46rem}
 .tt-main{min-width:0}
 .tt-rail{display:none}
 @media(min-width:1300px){
@@ -2487,6 +2487,23 @@ body.age-locked{overflow:hidden}
   border:1px solid color-mix(in srgb, var(--accent) 26%, transparent);
   border-radius:99px;padding:3px 10px}
 .tt-point dd{margin:0;font-size:.92rem;line-height:1.85;color:var(--text-dim)}
+/* 桌機:三個要點各自一整行。
+   量過的數字:最長那一列(性壓抑的「會得到什麼」)不換行需要 687px —— 標籤 84px
+   + gap 12px + 文字 592px。而主欄的內容寬只有 680px(.tt-page 720 - 左右各 20 的
+   padding),差 7px 就得斷 —— 中文的斷行點可以落在詞中間(「情慾迴／避」、
+   「是不敢被／看」),所以斷起來特別難看。
+   給 46rem(736px):兩份測驗最長的那一句都放得下(枕邊屬性測驗最長 556px),
+   而這一區只比下面的卡片往左右各多出 28px。
+   重點句一起變寬 —— 只放寬要點的話,兩塊的左緣會差一大截,看起來像沒對齊。 */
+@media (min-width:820px){
+  .tt-lead, .tt-points{
+    width:var(--tt-intro-w);max-width:none;
+    /* 比父容器寬又要維持置中:over-constrained 的時候 auto margin 會失效(整塊
+       往右溢出),所以自己算左邊界。 */
+    margin-left:calc(50% - var(--tt-intro-w) / 2);margin-right:0;
+  }
+  .tt-lead{margin-bottom:22px}
+}
 @media (max-width:520px){
   .tt-point{grid-template-columns:1fr;gap:4px}
   .tt-point dt{justify-self:start}
