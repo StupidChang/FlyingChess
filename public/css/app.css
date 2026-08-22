@@ -2646,7 +2646,11 @@ body.age-locked{overflow:hidden}
 @media (min-width:760px){
   .tt-tagline{white-space:nowrap;width:max-content;position:relative;left:50%;
     transform:translateX(-50%)}
-  .tt-lead{white-space:nowrap;font-size:.92rem;padding-left:12px}
+  /* 重點句的不換行是**逐句指定**的(加 .is-oneline),不是全站一律。
+     句子長度差很多:屬性測驗那句 44 字,0.92rem 時 648px,主欄放得下;性反應雙軸
+     那句 60 字,同樣字級需要 839px —— 665px 的可用寬度差 174px,強制不換行只會
+     整句衝出卡片右緣。放不下的句子就該換行,不是硬撐。 */
+  .tt-lead.is-oneline{white-space:nowrap;font-size:.92rem;padding-left:12px}
 }
 
 @media (max-width:520px){

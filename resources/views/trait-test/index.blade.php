@@ -52,7 +52,9 @@
             <p class="tt-tagline">{{ __('traits.tagline') }}</p>
             {{-- 一句重點 + 三個要點。原本是一整段一百多字的文字牆,畫面上沒有任何
                  落點,掃頁的人抓不到「這測驗在測什麼」。 --}}
-            <p class="tt-lead">{!! inline_emphasis(__('traits.intro_lead')) !!}</p>
+            {{-- is-oneline:這一句要求不換行。句子長度是它自己的責任 —— 加長到放不下就會
+                 衝出卡片,所以改文案時要一起量(見 app.css 的 .tt-lead.is-oneline)。 --}}
+            <p class="tt-lead is-oneline">{!! inline_emphasis(__('traits.intro_lead')) !!}</p>
             <dl class="tt-points">
                 @foreach(__('traits.intro_points') as $point)
                 <div class="tt-point">
