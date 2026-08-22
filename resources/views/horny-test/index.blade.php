@@ -85,27 +85,35 @@
         {{-- 兩條軸與九個面向先攤在測驗前面:對還沒作答的訪客(含搜尋引擎)來說,
              這是這一頁唯一說得出「這測驗到底在測什麼」的內容。 --}}
         <section class="tt-card">
-            <h2>{{ __('horny.result.axis_title') }}</h2>
-            <p class="tt-hint">{{ __('horny.result.axis_hint') }}</p>
-            @foreach($axes as $axisKey => $axis)
-            <div class="hm-axis">
-                <div class="hm-axis-head">
-                    <span class="hm-axis-name">{{ $axis['name'] }}</span>
-                    <span class="hm-axis-note">{{ $axis['low'] }} ←→ {{ $axis['high'] }}</span>
+            {{-- 九個面向也收起來:開場那三個要點已經講完「這在測什麼」,再攤九個
+                 名字只是把還沒作答的人先淹一次。展開仍然看得到,而且連結與文字都
+                 留在 HTML 裡 —— 這一頁對搜尋引擎仍然說得出自己在測什麼。 --}}
+            <details class="tt-all-fold">
+                <summary>
+                    <span>{{ __('horny.result.axis_title') }}</span>
+                    <em>{{ __('horny.axis_fold_hint') }}</em>
+                </summary>
+                <p class="tt-hint">{{ __('horny.result.axis_hint') }}</p>
+                @foreach($axes as $axisKey => $axis)
+                <div class="hm-axis">
+                    <div class="hm-axis-head">
+                        <span class="hm-axis-name">{{ $axis['name'] }}</span>
+                        <span class="hm-axis-note">{{ $axis['low'] }} ←→ {{ $axis['high'] }}</span>
+                    </div>
+                    <p class="hm-axis-note">{{ $axis['note'] }}</p>
+                    <ul class="rp-dims">
+                        @foreach($dimensions as $dk => $d)
+                            @if($d['axis'] === $axisKey)
+                            <li class="rp-dim tt-c-{{ config('horny.dimensions.'.$dk.'.colour', 'gold') }}">
+                                <strong>{{ $d['name'] }}</strong>
+                                <span>{{ $d['note'] }}</span>
+                            </li>
+                            @endif
+                        @endforeach
+                    </ul>
                 </div>
-                <p class="hm-axis-note">{{ $axis['note'] }}</p>
-                <ul class="rp-dims">
-                    @foreach($dimensions as $dk => $d)
-                        @if($d['axis'] === $axisKey)
-                        <li class="rp-dim tt-c-{{ config('horny.dimensions.'.$dk.'.colour', 'gold') }}">
-                            <strong>{{ $d['name'] }}</strong>
-                            <span>{{ $d['note'] }}</span>
-                        </li>
-                        @endif
-                    @endforeach
-                </ul>
-            </div>
-            @endforeach
+                @endforeach
+            </details>
         </section>
 
         <form action="{{ route('horny-test.submit') }}" method="POST" id="tt-form" class="tt-collapsed">
@@ -150,22 +158,30 @@
 
         {{-- 這一頁只留這一個內文版位,而且放在交卷按鈕之後 —— 作答到一半被
              廣告打斷是最傷的,主角是測驗本身。桌機另外有右側欄。 --}}
-        @include('partials.ad-unit', ['zone' => 'home_banner'])
 
         {{-- 五種位置先列出來:訪客還沒作答就看得到五頁的入口,對搜尋引擎則是
              這一頁通往五個結果頁的內部連結。 --}}
         <section class="tt-card">
-            <h2>{{ __('horny.result.quadrants_title') }}</h2>
-            <p class="tt-hint">{{ __('horny.result.map_hint') }}</p>
-            <div class="hm-all">
-                @foreach($quadrants as $q)
-                <a href="{{ route('horny-test.result', ['slug' => $q['slug']]) }}">
-                    <span class="hm-all-name">{{ $q['name'] }}</span>
-                    <span class="hm-all-label">{{ $q['label'] }}</span>
-                    <span class="hm-all-line">{{ $q['line'] }}</span>
-                </a>
-                @endforeach
-            </div>
+            {{-- 有幾種結果不先攤出來 —— 做完就知道了,先看名字反而像在挑答案。
+                 用 <details> 而不是 JS:連結完整留在 HTML 裡(收起來只是
+                 display:none),爬蟲照樣抓得到。這一頁的 SEO 價值就是通往結果頁的
+                 入口,不能為了畫面乾淨把它們拿掉。 --}}
+            <details class="tt-all-fold">
+                <summary>
+                    <span>{{ __('horny.result.quadrants_title') }}</span>
+                    <em>{{ __('horny.quadrants_hint') }}</em>
+                </summary>
+                <p class="tt-hint">{{ __('horny.result.map_hint') }}</p>
+                <div class="hm-all">
+                    @foreach($quadrants as $q)
+                    <a href="{{ route('horny-test.result', ['slug' => $q['slug']]) }}">
+                        <span class="hm-all-name">{{ $q['name'] }}</span>
+                        <span class="hm-all-label">{{ $q['label'] }}</span>
+                        <span class="hm-all-line">{{ $q['line'] }}</span>
+                    </a>
+                    @endforeach
+                </div>
+            </details>
         </section>
 
         <section class="tt-faq">
@@ -178,6 +194,10 @@
             @endforeach
         </section>
 
+
+        {{-- 這一頁只留這一個內文版位,而且放到最後面。題目一開始是收起來的,
+             所以「交卷按鈕之後」在還沒作答的人眼裡幾乎就在開始測驗那顆鈕底下。 --}}
+        @include('partials.ad-unit', ['zone' => 'home_banner'])
     </div>
 
     <aside class="tt-rail">
