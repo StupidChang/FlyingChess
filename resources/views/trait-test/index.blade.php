@@ -109,22 +109,28 @@
             </div>
         </form>
 
-        {{-- 這一頁只留這一個內文版位,而且放在交卷按鈕之後 —— 作答到一半被
-             廣告打斷是最傷的,主角是測驗本身。桌機另外有右側欄。 --}}
-        @include('partials.ad-unit', ['zone' => 'home_banner'])
-
         {{-- 20 個屬性頁的入口。這一頁以前完全沒有連到任何結果頁,那 20 頁只能從
              「別的結果頁」走到 —— 也就是離首頁 4 層。新網域的爬取預算很少,4 層深
              的頁面很可能永遠不會被抓。這個測驗的 SEO 價值就是那 20 頁,入口要放在
              它們的母頁上。 --}}
         <section class="tt-card">
-            <h2>{{ __('traits.result.all_traits') }}</h2>
-            <div class="tt-all">
-                @foreach($items as $k => $item)
-                <a href="{{ route('trait-test.result', ['slug' => $item['slug']]) }}"
-                   class="tt-chip tt-c-{{ config('traits.traits.'.$k.'.colour', 'gold') }}">{{ $item['name'] }}</a>
-                @endforeach
-            </div>
+            {{-- 20 個名字一次全攤出來,對還沒作答的人只是一牆詞 —— 他還不知道自己
+                 是哪幾種,看名字也選不了。所以預設收起來。
+                 用 <details> 而不是 JS:連結仍然完整留在 HTML 裡(收起來只是
+                 display:none),爬蟲照樣抓得到 —— 這一頁的 SEO 價值就是通往那 20 頁的
+                 入口,不能為了畫面乾淨把它們拿掉。 --}}
+            <details class="tt-all-fold">
+                <summary>
+                    <span>{{ __('traits.result.all_traits') }}</span>
+                    <em>{{ __('traits.all_traits_hint', ['n' => count($items)]) }}</em>
+                </summary>
+                <div class="tt-all">
+                    @foreach($items as $k => $item)
+                    <a href="{{ route('trait-test.result', ['slug' => $item['slug']]) }}"
+                       class="tt-chip tt-c-{{ config('traits.traits.'.$k.'.colour', 'gold') }}">{{ $item['name'] }}</a>
+                    @endforeach
+                </div>
+            </details>
 
             {{-- 兩人對照的入口。那一頁是 noindex 的工具頁,所以只從站內連進去。 --}}
             <p class="tt-cmp-cta">
@@ -141,6 +147,12 @@
             </details>
             @endforeach
         </section>
+
+        {{-- 這一頁只留這一個內文版位,而且放到最後面。原本放在交卷按鈕之後,
+             看起來很低 —— 但題目一開始是收起來的(.tt-collapsed),所以「交卷按鈕
+             之後」在還沒作答的人眼裡幾乎就在開始測驗那顆鈕底下。放在 FAQ 之後,
+             不管題目收著或攤開都在整頁的尾巴。桌機另外有右側欄。 --}}
+        @include('partials.ad-unit', ['zone' => 'home_banner'])
     </div>
 
     <aside class="tt-rail">

@@ -2338,6 +2338,18 @@ a.gh-name{color:var(--accent)}
 .tt-map-cap{font-size:.76rem;color:var(--text-dim);text-align:center;margin:6px 0 0}
 .tt-map-cap b{color:var(--gold);font-weight:600}
 
+/* 20 個屬性的入口:預設收起來。連結仍然在 HTML 裡(details 收起來只是 display:none),
+   所以爬蟲抓得到 —— 這一頁的 SEO 價值就是那 20 個入口。 */
+.tt-all-fold summary{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;cursor:pointer;
+    list-style:none;padding:2px 0}
+.tt-all-fold summary::-webkit-details-marker{display:none}
+.tt-all-fold summary span{font-size:1.02rem;font-weight:700;color:var(--text)}
+.tt-all-fold summary em{font-size:.78rem;font-style:normal;color:var(--text-dim)}
+.tt-all-fold summary::after{content:'＋';margin-left:auto;color:var(--text-dim);font-size:.9rem}
+.tt-all-fold[open] summary::after{content:'−'}
+.tt-all-fold summary:hover span{color:var(--accent)}
+.tt-all-fold .tt-all{margin-top:12px}
+
 /* ── 象限圖(色度測驗)──
    沿用屬性測驗的 .tt-map-* (背景、四分之一線、落點),多的是四個角上的象限名字:
    這張圖的價值不是「你偏多少」,是「你在哪一格,而旁邊那三格是什麼」。 */
