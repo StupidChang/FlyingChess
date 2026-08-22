@@ -2617,8 +2617,15 @@ body.age-locked{overflow:hidden}
   border-left:3px solid var(--accent);font-size:1.02rem;line-height:1.9;color:var(--text)}
 .tt-lead strong{color:var(--text);font-weight:700;
   background:linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 28%, transparent) 62%)}
-.tt-points{margin:0 auto;text-align:left;display:grid;gap:10px}
-.tt-point{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline}
+/* 三個要點是一個**置中的區塊**:上面的標題、標語,下面的 facts 與 CTA 都是置中的,
+   這一區靠左貼齊的話會看起來像掛在左邊。做法是 width:max-content —— 區塊只佔它
+   真正需要的寬度,再用 auto margin 置中;句子本身仍然靠左(置中的長句每一行起點
+   都不一樣,更難讀)。
+   標籤欄給固定寬度而不是 auto:auto 會讓「測什麼」(3 字)和「會得到什麼」(5 字)
+   後面的文字從不同的 x 開始,三行的起點呈階梯狀。 */
+.tt-points{width:max-content;max-width:100%;margin-inline:auto;text-align:left;
+  display:grid;gap:10px}
+.tt-point{display:grid;grid-template-columns:5.6em 1fr;gap:12px;align-items:baseline}
 .tt-point dt{font-size:.74rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;
   color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);
   border:1px solid color-mix(in srgb, var(--accent) 26%, transparent);
