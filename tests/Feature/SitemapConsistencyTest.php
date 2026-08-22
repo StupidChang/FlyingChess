@@ -178,28 +178,26 @@ class SitemapConsistencyTest extends TestCase
         }
     }
 
-    public function test_each_test_links_to_all_of_its_own_result_pages(): void
+    public function test_every_trait_page_links_to_the_other_nineteen(): void
     {
-        /* 這兩個測驗的 SEO 價值就是它們的結果頁(屬性 20 頁、象限 5 頁)。母頁沒有
-           連過去的話,那些頁面只能從「別的結果頁」走到 —— 離首頁 4 層。新網域的
-           爬取預算很少,4 層深很可能永遠不會被抓到。屬性測驗曾經就是這樣。 */
-        /* 性反應雙軸量表**刻意不在母頁列出**五個象限(做完才知道自己在哪一格),
-           所以它不在這裡。它的發現路徑改成 sitemap + 結果頁互連 —— 下面另外一條
-           測試守住「每一個象限頁都連到另外四頁」,不然那五頁就真的是孤島。 */
-        $cases = [
-            ['/tw/trait-test', array_column((array) trans('traits.items', [], 'zh_TW'), 'slug'), 'trait-test'],
-        ];
+        /* 兩份測驗的母頁都**刻意不列出**結果頁(做完才知道自己是哪一種),所以結果頁
+           之間的互連就是它們唯一的站內發現路徑 —— sitemap 是「請你來看」,內鏈才是
+           「這幾頁有關係」。原本這裡守的是「母頁要連到所有結果頁」,母頁不列了之後
+           那條變成一個空迴圈(靜靜通過),所以整條換成守互連。
 
-        foreach ($cases as [$path, $slugs, $prefix]) {
-            $html = $this->asAgeVerified()->get($path)->assertOk()->getContent();
+           只抽查三型:20 型 × 20 個字串比對要跑 400 次,而互連是同一段迴圈印出來的,
+           抽查抓得到「那段迴圈壞了」,那才是會發生的故障。 */
+        $slugs = array_column((array) trans('traits.items', [], 'zh_TW'), 'slug');
+        $this->assertCount(20, $slugs);
 
-            $this->assertNotEmpty($slugs, "{$path} 的結果頁清單是空的");
+        foreach (array_slice($slugs, 0, 3) as $slug) {
+            $html = $this->asAgeVerified()->get("/tw/trait-test/{$slug}")->assertOk()->getContent();
 
-            foreach ($slugs as $slug) {
+            foreach ($slugs as $other) {
                 $this->assertStringContainsString(
-                    "/tw/{$prefix}/{$slug}",
+                    "/tw/trait-test/{$other}",
                     $html,
-                    "{$path} 沒有連到它自己的結果頁 {$slug}"
+                    "屬性頁 {$slug} 沒有連到 {$other}",
                 );
             }
         }

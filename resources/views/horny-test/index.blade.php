@@ -192,16 +192,25 @@
        不是必要條件。爬蟲與關掉 JS 的人一樣讀得到全部題目。 */
     var start = document.getElementById('tt-start');
     start.hidden = false;
-    start.addEventListener('click', function () {
+    /* 作答中把開場整塊藏起來(標題、標語、重點句、三個要點、facts)—— 那幾行是
+       「要不要做」用的,已經開始做了就只是把題目往下推。
+       用 class 掛在 .tt-page 上而不是逐個元素 hidden:開場的組成之後還會變,
+       掛容器就不會漏掉哪一個。這是 JS 加上去的,初始 HTML 仍然完整,爬蟲照樣讀得到。 */
+    var page = document.querySelector('.tt-page');
+    function beginTaking() {
         form.classList.remove('tt-collapsed');
         start.hidden = true;
+        if (page) page.classList.add('is-taking');
+    }
+
+    start.addEventListener('click', function () {
+        beginTaking();
         form.querySelector('.tt-q').scrollIntoView({behavior: 'smooth', block: 'start'});
     });
 
     // 重載後帶著舊作答回來(驗證失敗)的話,直接展開,不要再擋一次
     if (form.querySelector('.tt-q input:checked')) {
-        form.classList.remove('tt-collapsed');
-        start.hidden = true;
+        beginTaking();
     }
 
     function update() {

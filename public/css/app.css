@@ -1851,6 +1851,13 @@ a.gh-name{color:var(--accent)}
 .tt-c-green{--tt:#6f9d81}
 .tt-c-neutral{--tt:#8a90a2}
 
+/* 作答中(.is-taking,由 JS 在按下開始測驗時掛上)把開場整塊收起來。
+   標題、標語、重點句、三個要點、facts 都是「要不要做」用的資訊 —— 已經開始做了
+   就只是把 102 題往下推一整個螢幕。
+   收的是整個 .tt-head,所以之後開場多加或少掉什麼都不用再回來改這裡。
+   初始 HTML 完整(這是 JS 加的 class),爬蟲與關掉 JS 的人看到的還是完整頁面。 */
+.tt-page.is-taking .tt-head{display:none}
+
 /* 封面:置中,像一張正式的測驗開場 —— 標語用 accent 立刻建立「重點色」。 */
 .tt-head{text-align:center;padding:6px 0 28px;margin-bottom:6px}
 .tt-head h1{font-size:clamp(1.7rem,4.6vw,2.4rem);font-weight:800;letter-spacing:-.02em;margin-bottom:12px;text-wrap:balance}
@@ -1961,7 +1968,9 @@ a.gh-name{color:var(--accent)}
 .tt-chip:hover{color:var(--tt,var(--gold));border-color:var(--tt,var(--gold))}
 .tt-chip.is-current{color:var(--tt,var(--gold));border-color:var(--tt,var(--gold));background:var(--surface2)}
 
-.tt-faq{margin-top:26px}
+/* 常見問題和上面的內容之間留大一點的距離 —— 它是「還有疑問再看」的區塊,不是
+   流程的一部分,靠太近會被當成下一步。 */
+.tt-faq{margin-top:56px}
 .tt-faq h2{font-size:1rem;margin-bottom:12px}
 .tt-faq-item{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;
   transition:border-color .18s ease}

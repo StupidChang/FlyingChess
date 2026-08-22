@@ -111,34 +111,13 @@
             </div>
         </form>
 
-        {{-- 20 個屬性頁的入口。這一頁以前完全沒有連到任何結果頁,那 20 頁只能從
-             「別的結果頁」走到 —— 也就是離首頁 4 層。新網域的爬取預算很少,4 層深
-             的頁面很可能永遠不會被抓。這個測驗的 SEO 價值就是那 20 頁,入口要放在
-             它們的母頁上。 --}}
-        <section class="tt-card">
-            {{-- 20 個名字一次全攤出來,對還沒作答的人只是一牆詞 —— 他還不知道自己
-                 是哪幾種,看名字也選不了。所以預設收起來。
-                 用 <details> 而不是 JS:連結仍然完整留在 HTML 裡(收起來只是
-                 display:none),爬蟲照樣抓得到 —— 這一頁的 SEO 價值就是通往那 20 頁的
-                 入口,不能為了畫面乾淨把它們拿掉。 --}}
-            <details class="tt-all-fold">
-                <summary>
-                    <span>{{ __('traits.result.all_traits') }}</span>
-                    <em>{{ __('traits.all_traits_hint', ['n' => count($items)]) }}</em>
-                </summary>
-                <div class="tt-all">
-                    @foreach($items as $k => $item)
-                    <a href="{{ route('trait-test.result', ['slug' => $item['slug']]) }}"
-                       class="tt-chip tt-c-{{ config('traits.traits.'.$k.'.colour', 'gold') }}">{{ $item['name'] }}</a>
-                    @endforeach
-                </div>
-            </details>
+        {{-- 這一頁**不列出**那 20 種屬性,也不放兩人對照的入口 —— 20 個名字對還沒
+             作答的人只是一牆詞,他還不知道自己是哪幾種,看名字也選不了。
 
-            {{-- 兩人對照的入口。那一頁是 noindex 的工具頁,所以只從站內連進去。 --}}
-            <p class="tt-cmp-cta">
-                <a class="btn btn-outline" href="{{ route('trait-test.compare') }}">{{ __('traits.compare.title') }}</a>
-            </p>
-        </section>
+             那 20 頁不會因此變成孤島:每一個結果頁都列出其他 19 型(見 result.blade
+             的 .tt-all),兩人對照也從每一個結果頁連得到,而且 20 頁都在 sitemap 裡。
+             少掉的是「母頁入口」這一層,所以發現路徑比原本弱一階 —— 這是拿掉它的
+             代價,不是沒有代價。 --}}
 
         <section class="tt-faq">
             <h2>{{ __('traits.faq_title') }}</h2>
@@ -173,16 +152,25 @@
        不是必要條件。爬蟲與關掉 JS 的人一樣讀得到全部題目。 */
     var start = document.getElementById('tt-start');
     start.hidden = false;
-    start.addEventListener('click', function () {
+    /* 作答中把開場整塊藏起來(標題、標語、重點句、三個要點、facts)—— 那幾行是
+       「要不要做」用的,已經開始做了就只是把題目往下推。
+       用 class 掛在 .tt-page 上而不是逐個元素 hidden:開場的組成之後還會變,
+       掛容器就不會漏掉哪一個。這是 JS 加上去的,初始 HTML 仍然完整,爬蟲照樣讀得到。 */
+    var page = document.querySelector('.tt-page');
+    function beginTaking() {
         form.classList.remove('tt-collapsed');
         start.hidden = true;
+        if (page) page.classList.add('is-taking');
+    }
+
+    start.addEventListener('click', function () {
+        beginTaking();
         form.querySelector('.tt-q').scrollIntoView({behavior: 'smooth', block: 'start'});
     });
 
     // 重載後帶著舊作答回來(驗證失敗)的話,直接展開,不要再擋一次
     if (form.querySelector('.tt-q input:checked')) {
-        form.classList.remove('tt-collapsed');
-        start.hidden = true;
+        beginTaking();
     }
 
     function update() {
