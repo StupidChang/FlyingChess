@@ -14,6 +14,7 @@ use App\Http\Controllers\GameHallController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\GuideController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\HornyTestController;
 use App\Http\Controllers\KingGameController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\OgImageController;
@@ -358,6 +359,14 @@ Route::prefix('{locale}')
             ->name('repression-test.submit')->middleware('throttle:20,1');
         Route::get('/repression-test/{slug}', [RepressionTestController::class, 'result'])->name('repression-test.result');
         Route::get('/repression-test/{slug}/og.png', [OgImageController::class, 'repressionTest'])->name('repression-test.og');
+
+        /* 色度測驗:色度(油門)× 煞車 兩條軸,結果是象限而不是級距。
+           一個數字分不出「想要卻踩著煞車」和「本來就不太想要」,而那兩種人需要的
+           東西剛好相反 —— 見 config/horny.php 的檔頭。 */
+        Route::get('/horny-test', [HornyTestController::class, 'show'])->name('horny-test.show');
+        Route::post('/horny-test', [HornyTestController::class, 'submit'])
+            ->name('horny-test.submit')->middleware('throttle:20,1');
+        Route::get('/horny-test/{slug}', [HornyTestController::class, 'result'])->name('horny-test.result');
 
         /* 玩法指南(站內文章)。吃資訊型意圖的關鍵字,遊戲頁吃工具型 ——
            兩者不能互相搶字,見 config/guides.php 開頭的說明。 */

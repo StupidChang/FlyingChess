@@ -2322,6 +2322,47 @@ a.gh-name{color:var(--accent)}
 .tt-map-cap{font-size:.76rem;color:var(--text-dim);text-align:center;margin:6px 0 0}
 .tt-map-cap b{color:var(--gold);font-weight:600}
 
+/* ── 象限圖(色度測驗)──
+   沿用屬性測驗的 .tt-map-* (背景、四分之一線、落點),多的是四個角上的象限名字:
+   這張圖的價值不是「你偏多少」,是「你在哪一格,而旁邊那三格是什麼」。 */
+.hm-fig{margin:6px 0 2px}
+.hm-grid{position:relative;padding:20px 34px;max-width:420px;margin:0 auto}
+.hm-mid{fill:none;stroke:var(--border);stroke-width:.5;stroke-dasharray:2 2;opacity:.9}
+.hm-corner{position:absolute;font-size:.7rem;font-weight:700;line-height:1;
+    padding:3px 7px;border-radius:99px;text-decoration:none;white-space:nowrap;
+    color:var(--text-dim);background:var(--surface);border:1px solid var(--border);
+    transition:color .15s,border-color .15s}
+.hm-corner:hover{color:var(--text)}
+.hm-corner.is-current{color:var(--tt-c,var(--gold));border-color:currentColor}
+.hm-corner.is-tl{top:22px;left:36px}
+.hm-corner.is-tr{top:22px;right:36px}
+.hm-corner.is-bl{bottom:22px;left:36px}
+.hm-corner.is-br{bottom:22px;right:36px}
+
+/* 兩條軸的分數條。九條面向共用 .tt-bar,這裡只多一個分組標題。 */
+.hm-axis{margin:0 0 14px}
+.hm-axis-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.hm-axis-name{font-size:.9rem;font-weight:700;color:var(--text)}
+.hm-axis-score{font-size:1.1rem;font-weight:800;color:var(--gold);
+    font-variant-numeric:tabular-nums}
+.hm-axis-note{font-size:.76rem;color:var(--text-dim);margin:0 0 8px}
+.hm-scores{display:flex;justify-content:center;gap:22px;margin:2px 0 4px;flex-wrap:wrap}
+.hm-score{text-align:center}
+.hm-score-v{display:block;font-size:1.9rem;font-weight:800;line-height:1.1;color:var(--gold);
+    font-variant-numeric:tabular-nums}
+.hm-score-k{display:block;font-size:.76rem;color:var(--text-dim);margin-top:2px}
+
+/* 五種位置的清單(2×2 + 中央) */
+.hm-all{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0 0}
+@media(min-width:520px){ .hm-all{grid-template-columns:1fr 1fr} }
+.hm-all a{display:block;padding:10px 12px;border-radius:10px;text-decoration:none;
+    background:var(--surface);border:1px solid var(--border)}
+.hm-all a.is-current{border-color:var(--gold)}
+.hm-all-name{display:block;font-weight:700;font-size:.92rem;color:var(--text)}
+.hm-all-label{display:block;font-size:.72rem;color:var(--gold);margin:1px 0 3px}
+.hm-all-line{display:block;font-size:.8rem;line-height:1.65;color:var(--text-dim)}
+
 /* ── 五邊形雷達(性壓抑)── */
 .rp-radar-wrap{margin:12px 0 18px}
 .rp-radar{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;overflow:visible}

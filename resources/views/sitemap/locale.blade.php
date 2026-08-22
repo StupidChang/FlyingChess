@@ -21,6 +21,7 @@ $paths = [
     ['path' => 'who-most-likely', 'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'trait-test',      'priority' => '0.8', 'changefreq' => 'monthly'],
     ['path' => 'repression-test', 'priority' => '0.8', 'changefreq' => 'monthly'],
+    ['path' => 'horny-test',      'priority' => '0.8', 'changefreq' => 'monthly'],
     ['path' => 'guide',           'priority' => '0.7', 'changefreq' => 'weekly'],
     ['path' => 'custom-wheel',    'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
@@ -53,6 +54,15 @@ if (in_array($currentLocale, (array) config('repression.translated', []), true))
     foreach ((array) trans('repression.bands', [], $currentLocale) as $band) {
         if (! empty($band['slug'])) {
             $paths[] = ['path' => 'repression-test/'.$band['slug'], 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $stamps['repression']];
+        }
+    }
+}
+
+/* 色度測驗的 5 個象限頁,同樣的理由 —— 每個象限都是一個獨立落地頁。 */
+if (in_array($currentLocale, (array) config('horny.translated', []), true)) {
+    foreach ((array) trans('horny.quadrants', [], $currentLocale) as $quad) {
+        if (! empty($quad['slug'])) {
+            $paths[] = ['path' => 'horny-test/'.$quad['slug'], 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $stamps['horny']];
         }
     }
 }

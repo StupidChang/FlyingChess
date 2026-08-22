@@ -88,6 +88,7 @@ class SitemapController extends Controller
             'guides' => $stamp('guides'),
             'traits' => $stamp('traits'),
             'repression' => $stamp('repression'),
+            'horny' => $stamp('horny'),
         ];
     }
 }
