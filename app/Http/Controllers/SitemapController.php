@@ -87,7 +87,6 @@ class SitemapController extends Controller
             'site' => $stamp('ui', 'seo', 'home', 'games', 'play', 'minigame'),
             'guides' => $stamp('guides'),
             'traits' => $stamp('traits'),
-            'repression' => $stamp('repression'),
             'horny' => $stamp('horny'),
         ];
     }

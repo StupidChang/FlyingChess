@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\OgImageService;
-use App\Services\RepressionTestService;
 use App\Services\TraitTestService;
 use Illuminate\Http\Response;
 
@@ -11,7 +10,6 @@ use Illuminate\Http\Response;
  * 分享卡片(og:image)的端點。
  *
  *   GET /{locale}/trait-test/{slug}/og.png
- *   GET /{locale}/repression-test/{slug}/og.png
  *
  * 為什麼是即時產生 + 檔案快取,而不是事先產好一批靜態圖:卡片文字來自語系檔,
  * 而這台機器上改 lang 檔是存檔即生效(不經過 build)。快取鍵含語系檔 mtime,
@@ -25,7 +23,6 @@ class OgImageController extends Controller
     public function __construct(
         private readonly OgImageService $og,
         private readonly TraitTestService $traits,
-        private readonly RepressionTestService $repression,
     ) {}
 
     public function traitTest(string $slug): Response
@@ -34,14 +31,6 @@ class OgImageController extends Controller
         abort_if($key === null, 404);
 
         return $this->serve('trait', $key, fn () => $this->og->traitCard($key));
-    }
-
-    public function repressionTest(string $slug): Response
-    {
-        $key = $this->repression->keyFromSlug($slug);
-        abort_if($key === null, 404);
-
-        return $this->serve('repression', $key, fn () => $this->og->repressionCard($key));
     }
 
     /**

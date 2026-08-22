@@ -90,7 +90,7 @@ class AgeGateTest extends TestCase
         /* 覆蓋層是畫面上的東西,擋不住直接對端點送 POST 的人 ——
            所以伺服器這邊的後備防線要留著,不能因為改成覆蓋層就一起拿掉。 */
         $this->withHeader('User-Agent', self::HUMAN)
-            ->post('/tw/repression-test', ['a' => array_fill(0, 40, 2)])
+            ->post('/tw/horny-test', ['a' => array_fill(0, 64, 2)])
             ->assertOk()                                 // 閘門頁是頁面不是錯誤
             ->assertSee('class="age-gate"', false);
     }

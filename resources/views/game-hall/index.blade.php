@@ -23,7 +23,7 @@
         ['wheel', __('games.pure_wheel'), __('games.desc_pure_wheel')],
         ['who-most-likely', __('minigame.wml_title'), __('games.desc_wml')],
         ['trait-test', __('traits.title'), __('traits.seo.description')],
-        ['repression-test', __('repression.title'), __('repression.seo.description')],
+        ['horny-test', __('horny.title'), __('horny.seo.description')],
     ];
 @endphp
 <script type="application/ld+json">
@@ -181,10 +181,10 @@
                         <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z"/>
                     </svg>
                 </div>
-                <h3>{{ __('repression.title') }}</h3>
-                <p>{{ __('repression.tagline') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('repression.facts.time') }}</span>
-                <a href="{{ route('repression-test.show') }}" class="btn btn-gold btn-full">{{ __('repression.start') }}</a>
+                <h3>{{ __('horny.h1') }}</h3>
+                <p>{{ __('horny.tagline') }}</p>
+                <span class="game-card-tag tag-couple">{{ __('horny.facts.time') }}</span>
+                <a href="{{ route('horny-test.show') }}" class="btn btn-gold btn-full">{{ __('horny.start') }}</a>
             </article>
 
             {{-- 共同清單 / 時間膠囊 暫時隱藏（保留程式碼，日後可還原：移除下面 @if(false)/@endif 即可） --}}

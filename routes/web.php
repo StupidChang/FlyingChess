@@ -22,7 +22,6 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlayController;
 use App\Http\Controllers\PremiumController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RepressionTestController;
 use App\Http\Controllers\RewardedUnlockController;
 use App\Http\Controllers\SesFeedbackController;
 use App\Http\Controllers\SitemapController;
@@ -89,7 +88,7 @@ Route::get('/llms.txt', function () {
         $link('wheel', 'games.pure_wheel').': '.__('games.desc_pure_wheel'),
         $link('who-most-likely', 'minigame.wml_title').': '.__('games.desc_wml'),
         $link('trait-test', 'traits.title').': '.__('traits.seo.description'),
-        $link('repression-test', 'repression.title').': '.__('repression.seo.description'),
+        $link('horny-test', 'horny.title').': '.__('horny.seo.description'),
         // Short labels on purpose: seo.play_title carries a :board placeholder and
         // the community/templates SEO titles are full sentences. A link label in
         // llms.txt should read as a page name, so use the plain UI strings here.
@@ -351,14 +350,18 @@ Route::prefix('{locale}')
            看不出對方測到什麼。見 App\Services\OgImageService。 */
         Route::get('/trait-test/{slug}/og.png', [OgImageController::class, 'traitTest'])->name('trait-test.og');
 
-        /* 性壓抑指數測驗。同樣的做法:五個級距 = 五個獨立的落地頁。
-           和屬性測驗刻意不重疊 —— 那一份測「偏好哪一種」,這一份測「有多容易踩煞車」,
-           一個是類型一個是程度,關鍵字不會互相吃掉。 */
-        Route::get('/repression-test', [RepressionTestController::class, 'show'])->name('repression-test.show');
-        Route::post('/repression-test', [RepressionTestController::class, 'submit'])
-            ->name('repression-test.submit')->middleware('throttle:20,1');
-        Route::get('/repression-test/{slug}', [RepressionTestController::class, 'result'])->name('repression-test.result');
-        Route::get('/repression-test/{slug}/og.png', [OgImageController::class, 'repressionTest'])->name('repression-test.og');
+        /* 性壓抑指數測驗已經併進色度測驗 —— 它那 40 題就是色度測驗的「保守程度」
+           那條軸,兩份並存只會互相吃關鍵字,而且舊那份的內容是新那份的子集。
+           所以整組 301 到新測驗。
+
+           五個級距頁不做「級距 → 象限」的映射,一律指向測驗本身:舊的五格是單軸
+           切出來的,和新的四個角沒有乾淨的一對一關係,硬湊等於把人送到一頁講的
+           不是他當初讀到的東西。內容整併時把多頁 301 到那一頁,是正常做法。
+
+           og.png 一併退場 —— 那些圖只被它自己的結果頁引用,沒有結果頁就沒有引用。 */
+        Route::permanentRedirect('/repression-test', '/{locale}/horny-test');
+        Route::permanentRedirect('/repression-test/{slug}', '/{locale}/horny-test');
+        Route::permanentRedirect('/repression-test/{slug}/og.png', '/{locale}/horny-test');
 
         /* 色度測驗:色度(油門)× 煞車 兩條軸,結果是象限而不是級距。
            一個數字分不出「想要卻踩著煞車」和「本來就不太想要」,而那兩種人需要的

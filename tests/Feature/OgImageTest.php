@@ -39,26 +39,13 @@ class OgImageTest extends TestCase
         $this->assertSame([1200, 630], [$size[0], $size[1]]);
     }
 
-    public function test_repression_card_is_a_1200x630_png(): void
-    {
-        $this->skipWithoutFonts();
-
-        $response = $this->withoutMiddleware(AgeVerification::class)
-            ->get('/tw/repression-test/high/og.png')->assertOk();
-
-        $response->assertHeader('Content-Type', 'image/png');
-
-        $size = getimagesizefromstring($response->content());
-        $this->assertSame([1200, 630], [$size[0], $size[1]]);
-    }
-
     public function test_unknown_slug_is_404_not_a_blank_card(): void
     {
         $this->withoutMiddleware(AgeVerification::class)
             ->get('/tw/trait-test/no-such-type/og.png')->assertNotFound();
 
         $this->withoutMiddleware(AgeVerification::class)
-            ->get('/tw/repression-test/no-such-band/og.png')->assertNotFound();
+            ->get('/tw/trait-test/no-such-trait/og.png')->assertNotFound();
     }
 
     public function test_every_trait_and_band_has_its_own_card(): void
@@ -73,9 +60,6 @@ class OgImageTest extends TestCase
             $this->assertNotSame('', $og->traitCard($key), "屬性 {$key} 畫不出卡片");
         }
 
-        foreach (array_keys((array) config('repression.bands')) as $key) {
-            $this->assertNotSame('', $og->repressionCard($key), "級距 {$key} 畫不出卡片");
-        }
     }
 
     public function test_result_pages_point_og_image_at_their_own_card(): void
@@ -87,11 +71,6 @@ class OgImageTest extends TestCase
             ->assertOk()
             ->assertSee('/tw/trait-test/dominant/og.png', false)
             ->assertSee('name="twitter:card" content="summary_large_image"', false);
-
-        $this->withoutMiddleware(AgeVerification::class)
-            ->get('/tw/repression-test/high')
-            ->assertOk()
-            ->assertSee('/tw/repression-test/high/og.png', false);
     }
 
     public function test_cards_are_reachable_without_passing_the_age_gate(): void
@@ -108,8 +87,9 @@ class OgImageTest extends TestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'image/png');
 
+        // 另一個不在 UA 白名單裡的抓取器,走的是同一條放行
         $this->withHeader('User-Agent', 'Mozilla/5.0 (Linux; U) Line/13.0.0')
-            ->get('/tw/repression-test/high/og.png')
+            ->get('/tw/trait-test/dominant/og.png')
             ->assertOk()
             ->assertHeader('Content-Type', 'image/png');
     }
@@ -136,7 +116,6 @@ class OgImageTest extends TestCase
         $this->assertSame($before, $og->fingerprint('trait', 'dom', 'zh_TW'));
 
         $this->assertNotSame($before, $og->fingerprint('trait', 'sub', 'zh_TW'));
-        $this->assertNotSame($before, $og->fingerprint('repression', 'dom', 'zh_TW'));
 
         config(['og.version' => (int) config('og.version') + 1]);
         $this->assertNotSame($before, $og->fingerprint('trait', 'dom', 'zh_TW'));

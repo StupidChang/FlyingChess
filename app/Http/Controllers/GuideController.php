@@ -95,7 +95,7 @@ class GuideController extends Controller
             'card-game.show' => 'minigame.card_title',
             'who-most-likely.show' => 'minigame.wml_title',
             'trait-test.show' => 'traits.title',
-            'repression-test.show' => 'repression.title',
+            'horny-test.show' => 'horny.title',
             'play' => 'ui.play',
         ];
 

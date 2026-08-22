@@ -156,7 +156,7 @@ class GuideTest extends TestCase
             $titles[$path] = trim($m[1] ?? '');
         }
 
-        foreach (['/tw', '/tw/game-hall', '/tw/truth-dare', '/tw/trait-test', '/tw/repression-test'] as $path) {
+        foreach (['/tw', '/tw/game-hall', '/tw/truth-dare', '/tw/trait-test', '/tw/horny-test'] as $path) {
             $html = $this->visit($path)->assertOk()->getContent();
             preg_match('#<title>(.*?)</title>#s', $html, $m);
             $titles[$path] = trim($m[1] ?? '');

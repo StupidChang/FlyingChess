@@ -71,7 +71,7 @@ class OgImageService
      */
     public function fingerprint(string $kind, string $key, string $locale): string
     {
-        $file = lang_path("{$locale}/".($kind === 'trait' ? 'traits' : 'repression').'.php');
+        $file = lang_path("{$locale}/".($kind === 'trait' ? 'traits' : $kind).'.php');
 
         return substr(hash('sha256', implode('|', [
             config('og.version'),
@@ -107,24 +107,6 @@ class OgImageService
         $this->chips($im, array_slice($leans, 0, 3), $accent);
 
         $this->footer($im, (string) __('traits.title'));
-
-        return $this->png($im);
-    }
-
-    /** 性壓抑指數:5 個級距的卡片。回傳 PNG 二進位。 */
-    public function repressionCard(string $key): string
-    {
-        $bands = (array) trans('repression.bands');
-        $band = (array) ($bands[$key] ?? []);
-        $accent = self::PALETTE[config("repression.bands.{$key}.colour", 'gold')] ?? self::PALETTE['gold'];
-
-        $im = $this->canvas($accent);
-
-        $this->eyebrow($im, $accent, (string) __('repression.title'), (string) ($band['label'] ?? ''));
-        $bodyTop = $this->heading($im, (string) ($band['name'] ?? ''), $accent);
-        $this->body($im, (string) ($band['line'] ?? ''), $bodyTop);
-        $this->meter($im, $key, $accent);
-        $this->footer($im, (string) __('repression.title'));
 
         return $this->png($im);
     }
@@ -199,28 +181,6 @@ class OgImageService
             $this->roundedRect($im, $x, $y, $x + $w, $y + 52, 26, $this->rgb($im, self::TRACK));
             $this->text($im, $label, $x + 22, $y + 35, 25, $accent);
             $x += $w + 14;
-        }
-    }
-
-    /** 壓抑指數卡下緣的量尺:五段,落在的那一段點亮。 */
-    private function meter(GdImage $im, string $activeKey, string $accent): void
-    {
-        $bands = array_keys((array) config('repression.bands', []));
-        if ($bands === []) {
-            return;
-        }
-
-        $x = 96;
-        $y = 496;
-        $gap = 12;
-        $total = self::W - 96 - 96;
-        $w = (int) (($total - ($gap * (count($bands) - 1))) / count($bands));
-
-        foreach ($bands as $key) {
-            $on = $key === $activeKey;
-            $this->roundedRect($im, $x, $y, $x + $w, $y + ($on ? 22 : 14), 8,
-                $this->rgb($im, $on ? $accent : self::TRACK));
-            $x += $w + $gap;
         }
     }
 

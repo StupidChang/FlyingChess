@@ -144,7 +144,7 @@ class SitemapConsistencyTest extends TestCase
     {
         /* hreflang 指向一個 noindex 的頁面是自相矛盾的訊號,Google 會整組忽略。
            屬性測驗與性壓抑指數測驗只有繁中有文案,所以它們只該宣告繁中。 */
-        foreach (['/en/trait-test', '/en/repression-test'] as $path) {
+        foreach (['/en/trait-test', '/en/horny-test'] as $path) {
             $head = $this->asAgeVerified()->get($path)->assertOk()->getContent();
             $head = substr($head, 0, (int) strpos($head, '</head>'));
 
@@ -165,7 +165,7 @@ class SitemapConsistencyTest extends TestCase
            爬取預算很少,4 層深很可能永遠不會被抓到。屬性測驗曾經就是這樣。 */
         $cases = [
             ['/tw/trait-test', array_column((array) trans('traits.items', [], 'zh_TW'), 'slug'), 'trait-test'],
-            ['/tw/repression-test', array_column((array) trans('repression.bands', [], 'zh_TW'), 'slug'), 'repression-test'],
+            ['/tw/horny-test', array_column((array) trans('horny.quadrants', [], 'zh_TW'), 'slug'), 'horny-test'],
         ];
 
         foreach ($cases as [$path, $slugs, $prefix]) {

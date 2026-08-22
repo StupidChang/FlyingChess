@@ -3,7 +3,7 @@
 /*
  * 站內文章(玩法指南)的骨架。
  *
- * 和 config/traits.php、config/repression.php 同一套做法:結構在這裡,文案全部在
+ * 和 config/traits.php、config/horny.php 同一套做法:結構在這裡,文案全部在
  * lang/{locale}/guides.php,兩邊用同一組 key(文章的 slug)對起來。
  *
  * 為什麼不用資料庫:文章量在二十篇以內的時候,檔案的優點壓倒性 —— 進版控、可以
@@ -66,7 +66,7 @@ return [
         'talk-about-sex-needs' => [
             'updated' => '2026-08-21',
             'priority' => '0.8',
-            'related' => ['repression-test.show', 'trait-test.show', 'truth-dare.lobby'],
+            'related' => ['horny-test.show', 'trait-test.show', 'truth-dare.lobby'],
         ],
     ],
 
