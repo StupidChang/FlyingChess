@@ -2631,6 +2631,24 @@ body.age-locked{overflow:hidden}
   border:1px solid color-mix(in srgb, var(--accent) 26%, transparent);
   border-radius:99px;padding:3px 10px}
 .tt-point dd{margin:0;font-size:.92rem;line-height:1.85;color:var(--text-dim)}
+
+/* 標語與重點句要求**不換行**。兩行都比主欄長:量出來標語(16px)需要 703px、
+   重點句(16.32px)需要 718px,而主欄只有 680px。所以兩行用不同的手法:
+
+   - 標語是**置中的文字**,讓它用自己需要的寬度不會產生對齊邊 —— 置中的文字沒有
+     左右邊界可以對,讀者只會看到一行比標題長一點的字。用 left:50% + translateX
+     而不是 auto margin:比容器寬的時候 auto margin 會失效,整塊往右溢出。
+   - 重點句不行:它靠左,而左邊那條主色線就是這一頁的左對齊邊,它必須留在主欄裡。
+     所以只能把字級收到剛好放得下(0.92rem 時需要 647px,主欄扣掉內距還有 665px)。
+     它仍然比內文(0.9rem)大一點,而且有主色線與粗體字撐著層級。
+
+   只在 ≥760px 生效 —— 窄螢幕上這兩行不可能一行放完,強制不換行只會撐出橫向捲動。 */
+@media (min-width:760px){
+  .tt-tagline{white-space:nowrap;width:max-content;position:relative;left:50%;
+    transform:translateX(-50%)}
+  .tt-lead{white-space:nowrap;font-size:.92rem;padding-left:12px}
+}
+
 @media (max-width:520px){
   .tt-point{grid-template-columns:1fr;gap:4px}
   .tt-point dt{justify-self:start}
