@@ -28,7 +28,42 @@ class TruthDareController extends Controller
         // SQLite 的 TEXT 欄位不限長度,一次請求就能塞進好幾 MB,乘上每場最多 6
         // 個玩家列 = 免費的磁碟填爆管道。跟 GameController 一樣先 hash 成固定 64
         // 字元再用 —— tab 內容仍能區分不同分頁,但長度被釘死。
-        return $tab ? hash('sha256', "{$base}|{$tab}") : $base;
+        /* 沒帶 tab_id 的請求 —— 建立房間之後的 302 轉址、重新整理、上一頁 ——
+           必須算出**同一個**身分,否則會被判成「不是這個房間的人」。
+           2026-08-21 用瀏覽器實測到的:大廳的表單會送 tab_id,所以玩家被存成
+           hash(session|tab);接著的 GET /truth-dare/{code} 沒有 tab_id,算出來是
+           純 session id,對不上 → 直接被踢回大廳。從真人的角度看就是「按開始遊戲
+           沒反應」,而測試不會抓到(測試不送 tab_id,兩邊剛好都用純 session id)。
+
+           所以:看到 tab_id 就記在 session 裡,沒帶的請求就用記住的那一個。
+           有帶的仍然以帶進來的為準(多分頁時各自的身分不受影響)。 */
+        if ($tab !== null && $tab !== '') {
+            $request->session()->put('tab_id', $tab);
+        } else {
+            $tab = (string) $request->session()->get('tab_id', '');
+        }
+
+        return $tab !== '' ? hash('sha256', "{$base}|{$tab}") : $base;
+    }
+
+    /**
+     * 找出這次請求對應的玩家列。
+     *
+     * 三段對應三種時期寫進 session_id 的格式:
+     * - `$sessionId`:現在的寫法 —— hash(session|tab),或沒有 tab 時的純 session id
+     * - 純 session id:在完全沒帶 tab_id 的請求裡建的房
+     * - `{身分}#N`:同一台裝置的第 2 位之後的玩家(見 create())。第 1 位不帶後綴,
+     *   所以只有第 1 位離開房間之後才會走到這一段。
+     */
+    private function findMyPlayer(Game $game, Request $request): ?GamePlayer
+    {
+        $sessionId = $this->playerSessionId($request);
+        $baseSessionId = $request->session()->getId();
+
+        return $game->players->firstWhere('session_id', $sessionId)
+            ?? $game->players->firstWhere('session_id', $baseSessionId)
+            ?? $game->players->first(fn ($p) => str_starts_with($p->session_id, $sessionId.'#')
+                || str_starts_with($p->session_id, $baseSessionId.'#'));
     }
 
     public function lobby()
@@ -109,11 +144,7 @@ class TruthDareController extends Controller
             ->with('players')
             ->firstOrFail();
 
-        $sessionId = $this->playerSessionId($request);
-        $baseSessionId = $request->session()->getId();
-        $myPlayer = $game->players->firstWhere('session_id', $sessionId)
-                  ?? $game->players->firstWhere('session_id', $baseSessionId)
-                  ?? $game->players->first(fn ($p) => str_starts_with($p->session_id, $baseSessionId.'|'));
+        $myPlayer = $this->findMyPlayer($game, $request);
 
         // Non-players cannot view game page — redirect to lobby with message
         if (! $myPlayer) {
@@ -239,10 +270,7 @@ class TruthDareController extends Controller
             ->firstOrFail();
 
         $sessionId = $this->playerSessionId($request);
-        $baseSessionId = $request->session()->getId();
-        $myPlayer = $game->players->firstWhere('session_id', $sessionId)
-                  ?? $game->players->firstWhere('session_id', $baseSessionId)
-                  ?? $game->players->first(fn ($p) => str_starts_with($p->session_id, $baseSessionId.'|'));
+        $myPlayer = $this->findMyPlayer($game, $request);
 
         // Must be in the room to see state
         if (! $myPlayer) {

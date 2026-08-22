@@ -26,7 +26,22 @@ class GameController extends Controller
         // game_players.session_id is limited to 64 characters. Browser tab IDs
         // are commonly UUIDs, so concatenating them to Laravel's session ID can
         // exceed the column and turn a normal join into a database error.
-        return $tab ? hash('sha256', "{$base}|{$tab}") : $base;
+        /* 沒帶 tab_id 的請求 —— 建立房間之後的 302 轉址、重新整理、上一頁 ——
+           必須算出**同一個**身分,否則會被判成「不是這個房間的人」。
+           2026-08-21 用瀏覽器實測到的:大廳的表單會送 tab_id,所以玩家被存成
+           hash(session|tab);接著的 GET /truth-dare/{code} 沒有 tab_id,算出來是
+           純 session id,對不上 → 直接被踢回大廳。從真人的角度看就是「按開始遊戲
+           沒反應」,而測試不會抓到(測試不送 tab_id,兩邊剛好都用純 session id)。
+
+           所以:看到 tab_id 就記在 session 裡,沒帶的請求就用記住的那一個。
+           有帶的仍然以帶進來的為準(多分頁時各自的身分不受影響)。 */
+        if ($tab !== null && $tab !== '') {
+            $request->session()->put('tab_id', $tab);
+        } else {
+            $tab = (string) $request->session()->get('tab_id', '');
+        }
+
+        return $tab !== '' ? hash('sha256', "{$base}|{$tab}") : $base;
     }
 
     public function lobby()

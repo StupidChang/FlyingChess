@@ -140,7 +140,6 @@ if (!sessionStorage.getItem('tab_id')) {
     sessionStorage.setItem('tab_id', Math.random().toString(36).slice(2, 11));
 }
 var TAB_ID = sessionStorage.getItem('tab_id');
-var MY_SESSION = '{{ session()->getId() }}' + (TAB_ID ? '|' + TAB_ID : '');
 var GENDER_LABELS = @json(\App\Models\GamePlayer::GENDERS);
 var pollTimer;
 var knownSessions = Array.prototype.map.call(
