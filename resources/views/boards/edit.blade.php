@@ -283,11 +283,17 @@ window.CAPTURE_ON    = @json($board->capture_enabled ?? true);
 window.BOARD_ROUTES  = {
     update : @json(route('boards.update', $board)),
     squares: @json(route('boards.squares.store', $board)),
+    /* 版面上拖曳搬移格子用的批次端點。它在 routes 裡放了很久但沒有任何呼叫端 ——
+       之前想換位置只能刪掉再重新加一格。 */
+    squaresBulk: @json(route('boards.squares.bulk', $board)),
     canvas : @json(route('boards.canvas.update', $board)),
     path   : @json(route('boards.path.update', $board)),
     preset : @json(route('boards.preset', $board)),
     rules  : @json(route('boards.rules.update', $board)),
 };
+/* board.js 與 board-editor.js 的 tp() 從這裡讀字串。這一頁原本沒有,所以棋盤中央
+   印的是「centerTitle」、alert 跳的是「saveFailed」。見 helpers.php 的 play_i18n()。 */
+window.PLAY_I18N     = @json(play_i18n());
 </script>
 <script src="{{ asset_v('js/board.js') }}"></script>
 <script src="{{ asset_v('js/board-editor.js') }}"></script>

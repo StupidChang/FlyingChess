@@ -9,6 +9,7 @@ use App\Support\BoardShapes;
 use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -282,11 +283,46 @@ class BoardController extends Controller
             'squares.*.grid_col' => 'required|integer|min:1|max:30',
         ]);
 
-        foreach ($data['squares'] as $sq) {
-            BoardSquare::where('board_id', $board->id)
-                ->where('position', $sq['position'])
-                ->update(['grid_row' => $sq['grid_row'], 'grid_col' => $sq['grid_col']]);
+        /* 兩格落在同一個座標的話,編輯器就再也選不到被蓋住的那一格
+           (buildLayoutBoard 一個座標只畫一格),那一格既刪不掉也搬不動 ——
+           只能進資料庫救。畫布外也一樣:超出 canvas_rows/cols 的格子根本不會被
+           畫出來。所以先算出套用後的完整盤面,有撞格就整批退回,不做一半。 */
+        $moves = collect($data['squares'])->keyBy('position');
+
+        foreach ($moves as $move) {
+            if ($move['grid_row'] > $board->canvas_rows || $move['grid_col'] > $board->canvas_cols) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('play.err_cell_outside_canvas'),
+                ], 422);
+            }
         }
+
+        $cells = $board->squares()->get(['position', 'grid_row', 'grid_col'])
+            ->map(function ($sq) use ($moves) {
+                $move = $moves->get($sq->position);
+
+                return $move
+                    ? $move['grid_row'].','.$move['grid_col']
+                    : $sq->grid_row.','.$sq->grid_col;
+            });
+
+        if ($cells->count() !== $cells->unique()->count()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('play.err_cell_occupied'),
+            ], 422);
+        }
+
+        /* 交換兩格是兩次 update。中間失敗的話兩格會停在同一個座標,也就是上面那個
+           救不回來的狀態 —— 所以要嘛兩次都成,要嘛都不動。 */
+        DB::transaction(function () use ($data, $board) {
+            foreach ($data['squares'] as $sq) {
+                BoardSquare::where('board_id', $board->id)
+                    ->where('position', $sq['position'])
+                    ->update(['grid_row' => $sq['grid_row'], 'grid_col' => $sq['grid_col']]);
+            }
+        });
 
         $this->requeueIfPublished($board);
 

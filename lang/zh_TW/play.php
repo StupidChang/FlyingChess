@@ -181,7 +181,12 @@ return [
     'js_path_end' => '🏁 終點',
     'js_step_label' => '步 __N__',
     'js_drag_sort' => '拖曳排序',
+    'js_drag_move_sq' => '拖曳可搬移到別的位置（放到已有格子上＝兩格互換）',
+    'js_move_failed' => '搬移失敗，請重試',
     'js_remove_from_path' => '從路徑移除',
+    // 主路徑的說明。原本缺這個鍵,而編輯頁的 tp() 找不到就把鍵名當文字用 ——
+    // 切到「主路徑」那一頁時,說明欄印的是「pathMainHint」。
+    'js_path_main_hint' => '主路徑：所有玩家的預設路線。點棋盤上的格子依序加入，順序就是行進順序。',
     'js_path_male_hint' => '♂ 男生路徑：若設定，男性玩家優先使用此路徑（空白 = 使用主路徑）',
     'js_path_female_hint' => '♀ 女生路徑：若設定，女性玩家優先使用此路徑（空白 = 使用主路徑）',
     'js_confirm_clear_path' => '確定清除當前路徑？',
@@ -214,6 +219,7 @@ return [
     'flash_board_deleted' => '棋盤已刪除',
     'err_position_missing' => '位置 :pos 不存在',
     'err_cell_occupied' => '此格已有格子',
+    'err_cell_outside_canvas' => '目標位置在畫布之外',
     'err_square_missing' => '格子不存在',
     'err_premium_template_play' => '此為 Premium 專屬模板，請升級後使用。',
     'err_premium_template_clone' => '此模板僅限付費會員使用，請先升級。',

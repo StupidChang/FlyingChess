@@ -10,7 +10,8 @@ const edState = {
   pathData     : null,         // { all:[...], male:[...]|null, female:[...]|null }
   canvasRows   : 11,
   canvasCols   : 13,
-  dragSrcIdx   : null,
+  dragSrcIdx   : null,   // 路徑清單的排序拖曳
+  dragSrcPos   : null,   // 版面上正在被搬移的格子
 };
 
 /* ═══════════════════════════════════════════════════
@@ -80,18 +81,33 @@ function buildLayoutBoard() {
         const sq = getSq(posId);
         cell.className = `board-sq color-${sq.color} layout-occupied`;
         cell.id        = `sq-${posId}`;
+        cell.title     = tp('dragMoveSq');
+        cell.draggable = true;
         cell.innerHTML = `
           <div class="sq-num">${posId}</div>
           <div class="sq-text">${escHtml(sq.text)}</div>
           <button class="layout-del-btn" title="${escHtml(tp('deleteSqTitle'))}"
                   onclick="layoutDeleteSquare(event,${posId})">✕</button>
         `;
+        cell.addEventListener('dragstart', e => {
+          edState.dragSrcPos = posId;
+          cell.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          // Firefox 沒有 setData 就不會開始拖曳
+          e.dataTransfer.setData('text/plain', String(posId));
+        });
+        cell.addEventListener('dragend', () => {
+          cell.classList.remove('dragging');
+          edState.dragSrcPos = null;
+        });
       } else {
         cell.className = 'layout-empty-cell';
         cell.title     = tp('addSqTitle', { '__R__': r, '__C__': c });
         cell.innerHTML = '<span class="layout-add-icon">＋</span>';
         cell.addEventListener('click', () => layoutAddSquare(r, c));
       }
+      // 空格與占用的格子都要能放:放到占用的格子上是兩格互換
+      layoutBindDrop(cell, r, c);
       board.appendChild(cell);
     }
   }
@@ -104,6 +120,81 @@ function findPosAtCell(row, col) {
     if (sq.grid_row === row && sq.grid_col === col) return parseInt(posStr, 10);
   }
   return null;
+}
+
+/* ── 搬移格子(拖放)──
+   原本要換位置只能「刪掉再重新加一格」,而那會換掉 position 編號、清空格子裡的
+   文字,還得重排一次路徑。搬移不動 position,所以 path_data 完全不用碰。 */
+
+/** 讓一格可以被放上東西。row/col 是這一格的座標,不是被拖的那一格。 */
+function layoutBindDrop(cell, row, col) {
+  cell.addEventListener('dragover', e => {
+    if (edState.dragSrcPos === null) return;   // 路徑清單的拖曳不要落到棋盤上
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    cell.classList.add('drag-over');
+  });
+  cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+  cell.addEventListener('drop', e => {
+    if (edState.dragSrcPos === null) return;
+    e.preventDefault();
+    cell.classList.remove('drag-over');
+    const src = edState.dragSrcPos;
+    /* 這裡就要清掉:下一行會重畫整個棋盤,被拖的那個元素會被移除,
+       它的 dragend 就不一定還會發生。 */
+    edState.dragSrcPos = null;
+    layoutMoveSquare(src, row, col);
+  });
+}
+
+/**
+ * 把 srcPos 那一格搬到 (row,col)。
+ *
+ * 目標格子上已經有東西的話**兩格互換**,而不是擋著不讓放 —— 版面一密集,
+ * 不能互換就得先把一格搬到空地當中繼,再搬回來,光是調兩格的順序要拖三次。
+ */
+async function layoutMoveSquare(srcPos, row, col) {
+  const sqData = window.SQUARES_DATA || {};
+  const src = sqData[srcPos];
+  if (!src) return;
+  if (src.grid_row === row && src.grid_col === col) return;   // 原地放下
+
+  const destPos = findPosAtCell(row, col);
+  const moves = [{ position: srcPos, grid_row: row, grid_col: col }];
+  if (destPos !== null) {
+    moves.push({ position: destPos, grid_row: src.grid_row, grid_col: src.grid_col });
+  }
+
+  /* 先動畫面再存。等一次往返才看到格子移動的話,拖放會覺得沒反應 ——
+     而拖放這種操作,回饋慢比慢本身更明顯。失敗就回捲。 */
+  const before = moves.map(m => ({
+    position: m.position,
+    grid_row: sqData[m.position].grid_row,
+    grid_col: sqData[m.position].grid_col,
+  }));
+  const apply = list => {
+    list.forEach(m => {
+      sqData[m.position].grid_row = m.grid_row;
+      sqData[m.position].grid_col = m.grid_col;
+    });
+    buildLayoutBoard();
+  };
+
+  apply(moves);
+
+  try {
+    const res = await fetch(window.BOARD_ROUTES.squaresBulk, {
+      method : 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.CSRF_TOKEN },
+      body   : JSON.stringify({ squares: moves }),
+    });
+    const json = await res.json();
+    if (!json.success) { alert(json.message || tp('moveFailed')); apply(before); }
+  } catch (e) {
+    console.error(e);
+    apply(before);
+    alert(tp('moveFailed'));
+  }
 }
 
 /** Add a new square at a cell */

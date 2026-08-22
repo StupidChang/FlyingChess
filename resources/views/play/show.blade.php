@@ -281,68 +281,6 @@
 </div>
 @endsection
 
-@php
-    // Runtime strings consumed by board.js's tp() helper (camelCase keys
-    // matching the JS side, mapped to the existing play.* translations).
-    $playI18n = [
-        'startWheel'   => __('play.start_wheel'),
-        'centerTitle'  => __('play.js_center_title'),
-        'centerRules'  => __('play.js_center_rules'),
-        'corner1'      => __('play.js_corner_1'),
-        'corner2'      => __('play.js_corner_2'),
-        'corner3'      => __('play.js_corner_3'),
-        'corner4'      => __('play.js_corner_4'),
-        'saving'       => __('play.js_saving'),
-        'saved'        => __('play.js_saved'),
-        'saveFailed'   => __('play.js_save_failed'),
-        'player1'      => __('play.player_1'),
-        'player2'      => __('play.player_2'),
-        'startPoint'   => __('play.start_point'),
-        'endPoint'     => __('play.js_end_point'),
-        'stepN'        => __('play.js_step_n'),
-        'turnOf'       => __('play.turn_of'),
-        'skipTurnName' => __('play.js_skip_turn_name'),
-        'male'         => __('play.male'),
-        'female'       => __('play.female'),
-        'sq_p1'        => __('play.sq_p1'),
-        'sq_p2'        => __('play.sq_p2'),
-        'sq_p3'        => __('play.sq_p3'),
-        'sq_p4'        => __('play.sq_p4'),
-        'genderSkip'   => __('play.js_gender_skip'),
-        'normalSquare' => __('play.js_normal_square'),
-        // V8.0 四人版新增
-        'nameJoin'     => __('play.name_join'),
-        'bonusText'    => __('play.bonus_text'),
-        // 進場轉盤
-        'wheelEnter'   => __('play.js_wheel_enter'),
-        'wheelEnterAt' => __('play.js_wheel_enter_at'),
-        'wheelReroll'  => __('play.js_wheel_reroll'),
-        'wheelStay'    => __('play.js_wheel_stay'),
-        'wheelWaiting' => __('play.js_wheel_waiting'),
-        'winTitle'     => __('play.js_win_title'),
-        'winText'      => __('play.js_win_text'),
-        // 棋盤大小切換
-        'boardBigger'  => __('play.js_board_bigger'),
-        'boardSmaller' => __('play.js_board_smaller'),
-        // 點格子看完整內容
-        'sqInfoTitle'  => __('play.sq_info_title'),
-        'sqInfoFly'    => __('play.sq_info_fly'),
-        'sqInfoMove'   => __('play.sq_info_move'),
-        'sqInfoSkip'   => __('play.sq_info_skip'),
-        'sqInfoOffPath' => __('play.sq_info_offpath'),
-        'catAction'    => __('play.sq_action'),
-        'catDrink'     => __('play.sq_drink'),
-        'catDare'      => __('play.sq_dare'),
-        'catTruth'     => __('play.sq_truth'),
-        'catStrip'     => __('play.sq_strip'),
-        'catMove'      => __('play.sq_move'),
-        'catNormal'    => __('play.sq_normal'),
-        'catStart'     => __('play.sq_start'),
-        'catEnd'       => __('play.sq_end'),
-        'catMale'      => __('play.sq_male'),
-        'catFemale'    => __('play.sq_female'),
-    ];
-@endphp
 
 @section('scripts')
 <script>
@@ -355,7 +293,7 @@ window.PLAYER_COUNT = {{ $playerCount }};
 window.START_WHEEL  = @json($startWheel ?? null);
 window.CAPTURE_ON   = @json($captureEnabled ?? true);
 window.EDIT_MODE    = false;
-window.PLAY_I18N    = @json($playI18n);
+window.PLAY_I18N    = @json(play_i18n());
 </script>
 <script src="{{ asset_v('js/board.js') }}"></script>
 @endsection

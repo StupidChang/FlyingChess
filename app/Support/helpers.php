@@ -19,6 +19,104 @@ if (! function_exists('asset_v')) {
     }
 }
 
+if (! function_exists('play_i18n')) {
+    /**
+     * board.js / board-editor.js 的執行期字串(它們的 tp() 從 window.PLAY_I18N 讀)。
+     *
+     * 為什麼是一個 helper 而不是各自寫在 Blade 裡:遊玩頁與編輯頁載入同一支
+     * board.js,需要的鍵幾乎相同。原本這份對照表只寫在 play/show.blade.php,
+     * 編輯頁完全沒有 —— tp() 找不到就把鍵名本身當文字回傳,所以編輯頁的棋盤中央
+     * 印的是「centerTitle」,存檔失敗的 alert 跳的是「saveFailed」。
+     *
+     * 鍵名是 camelCase(對齊 JS 那邊),值一律走 play.* 的翻譯。
+     */
+    function play_i18n(): array
+    {
+        return [
+            'startWheel' => __('play.start_wheel'),
+            'centerTitle' => __('play.js_center_title'),
+            'centerRules' => __('play.js_center_rules'),
+            'corner1' => __('play.js_corner_1'),
+            'corner2' => __('play.js_corner_2'),
+            'corner3' => __('play.js_corner_3'),
+            'corner4' => __('play.js_corner_4'),
+            'saving' => __('play.js_saving'),
+            'saved' => __('play.js_saved'),
+            'saveFailed' => __('play.js_save_failed'),
+            'player1' => __('play.player_1'),
+            'player2' => __('play.player_2'),
+            'startPoint' => __('play.start_point'),
+            'endPoint' => __('play.js_end_point'),
+            'stepN' => __('play.js_step_n'),
+            'turnOf' => __('play.turn_of'),
+            'skipTurnName' => __('play.js_skip_turn_name'),
+            'male' => __('play.male'),
+            'female' => __('play.female'),
+            'sq_p1' => __('play.sq_p1'),
+            'sq_p2' => __('play.sq_p2'),
+            'sq_p3' => __('play.sq_p3'),
+            'sq_p4' => __('play.sq_p4'),
+            'genderSkip' => __('play.js_gender_skip'),
+            'normalSquare' => __('play.js_normal_square'),
+            // V8.0 四人版新增
+            'nameJoin' => __('play.name_join'),
+            'bonusText' => __('play.bonus_text'),
+            // 進場轉盤
+            'wheelEnter' => __('play.js_wheel_enter'),
+            'wheelEnterAt' => __('play.js_wheel_enter_at'),
+            'wheelReroll' => __('play.js_wheel_reroll'),
+            'wheelStay' => __('play.js_wheel_stay'),
+            'wheelWaiting' => __('play.js_wheel_waiting'),
+            'winTitle' => __('play.js_win_title'),
+            'winText' => __('play.js_win_text'),
+            // 棋盤大小切換
+            'boardBigger' => __('play.js_board_bigger'),
+            'boardSmaller' => __('play.js_board_smaller'),
+            // 點格子看完整內容
+            'sqInfoTitle' => __('play.sq_info_title'),
+            'sqInfoFly' => __('play.sq_info_fly'),
+            'sqInfoMove' => __('play.sq_info_move'),
+            'sqInfoSkip' => __('play.sq_info_skip'),
+            'sqInfoOffPath' => __('play.sq_info_offpath'),
+            'catAction' => __('play.sq_action'),
+            'catDrink' => __('play.sq_drink'),
+            'catDare' => __('play.sq_dare'),
+            'catTruth' => __('play.sq_truth'),
+            'catStrip' => __('play.sq_strip'),
+            'catMove' => __('play.sq_move'),
+            'catNormal' => __('play.sq_normal'),
+            'catStart' => __('play.sq_start'),
+            'catEnd' => __('play.sq_end'),
+            'catMale' => __('play.sq_male'),
+            'catFemale' => __('play.sq_female'),
+            // ── 以下只有編輯頁用到(board-editor.js)──
+            'addSqTitle' => __('play.js_add_sq_title'),
+            'deleteSqTitle' => __('play.js_delete_sq_title'),
+            'dragMoveSq' => __('play.js_drag_move_sq'),
+            'confirmDeleteSq' => __('play.js_confirm_delete_sq'),
+            'addFailed' => __('play.js_add_failed'),
+            'deleteFailed' => __('play.js_delete_failed'),
+            'moveFailed' => __('play.js_move_failed'),
+            'applyFailed' => __('play.js_apply_failed'),
+            'confirmPreset' => __('play.js_confirm_preset'),
+            'canvasSizeRange' => __('play.js_canvas_size_range'),
+            'dragSort' => __('play.js_drag_sort'),
+            'stepLabel' => __('play.js_step_label'),
+            'pathStart' => __('play.js_path_start'),
+            'pathEnd' => __('play.js_path_end'),
+            'pathEmptyHint' => __('play.js_path_empty_hint'),
+            'pathMainHint' => __('play.js_path_main_hint'),
+            'pathMaleHint' => __('play.js_path_male_hint'),
+            'pathFemaleHint' => __('play.js_path_female_hint'),
+            'pathMin' => __('play.js_path_min'),
+            'pathSaved' => __('play.js_path_saved'),
+            'removeFromPath' => __('play.js_remove_from_path'),
+            'confirmClearPath' => __('play.js_confirm_clear_path'),
+            'confirmResetPath' => __('play.js_confirm_reset_path'),
+        ];
+    }
+}
+
 if (! function_exists('article_text')) {
     /**
      * 文章正文的行內語法。只有玩法指南在用。

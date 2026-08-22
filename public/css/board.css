@@ -735,7 +735,25 @@
 }
 .layout-empty-cell:hover .layout-add-icon { color: rgba(97,218,251,.6); }
 
-.layout-occupied { position: relative; }
+.layout-occupied {
+  position: relative;
+  /* 拖曳可搬移。抓的是整格,所以不要讓格子裡的文字被選成一段 selection ——
+     選到文字的時候瀏覽器會改成拖那段文字,格子就拖不動了。 */
+  cursor: grab;
+  user-select: none;
+}
+.layout-occupied:active { cursor: grabbing; }
+.layout-occupied.dragging { opacity: .35; }
+/* 格子裡的字與編號不吃事件:它們會讓 dragover/dragleave 在同一格裡反覆觸發,
+   高亮就會閃。刪除鈕要留著能點,所以只關掉這兩個。 */
+.layout-mode .layout-occupied .sq-num,
+.layout-mode .layout-occupied .sq-text { pointer-events: none; }
+/* 放得下去的目標(空格或要互換的那一格) */
+.layout-mode .drag-over {
+  outline: 2px solid var(--gold, #d4a017);
+  outline-offset: -2px;
+  background: rgba(212,160,23,.16);
+}
 .layout-del-btn {
   position: absolute;
   top: 2px;
