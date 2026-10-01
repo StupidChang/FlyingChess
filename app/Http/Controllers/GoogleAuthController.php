@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\SiteMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -90,7 +91,13 @@ class GoogleAuthController extends Controller
             ?: Str::before($email, '@'));
         $user->email_verified_at = $user->email_verified_at ?: now();
         $user->locale = $user->locale ?: app()->getLocale();
+        $isNew = ! $user->exists;
         $user->save();
+
+        // 用 Google 第一次進來也是註冊,一樣送歡迎通知(既有帳號綁 Google 不算)
+        if ($isNew) {
+            $user->notify(SiteMessage::welcome($user->locale));
+        }
 
         Auth::login($user, remember: true);
         request()->session()->regenerate();

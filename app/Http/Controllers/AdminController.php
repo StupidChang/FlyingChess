@@ -11,14 +11,24 @@ use App\Models\Setting;
 use App\Models\TruthDareCard;
 use App\Models\User;
 use App\Models\WheelSegment;
+use App\Notifications\SiteMessage;
 use App\Rules\NoBlockedWords;
 use App\Support\LocaleHelper;
 use App\Support\Pricing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
+    /** 群發的對象。被封鎖的帳號一律不算在內。 */
+    public const NOTIFY_AUDIENCES = [
+        'all' => '全部會員',
+        'verified' => '已驗證信箱的會員',
+        'premium' => 'Premium 會員',
+        'admin' => '管理員（測試用）',
+    ];
+
     /** 回報狀態的中文標籤。後台是中文介面,view 與 flash 訊息共用這一份。 */
     public const FEEDBACK_STATUS_LABELS = [
         Feedback::STATUS_NEW => '未處理',
@@ -924,12 +934,16 @@ class AdminController extends Controller
         return view('admin.users.edit', [
             'user' => $user,
             'return' => $this->listReturn($request),
+            // 這個人最近收到的通知,發之前看得到「上一次跟他說了什麼」
+            'notifications' => $user->notifications()->limit(10)->get(),
         ]);
     }
 
     public function updateUser(Request $request, User $user)
     {
         $data = $request->validate([
+            // 跟註冊、個人頁同一組規則:角括號擋掉,長度 50
+            'name' => ['required', 'string', 'max:50', 'regex:/^[^<>]+$/'],
             'is_admin' => ['boolean'],
             'premium_expires_at' => ['nullable', 'date'],
         ]);
@@ -945,11 +959,62 @@ class AdminController extends Controller
         }
 
         $user->update([
+            'name' => trim($data['name']),
             'is_admin' => $wantsAdmin,
-            'premium_expires_at' => $data['premium_expires_at'] ?: null,
+            'premium_expires_at' => ($data['premium_expires_at'] ?? null) ?: null,
         ]);
 
         return redirect()->route('admin.users', $this->listReturn($request))->with('success', '會員資料已更新');
+    }
+
+    /** 發一則站內通知給這一個人。 */
+    public function notifyUser(Request $request, User $user)
+    {
+        $user->notify($this->siteMessage($request));
+
+        return back()->with('success', "已發送通知給「{$user->name}」");
+    }
+
+    /**
+     * 群發站內通知。對象是一個固定的分群,不是列表當下的篩選結果 —— 群發是很難
+     * 收回的動作,「我以為我篩過了」不該是它的前提。
+     */
+    public function notifyUsers(Request $request)
+    {
+        $audience = $request->validate([
+            'audience' => ['required', 'in:'.implode(',', array_keys(self::NOTIFY_AUDIENCES))],
+        ])['audience'];
+        $message = $this->siteMessage($request);
+
+        $query = User::query()->where('is_banned', false);
+        match ($audience) {
+            'verified' => $query->whereNotNull('email_verified_at'),
+            'premium' => $query->whereNotNull('premium_expires_at')->where('premium_expires_at', '>', now()),
+            'admin' => $query->where('is_admin', true),
+            default => null,
+        };
+
+        $sent = 0;
+        $query->chunkById(200, function ($users) use ($message, &$sent) {
+            Notification::send($users, $message);
+            $sent += $users->count();
+        });
+
+        return back()->with('success', "已發送通知給 {$sent} 位會員（".self::NOTIFY_AUDIENCES[$audience].'）');
+    }
+
+    private function siteMessage(Request $request): SiteMessage
+    {
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:80'],
+            'body' => ['required', 'string', 'max:1000'],
+            // 只收站內相對路徑,通知不能被拿來導去外站
+            'url' => ['nullable', 'string', 'max:255', 'regex:#^/(?!/)#'],
+        ], [
+            'url.regex' => '連結只能是站內路徑，以 / 開頭（例如 /tw/game-hall）',
+        ]);
+
+        return new SiteMessage(trim($data['title']), trim($data['body']), $data['url'] ?? null);
     }
 
     public function users(Request $request)
@@ -1034,7 +1099,7 @@ class AdminController extends Controller
         // host.user 一起載進來,不然一頁 100 場就是 200 次查詢。
         $query = Game::withCount('players')->with('host.user');
 
-        $this->applyIn($query, $request, 'status', ['waiting', 'playing', 'finished']);
+        $this->applyIn($query, $request, 'status', ['waiting', 'playing', 'finished', Game::STATUS_ABANDONED]);
 
         if ($search = $request->input('q')) {
             /* 房間代碼、開房者的暱稱、註冊會員的帳號與 email 都能搜 ——
@@ -1055,7 +1120,7 @@ class AdminController extends Controller
             'id' => 'id',
             'code' => 'code',
             'game_type' => 'game_type',
-            'status' => ['status', ['waiting', 'playing', 'finished']],
+            'status' => ['status', ['waiting', 'playing', 'finished', Game::STATUS_ABANDONED]],
             'players' => 'players_count',
             'created_at' => 'created_at',
             'updated_at' => 'updated_at',
@@ -1095,11 +1160,16 @@ class AdminController extends Controller
         $this->applyIn($query, $request, 'status', Feedback::STATUSES);
 
         if ($search = $request->input('q')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('message', 'like', "%{$search}%")
-                    ->orWhere('contact', 'like', "%{$search}%")
-                    ->orWhere('page_path', 'like', "%{$search}%");
-            });
+            // 使用者回報成功時拿到的是「#123」,照原樣貼進來也要能找到那一則
+            if (preg_match('/^#?(\d+)$/', trim($search), $m)) {
+                $query->whereKey((int) $m[1]);
+            } else {
+                $query->where(function ($q) use ($search) {
+                    $q->where('message', 'like', "%{$search}%")
+                        ->orWhere('contact', 'like', "%{$search}%")
+                        ->orWhere('page_path', 'like', "%{$search}%");
+                });
+            }
         }
 
         $sortable = [

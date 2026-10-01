@@ -66,6 +66,12 @@
             <input type="hidden" name="return" value="{{ http_build_query($return ?? []) }}">
 
             <div class="form-group">
+                <label for="name">暱稱</label>
+                <input type="text" id="name" name="name" maxlength="50" required class="form-input"
+                       value="{{ old('name', $user->name) }}">
+            </div>
+
+            <div class="form-group">
                 <label class="form-check">
                     <input type="hidden" name="is_admin" value="0">
                     <input type="checkbox" name="is_admin" value="1"
@@ -87,6 +93,24 @@
                 <a href="{{ route('admin.users', $return ?? []) }}" class="btn btn-outline">返回列表</a>
             </div>
         </form>
+
+        <h2 style="margin:40px 0 16px;font-size:1.15rem">發送站內通知</h2>
+        @include('admin.users._notify-form', ['action' => route('admin.users.notify', $user)])
+
+        <h2 style="margin:40px 0 12px;font-size:1.15rem">最近收到的通知</h2>
+        @forelse($notifications as $n)
+        <div style="padding:12px 14px;margin-bottom:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+            <div style="display:flex;justify-content:space-between;gap:12px">
+                <strong>{{ $n->data['title'] ?? '' }}</strong>
+                <span style="font-size:.78rem;color:var(--text-dim);white-space:nowrap">
+                    {{ $n->created_at->format('Y-m-d H:i') }} · {{ $n->read_at ? '已讀' : '未讀' }}
+                </span>
+            </div>
+            <p style="font-size:.85rem;color:var(--text-dim);margin:6px 0 0">{!! nl2br(e($n->data['body'] ?? '')) !!}</p>
+        </div>
+        @empty
+        <p style="color:var(--text-dim);font-size:.9rem">還沒有任何通知。</p>
+        @endforelse
     </div>
 </section>
 @endsection

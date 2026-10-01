@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\SiteMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -96,6 +97,9 @@ class AuthController extends Controller
             'locale' => app()->getLocale(),
             'password' => bcrypt($data['password']),
         ]);
+
+        // 站內歡迎通知,用註冊當下的語系寫好存起來(見 SiteMessage)
+        $user->notify(SiteMessage::welcome($user->locale));
 
         $user->sendEmailVerificationNotification();
 

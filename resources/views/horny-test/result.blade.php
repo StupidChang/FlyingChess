@@ -263,6 +263,9 @@
                         onclick="window.rewardedUnlockOpen && rewardedUnlockOpen()">
                     {{ __('minigame.rewarded_cta', ['minutes' => \App\Support\PremiumAccess::rewardedMinutes()]) }}
                 </button>
+                {{-- 付費的那條路。金流還沒接上時 premium 頁會寫「即將開放購買」,
+                     連結仍然留著:這是兩條解鎖方式之一,不是等金流好了才存在的東西。 --}}
+                <a href="{{ route('premium.index') }}" class="tt-deep-premium">{{ __('premium.unlock_with_premium') }} →</a>
             @endif
         </section>
 

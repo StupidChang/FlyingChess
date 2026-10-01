@@ -37,6 +37,18 @@
             </form>
         </div>
 
+        {{-- 群發收在 details 裡:很少用,而且是送出就收不回的動作,不該一進來就攤開 --}}
+        <details class="admin-notify-all" style="margin:0 0 20px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)" @if($errors->hasAny(['title', 'body', 'url', 'audience'])) open @endif>
+            <summary style="cursor:pointer;font-weight:600">群發站內通知</summary>
+            <div style="margin-top:14px;max-width:560px">
+                @include('admin.users._notify-form', [
+                    'action' => route('admin.users.notify-all'),
+                    'audiences' => \App\Http\Controllers\AdminController::NOTIFY_AUDIENCES,
+                    'confirm' => '確定要群發這則通知嗎？送出後無法收回。',
+                ])
+            </div>
+        </details>
+
         @include('admin._per-page', ['paginator' => $users, 'location' => 'top', 'showLinks' => false])
         <div class="admin-table-wrap">
             <table class="admin-table">

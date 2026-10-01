@@ -38,6 +38,7 @@ return [
     'cta_renew' => '續費延長',
     'cta_upgrade_now' => '立即升級',
     'cta_register_then' => '註冊後升級',
+    'unlock_with_premium' => '或開通會員，不用看廣告、隨時看完整報告',
     'cta_coming_soon' => '即將開放購買',
     'consent_waive_cooling_off' => '我已閱讀並同意:terms，並同意本訂閱於付款完成後立即開始提供，因此依法排除七日猶豫期之適用。',
     'terms_link' => '服務條款',
