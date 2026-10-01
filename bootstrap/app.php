@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureNotBanned;
 use App\Http\Middleware\EnsurePremium;
 use App\Http\Middleware\RedirectUnprefixedUrl;
 use App\Http\Middleware\RetiredUrls;
+use App\Http\Middleware\RouteScopedThrottle;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackPageView;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -66,6 +67,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'not.banned' => EnsureNotBanned::class,
             'set.locale' => SetLocale::class,
             'redirect.unprefixed' => RedirectUnprefixedUrl::class,
+            // 每條路由各自計數,不再全站共用一個以 IP 計的額度(見 RouteScopedThrottle)
+            'throttle' => RouteScopedThrottle::class,
         ]);
 
         /*
