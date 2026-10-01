@@ -170,7 +170,8 @@ class ProfileController extends Controller
      */
     public function publicShow(Request $request, User $user)
     {
-        abort_unless($user->profile_public && ! $user->is_banned, 404);
+        // 沒驗證信箱的帳號不公開 —— 防止大量註冊的假帳號出現在公開頁
+        abort_unless($user->profile_public && ! $user->is_banned && $user->hasVerifiedEmail(), 404);
 
         // 屬性測驗結果(使用者可關掉這個區塊)
         $topTrait = null;
@@ -204,6 +205,7 @@ class ProfileController extends Controller
         $users = User::query()
             ->where('profile_public', true)
             ->where('is_banned', false)
+            ->whereNotNull('email_verified_at')
             ->when($city !== '', fn ($q) => $q->where('city', 'like', '%'.$city.'%'))
             ->latest()
             ->paginate(24)

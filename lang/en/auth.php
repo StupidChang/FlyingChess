@@ -61,6 +61,14 @@ return [
     'verify_email_thanks' => 'Thanks for signing up!',
     'verify_email_sent' => "We've sent a verification email to your inbox — click the link to finish verification.",
     'verify_email_spam' => "Didn't get it? Check your spam folder, or use the button below to resend.",
+    'verify_email_unlocks_title' => 'Once verified, you can:',
+    'verify_email_unlocks' => [
+        'Create and edit custom boards',
+        'Publish boards to the community',
+        'Make your profile page public',
+        'Customize wheels and dice',
+        'Buy a membership',
+    ],
     'verify_email_play_first' => 'Skip for now — verify later',
 
     'login_meta_description' => 'Sign in to your PillowPlay account to manage your custom boards and membership.',

@@ -132,6 +132,20 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('minigame-page', function (Request $request) {
             return Limit::perMinute(40)->by('minigame-page|'.$request->route()->uri().'|'.$request->ip());
         });
+
+        /* 站內回報:一小時 5 則。擋到的時候不丟 429 錯誤頁 —— 那會把使用者剛打好的
+           一大段字整個丟掉,而會連送五則的通常是真的有很多話要說的人。改成回到表單、
+           內容原樣留著,告訴他多久之後可以再送。 */
+        RateLimiter::for('feedback', function (Request $request) {
+            return Limit::perHour(5)->by('feedback|'.$request->ip())
+                ->response(function (Request $request, array $headers) {
+                    $minutes = max(1, (int) ceil(((int) ($headers['Retry-After'] ?? 60)) / 60));
+
+                    return back()
+                        ->withInput($request->except('website'))
+                        ->withErrors(['message' => __('feedback.throttled', ['minutes' => $minutes])]);
+                });
+        });
     }
 
     /**

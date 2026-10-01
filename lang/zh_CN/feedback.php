@@ -31,8 +31,11 @@ return [
     'contact_hint' => 'Email、IG、微信都可以。留了我们才回得了你 —— 不留也没关系,内容一样看得到。',
     'contact_placeholder' => 'you@example.com 或 @your_ig',
 
+    'member_label' => '以会员身份送出',
+    'member_hint' => '回复会寄到你的会员信箱，不用另外留联系方式。',
+
     'page_label' => '在哪一页遇到的',
-    'page_hint' => '从那一页点过来的话会自动带上。',
+    'page_hint' => '从那一页点过来的话会自动带上完整网址，也可以自己粘贴。',
 
     'submit' => '提交反馈',
     'tip' => '我们不会把你留的联系方式用在任何其他地方。反馈内容可能会被用来改进题库与功能。',
@@ -40,4 +43,7 @@ return [
     'thanks_title' => '收到了，谢谢你',
     'thanks_body' => '每一条我们都会看过。如果你留了联系方式，需要追问细节时会找你。',
     'thanks_again' => '再反馈一条',
+    'thanks_ref' => '反馈编号 #:id —— 之后想补充,提到这个编号我们就找得到。',
+
+    'throttled' => '这一小时提交的反馈已经到上限了,:minutes 分钟后可以再提交。你刚刚写的内容还留着。',
 ];

@@ -57,7 +57,9 @@ class LocaleHelper
      * source column without touching JSON):
      *   1. If app locale == master (zh_TW), return $masterValue directly.
      *   2. If translations[$locale] is non-empty, return it.
-     *   3. Fall back to $masterValue.
+     *   3. If the built-in content dictionary knows $masterValue, return that
+     *      (see ContentTranslations — seeded boards, cards, wheel segments).
+     *   4. Fall back to $masterValue.
      */
     public static function pickTranslation($translations, $masterValue, ?string $locale = null)
     {
@@ -73,7 +75,9 @@ class LocaleHelper
             }
         }
 
-        return $masterValue;
+        return is_string($masterValue)
+            ? ContentTranslations::translate($masterValue, $locale)
+            : $masterValue;
     }
 
     /**

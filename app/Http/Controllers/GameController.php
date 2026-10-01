@@ -6,6 +6,7 @@ use App\Models\Board;
 use App\Models\Game;
 use App\Rules\NoBlockedWords;
 use App\Services\GameService;
+use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -44,19 +45,78 @@ class GameController extends Controller
         return $tab !== '' ? hash('sha256', "{$base}|{$tab}") : $base;
     }
 
-    public function lobby()
+    public function lobby(Request $request)
     {
-        $boards = Board::where(function ($q) {
-            $q->where('is_template', true)
-                ->orWhere('is_default', true);
-        })
-            ->with('squares')
-            ->withCount('squares')
-            ->orderByDesc('is_default')
-            ->orderByDesc('created_at')
-            ->paginate(12);
+        // 上方的切換:網站棋盤(範本+預設)或社群棋盤(會員發佈、審核通過的)
+        $tab = $request->query('tab') === 'community' ? 'community' : 'site';
 
-        return view('games.lobby', compact('boards'));
+        if ($tab === 'community') {
+            // 跟 BoardController::community 同一個條件:已審核、至少兩格才玩得起來
+            $boards = Board::published()
+                ->has('squares', '>=', 2)
+                ->with(['squares', 'user:id,name'])
+                ->withCount('squares')
+                ->orderByDesc('published_at')
+                ->paginate(12)
+                ->withQueryString();
+        } else {
+            $boards = Board::where(function ($q) {
+                $q->where('is_template', true)
+                    ->orWhere('is_default', true);
+            })
+                ->with('squares')
+                ->withCount('squares')
+                // 免費的全部排在前面,付費的放後面;同一段裡預設棋盤最先、再來是新的
+                ->orderBy('is_premium_template')
+                ->orderByDesc('is_default')
+                ->orderByDesc('created_at')
+                ->paginate(12);
+        }
+
+        return view('games.lobby', compact('boards', 'tab'));
+    }
+
+    /**
+     * 大廳卡片的快速預覽:照路線順序列出每一格的內容。
+     *
+     * 只開放大廳本來就列得出來的棋盤(範本、預設、社群已審核),私人棋盤一律 404 ——
+     * 不然換個數字就能讀到別人的私人棋盤(/play/{board} 同樣的防列舉規則)。
+     * 付費範本沒有權限時只給 Board::previewOpenPositions() 那 8 格,其餘格子**不送文字**,
+     * 跟範本預覽頁同一份規則,兩邊合起來也不會多看到。
+     */
+    public function boardPreview(Request $request, Board $board)
+    {
+        abort_unless($board->is_template || $board->is_default || $board->isPublished(), 404);
+
+        $board->load('squares');
+        $canSeeAll = ! $board->is_premium_template || PremiumAccess::content($request->user());
+        $open = $canSeeAll ? null : array_flip($board->previewOpenPositions());
+        $byPos = $board->squares->keyBy('position');
+
+        $squares = collect($board->resolvedPath())
+            ->filter(fn ($pos) => $byPos->has($pos))
+            ->values()
+            ->map(function ($pos, $i) use ($byPos, $open) {
+                $sq = $byPos[$pos];
+                $locked = $open !== null && ! isset($open[$pos]);
+
+                return [
+                    'step' => $i,
+                    'color' => $sq->color,
+                    'text' => $locked ? null : $sq->text,
+                    'locked' => $locked,
+                ];
+            });
+
+        return response()->json([
+            'name' => $board->name,
+            'description' => $board->description,
+            'audience' => $board->isGroupPlay() ? __('play.audience_group') : __('play.audience_couple'),
+            'locked' => ! $canSeeAll,
+            'squares' => $squares,
+            'play_url' => $canSeeAll ? $board->canonicalPlayUrl() : null,
+            'preview_url' => $board->is_template ? route('boards.template.preview', $board) : null,
+        ])->header('X-Robots-Tag', 'noindex');
     }
 
     public function create(Request $request)

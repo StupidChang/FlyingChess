@@ -89,7 +89,7 @@
         </div>
         <div class="layout-preset-controls">
             <button id="add-wheel-btn" type="button" onclick="addStartWheel()" class="btn btn-sm btn-gold">
-                {{ $board->startWheel() ? '🎡 編輯進場轉盤' : '＋ 新增進場轉盤' }}
+                {{ $board->startWheel() ? __('play.start_wheel_edit_btn') : __('play.start_wheel_add_btn') }}
             </button>
             <button type="button" onclick="openRulesModal()" class="btn btn-sm btn-outline">⚙ {{ __('play.capture_rule') }}</button>
         </div>
@@ -116,7 +116,7 @@
                 <div style="font-size:.75rem;color:var(--text-dim);margin:4px 0 10px">{{ __('play.start_wheel_help') }}</div>
                 <div class="wheel-editor-tools">
                     <div id="wheel-editor-preview" class="wheel-editor-preview"></div>
-                    <button type="button" class="btn btn-sm btn-outline" onclick="applyWheelPreset()">套用預設轉盤</button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="applyWheelPreset()">{{ __('play.start_wheel_apply_preset') }}</button>
                 </div>
                 <div id="wheel-slots" class="wheel-slots">
                     @foreach (range(1, 6) as $i)
@@ -259,6 +259,13 @@
             <label>{{ __('play.description') }}</label>
             <textarea id="meta-desc" class="form-control" rows="3" maxlength="500"></textarea>
         </div>
+        <div class="form-group">
+            <label for="meta-players">{{ __('play.audience') }}</label>
+            <select id="meta-players" class="form-control">
+                <option value="2">{{ __('play.audience_couple') }}</option>
+                <option value="4">{{ __('play.audience_group') }}</option>
+            </select>
+        </div>
         <button class="btn btn-gold btn-full" onclick="saveMeta()">{{ __('ui.save') }}</button>
     </div>
 </div>
@@ -269,6 +276,7 @@
 window.BOARD_ID      = {{ $board->id }};
 window.BOARD_NAME    = {{ Js::from($board->name) }};
 window.BOARD_DESC    = {{ Js::from($board->description ?? '') }};
+window.BOARD_PLAYERS = {{ (int) $board->recommended_players }};
 window.SQUARES_DATA  = @json($squares);
 window.PATH_DATA     = @json($pathData);
 window.CANVAS_ROWS   = {{ $board->canvas_rows }};
@@ -276,6 +284,8 @@ window.CANVAS_COLS   = {{ $board->canvas_cols }};
 window.CSRF_TOKEN    = document.querySelector('meta[name="csrf-token"]').content;
 window.EDIT_MODE     = true;
 window.START_WHEEL   = @json($board->startWheel());
+{{-- 「套用預設轉盤」的六格,跟著頁面語系(見 Board::DEFAULT_START_WHEEL) --}}
+window.DEFAULT_START_WHEEL = @json(array_map(fn ($s) => ['text' => \App\Support\ContentTranslations::translate($s['text'])] + $s, \App\Models\Board::DEFAULT_START_WHEEL));
 window.CAPTURE_ON    = @json($board->capture_enabled ?? true);
 /* board.js and board-editor.js have always read their endpoints from here, but
    nothing ever defined it — every save threw "cannot read properties of
@@ -295,6 +305,7 @@ window.BOARD_ROUTES  = {
    印的是「centerTitle」、alert 跳的是「saveFailed」。見 helpers.php 的 play_i18n()。 */
 window.PLAY_I18N     = @json(play_i18n());
 </script>
+<script src="{{ asset_v('js/sq-icons.js') }}"></script>
 <script src="{{ asset_v('js/board.js') }}"></script>
 <script src="{{ asset_v('js/board-editor.js') }}"></script>
 @endsection

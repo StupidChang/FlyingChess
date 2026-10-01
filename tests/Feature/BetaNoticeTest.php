@@ -71,7 +71,7 @@ class BetaNoticeTest extends TestCase
         $this->get('/tw/wheel-game')
             ->assertOk()
             ->assertSee(__('ui.beta_report'))
-            ->assertSee(route('feedback.show', ['from' => '/tw/wheel-game']), false)
+            ->assertSee(e(route('feedback.show', ['from' => url('/tw/wheel-game')])), false)
             ->assertDontSee('mailto:', false);
     }
 

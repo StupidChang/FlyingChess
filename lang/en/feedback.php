@@ -31,8 +31,11 @@ return [
     'contact_hint' => "Email, Instagram, LINE — whatever suits. We can only reply if you leave something, but leaving it blank is fine; we'll still read it.",
     'contact_placeholder' => 'you@example.com or @your_ig',
 
+    'member_label' => 'Sending as a member',
+    'member_hint' => 'Any reply goes to your account email — no need to leave contact details.',
+
     'page_label' => 'Which page was this on?',
-    'page_hint' => 'Filled in automatically if you came from that page.',
+    'page_hint' => 'Filled in automatically with the full URL if you came from that page — or paste it yourself.',
 
     'submit' => 'Send report',
     'tip' => "We won't use your contact details for anything else. What you send may be used to improve the prompts and features.",
@@ -40,4 +43,7 @@ return [
     'thanks_title' => 'Got it — thank you',
     'thanks_body' => "We read every message. If you left contact details, we'll get in touch when we need more detail.",
     'thanks_again' => 'Send another',
+    'thanks_ref' => 'Report #:id — mention this number if you want to add anything later and we can find it straight away.',
+
+    'throttled' => "You've reached the limit for this hour. You can send another in :minutes minutes — what you wrote is still here.",
 ];

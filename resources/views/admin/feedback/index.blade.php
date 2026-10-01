@@ -55,7 +55,7 @@
                     <input type="hidden" name="{{ $keep }}[]" value="{{ $v }}">
                     @endforeach
                 @endforeach
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋內容、聯絡方式或頁面…"
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="搜尋內容、聯絡方式、頁面或 #編號…"
                        class="admin-search-input">
                 <button type="submit" class="btn btn-sm">搜尋</button>
             </form>
@@ -105,7 +105,11 @@
                         </td>
                         <td style="font-size:.78rem;color:var(--text-dim);max-width:190px">
                             @if($item->page_path)
-                                <div style="word-break:break-all">{{ $item->page_path }}</div>
+                                {{-- 新的是完整網址(Feedback::sanitizePageUrl 只收本站網域),可以直接點開;舊資料是相對路徑 --}}
+                                <div style="word-break:break-all">
+                                    <a href="{{ str_starts_with($item->page_path, '/') ? url($item->page_path) : $item->page_path }}"
+                                       target="_blank" rel="noopener noreferrer">{{ $item->page_path }}</a>
+                                </div>
                             @endif
                             <div>{{ $item->locale }}</div>
                             @if($item->user_agent)

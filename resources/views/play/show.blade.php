@@ -7,7 +7,8 @@
      canonical 一律指向 Board::canonicalPlayUrl() 選出的那一個,不要用
      url()->current() —— 那會讓每個網址都自稱正本,就是重複內容。 --}}
 @section('canonical', $board->canonicalPlayUrl())
-@section('robots', $board->isPubliclyIndexable() ? 'index,follow' : 'noindex,follow')
+{{-- 內容沒翻完的語系會退回繁中顯示:那一頁不收錄(見 Board::translatedLocales) --}}
+@section('robots', $board->isPubliclyIndexable() && $board->isTranslatedFor() ? 'index,follow' : 'noindex,follow')
 @section('styles')
 <link rel="stylesheet" href="{{ asset_v('css/board.css') }}">
 @endsection
@@ -19,18 +20,18 @@
     <h1 class="sr-only">{{ $board->name }}</h1>
 
     {{-- Player Bar --}}
-    <div class="player-bar">
-        <div id="p1-panel" class="player-panel p1 active">
-            <div class="pawn pawn-1" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline-block">
-                    <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd"/>
-                </svg>
+    {{-- 3 人以上:左右兩側各一欄(1、2 號在左,3、4 號在右),骰子在中間。不分組 ——
+         每個人各自一顆棋子,先到終點的人贏(見 board.js 的 teamOf)。 --}}
+    @php $hasSides = $playerCount >= 3; @endphp
+    <div class="player-bar{{ $hasSides ? ' has-sides' : '' }}">
+        @if($hasSides)
+            <div class="player-side side-left">
+                @include('play._player-panel', ['n' => 1])
+                @include('play._player-panel', ['n' => 2])
             </div>
-            <div class="player-info">
-                <span id="p1-name" class="pname">{{ __('play.player_1') }}</span>
-                <span id="p1-pos" class="ppos">{{ __('play.start_point') }}</span>
-            </div>
-        </div>
+        @else
+            @include('play._player-panel', ['n' => 1])
+        @endif
 
         <div class="turn-center">
             <div id="turn-label" class="turn-label">{{ __('play.turn_of', ['name' => __('play.player_1')]) }}</div>
@@ -61,33 +62,14 @@
             </div>
         </div>
 
-        @if($playerCount >= 2)
-        <div id="p2-panel" class="player-panel p2">
-            <div class="pawn pawn-2" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline-block">
-                    <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd"/>
-                </svg>
+        @if($hasSides)
+            <div class="player-side side-right">
+                @foreach (range(3, $playerCount) as $n)
+                    @include('play._player-panel', ['n' => $n])
+                @endforeach
             </div>
-            <div class="player-info">
-                <span id="p2-name" class="pname">{{ __('play.player_2') }}</span>
-                <span id="p2-pos" class="ppos">{{ __('play.start_point') }}</span>
-            </div>
-        </div>
-        @foreach (range(3, 4) as $n)
-            @if($playerCount >= $n)
-                <div id="p{{ $n }}-panel" class="player-panel p{{ $n }}">
-                    <div class="pawn pawn-{{ $n }}" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline-block">
-                            <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <div class="player-info">
-                        <span id="p{{ $n }}-name" class="pname">{{ __('play.player_name', ['n' => $n]) }}</span>
-                        <span id="p{{ $n }}-pos" class="ppos">{{ __('play.start_point') }}</span>
-                    </div>
-                </div>
-            @endif
-        @endforeach
+        @elseif($playerCount >= 2)
+            @include('play._player-panel', ['n' => 2])
         @endif
     </div>
 
@@ -115,6 +97,38 @@
                     <li>{{ $r }}</li>
                 @endforeach
             </ol>
+
+            {{-- 格子說明:只列這張棋盤實際用到的類型。圖示由 board.js 依 data-sq-type 填入,
+                 跟棋盤格上的是同一份(SQ_TYPE_ICONS),不會對不上。 --}}
+            @php
+                $usedTypes = collect($squares)->pluck('color')->unique();
+                $legendOrder = ['action', 'dare', 'truth', 'strip', 'drink', 'move', 'male', 'female', 'p1', 'p2', 'p3', 'p4'];
+            @endphp
+            @if($usedTypes->intersect($legendOrder)->isNotEmpty())
+            <h3 class="sq-legend-title">{{ __('play.legend_title') }}</h3>
+            <ul class="sq-legend">
+                @foreach ($legendOrder as $type)
+                    @continue(! $usedTypes->contains($type))
+                    @php
+                        $seat = str_starts_with($type, 'p') ? (int) substr($type, 1) : null;
+                        [$name, $desc] = match (true) {
+                            $seat !== null => [__('play.legend_seat', ['n' => $seat]), __('play.legend_seat_desc', ['n' => $seat])],
+                            $type === 'move' => [__('play.sq_move'), __('play.legend_move_desc')],
+                            $type === 'male' => [__('play.legend_male'), __('play.legend_male_desc')],
+                            $type === 'female' => [__('play.legend_female'), __('play.legend_female_desc')],
+                            default => [__('play.sq_'.$type), null],
+                        };
+                    @endphp
+                    <li class="sq-legend-item legend-{{ $type }}">
+                        <span class="sq-type-icon" data-sq-type="{{ $type }}" aria-hidden="true"></span>
+                        <span class="sq-legend-text">
+                            <span class="sq-legend-name">{{ $name }}</span>
+                            @if($desc)<span class="sq-legend-desc">{{ $desc }}</span>@endif
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+            @endif
         </aside>
         <div class="rules-scrim" id="rules-scrim" onclick="toggleRules(false)"></div>
     </div>
@@ -230,33 +244,76 @@
 {{-- Setup Modal --}}
 <div id="setup-modal" class="modal setup-modal open" role="dialog" aria-modal="true">
     <div class="modal-overlay"></div>
-    <div class="modal-box setup-box">
+    <div class="modal-box setup-box{{ $hasSides ? ' is-multi' : '' }}">
         <h2>{{ $board->name }}</h2>
-        @if($board->description)<p style="color:var(--text-dim);margin-bottom:16px">{{ $board->description }}</p>@endif
-        {{-- 1–4 人:兩人一組(1&2 為第一組,3&4 為第二組),同組都抵達終點才算贏。
-             用迴圈產生,避免四份重複標記。 --}}
+        @if($board->description)<p class="setup-desc">{{ $board->description }}</p>@endif
+        {{-- 人數切換:重新載入同一頁帶 ?players=N(canonical 不含它,不會多出索引頁)。
+             多男多女的棋盤預設開 4 人(目前引擎上限),1男1女的開 2 人。 --}}
+        <div class="setup-players">
+            <span class="setup-players-label">
+                {{ __('play.audience_setup') }}:{{ $board->isGroupPlay() ? __('play.audience_group') : __('play.audience_couple') }}
+            </span>
+            <div class="setup-players-pick seg-toggle" role="group" aria-label="{{ __('play.player_count') }}">
+                @foreach (range(1, 4) as $n)
+                    <a href="{{ request()->fullUrlWithQuery(['players' => $n]) }}" rel="nofollow"
+                       @class(['is-on' => $n === $playerCount])
+                       @if($n === $playerCount) aria-current="true" @endif><span>{{ __('play.players_n', ['n' => $n]) }}</span></a>
+                @endforeach
+            </div>
+        </div>
+        {{-- 追上別人時對方回起點(board.js 的 captureAt)。預設照棋盤作者的設定,開局前可以改 --}}
+        <div class="setup-rule">
+            <span class="setup-rule-label">{{ __('play.capture_label') }}</span>
+            <div class="seg-toggle" role="radiogroup" aria-label="{{ __('play.capture_label') }}">
+                <label><input type="radio" name="capture-rule" value="on" @checked($captureEnabled ?? true)><span>{{ __('play.capture_on') }}</span></label>
+                <label><input type="radio" name="capture-rule" value="off" @checked(! ($captureEnabled ?? true))><span>{{ __('play.capture_off') }}</span></label>
+            </div>
+        </div>
+
+        {{-- 棋子樣式:記在這台裝置(board.js 的 pieceStylePref),開局時套用 --}}
+        <div class="setup-rule">
+            <span class="setup-rule-label">{{ __('play.piece_style') }}</span>
+            <div class="seg-toggle" role="radiogroup" aria-label="{{ __('play.piece_style') }}">
+                @foreach (['disc', 'pawn', 'heart'] as $style)
+                    <label><input type="radio" name="piece-style" value="{{ $style }}" @checked($style === 'disc')><span>{{ __('play.piece_style_'.$style) }}</span></label>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- 每位玩家一行:棋子顏色 + 名字 + 性別切換。不分組;3 人以上在桌機排成兩欄。 --}}
+        <div class="setup-list">
         @foreach (range(1, $playerCount) as $n)
-            @php
-                $team = intdiv($n - 1, 2) + 1;
-                $defaultGender = $n % 2 === 1 ? 'male' : 'female';
-            @endphp
-            <div class="form-group">
-                <label for="setup-p{{ $n }}">
-                    {{ __('play.player_name', ['n' => $n]) }}
-                    @if($playerCount > 2)
-                        <span class="setup-team">{{ __('play.team_n', ['n' => $team]) }}</span>
-                    @endif
-                </label>
+            @php $defaultGender = $n % 2 === 1 ? 'male' : 'female'; @endphp
+            <div class="form-group setup-player">
+                <label for="setup-p{{ $n }}" class="setup-player-label">{{ __('play.player_name', ['n' => $n]) }}</label>
+                <div class="setup-player-row">
+                {{-- 這一位在棋盤上的棋子顏色(跟 .piece-N 同一組),設定時就對得上是哪一顆 --}}
+                <span class="setup-seat seat-{{ $n }}" aria-hidden="true"></span>
                 <input type="text" id="setup-p{{ $n }}" class="form-control"
                        value="{{ __('play.player_name', ['n' => $n]) }}" maxlength="12">
-                <div class="gender-radio-group" style="margin-top:8px">
-                    <label><input type="radio" name="p{{ $n }}-gender" value="male"
-                        @if($defaultGender === 'male') checked @endif> {{ __('play.male') }}</label>
-                    <label><input type="radio" name="p{{ $n }}-gender" value="female"
-                        @if($defaultGender === 'female') checked @endif> {{ __('play.female') }}</label>
+                {{-- 骰一個隨機名字。頁面載入時 board.js 會先幫每位骰一次當預設值 --}}
+                <button type="button" class="setup-name-dice" data-for="setup-p{{ $n }}"
+                        aria-label="{{ __('play.name_dice') }}" title="{{ __('play.name_dice') }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                        <rect x="3.75" y="3.75" width="16.5" height="16.5" rx="4"/>
+                        <circle cx="8.25" cy="8.25" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="15.75" cy="8.25" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="8.25" cy="15.75" r="1.15" fill="currentColor" stroke="none"/>
+                        <circle cx="15.75" cy="15.75" r="1.15" fill="currentColor" stroke="none"/>
+                    </svg>
+                </button>
+                {{-- 分段切換:原生 radio 只是視覺上藏起來(鍵盤、讀屏照常),board.js 仍讀 :checked --}}
+                <div class="gender-radio-group seg-toggle" role="radiogroup" aria-label="{{ __('play.player_name', ['n' => $n]) }}">
+                    <label class="is-male"><input type="radio" name="p{{ $n }}-gender" value="male"
+                        @if($defaultGender === 'male') checked @endif><span>{{ __('play.male') }}</span></label>
+                    <label class="is-female"><input type="radio" name="p{{ $n }}-gender" value="female"
+                        @if($defaultGender === 'female') checked @endif><span>{{ __('play.female') }}</span></label>
+                </div>
                 </div>
             </div>
         @endforeach
+        </div>
         <button class="btn btn-gold btn-full" onclick="startSetup()">
             {{ __('play.start_game') }}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline-block">
@@ -295,5 +352,6 @@ window.CAPTURE_ON   = @json($captureEnabled ?? true);
 window.EDIT_MODE    = false;
 window.PLAY_I18N    = @json(play_i18n());
 </script>
+<script src="{{ asset_v('js/sq-icons.js') }}"></script>
 <script src="{{ asset_v('js/board.js') }}"></script>
 @endsection

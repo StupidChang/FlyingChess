@@ -62,7 +62,7 @@ class TraitCompareTest extends TestCase
 
     public function test_a_pair_with_no_signal_at_all_says_so_instead_of_faking_it(): void
     {
-        /* 190 組裡有兩組完全沒有訊號(服務型／雙性Switch 對騷話控):四條光譜都
+        /* 190 組裡有兩組完全沒有訊號(服務型／雙性Switch 對騷話型):四條光譜都
            不偏、題庫裡也沒有共現。這種組合寧可明說,不要畫四條空軌道假裝有分析。 */
         $this->get('/tw/trait-test/compare?a=pleaser&b=verbal')
             ->assertOk()

@@ -63,6 +63,14 @@ return [
     'verify_email_thanks' => '感謝您的註冊！',
     'verify_email_sent' => '驗證信已寄送至您的電子信箱，請點擊信中的連結完成驗證。',
     'verify_email_spam' => '若未收到，請檢查垃圾郵件資料夾，或點擊下方按鈕重新寄送。',
+    'verify_email_unlocks_title' => '驗證完成後就能：',
+    'verify_email_unlocks' => [
+        '建立與編輯自訂棋盤',
+        '把棋盤發佈到社群',
+        '公開你的個人頁面',
+        '自訂轉盤與骰子',
+        '購買會員',
+    ],
     'verify_email_play_first' => '先去玩，稍後再驗證',
 
     'login_meta_description' => '登入枕邊遊戲帳號，管理你的自訂棋盤與會員內容。',

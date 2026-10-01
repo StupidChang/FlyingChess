@@ -18,6 +18,93 @@ const COLOR_HEX = {
    同一個機制,差別只在比對的是座位而不是性別。 */
 const SEAT_COLORS = ['p1', 'p2', 'p3', 'p4'];
 
+/* 格子類型圖示(SQ_TYPE_ICONS / sqTypeIconHtml)在 sq-icons.js,大廳的快速預覽也用同一份。 */
+/* 開局視窗的「骰一個名字」。形容詞 + 名詞,同一局不重複,超過輸入框上限(12 字)的組合跳過。 */
+function randomPlayerName(taken) {
+  const adj = PI18N.nameAdj || [], noun = PI18N.nameNoun || [];
+  if (!adj.length || !noun.length) return null;
+  const sep = PI18N.nameJoinSpace ? ' ' : '';
+  for (let tries = 0; tries < 40; tries++) {
+    const name = adj[Math.floor(Math.random() * adj.length)] + sep + noun[Math.floor(Math.random() * noun.length)];
+    if (name.length <= 12 && !taken.includes(name)) return name;
+  }
+  return null;
+}
+function setupNameInputs() {
+  return Array.from(document.querySelectorAll('#setup-modal input[id^="setup-p"]'));
+}
+function rollSetupName(input) {
+  const others = setupNameInputs().filter(el => el !== input).map(el => el.value.trim());
+  const name = randomPlayerName(others);
+  if (name) input.value = name;
+}
+function initSetupNames() {
+  setupNameInputs().forEach(rollSetupName);   // 預設名字就是骰一次的結果
+  document.querySelectorAll('.setup-name-dice').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.for);
+      if (!input) return;
+      rollSetupName(input);
+      btn.classList.remove('is-rolling'); void btn.offsetWidth; btn.classList.add('is-rolling');
+    });
+  });
+  // 上次選的棋子樣式
+  const pref = pieceStylePref();
+  const radio = document.querySelector('input[name="piece-style"][value="' + pref + '"]');
+  if (radio) radio.checked = true;
+}
+document.addEventListener('DOMContentLoaded', initSetupNames);
+
+/* 「玩法」面板裡的格子說明:文字由伺服器輸出,這裡只補圖示 */
+function fillLegendIcons() {
+  document.querySelectorAll('.sq-legend [data-sq-type]').forEach(function (el) {
+    el.innerHTML = sqTypeIconHtml(el.getAttribute('data-sq-type'));
+  });
+}
+document.addEventListener('DOMContentLoaded', fillLegendIcons);
+
+/* ── 棋子樣式 ─────────────────────────────────────────────
+   圓片(預設)／立體棋子／愛心,開局視窗選,記在這台裝置(localStorage)。
+   「立體」不是 WebGL:真的 3D 要多載一套引擎(幾百 KB、手機耗電),為了一顆棋子不值得。
+   這裡用 SVG 的受光面、背光面、高光與地面陰影做出立體感,重量跟圓片一樣。
+   顏色吃 .piece-N 上的 --pc,所以四個座位的配色只維護一份。 */
+const PIECE_STYLES = ['disc', 'pawn', 'heart'];
+function pieceStylePref() {
+  try { const v = localStorage.getItem('pieceStyle'); if (PIECE_STYLES.includes(v)) return v; } catch (e) {}
+  return 'disc';
+}
+function applyPieceStyle(style) {
+  if (!PIECE_STYLES.includes(style)) style = 'disc';
+  const board = document.getElementById('game-board');
+  if (board) PIECE_STYLES.forEach(s => board.classList.toggle('pieces-' + s, s === style));
+  try { localStorage.setItem('pieceStyle', style); } catch (e) {}
+}
+function pieceShapeSvg(n) {
+  const g = 'pg' + n, h = 'ph' + n;
+  return '<svg class="piece-shape shape-pawn" viewBox="0 0 40 48" aria-hidden="true">'
+    + '<defs><linearGradient id="' + g + '" x1="0" x2="1" y1="0" y2="0">'
+    + '<stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>'
+    + '<stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient></defs>'
+    + '<ellipse cx="20" cy="44.5" rx="13" ry="3" fill="rgba(0,0,0,.45)"/>'
+    + '<g style="fill:var(--pc)" stroke="rgba(255,255,255,.85)" stroke-width="1.2" stroke-linejoin="round">'
+    + '<path d="M7.5 43.5c0-4.2 3-6.6 6.5-7.5h12c3.5.9 6.5 3.3 6.5 7.5z"/>'
+    + '<path d="M13.5 36.5c1.3-6.3 3.3-11 3.6-15.5h5.8c.3 4.5 2.3 9.2 3.6 15.5z"/>'
+    + '<ellipse cx="20" cy="21" rx="7.5" ry="2.4"/><circle cx="20" cy="12" r="7.2"/></g>'
+    + '<g fill="url(#' + g + ')">'
+    + '<path d="M7.5 43.5c0-4.2 3-6.6 6.5-7.5h12c3.5.9 6.5 3.3 6.5 7.5z"/>'
+    + '<path d="M13.5 36.5c1.3-6.3 3.3-11 3.6-15.5h5.8c.3 4.5 2.3 9.2 3.6 15.5z"/>'
+    + '<circle cx="20" cy="12" r="7.2"/></g>'
+    + '<ellipse cx="17.3" cy="9" rx="2.4" ry="1.7" fill="#fff" opacity=".7"/></svg>'
+    + '<svg class="piece-shape shape-heart" viewBox="0 0 40 40" aria-hidden="true">'
+    + '<defs><radialGradient id="' + h + '" cx=".35" cy=".3" r=".75">'
+    + '<stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/>'
+    + '<stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient></defs>'
+    + '<path d="M20 35S4.5 25.7 4.5 14.8C4.5 9.6 8.4 6 13 6c3.1 0 5.6 1.7 7 4.2C21.4 7.7 23.9 6 27 6c4.6 0 8.5 3.6 8.5 8.8C35.5 25.7 20 35 20 35Z"'
+    + ' style="fill:var(--pc)" stroke="rgba(255,255,255,.85)" stroke-width="1.4"/>'
+    + '<path d="M20 35S4.5 25.7 4.5 14.8C4.5 9.6 8.4 6 13 6c3.1 0 5.6 1.7 7 4.2C21.4 7.7 23.9 6 27 6c4.6 0 8.5 3.6 8.5 8.8C35.5 25.7 20 35 20 35Z" fill="url(#' + h + ')"/>'
+    + '</svg>';
+}
+
 /* Entry wheel colours, in dice-face order — matches the six-slice wheel printed
    in each corner of the physical board. */
 const WHEEL_HEX = ['#ec4899', '#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444'];
@@ -412,6 +499,23 @@ function toggleBoardSize() {
 window.toggleBoardSize = toggleBoardSize;
 
 /**
+ * 一段文字在格子裡「佔幾個中文字的寬度」。
+ *
+ * 下面的門檻都是用中文字數推出來的,但英文一個字母大約只有半個全形字寬
+ * (空白更窄),直接拿 .length 算,英文棋盤會被判成字超多、字級縮到看不清。
+ * 行末斷字的浪費英文比中文大(整個單字換行),所以字母給 .58 而不是 .5。
+ */
+function visualLength(text) {
+  let n = 0;
+  for (const ch of String(text || '')) {
+    if (/\s/.test(ch)) n += (ch === ' ' ? .3 : 0);
+    else if (/[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF\u3000-\u303F]/.test(ch)) n += 1;
+    else n += .58;
+  }
+  return n;
+}
+
+/**
  * 格子裡字級相對於格子邊長的比例。
  *
  * 固定比例做不到:短字的棋盤(「喝一口」)給 .19 才不會顯得空,而 30 字的格子
@@ -427,7 +531,7 @@ function textFactorFor(squares) {
      畫不出來(比字太小嚴重得多)。 */
   const list = Array.isArray(squares) ? squares : Object.values(squares || {});
   const lengths = list
-    .map(sq => (sq && sq.text ? String(sq.text).replace(/\s/g, '').length : 0))
+    .map(sq => (sq && sq.text ? visualLength(sq.text) : 0))
     .sort((a, b) => b - a);
   if (lengths.length === 0) return .19;
 
@@ -521,8 +625,15 @@ function followActivePiece(target) {
 
 /* Re-fit on resize/rotation; piece positions are derived from square rects,
    so re-render them after the board changes size. */
+/* 只在寬度改變、或高度大幅改變(轉向、分割畫面)時重算。手機捲動時網址列伸縮
+   也會觸發 resize(高度差約 50–120px),每次都重算的話棋盤會跟著放大縮小、
+   左右晃動 —— 自動跟隨棋子一捲動就會發生。 */
+let lastFitW = window.innerWidth, lastFitH = window.innerHeight;
 window.addEventListener('resize', () => {
   if (window.EDIT_MODE || !lastGrid) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w === lastFitW && Math.abs(h - lastFitH) < 150) return;
+  lastFitW = w; lastFitH = h;
   updateHeaderVar();
   const board = document.getElementById('game-board');
   if (!board) return;
@@ -591,8 +702,13 @@ function buildBoard() {
       ? `<div class="sq-fly-badge">✈→${sq.fly_to}</div>` : '';
     const arrow    = arrowMap[pos] ? `<div class="sq-arrow">${arrowMap[pos]}</div>` : '';
 
+    // 遊玩畫面才放類型圖示;編輯器仍用顏色(那裡要一眼看出每格設成哪一類)
+    const typeIcon = (!isEditMode && sqTypeIconHtml(sq.color))
+      ? `<span class="sq-type" aria-hidden="true">${sqTypeIconHtml(sq.color)}</span>` : '';
+
     div.innerHTML = `
       <div class="sq-num">${pos}</div>
+      ${typeIcon}
       <div class="sq-text">${escHtml(sq.text)}</div>
       ${flyBadge}
       ${arrow}
@@ -690,8 +806,6 @@ function buildBoard() {
    is a smooth slide (with a slight overshoot/bounce from the transition
    easing) instead of a DOM teardown + rebuild on every step. */
 
-/* 四個角落。之前只分「第一個」與「其他」,三、四號棋子會完全疊在一起。 */
-const PIECE_NUDGE = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
 
 /**
  * 把棋子放到任何一個目標元素的中心(格子,或還沒進場時的進場轉盤)。
@@ -700,16 +814,29 @@ const PIECE_NUDGE = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
  * 拿轉盤的邊長去算會得到三倍大的棋子。棋子的大小應該一直是「一格」的大小,
  * 不管它現在停在什麼東西上面。
  */
-function positionPiece(el, target, board, offsetIndex, sizeRef = null) {
+/* 同一格有幾個人,就排成幾個位置:1 人置中、2 人並排、3 人三角、4 人 2×2。
+   排的是「這一格裡的第幾個」,不是玩家編號 —— 照玩家編號偏移的話,1 號和 4 號
+   同格時會落在對角,中間空一大塊,2、3 號同格又疊在同一側。 */
+const PIECE_SLOTS = {
+  1: [[0, 0]],
+  2: [[-1, 0], [1, 0]],
+  3: [[-1, -0.85], [1, -0.85], [0, 0.95]],
+  4: [[-1, -1], [1, -1], [-1, 1], [1, 1]],
+};
+/* 人越多棋子越小,四顆都要完整留在格子裡(最外緣約 0.38 格) */
+const PIECE_SCALE = { 1: 0.5, 2: 0.4, 3: 0.35, 4: 0.34 };
+
+function positionPiece(el, target, board, slotIndex = 0, sizeRef = null, occupants = 1) {
   const boardRect = board.getBoundingClientRect();
   const rect      = target.getBoundingClientRect();
   const sizeRect  = (sizeRef || target).getBoundingClientRect();
-  const size = Math.max(10, Math.min(sizeRect.width, sizeRect.height) * 0.5);
+  const n = Math.max(1, Math.min(4, occupants));
+  const size = Math.max(8, Math.min(sizeRect.width, sizeRect.height) * PIECE_SCALE[n]);
   el.style.width  = size + 'px';
   el.style.height = size + 'px';
 
-  const [ox, oy] = PIECE_NUDGE[offsetIndex % PIECE_NUDGE.length];
-  const nudge = size * 0.28;
+  const [ox, oy] = PIECE_SLOTS[n][slotIndex % n];
+  const nudge = size * 0.62;
   const cx = (rect.left - boardRect.left) + rect.width  / 2 + ox * nudge;
   const cy = (rect.top  - boardRect.top)  + rect.height / 2 + oy * nudge;
   el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
@@ -775,6 +902,14 @@ function renderPieces() {
   const cellRef = board.querySelector('.board-sq');
   let activeTarget = null;
 
+  /* 先數每一格上有誰,棋子才知道要縮多小、排在第幾個位置 */
+  const occupancy = {};
+  state.players.forEach((p, i) => {
+    if (!isOnTrack(p)) return;
+    const key = currentPos(p);
+    (occupancy[key] = occupancy[key] || []).push(i);
+  });
+
   state.players.forEach((p, i) => {
     let el = document.getElementById(`piece-${i+1}`);
 
@@ -795,6 +930,8 @@ function renderPieces() {
       el = document.createElement('div');
       el.className = `piece-token piece-${i+1}`;
       el.id        = `piece-${i+1}`;
+      // 立體棋子／愛心的圖形。圓片樣式時由 CSS 藏起來,切換樣式不用重建棋子
+      el.innerHTML = pieceShapeSvg(i + 1);
       board.appendChild(el);
     }
     el.classList.remove('piece-waiting');
@@ -802,7 +939,8 @@ function renderPieces() {
 
     const place = () => waiting
       ? positionPieceOnWheel(el, wheelEl, board, i, state.players.length, cellRef)
-      : positionPiece(el, target, board, i, cellRef);
+      : positionPiece(el, target, board,
+          occupancy[currentPos(p)].indexOf(i), cellRef, occupancy[currentPos(p)].length);
 
     if (isNew) {
       // Snap into place on first placement (setup/reset/rebuild) instead
@@ -901,21 +1039,26 @@ async function saveSquare() {
 function openBoardMeta() {
   document.getElementById('meta-name').value = window.BOARD_NAME || '';
   document.getElementById('meta-desc').value = window.BOARD_DESC || '';
+  const playersEl = document.getElementById('meta-players');
+  if (playersEl) playersEl.value = String(window.BOARD_PLAYERS || 2);
   document.getElementById('meta-modal').classList.add('open');
 }
 function closeMetaModal() { document.getElementById('meta-modal').classList.remove('open'); }
 async function saveMeta() {
   const name = document.getElementById('meta-name').value.trim();
   const desc = document.getElementById('meta-desc').value.trim();
+  const playersEl = document.getElementById('meta-players');
+  const players = playersEl ? parseInt(playersEl.value, 10) : undefined;
   if (!name) return;
   try {
     const res = await fetch(window.BOARD_ROUTES.update, {
       method:'PATCH',
       headers:{'Content-Type':'application/json','X-CSRF-TOKEN':window.CSRF_TOKEN},
-      body:JSON.stringify({name,description:desc}),
+      body:JSON.stringify({name,description:desc,recommended_players:players}),
     });
     if (!res.ok) throw new Error();
     window.BOARD_NAME = name;
+    if (players) window.BOARD_PLAYERS = players;
     const d = document.getElementById('board-name-display');
     if (d) d.textContent = name;
     closeMetaModal();
@@ -926,7 +1069,7 @@ async function saveMeta() {
    PLAY MODE — Setup
    ═══════════════════════════════════════════════════ */
 function startSetup() {
-  /* V8.0 四人版:兩人一組(0&1 第一組、2&3 第二組),同組都抵達終點才算贏。 */
+  /* 1–4 人,各自一顆棋子,不分組(見 teamOf)。 */
   const count = Math.max(1, Math.min(4, window.PLAYER_COUNT || 1));
   state.players = [];
   for (let n = 1; n <= count; n++) {
@@ -943,6 +1086,14 @@ function startSetup() {
   state.current = 0; state.rolling = false; state.gameOver = false;
   state.finishOrder = [];
 
+  /* 開局視窗的「追上別人時對方回起點」。預設是棋盤作者的設定(CAPTURE_ON),
+     玩家可以在開局前改。captureAt() 讀的就是 window.CAPTURE_ON。 */
+  const styleEl = document.querySelector('input[name="piece-style"]:checked');
+  applyPieceStyle(styleEl ? styleEl.value : pieceStylePref());
+
+  const capEl = document.querySelector('input[name="capture-rule"]:checked');
+  if (capEl) window.CAPTURE_ON = capEl.value === 'on';
+
   const gIcon = g => g === 'male' ? ' \u2642' : ' \u2640';
   state.players.forEach(function(p, i) {
     const nm = document.getElementById('p' + (i + 1) + '-name');
@@ -958,10 +1109,12 @@ function startSetup() {
   updateTurnUI();
 }
 
-/* ── V8.0 分組與追趕 ─────────────────────────────────────────────
-   分組:3–4 人時兩人一組;1–2 人時每人自成一組(維持原本「先到即贏」)。 */
+/* ── 分組與追趕 ─────────────────────────────────────────────
+   不分組:每個人自成一組,先到終點的人贏(2026-09 使用者要求拿掉 V8.0 的兩人一組 ——
+   3 人時會多出一個只有一人的「第二組」)。teammatesOf() 因此永遠是空陣列,
+   arriveAtEnd() 的「等夥伴」與「終點特權」自然不會觸發。 */
 function teamOf(idx) {
-  return state.players.length >= 3 ? Math.floor(idx / 2) : idx;
+  return idx;
 }
 function teammatesOf(idx) {
   const t = teamOf(idx);
@@ -1228,6 +1381,13 @@ function showActionModal(roll, pos) {
    扇形裡塞不下整句是必然的 —— 格子文字上限 60 字 —— 所以這裡只求「看得出是什麼」,
    完整內容在擲骰後的轉盤彈窗與 title 裡。 */
 function wrapWheelLabel(text, per, max) {
+  /* 沒有全形字的(英文翻譯)要照單字斷行 —— 逐字切會把「Take a sip」切成
+     「Take a」「sip」還算好,切成「Takea」「sip」就讀不懂了。字母約半個全形字寬,
+     所以每行能放的字元數大約是中文的 1.8 倍。 */
+  if (!/[\u2E80-\u9FFF\u3040-\u30FF\uFF00-\uFFEF]/.test(String(text || ''))) {
+    return wrapLatinLabel(String(text || ''), Math.round(per * 1.8), max);
+  }
+
   const clean = String(text || '').replace(/\s+/g, '');
   const lines = [];
 
@@ -1238,6 +1398,27 @@ function wrapWheelLabel(text, per, max) {
     lines[max - 1] = lines[max - 1].slice(0, per - 1) + '…';
   }
   return lines.length ? lines : [''];
+}
+
+function wrapLatinLabel(text, per, max) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  let i = 0;
+  for (; i < words.length && lines.length < max; i++) {
+    const next = cur ? cur + ' ' + words[i] : words[i];
+    if (next.length <= per || !cur) { cur = next; continue; }
+    lines.push(cur);
+    cur = words[i];
+  }
+  const truncated = i < words.length || lines.length >= max;
+  if (cur && lines.length < max) lines.push(cur);
+  if (!lines.length) return [''];
+  if (truncated || lines[lines.length - 1].length > per) {
+    const last = lines[lines.length - 1];
+    lines[lines.length - 1] = (last.length > per - 1 ? last.slice(0, per - 1) : last) + '…';
+  }
+  return lines;
 }
 
 function wheelSvg(activeFace) {

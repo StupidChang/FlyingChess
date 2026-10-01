@@ -15,6 +15,7 @@
                 <h3>{{ $board->name }}</h3>
                 @if($board->description)<p>{{ $board->description }}</p>@endif
                 <span class="badge-squares">{{ __('ui.square_count', ['n' => $board->squares_count]) }}</span>
+                @include('partials.board-players-badge')
                 @if($board->user)
                 <span class="badge-author">{{ __('play.community_by', ['name' => $board->user->name]) }}</span>
                 @endif

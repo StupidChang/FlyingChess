@@ -197,6 +197,7 @@
                         <td>
                             @if($game->status === 'waiting') 等待中
                             @elseif($game->status === 'playing') 進行中
+                            @elseif($game->isAbandoned()) <span style="color:var(--text-dim)">已關閉（閒置）</span>
                             @else 已結束
                             @endif
                         </td>

@@ -33,6 +33,18 @@ class TranslateAuto extends Command
 
     public function handle(): int
     {
+        /* 還沒接任何翻譯服務。以前這裡會把繁中原文當成「譯文」寫進去再蓋上
+           machine_translated_at —— 結果是英文頁面照樣顯示中文,而且那一列從此被當成
+           翻過了、不會再被處理。沒有 provider 就只准 dry-run。
+           內建內容的翻譯改由 resources/content-translations/ 的字典提供(見 ContentTranslations)。 */
+        if (env('TRANSLATE_DRIVER', 'none') === 'none' && ! $this->option('dry-run')) {
+            $this->error('TRANSLATE_DRIVER 未設定,沒有可用的翻譯服務。只能用 --dry-run 預覽。');
+            $this->line('內建內容(範本棋盤、題卡、轉盤、小遊戲題庫)的翻譯在 resources/content-translations/;');
+            $this->line('缺哪些翻譯請跑 php artisan content:translation-coverage。');
+
+            return self::FAILURE;
+        }
+
         $modelOpt = $this->option('model');
         $limit = (int) $this->option('limit');
         $dryRun = (bool) $this->option('dry-run');

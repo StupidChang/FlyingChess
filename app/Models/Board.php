@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ContentTranslations;
 use App\Support\LocaleHelper;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -29,7 +30,7 @@ class Board extends Model
         'start_wheel', 'capture_enabled',
         'user_id', 'share_code', 'machine_translated_at',
         'publish_status', 'published_at', 'publish_note',
-        'reference_image',
+        'reference_image', 'recommended_players',
     ];
 
     protected $casts = [
@@ -41,6 +42,7 @@ class Board extends Model
         'capture_enabled' => 'boolean',
         'canvas_rows' => 'integer',
         'canvas_cols' => 'integer',
+        'recommended_players' => 'integer',
         'machine_translated_at' => 'datetime',
         'published_at' => 'datetime',
     ];
@@ -75,7 +77,8 @@ class Board extends Model
         // A wheel is always read by dice face, so it must have exactly six slots.
         for ($i = 0; $i < 6; $i++) {
             $slots[$i] = [
-                'text' => (string) ($slots[$i]['text'] ?? ''),
+                // 預設轉盤的六格文字跟範本一樣是內建內容,對得到字典就翻
+                'text' => (string) ContentTranslations::translate((string) ($slots[$i]['text'] ?? '')),
                 'enter' => (bool) ($slots[$i]['enter'] ?? false),
                 'reroll' => (bool) ($slots[$i]['reroll'] ?? false),
             ];
@@ -95,6 +98,18 @@ class Board extends Model
                 $this->getRawOriginal('name_translations'),
                 $value,
             ),
+            set: fn ($value) => $value,
+        );
+    }
+
+    /**
+     * 說明沒有 *_translations 欄位,只查內建內容字典(範本棋盤的說明在那裡)。
+     * 使用者自己寫的說明對不到字典,原樣顯示。
+     */
+    protected function description(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => ContentTranslations::translate($value),
             set: fn ($value) => $value,
         );
     }
@@ -136,6 +151,15 @@ class Board extends Model
     public static function getDefault(): self
     {
         return static::where('is_default', true)->firstOrFail();
+    }
+
+    /**
+     * 多人棋盤:題目寫的是「在場的異性／左邊的人」,不是「對方」。
+     * 兩人玩會卡在「找兩位異性」這種格子,所以列表上要標出來。
+     */
+    public function isGroupPlay(): bool
+    {
+        return ($this->recommended_players ?? 2) > 2;
     }
 
     public function isPublished(): bool
@@ -185,6 +209,39 @@ class Board extends Model
            棋盤(預設那張與一個範本),兩頁的 <title> 一模一樣,等於自己跟自己搶排名。
            要讓某個範本進索引,給它一個 share_code(而且名字不要和別人重複)。 */
         return $this->share_code !== null && $this->isPubliclyPlayable();
+    }
+
+    /**
+     * 這張棋盤的內容在哪些語系有完整翻譯(名稱、說明、每一格、進場轉盤)。
+     *
+     * 內容來自 ContentTranslations 字典:範本棋盤翻好了就全對得上,使用者改過的
+     * 格子對不上。沒翻完的語系,頁面會退回繁中顯示 —— 那一頁就不該被收錄,也不該
+     * 出現在那個語系的 sitemap 或 hreflang 裡(同 config/traits.php 的 translated)。
+     *
+     * @return array<int, string> 語系代碼
+     */
+    public function translatedLocales(): array
+    {
+        $wheel = is_array($this->start_wheel) && ! empty($this->start_wheel['enabled'])
+            ? array_column((array) ($this->start_wheel['segments'] ?? []), 'text')
+            : [];
+
+        $texts = [
+            $this->getRawOriginal('name'),
+            $this->getRawOriginal('description'),
+            ...$this->squares->map(fn ($sq) => $sq->getRawOriginal('text'))->all(),
+            ...$wheel,
+        ];
+
+        return array_values(array_filter(
+            array_keys(LocaleHelper::supported()),
+            fn ($locale) => ContentTranslations::covers($texts, $locale),
+        ));
+    }
+
+    public function isTranslatedFor(?string $locale = null): bool
+    {
+        return in_array($locale ?? app()->getLocale(), $this->translatedLocales(), true);
     }
 
     /**
@@ -242,6 +299,31 @@ class Board extends Model
             'grid_row' => $s->grid_row,
             'grid_col' => $s->grid_col,
         ])->toArray();
+    }
+
+    /** 一眼看得出調性、但看不完 —— 付費範本預覽開放的格數。 */
+    public const PREVIEW_OPEN_SQUARES = 8;
+
+    /**
+     * 付費範本預覽要開放哪幾格(範本預覽頁與大廳的快速預覽共用)。散在整張棋盤上
+     * 而不是集中在開頭 —— 前八格通常都是暖身,只看那幾格會以為整張棋盤都很溫和,
+     * 反而讓人覺得不值得解鎖。
+     *
+     * ⚠ 這個選擇必須**對同一張棋盤永遠一樣**。用真的亂數的話,重新整理幾次
+     * 就能把整張棋盤看完,等於沒鎖。所以用 (棋盤 id + 格號 + APP_KEY) 的雜湊
+     * 排序來挑:看起來是隨機的,但同一張棋盤每次都得到同一批,而且加了
+     * APP_KEY 之後外人也算不出下一次會開哪幾格。兩個入口共用這一份,
+     * 不然各開各的八格,合起來就多看了一倍。
+     */
+    public function previewOpenPositions(): array
+    {
+        return $this->squares
+            ->pluck('position')
+            ->sortBy(fn ($p) => crc32($this->id.':'.$p.':'.config('app.key')))
+            ->take(self::PREVIEW_OPEN_SQUARES)
+            ->sort()
+            ->values()
+            ->all();
     }
 
     /** Resolve the effective path for a given gender. */

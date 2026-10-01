@@ -62,6 +62,14 @@ return [
     'verify_email_thanks' => '感谢您的注册！',
     'verify_email_sent' => '验证邮件已发送至您的电子邮箱，请点击邮件中的链接完成验证。',
     'verify_email_spam' => '若未收到，请检查垃圾邮件文件夹，或点击下方按钮重新发送。',
+    'verify_email_unlocks_title' => '验证完成后就能：',
+    'verify_email_unlocks' => [
+        '建立与编辑自订棋盘',
+        '把棋盘发布到社区',
+        '公开你的个人页面',
+        '自订转盘与骰子',
+        '购买会员',
+    ],
     'verify_email_play_first' => '先去玩，稍后再验证',
 
     'login_meta_description' => '登录枕边游戏账号，管理你的自定义棋盘与会员内容。',

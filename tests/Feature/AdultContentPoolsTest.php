@@ -21,9 +21,10 @@ class AdultContentPoolsTest extends TestCase
     {
         $pools = CardGameService::getActivityPools(true);
 
-        $this->assertSame(['mild', 'medium', 'intense'], array_keys($pools));
+        // 2026-09-27 起五級:微撩、挑逗補在原本三級之間的斷層
+        $this->assertSame(['mild', 'mild_plus', 'medium', 'medium_plus', 'intense'], array_keys($pools));
         foreach ($pools as $pool) {
-            $this->assertGreaterThanOrEqual(16, count($pool));
+            $this->assertGreaterThanOrEqual(12, count($pool));
             $this->assertCount(count($pool), array_unique($pool));
         }
     }
@@ -38,7 +39,7 @@ class AdultContentPoolsTest extends TestCase
         $this->assertArrayNotHasKey('intense', $free);
         /* 題庫本身的數量看原始常數,不看送出去的那一份 —— 送出去的會被
            ContentExposure 裁成隨機子集,拿它當數量指標會誤判成題目變少了。 */
-        $this->assertGreaterThanOrEqual(32, count(WheelGameService::SEGMENTS_INTENSE));
+        $this->assertGreaterThanOrEqual(32, count(WheelGameService::defaultPools()['intense']));
         $this->assertNotEmpty($premium['intense']);
     }
 
@@ -59,11 +60,12 @@ class AdultContentPoolsTest extends TestCase
 
         $this->assertTrue($free['builtin_action_wild']['locked']);
         $this->assertSame([], $free['builtin_action_wild']['faces']);
-        $this->assertContains('插入', $premium['builtin_action_wild']['faces']);
-        $this->assertContains('陰道', $premium['builtin_part_wild']['faces']);
-        $this->assertContains('後庭塞', $premium['builtin_prop_wild']['faces']);
+        $this->assertContains('陰蒂或龜頭', $premium['builtin_part_wild']['faces']);
+        $this->assertContains('跳蛋', $premium['builtin_prop_wild']['faces']);
         $this->assertSame([], $free['builtin_play_wild']['faces']);
-        $this->assertContains('後入30下', $premium['builtin_play_wild']['faces']);
+        $this->assertContains('後入抽插30下', $premium['builtin_play_wild']['faces']);
+        // 免費的大膽骰也骰得到私處,只是隔著內褲
+        $this->assertContains('隔著內褲的私處', $free['builtin_part_bold']['faces']);
     }
 
     public function test_other_games_reserve_explicit_pools_for_premium(): void
@@ -72,5 +74,30 @@ class AdultContentPoolsTest extends TestCase
         $this->assertArrayNotHasKey('intense', WhoMostLikelyService::getPromptPools(false));
         $this->assertStringContainsString('口交', implode(' ', KingGameService::getCommandPools(true)['intense']));
         $this->assertStringContainsString('肛交', implode(' ', WhoMostLikelyService::getPromptPools(true)['intense']));
+    }
+
+    public function test_free_tiers_also_carry_some_sex_but_less_than_premium(): void
+    {
+        /* 2026-09-27 使用者要求:免費也要有性交的內容,只是比付費少。免費的上限
+           在「挑逗」(medium_plus)那一級:以私處撫摸為主,另外有幾題口交與插入。
+           最高一級(付費)每一題都要是實際的身體行為。 */
+        $sex = '/口交|69|插|進去|騎上|後入|傳教士|體位|手指伸/u';
+        // 最高一級的「性行為」還包括玩具、舔私處、做到高潮
+        $act = '/口交|69|插|進去|騎上|後入|傳教士|體位|手指伸|跳蛋|按摩棒|震動|舔|私處|高潮|射|臉上|做愛|坐蓮|從後面|坐上去|壓上去|慢慢做|自慰|手指|含|騎在|在上面/u';
+
+        foreach ([
+            'wheel' => WheelGameService::defaultPools(),
+            'card' => CardGameService::defaultPools(),
+            'king' => KingGameService::defaultPools(),
+        ] as $game => $pools) {
+            $free = array_merge($pools['mild'], $pools['mild_plus'], $pools['medium'], $pools['medium_plus']);
+            $freeSex = count(preg_grep($sex, $free));
+            $paidSex = count(preg_grep($sex, $pools['intense']));
+
+            $this->assertGreaterThanOrEqual(3, $freeSex, "{$game}:免費等級要有性交內容");
+            $this->assertSame([], preg_grep($sex, array_merge($pools['mild'], $pools['mild_plus'])), "{$game}:前兩級還不該出現");
+            $this->assertGreaterThan($freeSex, $paidSex, "{$game}:付費的份量要比免費多");
+            $this->assertGreaterThanOrEqual(count($pools['intense']) * .95, count(preg_grep($act, $pools['intense'])), "{$game}:最高一級幾乎每題都要是性行為");
+        }
     }
 }

@@ -8,6 +8,9 @@
  * 頭像挑選面板是 row 內的絕對定位元素,不用算座標,手機上也不會跑版。
  */
 (function () {
+    /* aria-label 由載入這支的 <script data-label> 給,才跟著語系走 */
+    var LABEL = (document.currentScript && document.currentScript.dataset.label) || 'Avatar';
+
     var AVATARS = ['😈', '😇', '🔥', '💋', '🌙', '⭐', '🍑', '🍒', '🐰', '🦊', '🐻', '🦄'];
 
     /** 沒選過的時候依序給不同的預設,兩個玩家不會一開始就撞頭像。 */
@@ -20,7 +23,7 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'pa-btn';
-        btn.setAttribute('aria-label', '選擇頭像');
+        btn.setAttribute('aria-label', LABEL);
         btn.setAttribute('aria-expanded', 'false');
         btn.textContent = AVATARS[handed % AVATARS.length];
         handed++;

@@ -34,7 +34,7 @@
                 {{-- 帶上現在這一頁 —— 回報表單會自動填好「在哪一頁遇到的」,
                      使用者少打一行,我們多一條查問題的線索。 --}}
                 <a class="beta-note-report"
-                   href="{{ route('feedback.show', ['from' => '/'.request()->path()]) }}">{{ __('ui.beta_report') }}</a>
+                   href="{{ route('feedback.show', ['from' => request()->fullUrl()]) }}">{{ __('ui.beta_report') }}</a>
             </div>
         </div>
     </div>

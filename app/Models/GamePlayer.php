@@ -12,6 +12,16 @@ class GamePlayer extends Model
     /** 可以不填 —— 不是每一桌都想標這個。 */
     public const GENDERS = ['male' => '男', 'female' => '女'];
 
+    /**
+     * 給畫面用的性別名稱,跟著語系走。GENDERS 的值是繁中,只拿它的 key 當合法值清單。
+     *
+     * @return array<string, string>
+     */
+    public static function genderLabels(): array
+    {
+        return collect(self::GENDERS)->mapWithKeys(fn ($zh, $g) => [$g => __('minigame.gender_'.$g)])->all();
+    }
+
     protected $casts = [
         'is_host' => 'boolean',
     ];

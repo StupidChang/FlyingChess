@@ -78,14 +78,23 @@
             {{-- 有些大冒險會指名「一位異性」,桌上看不出誰是誰的話那題沒辦法玩。
                  沒填性別的人就不標。 --}}
             @if($p->gender)
-            <span class="mg-gender-tag mg-gender-{{ $p->gender }}">{{ \App\Models\GamePlayer::GENDERS[$p->gender] }}</span>
+            <span class="mg-gender-tag mg-gender-{{ $p->gender }}">{{ \App\Models\GamePlayer::genderLabels()[$p->gender] ?? '' }}</span>
             @endif
         </div>
         @endforeach
     </div>
 
     {{-- Game controls --}}
-    <div id="game-controls">
+    {{-- 閒置太久被排程收掉的場次(games:close-idle):不給抽牌,給一顆開新局 --}}
+    @if($game->isAbandoned())
+    <div class="mg-setup" style="text-align:center">
+        <h2 style="font-size:1.1rem;margin-bottom:8px">{{ __('games.closed_title') }}</h2>
+        <p style="color:var(--text-dim);font-size:.9rem;line-height:1.7;margin-bottom:16px">{{ __('games.closed_desc', ['hours' => \App\Models\Game::IDLE_CLOSE_HOURS]) }}</p>
+        <a href="{{ route('truth-dare.lobby') }}" class="btn btn-gold">{{ __('games.closed_new') }}</a>
+    </div>
+    @endif
+
+    <div id="game-controls"@if($game->isAbandoned()) hidden @endif>
 
         {{-- Category selection (shown during play) --}}
         <div id="category-area" style="display:none">
@@ -140,7 +149,7 @@ if (!sessionStorage.getItem('tab_id')) {
     sessionStorage.setItem('tab_id', Math.random().toString(36).slice(2, 11));
 }
 var TAB_ID = sessionStorage.getItem('tab_id');
-var GENDER_LABELS = @json(\App\Models\GamePlayer::GENDERS);
+var GENDER_LABELS = @json(\App\Models\GamePlayer::genderLabels());
 var pollTimer;
 var knownSessions = Array.prototype.map.call(
     document.querySelectorAll('#players-area .mg-player-chip'),
@@ -271,8 +280,8 @@ function pollState() {
     });
 }
 
-// Poll every 3 seconds
-pollTimer = setInterval(pollState, 3000);
+// Poll every 3 seconds(已經被關閉的房間不用再輪詢)
+if (!@json($game->isAbandoned())) pollTimer = setInterval(pollState, 3000);
 if (IS_PLAYING) {
     showCategories();
     pollState();

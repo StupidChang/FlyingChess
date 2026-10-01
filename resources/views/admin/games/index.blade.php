@@ -32,6 +32,7 @@
                 @include('admin._filter-tab', ['param' => 'status', 'value' => 'waiting', 'label' => '等待中'])
                 @include('admin._filter-tab', ['param' => 'status', 'value' => 'playing', 'label' => '進行中'])
                 @include('admin._filter-tab', ['param' => 'status', 'value' => 'finished', 'label' => '已結束'])
+                @include('admin._filter-tab', ['param' => 'status', 'value' => 'abandoned', 'label' => '已關閉（閒置）'])
             </div>
             <form action="{{ route('admin.games') }}" method="GET" class="admin-search">
                 @foreach((array) request('status', []) as $st)
@@ -70,6 +71,7 @@
                         <td>
                             @if($game->status === 'waiting') <span class="badge-premium">等待中</span>
                             @elseif($game->status === 'playing') <span class="badge-admin">進行中</span>
+                            @elseif($game->isAbandoned()) <span style="color:var(--text-dim)">已關閉（閒置）</span>
                             @else <span style="color:var(--text-dim)">已結束</span>
                             @endif
                         </td>

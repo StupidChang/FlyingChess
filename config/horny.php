@@ -203,5 +203,5 @@ return [
      * 有翻譯的語系。沒列在這裡的語系會退回繁中文案並標 noindex ——
      * 中文內容配英文網址被收錄,對排名是扣分不是加分。
      */
-    'translated' => ['zh_TW'],
+    'translated' => ['zh_TW', 'en', 'zh_CN', 'ja'],
 ];

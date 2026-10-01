@@ -183,7 +183,7 @@ body[data-cm-mode="king"] .p-gender{display:none}
 
 @section('scripts')
 {{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
-<script src="{{ asset_v('js/player-avatar.js') }}"></script>
+<script src="{{ asset_v('js/player-avatar.js') }}" data-label="{{ __('ui.choose_avatar') }}"></script>
 <script src="{{ asset_v('js/escalation.js') }}"></script>
 <script>
 (function(){
@@ -229,6 +229,10 @@ body[data-cm-mode="king"] .p-gender{display:none}
         kingRole:  @json(__('minigame.king_role_king')),
         flipNow:   @json(__('minigame.king_flip_now')),
         resting:   @json(__('minigame.card_resting', ['names' => '__NAMES__'])),
+        /* 題目裡「牌大的人／牌小的人」換成玩家名字。翻譯過的題目用的是各語系自己的
+           說法(Higher card: / カードが大きい人),所以要比對的字串跟著語系走。 */
+        roleHigh:  new RegExp(@json(__('minigame.card_role_high')), 'gi'),
+        roleLow:   new RegExp(@json(__('minigame.card_role_low')), 'gi'),
         nameSep:   @json(__('minigame.name_separator')),
         tierMild:  @json(__('minigame.tier_mild')),
         tierMildP: @json(__('minigame.tier_mild_plus')),
@@ -562,7 +566,7 @@ body[data-cm-mode="king"] .p-gender{display:none}
             var m = males[i], f = females[females.length-1-i];
             var big = m.value >= f.value ? m.name : f.name;
             var small = m.value >= f.value ? f.name : m.name;
-            var text = activity().replace(/牌大的/g, big).replace(/牌小的/g, small);
+            var text = activity().replace(MSG.roleHigh, big).replace(MSG.roleLow, small);
             html += '<div class="mg-result-item"><div class="mg-result-text">'+esc(text)+'</div></div>';
         }
         var rest = males.slice(pairs).concat(females.slice(0, Math.max(0, females.length-pairs)));

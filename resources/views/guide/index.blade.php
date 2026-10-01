@@ -69,6 +69,8 @@
 @endsection
 
 @section('content')
+{{-- 背景跟首頁「選擇你的玩法」同一套漸層＋呼吸光暈(app.css 的 .section-glow) --}}
+<div class="section-glow">
 <div class="container gdx-page">
     <header class="gdx-head">
         <h1>{{ __('guides.index_h1') }}</h1>
@@ -81,7 +83,7 @@
             {{-- 標題本身就是連結:列表頁通往文章的唯一路徑,錨文字就是文章標題,
                  這對搜尋引擎理解那一頁在講什麼是最直接的訊號。 --}}
             <h2>
-                <span class="gdx-mark">@include('partials.guide-icon', ['icon' => $a['icon']])</span>
+                <span class="gdx-mark">@include('partials.article-icon', ['icon' => $a['icon']])</span>
                 <a href="{{ route('guide.show', ['slug' => $a['slug']]) }}">{{ $a['h1'] }}</a>
             </h2>
             {{-- 導言吃的是跟文章頁同一套行內語法 —— 不轉的話卡片上會出現星號與反引號 --}}
@@ -94,6 +96,9 @@
         @endforeach
     </div>
 
+    @include('partials.guide-feedback-cta')
+
     @include('partials.ad-unit', ['zone' => 'home_banner'])
+</div>
 </div>
 @endsection

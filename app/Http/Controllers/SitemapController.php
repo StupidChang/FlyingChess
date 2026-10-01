@@ -45,7 +45,11 @@ class SitemapController extends Controller
             // canonical(Board::canonicalPlayUrl() 對預設棋盤回的是 /play)——
             // sitemap 只該列 canonical 網址。
             ->where('is_default', false)
-            ->get();
+            ->with('squares')
+            ->get()
+            // 內容沒翻完的語系不列:那一頁在這個語系是 noindex(見 play/show)
+            ->filter(fn (Board $b) => $b->isTranslatedFor($locale))
+            ->values();
         $supported = LocaleHelper::readyLocales();
 
         return response()

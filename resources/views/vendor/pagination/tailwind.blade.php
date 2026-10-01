@@ -26,7 +26,7 @@
             / {{ $paginator->total() }}
         </p>
 
-        <div style="display:flex;gap:4px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             {{-- Prev --}}
             @if ($paginator->onFirstPage())
                 <span class="pg-btn pg-disabled">
@@ -71,8 +71,9 @@
 
 <style>
 .pg-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:4px 10px;font-size:.85rem;font-weight:600;border-radius:var(--radius);background:var(--surface);color:var(--text-dim);border:1px solid var(--border);cursor:pointer;transition:background .15s,color .15s,border-color .15s;text-decoration:none}
-.pg-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--gold)}
-.pg-active{background:var(--gold) !important;color:#0a0a0a !important;border-color:var(--gold) !important;cursor:default}
+.pg-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--text-dim)}
+/* 目前頁:底色抬一階、字變白,不用金色 —— --gold 只留給付費 */
+.pg-active{background:var(--surface2) !important;color:var(--text) !important;border-color:var(--text-dim) !important;cursor:default}
 .pg-disabled{opacity:.4;cursor:default;pointer-events:none}
 @media(max-width:640px){
   .pagination-mobile{display:flex !important}

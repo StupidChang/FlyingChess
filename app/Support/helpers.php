@@ -34,6 +34,8 @@ if (! function_exists('play_i18n')) {
     {
         return [
             'startWheel' => __('play.start_wheel'),
+            'wheelEditBtn' => __('play.start_wheel_edit_btn'),
+            'wheelAddBtn' => __('play.start_wheel_add_btn'),
             'centerTitle' => __('play.js_center_title'),
             'centerRules' => __('play.js_center_rules'),
             'corner1' => __('play.js_corner_1'),
@@ -72,6 +74,10 @@ if (! function_exists('play_i18n')) {
             // 棋盤大小切換
             'boardBigger' => __('play.js_board_bigger'),
             'boardSmaller' => __('play.js_board_smaller'),
+            // 開局視窗的「骰一個名字」:形容詞 + 名詞,英文中間要空格
+            'nameAdj' => __('play.name_adj'),
+            'nameNoun' => __('play.name_noun'),
+            'nameJoinSpace' => app()->getLocale() === 'en',
             // 點格子看完整內容
             'sqInfoTitle' => __('play.sq_info_title'),
             'sqInfoFly' => __('play.sq_info_fly'),

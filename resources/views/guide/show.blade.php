@@ -152,6 +152,9 @@
 
 .gd-faq{margin-top:44px}
 .gd-faq h2{font-size:1.16rem;font-weight:800;margin-bottom:14px;color:var(--gd-head)}
+/* 常見問題與相關文章這兩個標題本來沒有圖示方塊,補上之後要跟小節標題一樣是 flex。
+   小節標題那條規則綁在 .gd-section h2 上,這兩個不在 .gd-section 裡面。 */
+.gd-h2-plain{display:flex;align-items:center;gap:11px}
 .gd-faq-item{border-bottom:1px solid var(--border);padding:14px 0}
 .gd-faq-item summary{cursor:pointer;font-weight:700;font-size:clamp(.95rem,.91rem + .2vw,1.03rem);line-height:1.6;
   display:flex;gap:9px;align-items:baseline;list-style:none}
@@ -214,9 +217,9 @@
     <section class="gd-section" id="s{{ $i }}">
         {{-- 圖示 + 編號 + 標題。長文全白字的時候,讀者掃不出段落在哪裡結束 ——
              這一排的功能是給眼睛一個落點,不是裝飾。圖示是自己畫的 inline SVG
-             (見 partials/guide-icon),沒有外部圖檔也沒有授權問題。 --}}
+             (見 partials/article-icon),沒有外部圖檔也沒有授權問題。 --}}
         <h2>
-            <span class="gd-h2-mark">@include('partials.guide-icon', ['icon' => $s['icon'] ?? 'dot'])</span>
+            <span class="gd-h2-mark">@include('partials.article-icon', ['icon' => $s['icon'] ?? 'dot'])</span>
             <span class="gd-h2-text">{{ $s['h2'] }}</span>
             <span class="gd-h2-num" aria-hidden="true">{{ str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) }}</span>
         </h2>
@@ -253,7 +256,7 @@
 
     @if(! empty($article['faq']))
     <section class="gd-faq">
-        <h2>{{ __('guides.faq_title') }}</h2>
+        <h2 class="gd-h2-plain"><span class="gd-h2-mark">@include('partials.article-icon', ['icon' => 'question'])</span><span>{{ __('guides.faq_title') }}</span></h2>
         @foreach($article['faq'] as $f)
         <details class="gd-faq-item">
             <summary>{{ $f['q'] }}</summary>
@@ -267,7 +270,7 @@
 
     @if($related)
     <section class="gd-related">
-        <h2>{{ __('guides.related_title') }}</h2>
+        <h2 class="gd-h2-plain"><span class="gd-h2-mark">@include('partials.article-icon', ['icon' => 'link'])</span><span>{{ __('guides.related_title') }}</span></h2>
         <p class="gd-related-hint">{{ __('guides.related_hint') }}</p>
         <div class="gd-chips">
             @foreach($related as $r)
@@ -287,6 +290,8 @@
         </ul>
     </section>
     @endif
+
+    @include('partials.guide-feedback-cta')
 
     <p class="gd-meta" style="margin-top:28px">
         <a href="{{ route('guide.index') }}">{{ __('guides.back_to_index') }}</a>

@@ -26,7 +26,7 @@
                 <select name="a">
                     <option value="">{{ __('traits.compare.pick') }}</option>
                     @foreach($items as $key => $item)
-                    <option value="{{ $item['slug'] }}" @selected($key === $aKey)>{{ $item['name'] }}</option>
+                    <option value="{{ $item['slug'] }}" @selected($key === $aKey)>{{ $item['name'] }}{{ ($item['tag'] ?? null) ? '｜'.$item['tag'] : '' }}</option>
                     @endforeach
                 </select>
             </label>
@@ -35,7 +35,7 @@
                 <select name="b">
                     <option value="">{{ __('traits.compare.pick') }}</option>
                     @foreach($items as $key => $item)
-                    <option value="{{ $item['slug'] }}" @selected($key === $bKey)>{{ $item['name'] }}</option>
+                    <option value="{{ $item['slug'] }}" @selected($key === $bKey)>{{ $item['name'] }}{{ ($item['tag'] ?? null) ? '｜'.$item['tag'] : '' }}</option>
                     @endforeach
                 </select>
             </label>

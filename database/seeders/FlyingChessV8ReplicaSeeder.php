@@ -166,6 +166,7 @@ class FlyingChessV8ReplicaSeeder extends Seeder
                 // 原圖四個角落的 1–6 轉盤。DEFAULT_START_WHEEL 就是照這張圖做的
                 'start_wheel' => ['enabled' => true, 'segments' => Board::DEFAULT_START_WHEEL],
                 'reference_image' => 'images/board-references/couples-flying-chess-v8.jpg',
+                'recommended_players' => 4,
             ]
         );
 

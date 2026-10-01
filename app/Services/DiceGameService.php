@@ -4,36 +4,92 @@ namespace App\Services;
 
 use App\Models\GamePrompt;
 use App\Support\ContentExposure;
+use App\Support\ContentTranslations;
 
 class DiceGameService
 {
-    private const ACTIONS_MILD = ['親', '摸', '吹氣', '輕咬', '愛撫', '舔'];
-
-    private const PARTS_MILD = ['耳朵', '脖子', '臉頰', '手指', '鎖骨', '嘴唇'];
-
-    private const ACTIONS_MEDIUM = ['深吻', '舔', '吸', '咬', '愛撫', '揉'];
-
-    private const PARTS_MEDIUM = ['嘴唇', '脖子', '耳垂', '鎖骨', '腰', '胸口'];
-
-    private const ACTIONS_INTENSE = ['口交', '手交', '舔弄', '吸吮', '插入', '使用玩具'];
-
-    private const PARTS_INTENSE = ['陰莖', '陰蒂', '陰道', '肛門', '乳頭', '大腿內側'];
-
-    private const DURATIONS = ['3 秒', '5 秒', '10 秒', '15 秒', '30 秒', '1 分鐘'];
-
-    // 道具骰（成人情趣道具，Premium 解鎖更大膽的）
-    private const PROPS_FREE = ['冰塊', '羽毛', '絲巾', '眼罩', '精油', '低溫蠟燭'];
-
-    private const PROPS_INTENSE = ['手銬', '跳蛋', '震動棒', '按摩棒', '後庭塞', '拍子'];
-
-    // 完整句型的玩法骰，避免「動作＋部位」自由組合出現不自然結果。
-    private const PLAYS_INTENSE = [
-        '口交1分鐘',
-        '手指進去玩1分鐘',
-        '後入30下',
-        '換兩種體位',
-        '玩具刺激2分鐘',
-        '對方決定快慢深淺',
+    /* 預設骰面,鍵是「類別.強度」(時間骰沒有強度)。gentle／bold 免費,wild 付費(見 GamePrompt::defaultIsPaid)。 */
+    private const DEFAULT_POOLS = [
+        'action.gentle' => [
+            '親',
+            '輕咬',
+            '舔',
+            '輕撫',
+            '吸',
+            '用鼻尖蹭',
+        ],
+        'part.gentle' => [
+            '耳垂',
+            '脖子',
+            '鎖骨',
+            '嘴唇',
+            '手指',
+            '腰',
+        ],
+        'prop.gentle' => [
+            '冰塊',
+            '羽毛',
+            '絲巾',
+            '眼罩',
+            '按摩油',
+            '溫熱毛巾',
+        ],
+        'action.bold' => [
+            '舔',
+            '吸',
+            '揉',
+            '撫摸',
+            '輕咬',
+            '磨蹭',
+        ],
+        'part.bold' => [
+            '乳頭',
+            '胸部',
+            '大腿內側',
+            '臀部',
+            '下腹',
+            '隔著內褲的私處',
+        ],
+        'action.wild' => [
+            '舔',
+            '用舌尖逗',
+            '邊吸邊舔',
+            '邊舔邊揉',
+            '用手指玩',
+            '用跳蛋震',
+        ],
+        'part.wild' => [
+            '私處',
+            '陰蒂或龜頭',
+            '乳頭',
+            '會陰',
+            '大腿根',
+            '最敏感的點',
+        ],
+        'prop.wild' => [
+            '跳蛋',
+            '震動棒',
+            '按摩棒',
+            '潤滑液',
+            '手銬',
+            '保險套',
+        ],
+        'play.wild' => [
+            '幫對方口交1分鐘',
+            '用手指弄對方，快慢聽他的',
+            '69互舔1分鐘',
+            '騎上去自己動30下',
+            '後入抽插30下',
+            '換兩種體位各做1分鐘',
+        ],
+        'time' => [
+            '10秒',
+            '20秒',
+            '30秒',
+            '45秒',
+            '1分鐘',
+            '2分鐘',
+        ],
     ];
 
     /**
@@ -63,18 +119,7 @@ class DiceGameService
     /** 程式碼裡的預設骰面,鍵是「類別.強度」(時間骰沒有強度)。 */
     public static function defaultPools(): array
     {
-        return [
-            'action.gentle' => self::ACTIONS_MILD,
-            'action.bold' => self::ACTIONS_MEDIUM,
-            'action.wild' => self::ACTIONS_INTENSE,
-            'part.gentle' => self::PARTS_MILD,
-            'part.bold' => self::PARTS_MEDIUM,
-            'part.wild' => self::PARTS_INTENSE,
-            'prop.gentle' => self::PROPS_FREE,
-            'prop.wild' => self::PROPS_INTENSE,
-            'play.wild' => self::PLAYS_INTENSE,
-            'time' => self::DURATIONS,
-        ];
+        return self::DEFAULT_POOLS;
     }
 
     public static function getBuiltInDice(bool $isPremium = false): array
@@ -83,7 +128,7 @@ class DiceGameService
         // 收費是每一題自己的 is_paid,所以過濾在這一層就做完了。
         $fromDb = GamePrompt::poolsFor('dice_game', $isPremium);
         $usingDefaults = empty($fromDb);
-        $pools = $fromDb ?: self::defaultPools();
+        $pools = $fromDb ?: ContentTranslations::pools(self::defaultPools());
 
         $defs = [];
         foreach (self::DICE_DEFS as [$cat, $intensity, $premium]) {

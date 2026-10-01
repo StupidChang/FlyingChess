@@ -1,0 +1,163 @@
+{
+  "batch": "content-pilot-2026-09-07",
+  "status": "draft",
+  "master_locale": "zh_TW",
+  "locales": ["zh_TW", "zh_CN", "en", "ja"],
+  "items": [
+    {
+      "key": "existing-dare-19",
+      "kind": "existing_translation",
+      "game": "truth_dare",
+      "source_refs": ["truth_dare_cards:19"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "在另一半耳邊吹一口氣，再說一句最撩的話",
+        "zh_CN": "在另一半耳边吹一口气，再说一句最撩的话",
+        "en": "Blow gently by your partner’s ear, then whisper your most flirtatious line.",
+        "ja": "パートナーの耳元にふっと息を吹きかけてから、とびきりドキッとする一言をささやいて。"
+      }
+    },
+    {
+      "key": "existing-dare-20",
+      "kind": "existing_translation",
+      "game": "truth_dare",
+      "source_refs": ["truth_dare_cards:20"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "用最性感的眼神盯著另一半 15 秒不能笑",
+        "zh_CN": "用最性感的眼神盯着另一半 15 秒，不能笑",
+        "en": "Give your partner your most seductive gaze for 15 seconds without laughing.",
+        "ja": "いちばん色っぽい眼差しで、パートナーを15秒間見つめて。笑ったらだめ。"
+      }
+    },
+    {
+      "key": "existing-dare-22",
+      "kind": "existing_translation",
+      "game": "truth_dare",
+      "source_refs": ["truth_dare_cards:22"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "從背後環抱另一半，下巴靠在他肩上 15 秒",
+        "zh_CN": "从背后环抱另一半，下巴靠在对方肩上 15 秒",
+        "en": "Hug your partner from behind and rest your chin on their shoulder for 15 seconds.",
+        "ja": "パートナーを後ろから抱きしめて、相手の肩にあごを乗せたまま15秒。"
+      }
+    },
+    {
+      "key": "pilot-card-01",
+      "kind": "adaptation",
+      "game": "card_game",
+      "source_refs": ["truth_dare_cards:19"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "牌大的人靠近對方耳邊，說一句只想讓他聽見的情話；牌小的人牽著對方的手回應。",
+        "zh_CN": "牌大的人靠近对方耳边，说一句只想让对方听见的情话；牌小的人牵着对方的手回应。",
+        "en": "The player with the higher card whispers something romantic for their partner’s ears only. The player with the lower card responds by taking their hand.",
+        "ja": "カードの数字が大きい人は、相手の耳元で二人だけの甘い言葉をささやいて。小さい人は、相手の手を握って応えて。"
+      }
+    },
+    {
+      "key": "pilot-card-02",
+      "kind": "adaptation",
+      "game": "card_game",
+      "source_refs": ["truth_dare_cards:20"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "牌大的人決定坐近一點或站著牽手，兩人對視 15 秒；先笑的人說出對方今天最迷人的地方。",
+        "zh_CN": "牌大的人决定坐近一点或站着牵手，两人对视 15 秒；先笑的人说出对方今天最迷人的地方。",
+        "en": "The player with the higher card chooses: sit close together or stand holding hands. Look into each other’s eyes for 15 seconds. Whoever laughs first says what they find most charming about their partner today.",
+        "ja": "カードの数字が大きい人が、寄り添って座るか、立って手をつなぐかを選んで。15秒間見つめ合い、先に笑った人は、今日の相手のいちばん魅力的なところを伝えて。"
+      }
+    },
+    {
+      "key": "pilot-king-01",
+      "kind": "adaptation",
+      "game": "king_game",
+      "source_refs": ["truth_dare_cards:19"],
+      "level": "mild",
+      "audience": "both",
+      "text": {
+        "zh_TW": "{A} 在 {B} 耳邊說一句讓人心動的話，再由 {B} 看著 {A} 的眼睛回一句。",
+        "zh_CN": "{A} 在 {B} 耳边说一句让人心动的话，再由 {B} 看着 {A} 的眼睛回一句。",
+        "en": "{A} whispers something sweet in {B}’s ear. Then {B} looks into {A}’s eyes and replies with a sweet line of their own.",
+        "ja": "{A} は {B} の耳元で、ドキッとする一言をささやいて。次に {B} が {A} の目を見て、甘い一言を返して。"
+      }
+    },
+    {
+      "key": "pilot-king-02",
+      "kind": "adaptation",
+      "game": "king_game",
+      "source_refs": ["truth_dare_cards:20"],
+      "level": "mild",
+      "audience": "both",
+      "text": {
+        "zh_TW": "{A} 和 {B} 牽手對視 15 秒，先移開視線的人，說出對方一個讓自己心動的細節。",
+        "zh_CN": "{A} 和 {B} 牵手对视 15 秒，先移开视线的人，说出对方一个让自己心动的细节。",
+        "en": "{A} and {B} hold hands and look into each other’s eyes for 15 seconds. Whoever looks away first names one little thing about the other person that makes their heart flutter.",
+        "ja": "{A} と {B} は手をつないで15秒間見つめ合って。先に目をそらした人は、相手のちょっとした仕草や特徴でドキッとするものを一つ伝えて。"
+      }
+    },
+    {
+      "key": "pilot-wheel-01",
+      "kind": "adaptation",
+      "game": "wheel",
+      "source_refs": ["truth_dare_cards:22"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "讓另一半選擇面對面或從背後擁抱，抱著 20 秒，最後輕聲說一句你喜歡他的理由。",
+        "zh_CN": "让另一半选择面对面或从背后拥抱，抱着 20 秒，最后轻声说一句你喜欢对方的理由。",
+        "en": "Let your partner choose a face-to-face hug or a hug from behind. Hold them for 20 seconds, then softly tell them one reason you like them.",
+        "ja": "向かい合うか、後ろからか、パートナーに選んでもらって20秒間抱きしめて。最後に、相手を好きな理由を一つ、そっと伝えて。"
+      }
+    },
+    {
+      "key": "pilot-who-01",
+      "kind": "adaptation",
+      "game": "who_most_likely",
+      "source_refs": ["truth_dare_cards:20", "truth_dare_cards:22"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "對視不到 15 秒就害羞，卻又主動靠過去討抱抱",
+        "zh_CN": "对视不到 15 秒就害羞，却又主动靠过去要抱抱",
+        "en": "get shy before 15 seconds of eye contact are up, then move closer for a hug",
+        "ja": "15秒も見つめ合わないうちに照れるのに、自分からハグを求めて近づく"
+      }
+    },
+    {
+      "key": "pilot-dice-task-01",
+      "kind": "adaptation",
+      "game": "dice_game",
+      "source_refs": ["truth_dare_cards:22"],
+      "level": "mild",
+      "audience": "couple",
+      "integration": "full_task_prototype_requires_separate_pool",
+      "text": {
+        "zh_TW": "從背後抱住另一半 15 秒，讓對方把手放在你的手上。",
+        "zh_CN": "从背后抱住另一半 15 秒，让对方把手放在你的手上。",
+        "en": "Hug your partner from behind for 15 seconds and invite them to rest their hands on yours.",
+        "ja": "パートナーを後ろから15秒間抱きしめて、あなたの手に相手の手を重ねてもらって。"
+      }
+    },
+    {
+      "key": "pilot-board-01",
+      "kind": "adaptation",
+      "game": "flying_chess",
+      "source_refs": ["truth_dare_cards:19"],
+      "level": "mild",
+      "audience": "couple",
+      "text": {
+        "zh_TW": "耳語格：靠近另一半耳邊，說出今天最想和他一起做的一件小事，再牽手 15 秒。",
+        "zh_CN": "耳语格：靠近另一半耳边，说出今天最想和对方一起做的一件小事，再牵手 15 秒。",
+        "en": "Whisper square: Lean close to your partner’s ear and name one little thing you would love to do together today. Then hold hands for 15 seconds.",
+        "ja": "ささやきマス：パートナーの耳元で、今日一緒にしたいささやかなことを一つ伝えて。それから15秒間、手をつないで。"
+      }
+    }
+  ]
+}

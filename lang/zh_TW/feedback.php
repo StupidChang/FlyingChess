@@ -31,8 +31,11 @@ return [
     'contact_hint' => 'Email、IG、LINE 都可以。留了我們才回得了你 —— 不留也沒關係,內容一樣看得到。',
     'contact_placeholder' => 'you@example.com 或 @your_ig',
 
+    'member_label' => '以會員身分送出',
+    'member_hint' => '回覆會寄到你的會員信箱，不用另外留聯絡方式。',
+
     'page_label' => '在哪一頁遇到的',
-    'page_hint' => '從那一頁按過來的話會自動帶上。',
+    'page_hint' => '從那一頁按過來的話會自動帶上完整網址，也可以自己貼上。',
 
     'submit' => '送出回報',
     'tip' => '我們不會把你留的聯絡方式用在任何其他地方。回報內容可能會被用來改進題庫與功能。',
@@ -40,4 +43,7 @@ return [
     'thanks_title' => '收到了，謝謝你',
     'thanks_body' => '每一則我們都會看過。如果你留了聯絡方式，需要追問細節時會找你。',
     'thanks_again' => '再回報一則',
+    'thanks_ref' => '回報編號 #:id —— 之後想補充,提到這個編號我們就找得到。',
+
+    'throttled' => '這一小時送出的回報已經到上限了,:minutes 分鐘後可以再送。你剛剛寫的內容還留著。',
 ];

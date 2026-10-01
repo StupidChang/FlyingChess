@@ -68,6 +68,31 @@ class FeedbackTest extends TestCase
         $this->assertSame($user->id, Feedback::first()->user_id);
     }
 
+    public function test_a_member_is_not_asked_for_contact_details(): void
+    {
+        $user = User::factory()->create(['name' => '小明', 'email' => 'member@example.com']);
+
+        $this->actingAs($user)->get('/tw/feedback')
+            ->assertOk()
+            ->assertDontSee('name="contact"', false)
+            ->assertSee('member@example.com');
+    }
+
+    public function test_a_member_report_uses_the_account_email_as_contact(): void
+    {
+        $user = User::factory()->create(['email' => 'member@example.com']);
+
+        // 就算有人硬塞 contact 進來,也以帳號的 email 為準
+        $this->actingAs($user)->post('/tw/feedback', $this->payload(['contact' => '@someone_else']))->assertRedirect();
+
+        $this->assertSame('member@example.com', Feedback::first()->contact);
+    }
+
+    public function test_a_guest_still_gets_the_contact_field(): void
+    {
+        $this->get('/tw/feedback')->assertOk()->assertSee('name="contact"', false);
+    }
+
     public function test_the_thank_you_panel_replaces_the_form(): void
     {
         $this->post('/tw/feedback', $this->payload());
@@ -119,20 +144,33 @@ class FeedbackTest extends TestCase
         $this->assertDatabaseCount('feedback', 0);
     }
 
-    public function test_the_source_page_is_carried_but_only_if_it_is_ours(): void
+    public function test_the_source_page_is_carried_as_a_full_url_but_only_if_it_is_ours(): void
     {
-        // 表單會從 ?from= 預填
-        $this->get('/tw/feedback?from=/tw/wheel-game')
-            ->assertOk()
-            ->assertSee('value="/tw/wheel-game"', false);
+        $base = rtrim(config('app.url'), '/');
 
-        // 站外網址、協定相對網址一律丟掉,不要存也不要回填
-        foreach (['//evil.example/x', 'https://evil.example', 'javascript:alert(1)', 'tw/no-slash'] as $bad) {
-            $this->assertNull(Feedback::sanitizePagePath($bad), $bad);
+        // 表單會從 ?from= 預填完整網址(含 query)
+        $this->get('/tw/feedback?from='.urlencode($base.'/tw/play/share/ABCD?players=4'))
+            ->assertOk()
+            ->assertSee('value="'.e($base.'/tw/play/share/ABCD?players=4').'"', false);
+
+        // 舊的相對路徑補成完整網址
+        $this->assertSame($base.'/tw/wheel-game', Feedback::sanitizePageUrl('/tw/wheel-game'));
+
+        // 站外網址、協定相對網址、偽裝成本站的網域一律丟掉,不要存也不要回填
+        $host = parse_url($base, PHP_URL_HOST);
+        foreach ([
+            '//evil.example/x', 'https://evil.example', 'javascript:alert(1)', 'tw/no-slash',
+            "https://{$host}.evil.example/x", "https://evil.example/{$host}", 'https://user@evil.example',
+            "ftp://{$host}/x",
+        ] as $bad) {
+            $this->assertNull(Feedback::sanitizePageUrl($bad), $bad);
         }
 
         $this->post('/tw/feedback', $this->payload(['page_path' => '//evil.example/x']))->assertRedirect();
         $this->assertNull(Feedback::first()->page_path);
+
+        $this->post('/tw/feedback', $this->payload(['page_path' => $base.'/tw/games?page=2']))->assertRedirect();
+        $this->assertSame($base.'/tw/games?page=2', Feedback::latest('id')->first()->page_path);
     }
 
     public function test_the_form_is_linked_from_the_footer_and_the_beta_notice(): void
@@ -142,7 +180,7 @@ class FeedbackTest extends TestCase
         $html = $this->get('/tw/wheel-game')->assertOk()->getContent();
 
         // 頁尾與公告都要連得到,而且帶上現在這一頁
-        $this->assertStringContainsString(route('feedback.show', ['from' => '/tw/wheel-game']), $html);
+        $this->assertStringContainsString(e(route('feedback.show', ['from' => url('/tw/wheel-game')])), $html);
         $this->assertStringContainsString(__('feedback.nav'), $html);
     }
 
@@ -157,6 +195,55 @@ class FeedbackTest extends TestCase
     {
         foreach (['/tw/feedback', '/en/feedback', '/cn/feedback', '/jp/feedback'] as $path) {
             $this->get($path)->assertOk()->assertSee('name="message"', false);
+        }
+    }
+
+    public function test_the_thank_you_panel_gives_back_a_reference_number(): void
+    {
+        $this->followingRedirects()
+            ->post('/tw/feedback', $this->payload())
+            ->assertOk()
+            ->assertSee(__('feedback.thanks_ref', ['id' => Feedback::first()->id]));
+    }
+
+    public function test_a_link_can_preselect_the_type(): void
+    {
+        $html = $this->get('/tw/feedback?type=prompt')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/value="prompt"\s+checked/', $html);
+
+        // 亂給的值退回預設,不要讓網址決定出一個不存在的類型
+        $html = $this->get('/tw/feedback?type=nope')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/value="bug"\s+checked/', $html);
+    }
+
+    public function test_hitting_the_hourly_limit_keeps_what_was_written(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/tw/feedback', $this->payload())->assertRedirect(route('feedback.show'));
+        }
+
+        $long = str_repeat('第六則很長的回報。', 20);
+
+        // 第六則不是 429 錯誤頁,而是回到表單、內容還在
+        $this->from('/tw/feedback')
+            ->post('/tw/feedback', $this->payload(['message' => $long]))
+            ->assertRedirect('/tw/feedback')
+            ->assertSessionHasErrors('message')
+            ->assertSessionHasInput('message', $long);
+
+        $this->assertDatabaseCount('feedback', 5);
+    }
+
+    public function test_validation_errors_read_as_sentences_in_every_locale(): void
+    {
+        // lang/*/validation.php 補上之前,這裡印出來的是「validation.min.string」
+        foreach (['tw' => '內容至少要 3 個字', 'cn' => '内容至少要 3 个字', 'jp' => '内容は3文字以上', 'en' => 'The message field must be at least 3 characters'] as $prefix => $expected) {
+            $this->from("/{$prefix}/feedback")
+                ->followingRedirects()
+                ->post("/{$prefix}/feedback", $this->payload(['message' => 'a']))
+                ->assertOk()
+                ->assertSee($expected)
+                ->assertDontSee('validation.');
         }
     }
 }

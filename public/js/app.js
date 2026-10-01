@@ -4,7 +4,7 @@ function copyCode(code) {
         const btn = document.querySelector('.copy-btn');
         if (btn) {
             const orig = btn.textContent;
-            btn.textContent = '✓ 已複製！';
+            btn.textContent = '✓ ' + (btn.dataset.copied || 'OK');
             setTimeout(() => btn.textContent = orig, 1500);
         }
     });

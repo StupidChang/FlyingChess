@@ -832,6 +832,14 @@ async function fetchState() {
             myColor = res.my_color;
         }
 
+        /* 閒置太久被排程關閉(games:close-idle):停止輪詢;玩到一半被關的話重新整理,
+           讓頁面換成「已因閒置關閉」的提示。 */
+        if (res.status === 'abandoned') {
+            clearInterval(pollTimer);
+            if (prevStatus && prevStatus !== 'abandoned') location.reload();
+            return;
+        }
+
         updatePlayersList(res.players || []);
         if (playerCountEl) playerCountEl.textContent = res.players_count;
         if (startBtn) startBtn.disabled = (res.players_count < 2);

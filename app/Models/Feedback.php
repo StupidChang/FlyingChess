@@ -40,25 +40,44 @@ class Feedback extends Model
     }
 
     /**
-     * 使用者送來的 page_path 只有「站內相對路徑」是可信的。
+     * 「在哪一頁遇到的」—— 存成本站的完整網址(含 ?query),後台點了就能打開同一頁。
      *
      * 這個值來自網址上的 ?from=,等於是使用者可控字串。存進資料庫之前先收乾:
-     * 必須以單一 / 開頭(擋掉 //evil.com 這種被當成協定相對網址的寫法),不能
-     * 含有 : 或空白。不合格就當作沒填 —— 這個欄位只是查問題的線索,不值得為它
-     * 冒任何風險。
+     *
+     * - 完整網址:scheme 只能是 http(s),網域必須是本站(APP_URL 的網域或它的 www 版)
+     * - 站內路徑:以單一 / 開頭(擋掉 //evil.com 這種協定相對網址),補上 APP_URL 變成完整網址
+     * - 不能含空白或反斜線
+     *
+     * 其他一律當作沒填 —— 這個欄位只是查問題的線索,不值得為它冒任何風險。
      */
-    public static function sanitizePagePath(?string $raw): ?string
+    public static function sanitizePageUrl(?string $raw): ?string
     {
         $raw = trim((string) $raw);
 
-        if ($raw === '' || ! str_starts_with($raw, '/') || str_starts_with($raw, '//')) {
+        if ($raw === '' || preg_match('/[\s\\\\]/', $raw)) {
             return null;
         }
 
-        if (preg_match('/[\s:\\\\]/', $raw)) {
+        $base = rtrim((string) config('app.url'), '/');
+
+        if (str_starts_with($raw, '/')) {
+            if (str_starts_with($raw, '//') || str_contains($raw, ':')) {
+                return null;
+            }
+
+            return mb_substr($base.$raw, 0, 500);
+        }
+
+        $parts = parse_url($raw);
+        $ours = strtolower((string) parse_url($base, PHP_URL_HOST));
+        $host = strtolower((string) ($parts['host'] ?? ''));
+
+        if (! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+            || $host === '' || isset($parts['user']) || isset($parts['pass'])
+            || ($host !== $ours && $host !== 'www.'.$ours && 'www.'.$host !== $ours)) {
             return null;
         }
 
-        return mb_substr($raw, 0, 200);
+        return mb_substr($raw, 0, 500);
     }
 }

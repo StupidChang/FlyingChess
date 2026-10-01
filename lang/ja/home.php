@@ -12,7 +12,9 @@ return [
     'hero_title_high' => 'もっと楽しく',
     'hero_sub' => '飛行棋、真実か罰ゲームか、カード、サイコロ、ルーレット……10種類のカップルゲームを無料で今すぐ。',
     'hero_cta_hall' => 'ゲームホールへ',
+    'hero_cta_start' => '今すぐ試しに遊ぶ',
     'hero_cta_chess' => '今すぐ飛行棋を遊ぶ',
+    'hero_cta_test' => 'まず性癖を診断する',
     'hero_cta_truth' => '真実か罰ゲームか',
     'hero_trust_1' => '無料・インストール不要',
     'hero_trust_2' => 'スマホ・PC 対応',
@@ -21,7 +23,7 @@ return [
     // Game modes section
     'modes_label' => 'ゲームモード',
     'modes_title' => '好きなスタイルを選ぼう',
-    'modes_desc' => '10のゲームモード。軽いマッチから深い対話まで、ふたりの気分に合わせて選べる。',
+    'modes_desc' => '軽いマッチから深い対話まで。ふたりでも、大勢でも遊べる。',
 
     'mode_chess_title' => '飛行棋',
     'mode_chess_desc' => '2〜4人またはAI対戦。友達を待たずにすぐ遊べるクラシックゲーム。',

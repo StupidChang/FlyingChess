@@ -113,7 +113,7 @@
                         <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 1]) }}" maxlength="18">
                         <select name="genders[]" class="form-control p-gender" aria-label="{{ __('minigame.card_gender') }}">
                             <option value="">{{ __('minigame.gender_unset') }}</option>
-                            @foreach(\App\Models\GamePlayer::GENDERS as $g => $label)
+                            @foreach(\App\Models\GamePlayer::genderLabels() as $g => $label)
                             <option value="{{ $g }}">{{ $label }}</option>
                             @endforeach
                         </select>
@@ -122,7 +122,7 @@
                         <input type="text" name="players[]" class="form-control p-name" value="{{ __('minigame.player_default', ['n' => 2]) }}" maxlength="18">
                         <select name="genders[]" class="form-control p-gender" aria-label="{{ __('minigame.card_gender') }}">
                             <option value="">{{ __('minigame.gender_unset') }}</option>
-                            @foreach(\App\Models\GamePlayer::GENDERS as $g => $label)
+                            @foreach(\App\Models\GamePlayer::genderLabels() as $g => $label)
                             <option value="{{ $g }}">{{ $label }}</option>
                             @endforeach
                         </select>
@@ -196,7 +196,7 @@
 
 @section('scripts')
 {{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
-<script src="{{ asset_v('js/player-avatar.js') }}"></script>
+<script src="{{ asset_v('js/player-avatar.js') }}" data-label="{{ __('ui.choose_avatar') }}"></script>
 <script>
 (function() {
     if (!sessionStorage.getItem('tab_id')) {
@@ -221,7 +221,7 @@ document.getElementById('td-create-form').addEventListener('submit', function(){
 var GENDER_SELECT = @json(
     '<select name="genders[]" class="form-control p-gender" aria-label="'.__('minigame.card_gender').'">'
     .'<option value="">'.__('minigame.gender_unset').'</option>'
-    .collect(\App\Models\GamePlayer::GENDERS)->map(fn ($l, $g) => '<option value="'.$g.'">'.$l.'</option>')->implode('')
+    .collect(\App\Models\GamePlayer::genderLabels())->map(fn ($l, $g) => '<option value="'.$g.'">'.$l.'</option>')->implode('')
     .'</select>'
 );
 

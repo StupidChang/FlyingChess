@@ -6,6 +6,7 @@ use App\Services\CardGameService;
 use App\Services\DiceGameService;
 use App\Services\KingGameService;
 use App\Services\WhoMostLikelyService;
+use App\Support\ContentTranslations;
 use Illuminate\Database\Eloquent\Model;
 
 class GamePrompt extends Model
@@ -77,6 +78,8 @@ class GamePrompt extends Model
 
         return $rows->groupBy('pool')
             ->map(fn ($items) => $items->pluck('content')->all())
+            // 題目是內建內容就查翻譯字典;後台自己加的題目對不到,原樣顯示
+            ->map(fn ($items) => array_map(fn ($t) => ContentTranslations::translate($t), $items))
             ->all();
     }
 

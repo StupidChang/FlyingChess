@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Board;
+use App\Support\LocaleHelper;
 use App\Support\PremiumAccess;
 use Illuminate\Http\Request;
 
@@ -40,7 +41,8 @@ class PlayController extends Controller
 
         // V8.0 四人版:最多 4 人,兩人一組(index 0-1 為第一組、2-3 為第二組)。
         // 同組兩人都抵達終點才算贏 —— 見 board.js 的 teamOf() / checkTeamWin()。
-        $playerCount = (int) $request->query('players', 2);
+        // 沒指定人數就開這張棋盤的推薦人數 —— 多人棋盤用兩人開,第一格就會卡在「找兩位異性」。
+        $playerCount = (int) $request->query('players', $board->recommended_players ?: 2);
         $playerCount = max(1, min(4, $playerCount));
 
         // Resolve path data (fallback to sequential if not set)
@@ -53,7 +55,10 @@ class PlayController extends Controller
         $startWheel = $board->startWheel();
         $captureEnabled = $board->capture_enabled ?? true;
 
-        return view('play.show', compact('board', 'squares', 'playerCount', 'pathData', 'startWheel', 'captureEnabled'));
+        // hreflang 只指向有翻完的語系,不然就是指向一個 noindex 的頁面
+        $hreflangLocales = LocaleHelper::hreflangSet($board->translatedLocales());
+
+        return view('play.show', compact('board', 'squares', 'playerCount', 'pathData', 'startWheel', 'captureEnabled', 'hreflangLocales'));
     }
 
     public function showByCode(Request $request, string $code)

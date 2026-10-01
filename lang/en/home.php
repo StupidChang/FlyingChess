@@ -12,7 +12,9 @@ return [
     'hero_title_high' => 'more fun',
     'hero_sub' => 'Flying chess, truth or dare, card draws, dice, wheel of fortune — 10 couple games in one place, free to play.',
     'hero_cta_hall' => 'Enter the game hall',
+    'hero_cta_start' => 'Try it now',
     'hero_cta_chess' => 'Play flying chess now',
+    'hero_cta_test' => 'Take the kink test',
     'hero_cta_truth' => 'Truth or Dare',
     'hero_trust_1' => 'Free, no install',
     'hero_trust_2' => 'Mobile + desktop',
@@ -21,7 +23,7 @@ return [
     // Game modes section
     'modes_label' => 'Game modes',
     'modes_title' => 'Pick your style',
-    'modes_desc' => 'Ten game modes — from quick matches to deep interaction. There is one for every mood.',
+    'modes_desc' => 'From quick matches to deep interaction — for two of you, or for a room.',
 
     'mode_chess_title' => 'Flying Chess',
     'mode_chess_desc' => 'Classic flying chess for 2–4 players or vs. AI — no need to wait for friends.',

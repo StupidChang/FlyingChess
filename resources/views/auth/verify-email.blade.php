@@ -18,6 +18,16 @@
             {{ __('auth.verify_email_spam') }}
         </p>
 
+        {{-- 為什麼要驗證:這些功能驗證前都會被帶回這一頁(routes 的 verified 中介層) --}}
+        <div style="margin-bottom:24px;padding:14px 18px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)">
+            <p style="font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:8px">{{ __('auth.verify_email_unlocks_title') }}</p>
+            <ul style="margin:0;padding-left:1.2em;font-size:.85rem;color:var(--text-dim);line-height:1.9">
+                @foreach (__('auth.verify_email_unlocks') as $item)
+                    <li>{{ $item }}</li>
+                @endforeach
+            </ul>
+        </div>
+
         <form action="{{ route('verification.send') }}" method="POST">
             @csrf
             <div class="form-actions">

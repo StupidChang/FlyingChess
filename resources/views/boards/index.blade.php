@@ -20,6 +20,7 @@
                 <h3>{{ $board->name }}</h3>
                 @if($board->description)<p>{{ $board->description }}</p>@endif
                 <span class="badge-squares">{{ __('ui.square_count', ['n' => $board->squares_count]) }}</span>
+                @include('partials.board-players-badge')
                 @if($board->publish_status)
                 <span class="publish-badge publish-badge--{{ $board->publish_status }}">
                     {{ __('play.publish_status_' . $board->publish_status) }}

@@ -25,6 +25,7 @@
                 <h3>{{ $board->name }}</h3>
                 @if($board->description)<p>{{ $board->description }}</p>@endif
                 <span class="badge-squares">{{ __('ui.square_count', ['n' => $board->squares_count]) }}</span>
+                @include('partials.board-players-badge')
                 @if($board->is_premium_template)
                     <span class="badge-premium">Premium</span>
                 @else

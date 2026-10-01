@@ -1,11 +1,16 @@
 {{--
-    文章段落的圖示。
+    文章段落的圖示。指南文章(/guide)與屬性測驗結果頁的區塊標題共用同一組。
+
+    注意這**不是** partials/icon.blade.php —— 那是站台通用的 Heroicons 組(參數是
+    name / cls,用在導覽列、個人資料頁)。這一組是文章版面自己的線稿,參數是
+    icon / class,兩者刻意不合併:合併之後任何一邊要調線寬或尺寸都會動到對方。
 
     為什麼是自己畫的 inline SVG,不是抓現成圖片:抓來的圖有授權問題(而且這個站
     的聯播網對素材來源很敏感),外部圖檔還會多一次請求。這一組是 24×24 的線稿,
     stroke 吃 currentColor,所以顏色由 CSS 決定、深淺主題都對。
 
-    用法:@include('partials.guide-icon', ['icon' => 'clock'])
+    用法:@include('partials.article-icon', ['icon' => 'clock'])
+    要換尺寸類別就傳 class:['icon' => 'clock', 'class' => 'tt-sec-ico']
     文案端在 section 裡寫 'icon' => 'clock';沒寫或寫錯名字都會退回一個小圓點,
     不會破版。
 --}}
@@ -34,9 +39,19 @@
         'gift' => '<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M3 13h18M12 9v12"/><path d="M8 9a2.5 2.5 0 1 1 0-5c1.8 0 4 5 4 5M16 9a2.5 2.5 0 1 0 0-5c-1.8 0-4 5-4 5"/>',
         'users' => '<circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 10 0v1"/><path d="M16 6.5a3 3 0 0 1 0 5.8M17.5 20v-1a5 5 0 0 0-2-4"/>',
         'wallet' => '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/>',
+        // 屬性測驗結果頁的區塊
+        'pulse' => '<path d="M3 12h4l2.5-6 4 12L16 12h5"/>',
+        'sun' => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>',
+        'bars' => '<path d="M3 21h18"/><path d="M6.5 21V11M12 21V5M17.5 21v-6"/>',
+        'sliders' => '<path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="7" cy="17" r="2"/>',
+        'bulb' => '<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8 1 .8 1.6h5.4c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3z"/>',
+        'calc' => '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7.5h8M8 12h.01M12 12h.01M16 12h.01M8 16.5h.01M12 16.5h.01M16 16.5h.01"/>',
+        'link' => '<path d="M9.5 14.5l5-5"/><path d="M13 7l1.5-1.5a3.5 3.5 0 0 1 5 5L18 12"/><path d="M11 17l-1.5 1.5a3.5 3.5 0 0 1-5-5L6 12"/>',
+        'zap' => '<path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10.5H12z"/>',
+        'grid' => '<rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/>',
         'dot' => '<circle cx="12" cy="12" r="4"/>',
     ];
     $d = $paths[$icon ?? 'dot'] ?? $paths['dot'];
 @endphp
-<svg class="gd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+<svg class="{{ $class ?? 'gd-icon' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">{!! $d !!}</svg>

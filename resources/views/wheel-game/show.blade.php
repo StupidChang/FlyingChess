@@ -207,7 +207,7 @@
 
 @section('scripts')
 {{-- 玩家頭像:自己盯著玩家列補上挑選器,各遊戲不用改自己的產生邏輯 --}}
-<script src="{{ asset_v('js/player-avatar.js') }}"></script>
+<script src="{{ asset_v('js/player-avatar.js') }}" data-label="{{ __('ui.choose_avatar') }}"></script>
 <script src="{{ asset_v('js/escalation.js') }}"></script>
 <script>
 (function(){

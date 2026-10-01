@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Game extends Model
 {
+    public const STATUS_ABANDONED = 'abandoned';
+
+    /** 超過這麼久沒有任何動作(抽牌、擲骰、移動、加入)就自動關閉 */
+    public const IDLE_CLOSE_HOURS = 12;
+
     protected $fillable = ['code', 'game_type', 'status', 'max_players', 'is_private', 'game_state', 'finished_at'];
 
     protected $casts = [
@@ -76,6 +81,15 @@ class Game extends Model
     public function isFinished(): bool
     {
         return $this->status === 'finished';
+    }
+
+    /**
+     * 閒置太久被排程收掉的場次(games:close-idle)。跟 finished 分開:
+     * finished 是真的玩完(有人抵達終點、全部離開),這個是大家直接關掉分頁。
+     */
+    public function isAbandoned(): bool
+    {
+        return $this->status === self::STATUS_ABANDONED;
     }
 
     public function isFull(): bool

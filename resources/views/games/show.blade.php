@@ -15,7 +15,7 @@
         <div class="room-info-box">
             <h2 class="room-title">{{ __('games.room_code_label') }}</h2>
             <div class="room-code-display">{{ $game->code }}</div>
-            <button class="btn btn-sm btn-outline copy-btn" onclick="copyCode('{{ $game->code }}')" aria-label="{{ __('games.copy_room_code') }}">
+            <button class="btn btn-sm btn-outline copy-btn" data-copied="{{ __('ui.copied_excl') }}" onclick="copyCode('{{ $game->code }}')" aria-label="{{ __('games.copy_room_code') }}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline-block">
                     <path fill-rule="evenodd" d="M10.5 3A1.501 1.501 0 0 0 9 4.5h6A1.5 1.5 0 0 0 13.5 3h-3Zm-2.693.178A3 3 0 0 1 10.5 1.5h3a3 3 0 0 1 2.694 1.678c.497.042.992.092 1.486.15 1.497.173 2.57 1.46 2.57 2.929V19.5a3 3 0 0 1-3 3H6.75a3 3 0 0 1-3-3V6.257c0-1.47 1.073-2.756 2.57-2.93.493-.057.989-.107 1.487-.15Z" clip-rule="evenodd"/>
                 </svg>
@@ -148,6 +148,17 @@
                 <h2>{{ __('games.waiting_players_h2') }}</h2>
                 <p>{!! __('games.players_count_label', ['current' => '<strong id="player-count">'.e($game->players_count).'</strong>', 'max' => e($game->max_players)]) !!}</p>
                 <p>{!! __('games.share_simple', ['code' => '<strong class="code-highlight">'.e($game->code).'</strong>']) !!}</p>
+            </div>
+        </div>
+        @endif
+
+        {{-- 閒置太久被排程收掉的場次(games:close-idle) --}}
+        @if($game->isAbandoned())
+        <div class="waiting-overlay">
+            <div class="waiting-card">
+                <h2>{{ __('games.closed_title') }}</h2>
+                <p>{{ __('games.closed_desc', ['hours' => \App\Models\Game::IDLE_CLOSE_HOURS]) }}</p>
+                <a href="{{ route('games.lobby') }}" class="btn btn-gold" style="margin-top:12px">{{ __('games.closed_new') }}</a>
             </div>
         </div>
         @endif

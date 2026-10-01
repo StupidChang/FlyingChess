@@ -29,7 +29,11 @@ class FeedbackController extends Controller
     {
         return view('feedback.index', [
             // 從公告或頁尾按過來時會帶 ?from=,填進表單當作「在哪一頁遇到的」
-            'pagePath' => Feedback::sanitizePagePath($request->query('from')),
+            'pagePath' => Feedback::sanitizePageUrl($request->query('from')),
+            // 從「回報這一題」之類的入口按過來時帶 ?type=prompt,直接選好類型
+            'presetType' => in_array($request->query('type'), Feedback::TYPES, true)
+                ? $request->query('type')
+                : Feedback::TYPE_BUG,
         ]);
     }
 
@@ -41,7 +45,7 @@ class FeedbackController extends Controller
             // 會留聯絡方式。下限 3 是為了讓「壞了」「太少」這種真實回報過得去。
             'message' => ['required', 'string', 'min:3', 'max:2000'],
             'contact' => ['nullable', 'string', 'max:120'],
-            'page_path' => ['nullable', 'string', 'max:200'],
+            'page_path' => ['nullable', 'string', 'max:500'],
             // 蜜罐:畫面上看不到,只有機器人會填
             'website' => ['nullable', 'string', 'max:255'],
         ]);
@@ -52,18 +56,23 @@ class FeedbackController extends Controller
             return redirect()->route('feedback.show')->with('feedback_ok', true);
         }
 
-        Feedback::create([
+        $feedback = Feedback::create([
             'type' => $data['type'],
             'message' => $data['message'],
             // validate() 不會回傳沒送出來的 nullable 欄位,所以每一個都要給預設
-            'contact' => ($data['contact'] ?? null) ?: null,
-            'page_path' => Feedback::sanitizePagePath($data['page_path'] ?? null),
+            // 會員不用自己填:直接用帳號的 email,表單送來的值不採信(畫面上也沒有那一格)
+            'contact' => $request->user()?->email ?: (($data['contact'] ?? null) ?: null),
+            'page_path' => Feedback::sanitizePageUrl($data['page_path'] ?? null),
             'locale' => app()->getLocale(),
             'user_id' => $request->user()?->id,
             'user_agent' => mb_substr((string) $request->userAgent(), 0, 255) ?: null,
             'status' => Feedback::STATUS_NEW,
         ]);
 
-        return redirect()->route('feedback.show')->with('feedback_ok', true);
+        /* 帶回編號:之後使用者寫信或再回報時說「#123 那則」,後台一搜就找到。
+           蜜罐那一支刻意不給編號 —— 沒有真的存,編號只會是假的。 */
+        return redirect()->route('feedback.show')
+            ->with('feedback_ok', true)
+            ->with('feedback_id', $feedback->id);
     }
 }

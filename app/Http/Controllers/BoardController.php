@@ -128,6 +128,7 @@ class BoardController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100', new NoBlockedWords],
             'description' => ['nullable', 'string', 'max:500', new NoBlockedWords],
+            'recommended_players' => ['sometimes', 'integer', 'in:2,4'],
         ]);
 
         // Content changed after approval → back to review queue
@@ -496,29 +497,6 @@ class BoardController extends Controller
         return view('boards.templates', compact('templates'));
     }
 
-    /** 一眼看得出調性、但看不完 —— 付費範本預覽開放的格數。 */
-    private const PREVIEW_OPEN_SQUARES = 8;
-
-    /**
-     * 預覽要開放哪幾格。散在整張棋盤上而不是集中在開頭 —— 前八格通常都是暖身,
-     * 只看那幾格會以為整張棋盤都很溫和,反而讓人覺得不值得解鎖。
-     *
-     * ⚠ 這個選擇必須**對同一張棋盤永遠一樣**。用真的亂數的話,重新整理幾次
-     * 就能把整張棋盤看完,等於沒鎖。所以用 (棋盤 id + 格號 + APP_KEY) 的雜湊
-     * 排序來挑:看起來是隨機的,但同一張棋盤每次都得到同一批,而且加了
-     * APP_KEY 之後外人也算不出下一次會開哪幾格。
-     */
-    private function previewOpenPositions(Board $board): array
-    {
-        return $board->squares
-            ->pluck('position')
-            ->sortBy(fn ($p) => crc32($board->id.':'.$p.':'.config('app.key')))
-            ->take(self::PREVIEW_OPEN_SQUARES)
-            ->sort()
-            ->values()
-            ->all();
-    }
-
     public function templatePreview(Request $request, Board $board)
     {
         if (! $board->is_template) {
@@ -535,8 +513,8 @@ class BoardController extends Controller
         return view('boards.template-preview', [
             'board' => $board,
             'canSeeAll' => $canSeeAll,
-            'openPositions' => $canSeeAll ? [] : $this->previewOpenPositions($board),
-            'previewOpenSquares' => self::PREVIEW_OPEN_SQUARES,
+            'openPositions' => $canSeeAll ? [] : $board->previewOpenPositions(),
+            'previewOpenSquares' => Board::PREVIEW_OPEN_SQUARES,
         ]);
     }
 
@@ -567,6 +545,7 @@ class BoardController extends Controller
             'path_data' => $board->path_data,
             'start_wheel' => $board->start_wheel,
             'capture_enabled' => $board->capture_enabled,
+            'recommended_players' => $board->recommended_players,
         ]);
 
         foreach ($board->squares as $sq) {

@@ -30,6 +30,7 @@
                 <span class="badge-free">{{ __('play.free_template') }}</span>
             @endif
             <span class="badge-squares">{{ __('ui.square_count', ['n' => $board->squares->count()]) }}</span>
+            @include('partials.board-players-badge')
         </div>
     </div>
 

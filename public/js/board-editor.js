@@ -533,7 +533,7 @@ const WHEEL_EDIT_HEX = ['#ec4899', '#3b82f6', '#22c55e', '#eab308', '#f97316', '
 
 /* Mirrors Board::DEFAULT_START_WHEEL — used to prefill when a board turns the
    wheel on for the first time. */
-const WHEEL_DEFAULTS = [
+const WHEEL_DEFAULTS = window.DEFAULT_START_WHEEL || [
   { text: '喝一口',       enter: false, reroll: false },
   { text: '再擲一次',     enter: false, reroll: true  },
   { text: '親吻對方伴侶', enter: false, reroll: false },
@@ -641,7 +641,7 @@ async function saveRules() {
     window.CAPTURE_ON  = document.getElementById('rule-capture').checked;
     const addButton = document.getElementById('add-wheel-btn');
     if (addButton) {
-      addButton.textContent = wheelOn ? '🎡 編輯進場轉盤' : '＋ 新增進場轉盤';
+      addButton.textContent = wheelOn ? tp('wheelEditBtn') : tp('wheelAddBtn');
     }
     status.textContent = tp('saved');
   } catch (e) {
