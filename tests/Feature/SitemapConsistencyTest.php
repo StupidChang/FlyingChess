@@ -7,6 +7,7 @@ use App\Support\LocaleHelper;
 use Database\Seeders\BoardSeeder;
 use Database\Seeders\BoardTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 /**
@@ -140,20 +141,34 @@ class SitemapConsistencyTest extends TestCase
         $this->assertStringContainsString($board->share_code, (string) reset($canonicals));
     }
 
-    public function test_pages_only_translated_in_one_locale_do_not_hreflang_the_others(): void
+    public function test_hreflang_declares_exactly_the_translated_locales(): void
     {
         /* hreflang 指向一個 noindex 的頁面是自相矛盾的訊號,Google 會整組忽略。
-           屬性測驗與性壓抑指數測驗只有繁中有文案,所以它們只該宣告繁中。 */
-        foreach (['/en/trait-test', '/en/dual-control'] as $path) {
+           所以宣告的集合必須跟 config 的 translated 完全一致 —— 直接從 config
+           推期望值,語系翻好加進 translated 時這裡不用再改。 */
+        $cases = [
+            '/en/trait-test' => 'traits.translated',
+            '/en/dual-control' => 'horny.translated',
+        ];
+
+        foreach ($cases as $path => $configKey) {
+            $expected = [];
+            foreach (config('app.available_locales') as $locale => $meta) {
+                if (in_array($locale, (array) config($configKey), true)) {
+                    $expected[] = $meta['hreflang'];
+                }
+            }
+            $expected[] = 'x-default';
+
             $head = $this->asAgeVerified()->get($path)->assertOk()->getContent();
             $head = substr($head, 0, (int) strpos($head, '</head>'));
 
             preg_match_all('#<link rel="alternate" hreflang="([^"]+)"#', $head, $m);
 
             $this->assertSame(
-                ['zh-TW', 'x-default'],
+                $expected,
                 $m[1],
-                "{$path} 宣告了它自己並沒有翻譯的語系"
+                "{$path} 宣告的 hreflang 和 translated 設定對不起來"
             );
         }
     }
@@ -253,6 +268,15 @@ class SitemapConsistencyTest extends TestCase
         ] as $url) {
             $this->get($url)->assertStatus(410);
         }
+    }
+
+    public function test_the_retired_time_capsule_is_gone_not_missing(): void
+    {
+        // 2026-10-01 下架。大廳、分享出去的膠囊網址都要是 410,而且不再出現在任何頁面上
+        foreach (['/tw/time-capsule', '/time-capsule', '/en/time-capsule/ABCD1234', '/tw/time-capsule/ABCD1234/seal'] as $url) {
+            $this->get($url)->assertStatus(410);
+        }
+        $this->assertFalse(Route::has('time-capsule.lobby'));
     }
 
     public function test_real_pages_are_not_caught_by_the_retired_url_rule(): void

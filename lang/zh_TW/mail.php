@@ -16,6 +16,4 @@ return [
     'reset_line2' => '這個連結會在 :count 分鐘後失效。',
     'reset_line3' => '如果你沒有要求重設密碼,忽略這封信即可,你的密碼不會被更改。',
 
-    'capsule_subject' => '📦 時間膠囊「:title」今天開封!',
-    'capsule_body' => "你的時間膠囊「:title」今天可以開封了。\n\n點開連結回去看看:\n:url",
 ];

@@ -9,11 +9,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Daily 9 AM Asia/Taipei: send reminder mail for capsules unlocking today
-Schedule::command('capsule:send-reminders')
-    ->dailyAt('09:00')
-    ->timezone('Asia/Taipei');
-
 /*
  * 瀏覽紀錄只留 180 天。這張表每天都在長,而且它回答的問題(現在的動線如何)
  * 本來就只看得到近期 —— 留著兩年前的資料只會讓後台查詢愈來愈慢、備份愈來愈大。
@@ -27,3 +22,11 @@ Schedule::call(function () {
             ->limit(5000)->delete();
     } while ($deleted > 0);
 })->dailyAt('04:30')->timezone('Asia/Taipei')->name('prune-page-views');
+
+/*
+ * 閒置超過 Game::IDLE_CLOSE_HOURS 的場次改成「已關閉(閒置)」。沒有這個的話,
+ * 直接關掉分頁的場次會永遠停在「進行中」(見 CloseIdleGames)。
+ */
+Schedule::command('games:close-idle')
+    ->hourly()
+    ->withoutOverlapping();

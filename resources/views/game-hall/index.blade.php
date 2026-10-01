@@ -63,7 +63,10 @@
                 </div>
                 <h3>{{ __('games.flying_chess') }}</h3>
                 <p>{{ __('games.desc_flying_chess') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                <div class="game-card-tags">
+                    <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                    <span class="game-card-tag tag-group">{{ __('games.tag_group') }}</span>
+                </div>
                 <a href="{{ route('games.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
@@ -76,7 +79,10 @@
                 </div>
                 <h3>{{ __('games.truth_dare') }}</h3>
                 <p>{{ __('games.desc_truth_dare') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                <div class="game-card-tags">
+                    <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                    <span class="game-card-tag tag-group">{{ __('games.tag_group') }}</span>
+                </div>
                 <a href="{{ route('truth-dare.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
@@ -202,18 +208,6 @@
                 <a href="{{ route('bucket-list.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
-            {{-- 時間膠囊 --}}
-            <article class="game-card">
-                <div class="game-card-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
-                        <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z"/>
-                    </svg>
-                </div>
-                <h3>{{ __('games.time_capsule') }}</h3>
-                <p>{{ __('games.desc_capsule') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
-                <a href="{{ route('time-capsule.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
-            </article>
             @endif
 
         </div>

@@ -16,8 +16,14 @@
         <h1 class="hero-title">{{ __('home.hero_title_pre') }}<span>{{ __('home.hero_title_high') }}</span></h1>
         <p class="hero-sub">{{ __('home.hero_sub') }}</p>
         <div class="hero-btns">
-            <a href="{{ route('game-hall.index') }}" class="btn btn-gold btn-xl">{{ __('home.hero_cta_hall') }}</a>
-            <a href="{{ route('games.lobby') }}" class="btn btn-outline-gold btn-xl">{{ __('home.hero_cta_chess') }}</a>
+            {{-- 第一顆直接開一局:第一次來、不知道從哪開始的人按下去就在玩了。
+                 route('play') 開的是預設棋盤(輕度暖身版):免費、1男1女、一路漸進到口交與插入。
+                 遊戲大廳仍在導覽列。要換成別張棋盤,改 boards.is_default 即可。 --}}
+            <a href="{{ route('play') }}" class="btn btn-gold btn-xl">{{ __('home.hero_cta_start') }}</a>
+            {{-- 第二顆從飛行棋改成測驗:飛行棋要兩個人同時在場才玩得起來,一個人
+                 逛到首頁的時候按下去會卡住;測驗一個人就能做完,而且做完會拿到一頁
+                 自己的結果 —— 那才是把人留下來的第一步。飛行棋從遊戲區進去。 --}}
+            <a href="{{ route('trait-test.show') }}" class="btn btn-outline-gold btn-xl">{{ __('home.hero_cta_test') }}</a>
         </div>
         <div class="hero-trust">
             <span class="hero-trust-item">{{ __('home.hero_trust_1') }}</span>
@@ -74,7 +80,10 @@
                 </div>
                 <h3>{{ __('home.mode_chess_title') }}</h3>
                 <p>{{ __('home.mode_chess_desc') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                <div class="game-card-tags">
+                    <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                    <span class="game-card-tag tag-group">{{ __('games.tag_group') }}</span>
+                </div>
                 <a href="{{ route('games.lobby') }}" class="btn btn-gold btn-full">{{ __('home.mode_chess_cta') }}</a>
             </article>
 
@@ -88,7 +97,10 @@
                 </div>
                 <h3>{{ __('home.mode_truth_title') }}</h3>
                 <p>{{ __('home.mode_truth_desc') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                <div class="game-card-tags">
+                    <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
+                    <span class="game-card-tag tag-group">{{ __('games.tag_group') }}</span>
+                </div>
                 <a href="{{ route('truth-dare.lobby') }}" class="btn btn-gold btn-full">{{ __('home.mode_truth_cta') }}</a>
             </article>
 
@@ -162,32 +174,6 @@
                 <a href="{{ route('who-most-likely.show') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
-            {{-- 枕邊屬性測驗 --}}
-            <article class="game-card">
-                <div class="game-card-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
-                        <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-                <h3>{{ __('traits.title') }}</h3>
-                <p>{{ __('traits.tagline') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('traits.facts.time') }}</span>
-                <a href="{{ route('trait-test.show') }}" class="btn btn-gold btn-full">{{ __('traits.start') }}</a>
-            </article>
-
-            {{-- 性壓抑指數測驗 --}}
-            <article class="game-card">
-                <div class="game-card-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
-                        <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z"/>
-                    </svg>
-                </div>
-                <h3>{{ __('horny.title') }}</h3>
-                <p>{{ __('horny.tagline') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('horny.facts.time') }}</span>
-                <a href="{{ route('horny-test.show') }}" class="btn btn-gold btn-full">{{ __('horny.start') }}</a>
-            </article>
-
             {{-- 自訂棋盤 --}}
             <article class="game-card">
                 <div class="game-card-icon" aria-hidden="true">
@@ -219,18 +205,6 @@
                 <a href="{{ route('bucket-list.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
             </article>
 
-            {{-- 時光膠囊 --}}
-            <article class="game-card">
-                <div class="game-card-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px">
-                        <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z"/>
-                    </svg>
-                </div>
-                <h3>{{ __('games.time_capsule') }}</h3>
-                <p>{{ __('games.desc_capsule') }}</p>
-                <span class="game-card-tag tag-couple">{{ __('games.tag_couple') }}</span>
-                <a href="{{ route('time-capsule.lobby') }}" class="btn btn-gold btn-full">{{ __('games.start_game') }}</a>
-            </article>
             @endif
 
             {{-- 社群棋盤 --}}

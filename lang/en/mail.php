@@ -16,6 +16,4 @@ return [
     'reset_line2' => 'This link expires in :count minutes.',
     'reset_line3' => 'If you did not request a password reset, just ignore this email — your password will not change.',
 
-    'capsule_subject' => '📦 Your time capsule ":title" opens today!',
-    'capsule_body' => "Your time capsule \":title\" can be opened today.\n\nOpen the link to take a look:\n:url",
 ];

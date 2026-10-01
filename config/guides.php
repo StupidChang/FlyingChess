@@ -61,7 +61,7 @@ return [
         'long-distance-couples' => [
             'updated' => '2026-08-21',
             'priority' => '0.7',
-            'related' => ['trait-test.compare', 'time-capsule.lobby', 'play'],
+            'related' => ['trait-test.compare', 'play'],
         ],
         'talk-about-sex-needs' => [
             'updated' => '2026-08-21',
@@ -74,5 +74,5 @@ return [
      * 有翻譯的語系。沒列在這裡的語系,文章頁會退回繁中文案並標 noindex,而且
      * hreflang 只會宣告有翻譯的那幾個 —— 見 LocaleHelper::hreflangSet()。
      */
-    'translated' => ['zh_TW'],
+    'translated' => ['zh_TW', 'en', 'zh_CN', 'ja'],
 ];

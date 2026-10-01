@@ -46,6 +46,9 @@ class RetiredUrls
            /nl/products —— 兩個字母的語系碼不能單獨當條件(會撞到我們自己的
            en/jp),所以一定要連著商店路徑一起比對。 */
         '#^[a-z]{2}(-[a-z]{2})?/(products|collections|pages|blogs|policies|cart|checkout|account)(/|$)#',
+        /* 我們自己收掉的功能。時間膠囊 2026-10-01 下架(使用者決定,當時 0 個膠囊),
+           網址回 410 讓搜尋引擎盡快移除,而不是 404 一直回來重抓。 */
+        '#^time-capsule(/|$)#',
     ];
 
     public function handle(Request $request, Closure $next): Response

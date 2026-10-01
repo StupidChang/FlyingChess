@@ -45,7 +45,6 @@ class PublicRoutesSmokeTest extends TestCase
             '/tw/dual-control',
             '/tw/truth-dare',
             '/tw/bucket-list',
-            '/tw/time-capsule',
             '/tw/templates',
             '/tw/community',
             '/tw/premium',
