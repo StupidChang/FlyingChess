@@ -6,6 +6,8 @@ return [
     'boards' => 'My Boards',
     'profile' => 'Profile',
     'admin' => 'Admin',
+    'notifications' => 'Notifications',
+    'notifications_empty' => 'No new notifications',
     'language' => 'Language',
     'menu' => 'Menu',
     'close' => 'Close',
@@ -26,6 +28,7 @@ return [
     'copy' => 'Copy',
     'copied' => 'Copied',
     'copied_excl' => 'Copied!',
+    'choose_avatar' => 'Choose an avatar',
 
     // Profile page
     'username_label' => 'Username',
@@ -66,6 +69,10 @@ return [
     'history_total' => ':total games',
     'history_locked' => 'Free accounts show only the last :count games — :hidden more are waiting behind an upgrade.',
     'history_upgrade_cta' => 'Upgrade for the full history',
+    'tests' => 'Tests',
+    'quiz_next' => 'Next',
+    'quiz_prev' => 'Back',
+    'quiz_page' => 'Page :n of :total',
     'community_boards' => 'Community Boards',
     'theme_rose' => 'Rose',
     'theme_indigo' => 'Indigo',

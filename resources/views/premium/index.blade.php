@@ -3,6 +3,9 @@
 @section('meta_description', __('seo.premium_description', ['price' => $entryPrice ?? \App\Support\Pricing::entryPrice()]))
 @section('og_title', __('seo.premium_title') . ' — ' . __('ui.site_name'))
 @section('og_description', __('seo.premium_description', ['price' => $entryPrice ?? \App\Support\Pricing::entryPrice()]))
+{{-- 金流還沒接上時這一頁只寫「即將開放購買」,買不了的頁面不該出現在搜尋結果裡。
+     接上金流($gatewayLive 變 true)就自動恢復可索引。 --}}
+@section('robots', ($gatewayLive ?? false) ? 'index,follow' : 'noindex,follow')
 @section('content')
 
 <div class="premium-section">

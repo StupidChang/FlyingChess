@@ -30,15 +30,16 @@ return [
     'tag_online' => '多人線上',
     'preview_short' => '預覽',
     'badge_popular' => '最多人玩',
-    'tag_couple' => '情侶適合',
+    'tag_couple' => '情侶',
+    'tag_group' => '多人',
     'tag_party' => '同機派對',
     'start_game' => '開始遊戲',
 
     // Game-hall card descriptions
-    'desc_flying_chess' => '經典飛行棋對戰，2–4 人或 AI 對手；踩到哪一格就做哪一格，免費棋盤脫到只剩內衣褲，Premium 棋盤做到最後',
+    'desc_flying_chess' => '經典飛行棋對戰，2–4 人或 AI 對手；踩到哪一格就做哪一格，每張棋盤都從脫衣一路走到口交與插入，Premium 棋盤的性交格與體位更多',
     'desc_truth_dare' => '1–6 人輪流抽牌，情侶題與派對題分開；付費那一層是口交、用手與指定體位',
     'desc_card' => '2–6 人抽牌配對，牌大的指揮、牌小的服從；最重那一層是口交、用手與指定體位',
-    'desc_dice' => '骰出動作＋部位＋時間；狂野骰面直接骰到口交、插入與陰蒂、肛門',
+    'desc_dice' => '骰出動作＋部位＋時間；狂野骰面直接骰到口交、後入與陰蒂、龜頭',
     'desc_king' => '抽到國王的人號令全場，指定誰對誰做什麼；最重那一層連口交都在指令裡',
     'also_includes' => '同一頁也包含「:name」玩法，可直接切換',
     'desc_wml' => '大家一起投票，看看你們之中誰最騷、最主動、最忍不住，成人辣度題庫',
@@ -49,17 +50,15 @@ return [
     // 短標籤,給 /llms.txt 當連結名稱用(seo.templates_title 是整句，當連結名太長)
     'templates_short' => '棋盤模板',
 
-    // Bucket list / time capsule
+    // Bucket list
     'bucket_list' => '性愛清單',
     'desc_bucket' => '你提一個想試的姿勢、玩具或場景，兩個人都投「想做」才算數',
-    'time_capsule' => '時間膠囊',
-    'desc_capsule' => '今天把最想被怎麼對待寫下來，封存到開封日再一起打開',
 
     // Flying chess lobby
     'fc_lobby_title' => '飛行棋大廳',
     // *_seo_title 只餵 <title> 與 og:title，頁面上的 H1/標籤仍用 fc_lobby_title，
     // 這樣關鍵字進得了 meta 而版面不變。其他遊戲頁同一套做法。
-    'fc_lobby_seo_title' => '飛行棋大廳 — 2–4 人多人遊戲',
+    'fc_lobby_seo_title' => '情趣飛行棋 — 情侶床上棋盤遊戲、2–4 人',
     'fc_lobby_meta' => '瀏覽各種飛行棋棋盤，選擇喜歡的棋盤開始遊戲！經典 Ludo 飛行棋，2–4 人多人遊戲或 AI 對手，情侶必玩。',
     'fc_lobby_h1' => '選擇棋盤開始遊戲',
     'fc_lobby_desc' => '瀏覽各種棋盤模板，找到你喜歡的開始遊玩',
@@ -196,15 +195,12 @@ return [
     'js_winner' => '__NAME__（__COLOR__）獲勝！',
     'js_dice_value' => '骰子點數 __N__',
 
-    // Bucket list / Time capsule lobby
+    // Bucket list lobby
     'bl_title' => '情侶性愛清單 — 想試的姿勢、玩具、場景一起列',
     'bl_meta' => '情侶性愛願望清單：你提一個想試的姿勢、玩具或場景，對方投「想做／再看看／不要」，兩個人都想要才算數。完全免費，分享連結就能一起寫。',
     'bl_og_desc' => '你提一個想試的，我投想做或不要 —— 兩個人都想要的才留下來。免費，分享連結就能一起寫。',
-    'tc_title' => '情侶時間膠囊 — 把現在最想要的寫下來，封到開封日',
-    'tc_meta' => '情侶時間膠囊：今天回答 10 個關於身體與慾望的問題，封存到未來的開封日。一年後一起打開，看看當時的自己想被怎麼對待。免費玩。',
-    'tc_og_desc' => '今天寫下最想被怎麼對待，封存到未來。一年後一起打開。',
 
-    // Shared (bucket list / time capsule rooms)
+    // Shared (bucket list rooms)
     'share_link_label' => '分享連結（傳給另一半）',
     'copy_link' => '複製連結',
     'copied' => '已複製 ✓',
@@ -248,40 +244,6 @@ return [
     'bl_vote_maybe' => '再看看',
     'bl_vote_no' => '不要',
 
-    // Time capsule lobby
-    'tc_h1' => '情侶時間膠囊',
-    'tc_hero_sub' => '把現在最想要、又說不出口的，寫給以後的我們',
-    'tc_feature_1' => '回答 10 個問題',
-    'tc_feature_2' => '封存到開封日',
-    'tc_feature_3' => '一起開封回顧',
-    'tc_create_h2' => '建立新膠囊',
-    'tc_title_label' => '膠囊標題',
-    'tc_title_placeholder' => '例：給一年後的我們',
-    'tc_date_label' => '開封日期（必須是明天以後，建議 1 年後的同一天）',
-    'tc_email_label' => '提醒 Email（選填，開封日當天會寄信提醒）',
-    'tc_create_btn' => '建立膠囊',
-    'tc_create_tip' => '建立後產生分享連結，傳給另一半就能一起寫；填好後創建者按「封存」即鎖定，到開封日才能查看',
-
-    // Time capsule room
-    'tc_room_meta' => '情侶時間膠囊：把現在最想要的寫下來，封到開封日。',
-    'tc_open_date' => '開封日：:date',
-    'tc_role_owner' => '你是膠囊創建者',
-    'tc_role_viewer' => '訪客模式',
-    'tc_state_editing' => '編輯中',
-    'tc_state_editing_desc' => '填寫回答後請創建者按「封存」鎖定。封存後直到 :date 才能再次查看',
-    'tc_state_sealed' => '已封存，倒數 :days 天',
-    'tc_state_sealed_desc' => '於 :date 開封',
-    'tc_state_open' => '已開封',
-    'tc_state_open_desc' => ':date 已開啟',
-    'tc_locked_hidden' => '膠囊已封存，內容隱藏中',
-    'tc_days_left' => '還有 :days 天',
-    'tc_unlock_on' => '到 :date 才會解鎖',
-    'tc_answer_placeholder' => '直接寫，反正到開封日才看得到…',
-    'tc_save_btn' => '儲存回答',
-    'tc_seal_confirm' => '封存後不能再修改，直到 :date 才能查看內容。確定要封存嗎？',
-    'tc_seal_btn' => '封存膠囊',
-    'tc_no_answers' => '（兩人都未作答）',
-
     // Server flash / error messages (GameController / TruthDareController / services)
     'flash_solo_started' => '單人遊戲已開始！',
     'flash_room_created' => '房間已建立！分享房間代碼給朋友吧。',
@@ -298,6 +260,9 @@ return [
     'err_room_expired' => '無法進入此房間，可能連線已過期，請重新建立遊戲。',
     'err_not_in_room' => '你不在此房間中。',
     'err_game_not_started' => '遊戲尚未開始。',
+    'closed_title' => '這場已因閒置關閉',
+    'closed_desc' => '超過 :hours 小時沒有人動作，系統自動關閉了這個房間。想繼續玩的話，開一場新的就好。',
+    'closed_new' => '開新的一場',
     'flash_left_room' => '你已離開房間。',
     'td_already_in_room' => '你已在房間中。',
     'td_room_started_or_ended' => '此房間已開始或已結束，無法加入。',
@@ -306,4 +271,18 @@ return [
     'td_no_more_cards' => '此類別已無更多題目',
     'td_no_players' => '沒有玩家在房間中。',
     'td_room_closed' => '房間已關閉。',
+    'lobby_tabs_aria' => '棋盤來源',
+    'lobby_tab_site' => '網站棋盤',
+    'lobby_tab_community' => '社群棋盤',
+    'lobby_community_empty_title' => '還沒有社群棋盤',
+    'lobby_community_empty_desc' => '會員自己設計、發佈並通過審核的棋盤會出現在這裡。你也可以做一張自己的。',
+    'lobby_community_cta' => '建立你的棋盤',
+    'lobby_by' => ':name 製作',
+    'quick_preview' => '快速預覽',
+    'quick_preview_close' => '關閉',
+    'quick_preview_loading' => '載入中…',
+    'quick_preview_failed' => '載入失敗，請再試一次',
+    'quick_preview_locked' => '付費棋盤：先開放其中 :n 格給你看，其餘解鎖後可見。',
+    'quick_preview_locked_item' => '解鎖後可見',
+    'quick_preview_full' => '完整預覽與解鎖',
 ];

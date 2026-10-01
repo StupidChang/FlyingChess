@@ -6,6 +6,8 @@ return [
     'boards' => '我的棋盘',
     'profile' => '个人资料',
     'admin' => '后台',
+    'notifications' => '通知',
+    'notifications_empty' => '目前没有新通知',
     'language' => '语言',
     'menu' => '菜单',
     'close' => '关闭',
@@ -26,6 +28,7 @@ return [
     'copy' => '复制',
     'copied' => '已复制',
     'copied_excl' => '已复制！',
+    'choose_avatar' => '选择头像',
 
     // Profile page
     'username_label' => '用户名',
@@ -66,6 +69,10 @@ return [
     'history_total' => '共 :total 场',
     'history_locked' => '免费会员只显示最近 :count 场，还有 :hidden 场需要升级才看得到。',
     'history_upgrade_cta' => '升级查看完整记录',
+    'tests' => '测验',
+    'quiz_next' => '下一页',
+    'quiz_prev' => '上一页',
+    'quiz_page' => '第 :n / :total 页',
     'community_boards' => '社区棋盘',
     'theme_rose' => '玫瑰',
     'theme_indigo' => '靛蓝',

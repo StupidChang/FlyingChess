@@ -8,9 +8,8 @@ $paths = [
     ['path' => '',                'priority' => '1.0', 'changefreq' => 'weekly'],
     ['path' => 'play',            'priority' => '0.9', 'changefreq' => 'weekly'],
     ['path' => 'game-hall',       'priority' => '0.8', 'changefreq' => 'weekly'],
-    // 共同清單 / 時光膠囊 暫時隱藏，不列入 sitemap（日後還原時取消註解即可）
+    // 共同清單暫時隱藏，不列入 sitemap（日後還原時取消註解即可）。時光膠囊 2026-10-01 已下架。
     // ['path' => 'bucket-list',     'priority' => '0.8', 'changefreq' => 'weekly'],
-    // ['path' => 'time-capsule',    'priority' => '0.8', 'changefreq' => 'weekly'],
     ['path' => 'truth-dare',      'priority' => '0.7', 'changefreq' => 'weekly'],
     ['path' => 'card-game',       'priority' => '0.7', 'changefreq' => 'monthly'],
     ['path' => 'dice-game',       'priority' => '0.7', 'changefreq' => 'monthly'],
@@ -25,10 +24,14 @@ $paths = [
     ['path' => 'custom-wheel',    'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'templates',       'priority' => '0.6', 'changefreq' => 'monthly'],
     ['path' => 'community',       'priority' => '0.7', 'changefreq' => 'daily'],
-    ['path' => 'premium',         'priority' => '0.5', 'changefreq' => 'monthly'],
     ['path' => 'privacy',         'priority' => '0.3', 'changefreq' => 'yearly'],
     ['path' => 'terms',           'priority' => '0.3', 'changefreq' => 'yearly'],
 ];
+
+/* 會員頁只在金流接上時列入:沒接上時那一頁是 noindex(買不了),列進 sitemap 是自相矛盾。 */
+if (app(\App\Support\Payments\PaymentGateway::class)->isLive()) {
+    $paths[] = ['path' => 'premium', 'priority' => '0.5', 'changefreq' => 'monthly'];
+}
 
 /* 屬性測驗的 20 個結果頁。每一種屬性都是一個獨立的落地頁 —— 這才是這個測驗
    對搜尋的價值,只收錄測驗本身的話等於只有一頁。
@@ -59,7 +62,9 @@ if (in_array($currentLocale, (array) config('horny.translated', []), true)) {
 
 foreach ($boards as $b) {
     // 棋盤有自己的 updated_at —— 內容改過就會動,比語系檔的時間更準
-    $paths[] = ['path' => 'play/share/'.$b->share_code, 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $b->updated_at?->toAtomString()];
+    $paths[] = ['path' => 'play/share/'.$b->share_code, 'priority' => '0.6', 'changefreq' => 'monthly', 'lastmod' => $b->updated_at?->toAtomString(),
+        // alternate 只列這張棋盤有翻完的語系
+        'locales' => $b->translatedLocales()];
 }
 ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -67,7 +72,7 @@ foreach ($boards as $b) {
 @foreach ($paths as $p)
     <url>
         <loc>{{ LocaleHelper::localizedUrl($currentLocale, $p['path']) }}</loc>
-        @foreach ($supported as $locale => $meta)
+        @foreach (isset($p['locales']) ? LocaleHelper::hreflangSet($p['locales']) : $supported as $locale => $meta)
         <xhtml:link rel="alternate" hreflang="{{ $meta['hreflang'] }}" href="{{ LocaleHelper::localizedUrl($locale, $p['path']) }}"/>
         @endforeach
         <xhtml:link rel="alternate" hreflang="x-default" href="{{ LocaleHelper::localizedUrl(LocaleHelper::defaultLocale(), $p['path']) }}"/>

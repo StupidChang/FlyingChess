@@ -1,5 +1,7 @@
 @extends('layouts.app')
 @section('title', __('auth.register_title') . ' — ' . __('ui.site_name'))
+{{-- 跟登入頁一致:表單頁沒有內容,不進索引 --}}
+@section('robots', 'noindex,follow')
 @section('meta_description', __('auth.register_meta_description'))
 @section('og_description', __('auth.register_meta_description'))
 @section('canonical', route('register'))

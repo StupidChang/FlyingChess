@@ -51,6 +51,9 @@
 
 html{scroll-behavior:smooth}
 body{font-family:'Noto Sans TC','Segoe UI','微軟正黑體',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+/* 瀏覽器預設不讓表單元素繼承 body 的字型(按鈕、下拉、輸入框會變成系統字,textarea 是等寬字)。
+   只繼承字族,字級仍由各元件自己決定,不影響既有尺寸。 */
+button,input,select,textarea,optgroup{font-family:inherit}
 a{color:inherit;text-decoration:none}
 ul{list-style:none}
 
@@ -80,12 +83,18 @@ ul{list-style:none}
 .nav-desktop{display:flex;gap:4px;align-items:center;flex-wrap:nowrap}
 .nav-link{padding:6px 10px;border-radius:var(--radius);color:var(--text-dim);font-size:.82rem;transition:background .15s,color .15s;font-weight:500}
 .nav-link:hover{background:var(--surface2);color:var(--text)}
-.nav-play{background:var(--accent);color:#fff !important;font-weight:600;padding:6px 12px}
-.nav-play:hover{background:var(--accent-hover)}
+/* 登入:跟一般連結區隔開,但不搶旁邊「註冊」的金框 —— 用主題色的淡底,
+   兩套主題的 --accent 不同,所以底色用 color-mix 從主題色算。 */
+.nav-link.nav-login{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:600}
+/* 769–960px 之間導覽列項目最多(加了「測驗」之後日文版會擠到換行),收窄左右留白 */
+@media(min-width:769px) and (max-width:960px){.nav-desktop .nav-link{padding:6px 7px}}
+.nav-link.nav-login:hover{color:var(--accent-hover);background:color-mix(in srgb,var(--accent) 20%,transparent)}
 
 /* Nav dropdown (desktop hover, mobile click) */
 .nav-dropdown{position:relative}
 .nav-dropdown-toggle{cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none;font:inherit;border:none}
+/* font:inherit 是給 <button> 用的;套在導覽列的連結上會蓋掉 .nav-link 的字級,跟旁邊的連結不一樣大 */
+.nav-link.nav-dropdown-toggle{font-size:.82rem;font-weight:500}
 .nav-dropdown-toggle::after{content:'▾';font-size:.65rem;opacity:.6;transition:transform .2s}
 .nav-dropdown:is(:hover,:focus-within) .nav-dropdown-toggle::after{transform:rotate(180deg)}
 /* 收合用 visibility 而不是 display:none —— display 沒有中間值,無法轉場。
@@ -291,7 +300,8 @@ ul{list-style:none}
 /* Forms */
 .form-group{margin-bottom:16px}
 .form-group label{display:block;margin-bottom:6px;font-size:.88rem;color:var(--text-dim)}
-.form-control{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.95rem;resize:vertical;transition:border-color .15s,box-shadow .15s}
+/* font-family:inherit 不能省:瀏覽器預設不讓表單元素繼承 body 的字型,textarea 會變成等寬字 */
+.form-control{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.95rem;font-family:inherit;resize:vertical;transition:border-color .15s,box-shadow .15s}
 .form-control::placeholder{color:var(--text-dim)}
 .form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--glow-rgb),.16)}
 .char-count{text-align:right;font-size:.75rem;color:var(--text-dim);margin-top:4px}
@@ -443,13 +453,14 @@ ul{list-style:none}
 
 /* ── Game Cards ── */
 /* ── 「選擇你的玩法」區塊:漸層底 + 呼吸光暈 ──────────────────
+   其他頁要同一個背景就套 .section-glow(玩法指南首頁在用)。
    底色從 --bg 抬到 --surface2 再收回,讓這一段從上下兩塊平面裡浮出來;
    上方疊一層 radial 光暈做呼吸(7.5 秒一個來回)。
 
    overflow:hidden 是必要的 —— 光暈左右各溢出 8%,不裁掉會撐出橫向捲軸。
    兩段動畫錯開週期(光暈 7.5s、底色 12s)是刻意的:同步的話會變成整塊在閃,
    錯開才像光源本身在浮動。減少動態偏好由全域的 prefers-reduced-motion 接手。 */
-.game-cards-section{
+.game-cards-section,.section-glow{
   position:relative;
   overflow:hidden;
   background:linear-gradient(180deg,
@@ -460,7 +471,7 @@ ul{list-style:none}
     var(--bg) 100%);
   animation:section-tone 12s ease-in-out infinite;
 }
-.game-cards-section::before{
+.game-cards-section::before,.section-glow::before{
   content:'';
   position:absolute;
   top:-18%;left:-8%;right:-8%;height:92%;
@@ -472,7 +483,7 @@ ul{list-style:none}
   pointer-events:none;
   z-index:0;
 }
-.game-cards-section > .container{position:relative;z-index:1}
+.game-cards-section > .container,.section-glow > .container{position:relative;z-index:1}
 /* 谷底刻意縮到 .88 而不是停在 1:單向放大只有「變大」的感覺,
    一縮一漲的相對差距才讀得出來是在呼吸。 */
 @keyframes section-breathe{
@@ -492,19 +503,24 @@ ul{list-style:none}
   margin:0 auto;
   align-items:stretch;
 }
-/* Explicit column counts per breakpoint (rather than auto-fit/1fr) so a
-   partial last row never stretches or gets left stranded — with exactly
-   10 cards, 5/3/2/1 columns keep every row visually balanced. */
+/* 欄數逐個斷點寫死(而不是 auto-fit/1fr),不滿的最後一排才不會被拉開或孤零零
+   落在左邊。
+   首頁的遊戲網格現在是 **9 張**(兩份測驗搬到 #tests 那一區,共同清單與時光膠囊
+   在 @if(false) 裡)。9 只被 3 整除,所以:
+     5 欄 → 5+4,最後一排四張靠左,可以接受(四張要在五欄裡置中需要半欄,做不到)
+     4 欄 → 4+4+1,那一張會孤單,所以跨第 2–3 欄置中
+     3 欄 → 3+3+3,剛好,不需要動
+   卡片數改變的時候這幾條要跟著重算 —— 有測試釘住 9 這個數字。 */
 @media(max-width:1119px){
   .game-cards-grid{grid-template-columns:repeat(4,1fr);max-width:920px}
+  .game-cards-grid > .game-card:nth-child(9){grid-column:2/span 2;justify-self:center;width:100%}
 }
 @media(max-width:899px){
   .game-cards-grid{grid-template-columns:repeat(3,1fr);max-width:720px}
-  .game-cards-grid > .game-card:nth-child(10){grid-column:2}
+  .game-cards-grid > .game-card:nth-child(9){grid-column:auto;justify-self:auto}
 }
 @media(max-width:639px){
   .game-cards-grid{grid-template-columns:repeat(2,1fr);max-width:520px}
-  .game-cards-grid > .game-card:nth-child(10){grid-column:auto}
 }
 @media(max-width:479px){
   .game-cards-grid{grid-template-columns:1fr;max-width:400px}
@@ -655,14 +671,13 @@ ul{list-style:none}
 .game-card .btn{margin-top:auto}
 .game-card-tag{
   display:inline-block;
-  font-size:.75rem;
+  font-size:.72rem;
   padding:2px 10px;
   border-radius:999px;
-  font-weight:600;
-  letter-spacing:.3px;
+  font-weight:500;
+  letter-spacing:.4px;
   background:transparent;
-  box-shadow:inset 0 0 0 1px currentColor;
-  opacity:.85;
+  box-shadow:inset 0 0 0 1px var(--border);
 }
 /* 「最多人玩」徽章 —— 跨在卡片上緣,一半在框外。
    完全塞進卡片內的話會跟圖示搶第一眼;跨出去才像是後來貼上的標記。
@@ -684,15 +699,40 @@ ul{list-style:none}
   background:linear-gradient(135deg,var(--gold2),var(--gold));
   box-shadow:0 2px 10px -3px rgba(0,0,0,.7);
 }
-.tag-online{color:#60a5fa}
-.tag-couple{color:#f472b6}
-.tag-party{color:#fb923c}
-.tag-free{color:#34d399}
+/* 標籤一律低彩度:灰字、細框,只靠前面那顆小圓點分類別。亮色描邊會跟按鈕搶注意力。 */
+.tag-online,.tag-couple,.tag-party,.tag-group{color:var(--text-dim)}
+.tag-online::before,.tag-couple::before,.tag-party::before,.tag-group::before,
+.badge-players::before{
+  content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+  margin-right:6px;vertical-align:middle;position:relative;top:-1px;background:currentColor;opacity:.6}
+/* 情侶／多人只靠形狀分:實心點 vs 空心圈,不靠顏色 */
+.tag-group::before,.badge-players-group::before{background:transparent;box-shadow:inset 0 0 0 1px currentColor}
+.game-card-tags{display:flex;gap:6px}
+.game-card-tags .game-card-tag{flex:1 1 0;min-width:0;text-align:center}
+/* 情侶／多人:跟棋盤頁的 .badge-players-* 同一組霧色,只混一點色,不要亮。
+   限定在 .game-card-tags 裡 —— 測驗卡的「約 12 分鐘」也借用了 .tag-couple。 */
+.game-card-tags .tag-couple{color:color-mix(in srgb,#e8a0b4 70%,var(--text-dim));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,#e8a0b4 28%,var(--border));background:color-mix(in srgb,#e8a0b4 6%,transparent)}
+.game-card-tags .tag-group{color:color-mix(in srgb,#aab0dc 75%,var(--text-dim));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,#aab0dc 28%,var(--border));background:color-mix(in srgb,#aab0dc 6%,transparent)}
+.tag-free{color:var(--text-dim)}
 
 /* ── Boards section ── */
 .boards-section{padding:64px 24px}
 .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px}
 .section-head h2{font-size:1.35rem;color:var(--text);font-weight:700}
+.lobby-tabs{display:flex;gap:2px;width:max-content;max-width:100%;margin:0 auto 28px;padding:3px;
+  border:1px solid var(--border);border-radius:12px;background:var(--bg)}
+.lobby-tabs a{padding:8px 22px;border-radius:9px;font-size:.9rem;font-weight:500;color:var(--text-dim);
+  text-decoration:none;white-space:nowrap;transition:color .15s,background .15s}
+.lobby-tabs a:hover{color:var(--text)}
+.lobby-tabs a.is-on{background:var(--surface2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border),0 1px 3px rgba(0,0,0,.35)}
+.lobby-empty{max-width:520px;margin:8px auto 40px;padding:36px 28px;text-align:center;
+  border:1px dashed var(--border);border-radius:14px;background:var(--surface)}
+.lobby-empty h2{font-size:1.1rem;color:var(--text);margin-bottom:8px}
+.lobby-empty p{font-size:.9rem;color:var(--text-dim);line-height:1.7;margin-bottom:18px}
+.lobby-by{display:block;font-size:.76rem;color:var(--text-dim);margin:-2px 0 6px}
+.lobby-pagination{margin:32px 0 48px;padding:14px 18px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
 .boards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
 .board-card{--card-edge:2px;background:var(--surface);
   border:var(--card-edge) solid var(--border);border-radius:10px;overflow:hidden;
@@ -704,11 +744,17 @@ ul{list-style:none}
 .board-card-body{padding:18px;flex:1;display:flex;flex-direction:column}
 .board-card-body h3{margin-bottom:6px;font-size:1rem;font-weight:600;color:var(--text)}
 .board-card-body p{font-size:.85rem;color:var(--text-dim);margin-bottom:8px;flex:1}
-.badge-squares,.badge-default,.badge-premium,.badge-free{font-size:.7rem;padding:2px 8px;border-radius:6px;margin-right:4px;font-weight:600}
+.badge-squares,.badge-default,.badge-premium,.badge-free,.badge-players{font-size:.7rem;padding:2px 8px;border-radius:6px;margin-right:4px;font-weight:500;letter-spacing:.3px;
+  background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+/* 徽章全部低彩度:灰字細框。付費只把字與框調成暗金 —— --gold 仍然只留給付費。 */
+.badge-premium{color:color-mix(in srgb,var(--gold) 65%,var(--text-dim));border-color:color-mix(in srgb,var(--gold) 30%,var(--border))}
 .badge-squares{background:var(--surface2);color:var(--text-dim)}
-.badge-default{background:rgba(var(--glow-rgb),.12);color:var(--accent);border:1px solid rgba(var(--glow-rgb),.35)}
-.badge-premium{background:var(--gold);color:#241a08}
-.badge-free{background:rgba(52,211,153,.12);color:#5fd080;border:1px solid rgba(52,211,153,.35)}
+/* 棋盤適合對象(1男1女／多男多女)。低彩度:字與框只混一點色,跟「N 格」分得開但不搶眼。
+   ⚠ 不要改成 .badge-couple 或 .badge-aud —— 後台題庫已經有同名的徽章(亮粉紅實心那組),寫在後面會蓋過來。 */
+.badge-players-couple{color:color-mix(in srgb,#e8a0b4 70%,var(--text-dim));
+  border-color:color-mix(in srgb,#e8a0b4 28%,var(--border));background:color-mix(in srgb,#e8a0b4 6%,transparent)}
+.badge-players-group{color:color-mix(in srgb,#aab0dc 75%,var(--text-dim));
+  border-color:color-mix(in srgb,#aab0dc 28%,var(--border));background:color-mix(in srgb,#aab0dc 6%,transparent)}
 .board-card-foot{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border);
   background:var(--surface2)}
 /* 每顆按鈕平分整列(flex-basis 0 而不是 auto —— auto 會讓字多的那顆比較寬,
@@ -1173,8 +1219,9 @@ select.admin-search-input{cursor:pointer;min-width:140px}
 /* ── Admin Form ── */
 .admin-form .form-group{margin-bottom:16px}
 .admin-form .form-group label{display:block;margin-bottom:4px;font-size:.9rem;color:var(--text-dim)}
+.admin-table code{font-family:inherit;font-size:.92em;letter-spacing:.04em;font-variant-numeric:tabular-nums}
 .admin-form .form-input{
-  width:100%;padding:8px 12px;font-size:.9rem;
+  width:100%;padding:8px 12px;font-size:.9rem;font-family:inherit;
   background:var(--surface2);color:var(--text);
   border:1px solid var(--border);border-radius:var(--radius);
 }
@@ -1915,11 +1962,18 @@ a.gh-name{color:var(--accent)}
 
 .tt-error{color:var(--accent);font-size:.88rem;font-weight:600;margin:14px 0 0;text-align:center}
 .tt-actions{display:flex;gap:10px;margin:28px 0;flex-wrap:wrap}
+.tt-actions .tt-prev.btn-xl{flex:0 0 auto;min-width:0}
+/* 分頁作答第 2 頁以後的標題列:只有測驗名稱與頁碼,開場那一整塊不重複 */
+.tt-step-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:6px 0 18px}
+.tt-step-head h1{font-size:1.25rem;font-weight:800;letter-spacing:-.01em}
+.tt-step-head span{font-size:.85rem;color:var(--text-dim);font-variant-numeric:tabular-nums}
 .tt-actions .btn-xl{flex:1;min-width:180px}
 
 .tt-verdict{border:1px solid var(--border);border-radius:18px;background:var(--surface);
   padding:26px 22px;margin-bottom:16px;position:relative;overflow:hidden}
 .tt-verdict::before{content:'';position:absolute;inset:0 0 auto;height:3px;background:var(--tt,var(--gold))}
+.tt-traveller{font-size:.74rem;color:var(--text-dim);margin-bottom:12px;
+  padding-bottom:12px;border-bottom:1px solid var(--border)}
 .tt-crown{font-size:.7rem;letter-spacing:.18em;color:var(--text-dim);margin-bottom:8px}
 .tt-name{font-size:clamp(1.8rem,5vw,2.5rem);font-weight:800;letter-spacing:-.02em;margin-bottom:4px;color:var(--tt,var(--gold))}
 .tt-pct{font-size:1rem;font-weight:700;color:var(--tt,var(--gold));margin-bottom:10px;font-variant-numeric:tabular-nums}
@@ -1934,13 +1988,32 @@ a.gh-name{color:var(--accent)}
 
 .tt-card{border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:18px 20px;margin-bottom:14px}
 .tt-card h2{font-size:.95rem;margin-bottom:4px}
+
+/* 區塊標題的圖示方塊(見 partials/section-head)。刻意用自己的 class 而不是直接
+   改 .tt-card h2 —— .tt-card 跟雙軸測驗共用,那邊的標題沒有圖示,把 flex 加在
+   通用選擇器上會連帶動到它。
+   顏色吃 --tt,而 --tt 是由方塊自己身上的 .tt-c-* 設的,所以只有這個方塊變色。
+   後備色用 --accent 不用 --gold:--gold 在這個站是付費/金錢專用的代幣。 */
+.tt-sec-h{display:flex;align-items:center;gap:10px;font-size:.95rem;margin-bottom:4px}
+.tt-sec-mark{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:9px;
+  color:var(--tt,var(--accent));
+  background:color-mix(in srgb, var(--tt,var(--accent)) 13%, transparent);
+  border:1px solid color-mix(in srgb, var(--tt,var(--accent)) 28%, transparent)}
+.tt-sec-ico{width:17px;height:17px;display:block}
+.tt-sec-text{flex:1 1 auto;min-width:0;text-wrap:balance}
 .tt-hint{font-size:.76rem;color:var(--text-dim);margin-bottom:16px}
 
 .tt-bar{display:grid;grid-template-columns:6.5em 1fr 3em;gap:10px;align-items:center;margin-bottom:7px}
 /* hidden 的 UA 樣式是 display:none,優先權比上面這條 class 低 —— 不蓋回去的話
    「顯示全部」還沒按,20 條就全部攤在那裡。跟 .pa-grid 是同一個坑。 */
 .tt-bar[hidden]{display:none}
-.tt-bar-name{font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+/* 名字底下的小字版本。左欄要多讓一點寬度給 tag,而且行高變兩行,所以間距也拉開。
+   horny-test 的九條面向共用 .tt-bar 但沒有 tag,維持原本的三欄單行,不要動基底。 */
+.tt-bar.has-tag{grid-template-columns:9.5em 1fr 3em;margin-bottom:11px}
+.tt-bar-label{min-width:0}
+.tt-bar-tag{display:block;font-size:.68rem;line-height:1.35;margin-top:2px;color:var(--text-dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt-bar-name{display:block;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
 .tt-bar-name{transition:color .18s ease}
 .tt-bar-name:hover{color:var(--tt,var(--accent))}
 .tt-bar-track{height:7px;border-radius:99px;background:var(--surface2);overflow:hidden}
@@ -1985,7 +2058,10 @@ a.gh-name{color:var(--accent)}
 
 @media(max-width:520px){
   .tt-scale label{font-size:.58rem;padding:8px 2px}
+  .tt-sec-mark{width:27px;height:27px;border-radius:8px}
+  .tt-sec-ico{width:15px;height:15px}
   .tt-bar{grid-template-columns:5.5em 1fr 2.6em}
+  .tt-bar.has-tag{grid-template-columns:8.4em 1fr 2.6em}
 }
 
 /* ── 個人資料頁的「我的屬性」 ── */
@@ -2029,6 +2105,8 @@ a.gh-name{color:var(--accent)}
 .tt-deep-note{font-size:.75rem;color:var(--gold);margin:16px 0 0}
 .tt-deep-teaser{font-size:.88rem;line-height:1.8;color:var(--text-dim);margin:0 0 14px}
 .tt-deep-btn{width:100%;max-width:320px}
+.tt-deep-premium{display:block;margin-top:12px;font-size:.85rem;color:var(--gold)}
+.tt-deep-premium:hover{text-decoration:underline}
 .tt-deep{border-color:rgba(217,164,65,.35)}
 
 /* 鎖住時列出「解鎖後有什麼」,把價值講清楚,讓看廣告/付費的動機更明確 */
@@ -2100,6 +2178,9 @@ a.gh-name{color:var(--accent)}
 .tt-basis-list li{position:relative;padding:6px 0 6px 20px;font-size:.85rem;line-height:1.75;color:var(--text)}
 .tt-basis-list li::before{content:'→';position:absolute;left:0;top:6px;color:var(--gold);font-size:.8rem}
 .tt-basis-p{font-size:.84rem;line-height:1.85;color:var(--text-dim);margin:0}
+/* 同一組清單貼在長條圖底下時要跟上面的圖分開一點,並且用一條線收邊 —— 不然
+   它會讀成長條圖的第 21 條。 */
+.tt-dist-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 
 /* 手機上選項的字太小,而且五格擠成一排點不準 */
 @media(max-width:420px){
@@ -2274,6 +2355,31 @@ a.gh-name{color:var(--accent)}
 .nav-notif-empty{padding:34px 20px;text-align:center;color:var(--text-dim)}
 .nav-notif-empty-ico{width:34px;height:34px;opacity:.45;margin-bottom:8px}
 .nav-notif-empty p{font-size:.85rem;margin:0}
+.nav-notif-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-notif-readall{background:none;border:0;padding:0;font:inherit;font-size:.76rem;font-weight:500;color:var(--accent);cursor:pointer}
+.nav-notif-readall:hover{text-decoration:underline}
+.nav-notif-menu{width:320px}
+/* 一則通知:標題一行、內文最多兩行。white-space 要蓋掉 .nav-dropdown-menu a 的 nowrap */
+.nav-dropdown-menu a.nav-notif-item{display:flex;flex-direction:column;gap:3px;padding:12px 16px;white-space:normal;border-bottom:1px solid var(--border)}
+.nav-notif-item strong{font-size:.86rem;color:var(--text);font-weight:600}
+.nav-notif-body{font-size:.8rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nav-notif-item time{font-size:.7rem;opacity:.7}
+.nav-notif-item.is-new{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.nav-notif-item.is-new strong::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:7px;vertical-align:middle}
+.nav-dropdown-menu a.nav-notif-all{text-align:center;font-size:.8rem;padding:10px 16px;color:var(--accent)}
+.nav-mobile-notif{display:flex;align-items:center;gap:8px}
+.nav-notif-count{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;display:inline-grid;place-items:center}
+
+/* 通知頁 */
+.nt-page{max-width:680px}
+.nt-title{font-size:1.5rem;font-weight:800;margin-bottom:18px}
+.nt-item{display:block;padding:16px 18px;margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:inherit;transition:border-color .15s}
+.nt-item:hover{border-color:var(--accent)}
+.nt-item.is-new{border-color:color-mix(in srgb,var(--accent) 55%,var(--border));background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.nt-item-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.nt-item-head strong{color:var(--text)}
+.nt-item-head time{font-size:.75rem;color:var(--text-dim);white-space:nowrap}
+.nt-item p{font-size:.9rem;color:var(--text-dim);line-height:1.65;margin:0}
 
 /* ── 公開頁:棋盤清單、編輯頁的子開關 ── */
 .pf-subtoggles{margin-top:4px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
@@ -2665,4 +2771,37 @@ body.age-locked{overflow:hidden}
 @media (max-width:520px){
   .tt-point{grid-template-columns:1fr;gap:4px}
   .tt-point dt{justify-self:start}
+}
+
+/* ── 飛行棋大廳:快速預覽視窗 ─────────────────────────
+   照路線順序列出每一格;圖示來自 sq-icons.js(跟遊玩畫面同一份)。
+   大廳沒有載 board.css,座位圓點與性別色在這裡各留一份。 */
+.qp-box{max-width:560px;text-align:left;display:flex;flex-direction:column;max-height:calc(100dvh - 40px)}
+.qp-title{font-size:1.15rem;font-weight:700;color:var(--text);margin:0 28px 4px 0}
+.qp-meta{font-size:.82rem;color:var(--text-dim);margin-bottom:10px}
+.qp-lock{font-size:.8rem;line-height:1.6;color:color-mix(in srgb,var(--gold) 70%,var(--text-dim));
+  padding:8px 12px;margin-bottom:10px;border:1px solid color-mix(in srgb,var(--gold) 30%,var(--border));border-radius:10px}
+.qp-list{list-style:none;margin:0 -4px;padding:0 4px;overflow-y:auto;flex:1 1 auto;min-height:120px;
+  display:flex;flex-direction:column;gap:4px;overscroll-behavior:contain}
+.qp-item{display:grid;grid-template-columns:26px 18px 1fr;align-items:start;gap:8px;padding:7px 10px;
+  border-radius:8px;background:var(--surface2);border:1px solid var(--border)}
+.qp-num{font-size:.72rem;color:var(--text-dim);font-variant-numeric:tabular-nums;text-align:right;padding-top:2px}
+.qp-icon{display:grid;place-items:center;width:18px;height:18px;color:var(--text-dim)}
+.qp-icon svg{width:15px;height:15px;display:block}
+.qp-icon .sq-seat-dot{display:block;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
+.qp-icon .seat-1{background:var(--accent)}.qp-icon .seat-2{background:var(--blue)}
+.qp-icon .seat-3{background:var(--green)}.qp-icon .seat-4{background:var(--yellow)}
+.qp-move .qp-icon{color:color-mix(in srgb,var(--green) 70%,var(--text-dim))}
+.qp-male .qp-icon{color:#8fb0e6}.qp-female .qp-icon{color:#e6a0b8}
+.qp-text{font-size:.86rem;line-height:1.6;color:var(--text);white-space:pre-line;word-break:break-word}
+.qp-item.is-locked .qp-text{color:var(--text-dim);font-style:italic}
+.qp-start .qp-text,.qp-end .qp-text{font-weight:700}
+.qp-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.qp-actions .btn{flex:1 1 auto;text-align:center}
+.qp-actions [hidden]{display:none}
+/* 整張卡片都點得開預覽 */
+.boards-grid .board-card{cursor:pointer}
+@media (max-width:600px){
+  .qp-box{padding:20px 16px}
+  .qp-item{grid-template-columns:22px 16px 1fr;padding:6px 8px;gap:6px}
 }

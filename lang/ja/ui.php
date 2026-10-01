@@ -6,6 +6,8 @@ return [
     'boards' => '自分のボード',
     'profile' => 'プロフィール',
     'admin' => '管理画面',
+    'notifications' => '通知',
+    'notifications_empty' => '新しい通知はありません',
     'language' => '言語',
     'menu' => 'メニュー',
     'close' => '閉じる',
@@ -26,6 +28,7 @@ return [
     'copy' => 'コピー',
     'copied' => 'コピーしました',
     'copied_excl' => 'コピーしました！',
+    'choose_avatar' => 'アイコンを選ぶ',
 
     // Profile page
     'username_label' => 'ユーザー名',
@@ -66,6 +69,10 @@ return [
     'history_total' => '全 :total 件',
     'history_locked' => '無料会員は直近 :count 件のみ表示されます。あと :hidden 件はアップグレードすると閲覧できます。',
     'history_upgrade_cta' => 'アップグレードして全履歴を見る',
+    'tests' => '診断',
+    'quiz_next' => '次へ',
+    'quiz_prev' => '前へ',
+    'quiz_page' => ':n / :total ページ',
     'community_boards' => 'コミュニティボード',
     'theme_rose' => 'ローズ',
     'theme_indigo' => 'インディゴ',

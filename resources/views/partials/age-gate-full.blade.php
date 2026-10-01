@@ -76,13 +76,13 @@
             @endforeach
         </div>
     </div>
-    @if(env('GOOGLE_GA4_ID'))
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ env('GOOGLE_GA4_ID') }}"></script>
+    @if(config('services.ga4.id'))
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.ga4.id') }}"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', '{{ env('GOOGLE_GA4_ID') }}');
+        gtag('config', '{{ config('services.ga4.id') }}');
         document.querySelector('.btn-enter').addEventListener('click', function() {
             gtag('event', 'age_gate_confirm');
         });

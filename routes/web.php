@@ -17,6 +17,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HornyTestController;
 use App\Http\Controllers\KingGameController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlayController;
@@ -25,7 +26,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RewardedUnlockController;
 use App\Http\Controllers\SesFeedbackController;
 use App\Http\Controllers\SitemapController;
-use App\Http\Controllers\TimeCapsuleController;
 use App\Http\Controllers\TraitTestController;
 use App\Http\Controllers\TruthDareController;
 use App\Http\Controllers\WheelGameController;
@@ -240,7 +240,7 @@ Route::prefix('{locale}')
            蜜罐,刻意不套擋詞規則(理由見 FeedbackController)。 */
         Route::get('/feedback', [FeedbackController::class, 'show'])->name('feedback.show');
         Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store')
-            ->middleware('throttle:5,60');
+            ->middleware('throttle:feedback');
 
         // Auth (guest only)
         Route::middleware('guest')->group(function () {
@@ -276,6 +276,9 @@ Route::prefix('{locale}')
         // Flying Chess
         Route::prefix('games')->name('games.')->group(function () {
             Route::get('/', [GameController::class, 'lobby'])->name('lobby');
+            // 大廳卡片的快速預覽(JSON)。放在 /{code} 之前;付費棋盤只回固定的 8 格
+            Route::get('/board-preview/{board}', [GameController::class, 'boardPreview'])
+                ->name('board-preview')->whereNumber('board')->middleware('throttle:60,1');
             Route::post('/', [GameController::class, 'create'])->name('create')->middleware('throttle:20,1');
             Route::get('/{code}', [GameController::class, 'show'])->name('show');
             Route::post('/{code}/join', [GameController::class, 'join'])->name('join')->middleware('throttle:20,1');
@@ -421,29 +424,19 @@ Route::prefix('{locale}')
                 ->middleware('throttle:30,1');
         });
 
-        // Time Capsule
-        Route::prefix('time-capsule')->name('time-capsule.')->group(function () {
-            Route::get('/', [TimeCapsuleController::class, 'lobby'])->name('lobby');
-            /* 膠囊會在指定日期寄一封信到使用者自己填的地址 —— 不需要登入、
-               地址不需要驗證,等於一個延遲發信的管道。限制建立頻率。 */
-            Route::post('/', [TimeCapsuleController::class, 'create'])->name('create')
-                ->middleware('throttle:6,60');
-            Route::get('/{shareCode}', [TimeCapsuleController::class, 'show'])->name('show')
-                ->middleware('throttle:60,1');
-            Route::post('/{shareCode}/claim', [TimeCapsuleController::class, 'claim'])->name('claim')
-                ->middleware('throttle:20,1');
-            Route::post('/{shareCode}/answers', [TimeCapsuleController::class, 'saveAnswers'])->name('answers')
-                ->middleware('throttle:30,1');
-            Route::post('/{shareCode}/seal', [TimeCapsuleController::class, 'seal'])->name('seal')
-                ->middleware('throttle:20,1');
-        });
-
         // Custom board play
         Route::get('/play', [PlayController::class, 'show'])->name('play');
         Route::get('/play/share/{code}', [PlayController::class, 'showByCode'])->name('play.code')->middleware('throttle:60,1');
         Route::get('/play/{board}', [PlayController::class, 'show'])->name('play.board');
 
         // Profile —— 擁有者本人的儀表板與個人化編輯
+        // 站內通知:只要登入,不要求驗證信箱(歡迎通知在驗證之前就送到了)
+        Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [NotificationController::class, 'index'])->name('index');
+            Route::post('/read-all', [NotificationController::class, 'readAll'])->name('read-all');
+            Route::get('/{id}', [NotificationController::class, 'open'])->name('open')->whereUuid('id');
+        });
+
         Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
             Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -495,7 +488,8 @@ Route::prefix('{locale}')
         // Premium (index + checkout only — callback/result are non-localized above)
         Route::prefix('premium')->name('premium.')->group(function () {
             Route::get('/', [PremiumController::class, 'index'])->name('index');
-            Route::post('/checkout', [PremiumController::class, 'checkout'])->name('checkout')->middleware('auth');
+            // 付款要驗證過的信箱:收據與帳號找回都靠它,打錯字的信箱付完錢就聯絡不到人
+            Route::post('/checkout', [PremiumController::class, 'checkout'])->name('checkout')->middleware(['auth', 'verified']);
         });
 
         // Admin
@@ -518,6 +512,8 @@ Route::prefix('{locale}')
             Route::post('/cards/{card}/duplicate', [AdminController::class, 'duplicateCard'])->name('cards.duplicate');
             Route::delete('/cards/{card}', [AdminController::class, 'destroyCard'])->name('cards.destroy');
             Route::get('/users', [AdminController::class, 'users'])->name('users');
+            Route::post('/users/notify', [AdminController::class, 'notifyUsers'])->name('users.notify-all');
+            Route::post('/users/{user}/notify', [AdminController::class, 'notifyUser'])->name('users.notify');
             Route::get('/users/{user}/edit', [AdminController::class, 'editUser'])->name('users.edit');
             Route::patch('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
             Route::post('/users/{user}/ban', [AdminController::class, 'banUser'])->name('users.ban');

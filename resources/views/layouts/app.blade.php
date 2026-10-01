@@ -41,7 +41,9 @@
         <link rel="alternate" hreflang="{{ $meta['hreflang'] }}" href="{{ LocaleHelper::localizedUrl($locale, request()->path()) }}">
     @endforeach
     <link rel="alternate" hreflang="x-default" href="{{ LocaleHelper::localizedUrl($xDefaultLocale, request()->path()) }}">
-    <meta property="og:title" content="@yield('og_title', config('app.name'))">
+    {{-- 沒指定 og:title 的頁面用自己的 <title>,再退回品牌名。以前退回的是
+         config('app.name'),那是改名前的「情侶飛行棋」,而且每個語系都是中文。 --}}
+    <meta property="og:title" content="@yield('og_title', trim($__env->yieldContent('title')) ?: __('ui.site_name'))">
     <meta property="og:description" content="@yield('og_description', __('seo.home_description'))">
     <meta property="og:url" content="@yield('canonical', LocaleHelper::localizedUrl($currentLocale, request()->path()))">
     <meta property="og:locale" content="{{ str_replace('-', '_', $currentHreflang) }}">
@@ -54,7 +56,7 @@
     <meta property="og:image" content="@yield('og_image', asset('images/174655ssvy4mu6pwyllysm.jpg'))">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="@yield('og_image_alt', config('app.name'))">
+    <meta property="og:image:alt" content="@yield('og_image_alt', __('ui.site_name'))">
     {{-- X(Twitter)不看 og:type,沒有這一行就只會顯示小方圖,1200×630 的卡片等於白做。
          其餘欄位它會回頭讀 og:* —— 只補這裡沒有的那一個。 --}}
     <meta name="twitter:card" content="summary_large_image">
@@ -120,7 +122,7 @@
             <a href="{{ route('profile.discover') }}" class="nav-link">{{ __('profile.discover_title') }}</a>
             <a href="{{ route('guide.index') }}" class="nav-link">{{ __('guides.index_h1') }}</a>
             <div class="nav-dropdown">
-                <a href="{{ route('game-hall.index') }}" class="nav-link nav-play nav-dropdown-toggle" aria-haspopup="true">{{ __('games.lobby') }}</a>
+                <a href="{{ route('game-hall.index') }}" class="nav-link nav-dropdown-toggle" aria-haspopup="true">{{ __('games.lobby') }}</a>
                 <div class="nav-dropdown-menu">
                     <a href="{{ route('games.lobby') }}">{{ __('games.flying_chess') }}</a>
                     <a href="{{ route('truth-dare.lobby') }}">{{ __('games.truth_dare') }}</a>
@@ -130,25 +132,58 @@
                     <a href="{{ route('wheel-game.show') }}">{{ __('games.wheel_game') }}</a>
                     <a href="{{ route('wheel.pure') }}">{{ __('games.pure_wheel') }}</a>
                     <a href="{{ route('who-most-likely.show') }}">{{ __('games.who_most_likely') }}</a>
-                    <a href="{{ route('trait-test.show') }}">{{ __('traits.title') }}</a>
-                    <a href="{{ route('horny-test.show') }}">{{ __('horny.title') }}</a>
-                <a href="{{ route('custom-wheel.page') }}">{{ __('minigame.cw_title') }}</a>
+                    <a href="{{ route('custom-wheel.page') }}">{{ __('minigame.cw_title') }}</a>
                     <a href="{{ route('boards.community') }}">{{ __('ui.community_boards') }}</a>
                 </div>
             </div>
+            {{-- 測驗獨立一個選單,不再夾在遊戲清單中間 —— 測驗是站上停留最久、
+                 頁數最多的入口,埋在第九、十項等於沒放。 --}}
+            <div class="nav-dropdown">
+                <a href="{{ route('trait-test.show') }}" class="nav-link nav-dropdown-toggle" aria-haspopup="true">{{ __('ui.tests') }}</a>
+                <div class="nav-dropdown-menu">
+                    <a href="{{ route('trait-test.show') }}">{{ __('traits.title') }}</a>
+                    <a href="{{ route('horny-test.show') }}">{{ __('horny.title') }}</a>
+                </div>
+            </div>
             @auth
-                {{-- 通知(右上角)。內容之後再接,先做出鈴鐺與面板的殼。 --}}
+                {{-- 通知(右上角)。面板只列最近 5 則,未讀數字是全部的未讀;
+                     點一則走 notifications.open(標已讀再導去連結)。
+                     每頁兩次查詢,只有登入的人才付。 --}}
+                @php
+                    $navUnread = Auth::user()->unreadNotifications()->count();
+                    $navNotifs = Auth::user()->notifications()->limit(5)->get();
+                @endphp
                 <div class="nav-dropdown nav-notif">
-                    <button type="button" class="nav-link nav-dropdown-toggle nav-notif-toggle" aria-haspopup="true" aria-label="{{ __('ui.notifications') }}">
+                    <button type="button" class="nav-link nav-dropdown-toggle nav-notif-toggle" aria-haspopup="true"
+                            aria-label="{{ __('ui.notifications') }}{{ $navUnread ? ' — '.__('notifications.unread', ['n' => $navUnread]) : '' }}">
                         @include('partials.icon', ['name' => 'bell', 'cls' => 'nav-notif-ico'])
-                        <span class="nav-notif-dot" hidden></span>
+                        <span class="nav-notif-dot" @if(! $navUnread) hidden @endif>{{ $navUnread > 9 ? '9+' : $navUnread }}</span>
                     </button>
                     <div class="nav-dropdown-menu nav-notif-menu">
-                        <div class="nav-notif-head">{{ __('ui.notifications') }}</div>
+                        <div class="nav-notif-head">
+                            <span>{{ __('ui.notifications') }}</span>
+                            @if($navUnread)
+                            <form action="{{ route('notifications.read-all') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="nav-notif-readall">{{ __('notifications.mark_all_read') }}</button>
+                            </form>
+                            @endif
+                        </div>
+                        @forelse($navNotifs as $n)
+                        <a href="{{ route('notifications.open', $n->id) }}" @class(['nav-notif-item', 'is-new' => ! $n->read_at])>
+                            <strong>{{ $n->data['title'] ?? '' }}</strong>
+                            <span class="nav-notif-body">{{ $n->data['body'] ?? '' }}</span>
+                            <time>{{ $n->created_at->diffForHumans() }}</time>
+                        </a>
+                        @empty
                         <div class="nav-notif-empty">
                             @include('partials.icon', ['name' => 'bell', 'cls' => 'nav-notif-empty-ico'])
                             <p>{{ __('ui.notifications_empty') }}</p>
                         </div>
+                        @endforelse
+                        @if($navNotifs->isNotEmpty())
+                        <a href="{{ route('notifications.index') }}" class="nav-notif-all">{{ __('notifications.view_all') }}</a>
+                        @endif
                     </div>
                 </div>
                 <div class="nav-dropdown nav-account">
@@ -186,7 +221,7 @@
                     </div>
                 </div>
             @else
-                <a href="{{ route('login') }}" class="nav-link">{{ __('auth.login_title') }}</a>
+                <a href="{{ route('login') }}" class="nav-link nav-login">{{ __('auth.login_title') }}</a>
                 <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold" style="margin-left:4px">{{ __('auth.register_title') }}</a>
             @endauth
             @include('partials.lang-switcher')
@@ -217,11 +252,22 @@
             <a href="{{ route('king-game.show') }}" class="nav-link">{{ __('games.king_game') }}</a>
             <a href="{{ route('wheel-game.show') }}" class="nav-link">{{ __('games.wheel_game') }}</a>
             <a href="{{ route('wheel.pure') }}" class="nav-link">{{ __('games.pure_wheel') }}</a>
-            <a href="{{ route('trait-test.show') }}" class="nav-link">{{ __('traits.title') }}</a>
             <a href="{{ route('who-most-likely.show') }}" class="nav-link">{{ __('games.who_most_likely') }}</a>
+            <a href="{{ route('custom-wheel.page') }}" class="nav-link">{{ __('minigame.cw_title') }}</a>
             <a href="{{ route('boards.community') }}" class="nav-link">{{ __('ui.community_boards') }}</a>
         </div>
+        <button class="nav-link nav-mobile-games-toggle" onclick="toggleMobileGames(this)">
+            {{ __('ui.tests') }} <span class="toggle-arrow">▾</span>
+        </button>
+        <div class="nav-mobile-games">
+            <a href="{{ route('trait-test.show') }}" class="nav-link">{{ __('traits.title') }}</a>
+            <a href="{{ route('horny-test.show') }}" class="nav-link">{{ __('horny.title') }}</a>
+        </div>
         @auth
+            <a href="{{ route('notifications.index') }}" class="nav-link nav-mobile-notif">
+                {{ __('ui.notifications') }}
+                @if($navUnread ?? 0)<span class="nav-notif-count">{{ $navUnread > 9 ? '9+' : $navUnread }}</span>@endif
+            </a>
             <a href="{{ route('profile.index') }}" class="nav-link">{{ __('ui.profile') }}</a>
             @if(Auth::user()->isAdmin())
                 <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color:var(--gold)">{{ __('ui.admin') }}</a>
@@ -237,7 +283,7 @@
                 <button type="submit" class="btn btn-sm btn-outline btn-full">{{ __('auth.logout') }}</button>
             </form>
         @else
-            <a href="{{ route('login') }}" class="nav-link">{{ __('auth.login_title') }}</a>
+            <a href="{{ route('login') }}" class="nav-link nav-login">{{ __('auth.login_title') }}</a>
             <a href="{{ route('register') }}" class="btn btn-sm btn-outline-gold btn-full">{{ __('auth.register_title') }}</a>
         @endauth
         @include('partials.lang-switcher', ['mobile' => true])
@@ -300,7 +346,7 @@
                 @else
                 <a href="{{ route('register') }}">{{ __('auth.register_title') }}</a>
                 @endauth
-                <a href="{{ route('feedback.show', ['from' => '/'.request()->path()]) }}">{{ __('feedback.nav') }}</a>
+                <a href="{{ route('feedback.show', ['from' => request()->fullUrl()]) }}">{{ __('feedback.nav') }}</a>
                 <a href="{{ route('legal.privacy') }}" rel="nofollow">{{ __('legal.privacy_title') }}</a>
                 <a href="{{ route('legal.terms') }}" rel="nofollow">{{ __('legal.terms_title') }}</a>
             </div>
@@ -353,7 +399,8 @@ function toggleMobileNav() {
 // Mobile games sub-menu toggle
 function toggleMobileGames(btn) {
     btn.classList.toggle('open');
-    document.getElementById('mobileGamesMenu').classList.toggle('open');
+    // 遊戲、測驗兩組共用這支:收合區塊一律緊接在按鈕後面
+    btn.nextElementSibling.classList.toggle('open');
 }
 </script>
 @yield('scripts')

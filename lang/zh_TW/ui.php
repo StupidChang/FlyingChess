@@ -29,6 +29,7 @@ return [
     'copy' => '複製',
     'copied' => '已複製',
     'copied_excl' => '已複製！',
+    'choose_avatar' => '選擇頭像',
 
     // Profile page
     'username_label' => '使用者名稱',
@@ -69,6 +70,10 @@ return [
     'history_total' => '共 :total 場',
     'history_locked' => '免費會員只顯示最近 :count 場，還有 :hidden 場需要升級才看得到。',
     'history_upgrade_cta' => '升級查看完整紀錄',
+    'tests' => '測驗',
+    'quiz_next' => '下一頁',
+    'quiz_prev' => '上一頁',
+    'quiz_page' => '第 :n / :total 頁',
     'community_boards' => '社群棋盤',
     'theme_rose' => '玫瑰',
     'theme_indigo' => '靛藍',

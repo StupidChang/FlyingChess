@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', __('games.bl_title') . ' | ' . __('ui.site_name'))
+@section('title', __('games.bl_title') . ' — ' . __('ui.site_name'))
 @section('meta_description', __('games.bl_meta'))
 @section('og_title', __('games.bl_title'))
 @section('og_description', __('games.bl_og_desc'))
