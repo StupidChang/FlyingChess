@@ -8,7 +8,8 @@
 
 {{-- 沒翻譯的語系標 noindex:讓搜尋引擎收錄一頁中文內容配英文網址,
      對排名是扣分不是加分。翻好之後把語系加進 config/traits.php 的 translated。 --}}
-@section('robots', $translated ? 'index,follow' : 'noindex,follow')
+{{-- 第 2 頁以後是作答的中繼站,不是內容頁:一律 noindex,canonical 仍指第一頁 --}}
+@section('robots', $translated && $page === 1 ? 'index,follow' : 'noindex,follow')
 
 @section('schema')
 <script type="application/ld+json">
@@ -21,7 +22,7 @@
             'description' => __('traits.seo.description'),
             'url' => route('trait-test.show'),
             'educationalLevel' => 'adult',
-            'numberOfQuestions' => count($questions),
+            'numberOfQuestions' => $total,
             'inLanguage' => str_replace('_', '-', app()->getLocale()),
         ],
         [
@@ -47,6 +48,7 @@
 @section('content')
 <div class="container tt-page">
     <div class="tt-main">
+        @if($page === 1)
         <header class="tt-head">
             <h1>{{ __('traits.title') }}</h1>
             <p class="tt-tagline">{{ __('traits.tagline') }}</p>
@@ -73,13 +75,21 @@
             </div>
             <button type="button" class="btn btn-primary btn-xl tt-start" id="tt-start">{{ __('traits.start') }}</button>
         </header>
+        @else
+        {{-- 第 2 頁以後:開場那一整塊已經看過了,只留標題與頁碼 --}}
+        <header class="tt-step-head">
+            <h1>{{ __('traits.title') }}</h1>
+            <span>{{ __('ui.quiz_page', ['n' => $page, 'total' => $pageCount]) }}</span>
+        </header>
+        @endif
 
-        <form action="{{ route('trait-test.submit') }}" method="POST" id="tt-form" class="tt-collapsed">
+        <form action="{{ route('trait-test.submit') }}" method="POST" id="tt-form" @class(['tt-collapsed' => $page === 1])>
             @csrf
+            <input type="hidden" name="step" value="{{ $page }}">
 
             <div class="tt-progress">
                 <div class="tt-progress-bar"><div class="tt-progress-fill" id="tt-fill"></div></div>
-                <span class="tt-progress-count" id="tt-count">0 / {{ count($questions) }}</span>
+                <span class="tt-progress-count" id="tt-count">{{ $answeredBefore }} / {{ $total }}</span>
             </div>
 
             @foreach($questions as $q)
@@ -87,7 +97,8 @@
                 <h2 class="tt-section">{{ $q['section'] }}</h2>
                 @endif
 
-                <fieldset class="tt-q" id="tt-q{{ $q['n'] }}">
+                @php $prev = old('a.'.$q['n'], $saved[$q['n']] ?? null); @endphp
+                <fieldset @class(['tt-q', 'answered' => $prev !== null]) id="tt-q{{ $q['n'] }}">
                     <legend class="sr-only">{{ $q['text'] }}</legend>
                     <span class="tt-q-no">{{ str_pad($q['n'] + 1, 2, '0', STR_PAD_LEFT) }}</span>
                     <p class="tt-q-text">{{ $q['text'] }}</p>
@@ -96,7 +107,7 @@
                     <div class="tt-scale">
                         @foreach(array_reverse($scale, true) as $i => $label)
                         <input type="radio" name="a[{{ $q['n'] }}]" id="a{{ $q['n'] }}_{{ $i }}" value="{{ $i - 2 }}"
-                               {{ old('a.'.$q['n']) !== null && (int) old('a.'.$q['n']) === $i - 2 ? 'checked' : '' }}>
+                               {{ $prev !== null && (int) $prev === $i - 2 ? 'checked' : '' }}>
                         <label for="a{{ $q['n'] }}_{{ $i }}" class="tt-opt tt-opt-{{ $i }}"><span class="tt-dot"></span>{{ $label }}</label>
                         @endforeach
                     </div>
@@ -106,8 +117,13 @@
 
             @error('a')<p class="tt-error">{{ $message }}</p>@enderror
 
+            {{-- 「上一頁」也是送出:答了一半往回翻,這一頁已經答的不會丟。
+                 formnovalidate + nav=prev,伺服器端也不擋缺題。 --}}
             <div class="tt-actions">
-                <button type="submit" class="btn btn-primary btn-xl" id="tt-submit">{{ __('traits.submit') }}</button>
+                @if($page > 1)
+                <button type="submit" name="nav" value="prev" formnovalidate class="btn btn-outline btn-xl tt-prev">{{ __('ui.quiz_prev') }}</button>
+                @endif
+                <button type="submit" name="nav" value="next" class="btn btn-primary btn-xl" id="tt-submit">{{ $page < $pageCount ? __('ui.quiz_next') : __('traits.submit') }}</button>
             </div>
         </form>
 
@@ -120,7 +136,8 @@
              代價,不是沒有代價。 --}}
 
         <section class="tt-faq">
-            <h2>{{ __('traits.faq_title') }}</h2>
+            {{-- 跟結果頁的常見問題同一個圖示。題目頁沒有主屬性,所以顏色用中性的那一支 --}}
+            @include('partials.section-head', ['icon' => 'question', 'title' => __('traits.faq_title'), 'colour' => 'neutral'])
             @foreach(__('traits.faq') as $f)
             <details class="tt-faq-item">
                 <summary>{{ $f['q'] }}</summary>
@@ -146,12 +163,14 @@
 <script>
 (function () {
     var form = document.getElementById('tt-form');
-    var total = {{ count($questions) }};
+    var total = {{ $total }};
+    var before = {{ $answeredBefore }};
+    var onPage = @json(array_column($questions, 'n'));
 
     /* 沒有 JS 的話題目就直接是展開的 —— 收合是 JS 加上去的增強,
        不是必要條件。爬蟲與關掉 JS 的人一樣讀得到全部題目。 */
     var start = document.getElementById('tt-start');
-    start.hidden = false;
+    if (start) start.hidden = false;
     /* 作答中把開場整塊藏起來(標題、標語、重點句、三個要點、facts)—— 那幾行是
        「要不要做」用的,已經開始做了就只是把題目往下推。
        用 class 掛在 .tt-page 上而不是逐個元素 hidden:開場的組成之後還會變,
@@ -159,11 +178,11 @@
     var page = document.querySelector('.tt-page');
     function beginTaking() {
         form.classList.remove('tt-collapsed');
-        start.hidden = true;
+        if (start) start.hidden = true;
         if (page) page.classList.add('is-taking');
     }
 
-    start.addEventListener('click', function () {
+    if (start) start.addEventListener('click', function () {
         beginTaking();
         form.querySelector('.tt-q').scrollIntoView({behavior: 'smooth', block: 'start'});
     });
@@ -174,7 +193,7 @@
     }
 
     function update() {
-        var done = form.querySelectorAll('.tt-q input:checked').length;
+        var done = before + form.querySelectorAll('.tt-q input:checked').length;
         document.getElementById('tt-fill').style.width = (done / total * 100) + '%';
         document.getElementById('tt-count').textContent = done + ' / ' + total;
     }
@@ -189,10 +208,14 @@
     /* 交卷前先擋一次。伺服器一樣會驗(前端擋得住的只有手滑),但讓使用者
        直接跳到沒答的那一題,比整頁重載之後自己找快得多。 */
     form.addEventListener('submit', function (e) {
-        var first = null;
-        for (var i = 0; i < total; i++) {
-            if (!form.querySelector('input[name="a[' + i + ']"]:checked')) { first = i; break; }
-        }
+        if (e.submitter && e.submitter.value === 'prev') return;
+        var first = null, missing = 0;
+        onPage.forEach(function (i) {
+            if (!form.querySelector('input[name="a[' + i + ']"]:checked')) {
+                missing++;
+                if (first === null) first = i;
+            }
+        });
         if (first === null) return;
 
         e.preventDefault();
@@ -201,7 +224,7 @@
         el.scrollIntoView({behavior: 'smooth', block: 'center'});
         var msg = document.getElementById('tt-missing');
         msg.textContent = @json(__('traits.unanswered', ['n' => '__N__']))
-            .replace('__N__', total - form.querySelectorAll('.tt-q input:checked').length);
+            .replace('__N__', missing);
         msg.hidden = false;
     });
 

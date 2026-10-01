@@ -6,6 +6,7 @@ use App\Services\HornyTestService;
 use App\Services\OgImageService;
 use App\Support\LocaleHelper;
 use App\Support\PremiumAccess;
+use App\Support\QuizSteps;
 use Illuminate\Http\Request;
 
 /**
@@ -27,10 +28,35 @@ class HornyTestController extends Controller
         private readonly OgImageService $og,
     ) {}
 
-    public function show()
+    /**
+     * 題目頁。一頁一段(見 QuizSteps),?p= 是頁碼。
+     *
+     * 第 2 頁以後 noindex、canonical 指回第一頁 —— 那些頁只是作答的中繼站,
+     * 不是獨立的內容頁。前面的頁還沒答完就直接跳到後面的話,帶回缺題的那一頁。
+     */
+    public function show(Request $request)
     {
+        $steps = $this->steps();
+        $page = $steps->clamp($request->query('p', 1));
+        $saved = $steps->saved($request);
+
+        if ($page > 1 && ($missing = $steps->firstIncomplete($saved, $page)) !== null) {
+            return redirect()->route('horny-test.show', $missing > 1 ? ['p' => $missing] : []);
+        }
+
+        $onPage = array_flip($steps->questionsOn($page));
+
         return view('horny-test.index', [
-            'questions' => $this->service->questions(),
+            'questions' => array_values(array_filter(
+                $this->service->questions(),
+                fn ($q) => isset($onPage[$q['n']]),
+            )),
+            'total' => $steps->total(),
+            'page' => $page,
+            'pageCount' => $steps->count(),
+            'saved' => $saved,
+            // 進度條的起點:前面幾頁已經答了的題數(這一頁的另外在前端數)
+            'answeredBefore' => count(array_diff_key($saved, $onPage)),
             'scale' => (array) trans('horny.scale'),
             'axes' => $this->service->axes(),
             'dimensions' => $this->service->dimensions(),
@@ -43,12 +69,41 @@ class HornyTestController extends Controller
 
     public function submit(Request $request)
     {
-        $count = count((array) config('horny.questions'));
+        /* 分頁作答:表單帶著 step。沒有 step 的是一次交整份(舊的表單、測試),
+           照原本的整份驗證走。 */
+        if ($request->has('step')) {
+            $steps = $this->steps();
+            $step = $steps->clamp($request->input('step'));
 
-        $data = $request->validate([
-            'a' => ['required', 'array', 'size:'.$count],
-            'a.*' => ['required', 'integer', 'between:'.HornyTestService::MIN.','.HornyTestService::MAX],
-        ], [], ['a' => trans('horny.title')]);
+            if ($request->input('nav') === 'prev') {
+                $steps->store($request, $step, false, trans('horny.title'), 'horny.unanswered');
+
+                return redirect()->route('horny-test.show', $step > 2 ? ['p' => $step - 1] : []);
+            }
+
+            $saved = $steps->store($request, $step, true, trans('horny.title'), 'horny.unanswered');
+
+            if ($step < $steps->count()) {
+                return redirect()->route('horny-test.show', ['p' => $step + 1]);
+            }
+
+            // 最後一頁:session 過期之類的情況會缺前面的題,帶回缺的那一頁
+            if (($missing = $steps->firstIncomplete($saved)) !== null) {
+                return redirect()->route('horny-test.show', $missing > 1 ? ['p' => $missing] : [])
+                    ->withErrors(['a' => trans('horny.unanswered', ['n' => $steps->total() - count($saved)])]);
+            }
+
+            ksort($saved);
+            $steps->forget($request);
+            $data = ['a' => $saved];
+        } else {
+            $count = count((array) config('horny.questions'));
+
+            $data = $request->validate([
+                'a' => ['required', 'array', 'size:'.$count],
+                'a.*' => ['required', 'integer', 'between:'.HornyTestService::MIN.','.HornyTestService::MAX],
+            ], [], ['a' => trans('horny.title')]);
+        }
 
         $result = $this->service->score($data['a']);
 
@@ -109,5 +164,10 @@ class HornyTestController extends Controller
             'ogImage' => route('horny-test.og', ['slug' => $slug]).'?v='
                 .$this->og->fingerprint('horny', $key, app()->getLocale()),
         ]);
+    }
+
+    private function steps(): QuizSteps
+    {
+        return new QuizSteps('horny_answers', (array) config('horny.questions'), HornyTestService::MIN, HornyTestService::MAX);
     }
 }

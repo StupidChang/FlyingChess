@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Http\Middleware\AgeVerification;
+use App\Models\Counter;
 use App\Models\TraitResult;
 use App\Models\User;
 use App\Services\TraitTestService;
+use App\Support\QuizSteps;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -38,12 +40,16 @@ class TraitTestTest extends TestCase
         );
     }
 
-    public function test_the_quiz_page_lists_every_question(): void
+    public function test_the_quiz_page_lists_the_first_page_of_questions(): void
     {
+        /* 題目分頁作答(見 QuizSteps)。每一頁都列滿自己那一段,全部題目分在哪幾頁
+           由 QuizStepsTest 守 —— 這裡只守第一頁,搜尋引擎進來看到的就是它。 */
         $response = $this->get('/tw/trait-test')->assertOk();
+        $texts = __('traits.questions');
+        $steps = new QuizSteps('trait_answers', config('traits.questions'), TraitTestService::MIN, TraitTestService::MAX);
 
-        foreach (__('traits.questions') as $q) {
-            $response->assertSee($q);
+        foreach ($steps->questionsOn(1) as $i) {
+            $response->assertSee($texts[$i]);
         }
     }
 
@@ -160,11 +166,15 @@ class TraitTestTest extends TestCase
     public function test_an_untranslated_locale_is_not_indexed(): void
     {
         /* 讓搜尋引擎收錄一頁中文內容配英文網址,對排名是扣分不是加分。
-           翻好之後把語系加進 config/traits.php 的 translated。 */
-        $this->assertNotContains('en', (array) config('traits.translated'));
+           2026-08-25 四個語系都翻好了,所以改成兩面都守:翻好的語系要能索引,
+           而語系從 translated 拿掉時,noindex 的保險絲要還在。 */
+        $this->assertContains('en', (array) config('traits.translated'));
 
-        $this->get('/en/trait-test')->assertOk()->assertSee('noindex', false);
+        $this->get('/en/trait-test')->assertOk()->assertDontSee('noindex', false);
         $this->get('/tw/trait-test')->assertOk()->assertDontSee('noindex', false);
+
+        config(['traits.translated' => ['zh_TW']]);
+        $this->get('/en/trait-test')->assertOk()->assertSee('noindex', false);
     }
 
     public function test_scoring_puts_a_flat_no_at_zero_not_at_half(): void
@@ -235,6 +245,16 @@ class TraitTestTest extends TestCase
             $this->assertNotEmpty($item['bedroom'] ?? null, "{$key} 少了「在床上長什麼樣子」");
             $this->assertCount(4, $item['likes'] ?? [], "{$key} 的常見偏好不是四條");
             $this->assertNotEmpty($item['everyday'] ?? null, "{$key} 少了「不只在床上」");
+
+            /* tag 是長條圖上貼在名字底下的小字。名字取得再好都有人看不出在講什麼,
+               少一個就等於那一條要點進去才知道 —— 而清單的用途就是不用點進去。
+               九個字是版面的硬上限,超過會被 text-overflow 截掉。 */
+            $this->assertNotEmpty($item['tag'] ?? null, "{$key} 少了長條圖上的小字 tag");
+            $this->assertLessThanOrEqual(
+                9,
+                mb_strlen($item['tag']),
+                "{$key} 的 tag 超過九個字,手機上會被截掉"
+            );
         }
     }
 
@@ -258,11 +278,9 @@ class TraitTestTest extends TestCase
         $this->assertSame($reverse, $basis['reverse']);
         $this->assertSame(count(config('traits.questions')), $basis['total']);
 
-        $this->get('/tw/trait-test/'.__('traits.items.exhib.slug'))
-            ->assertOk()
-            ->assertSee(__('traits.result.basis_questions_v', ['n' => $expected, 'total' => $basis['total']]))
-            ->assertSee(__('traits.result.basis_formula'))
-            ->assertSee(__('traits.result.basis_limits', ['total' => $basis['total']]));
+        /* 這些數字**不再印在結果頁上** —— 計分說明搬到常見問題了。但 basis() 還活著:
+           分享卡片(OgImageService)拿它畫光譜傾向,所以計算對不對還是要守。 */
+        $this->get('/tw/trait-test/'.__('traits.items.exhib.slug'))->assertOk();
     }
 
     public function test_a_trait_measured_by_too_few_questions_claims_no_axis_lean(): void
@@ -306,10 +324,11 @@ class TraitTestTest extends TestCase
         $this->withSession(['trait_result' => $result])
             ->get('/tw/trait-test/'.__('traits.items.'.$result['top'].'.slug'))
             ->assertOk()
-            ->assertSee(__('traits.result.basis_your_title'))
+            // 這幾行現在貼在長條圖底下,不是獨立的依據區塊
             ->assertSee(__('traits.result.basis_answers', [
                 'decisive' => count(config('traits.questions')), 'neutral' => 0,
-            ]));
+            ]))
+            ->assertSee('tt-dist-note', false);
     }
 
     public function test_the_structured_data_only_claims_what_the_page_shows(): void
@@ -352,6 +371,165 @@ class TraitTestTest extends TestCase
             ->assertDontSee('tt-map-dot', false);
     }
 
+    public function test_no_two_traits_share_a_recognition_signal(): void
+    {
+        /* 「典型表現」的用途是讓人對照:對上三條以上大概就是你。這個前提是每一條
+           只屬於一型 —— 同一句話出現在兩型身上,對得上也不代表什麼,那一條就等於
+           沒有作用。複製貼上改文案的時候最容易漏掉。 */
+        $seen = [];
+        foreach (__('traits.items') as $key => $item) {
+            foreach ($item['signals'] as $signal) {
+                $this->assertArrayNotHasKey(
+                    $signal,
+                    $seen,
+                    "「{$signal}」同時出現在 {$key} 和 ".($seen[$signal] ?? '?').' 身上'
+                );
+                $seen[$signal] = $key;
+
+                /* 而且不能只是把那一型的一句話總結再貼一次 —— 讀者在上面
+                   已經看過了,重複一次不會讓他多對上任何東西。 */
+                $this->assertNotSame($item['line'], $signal, "{$key} 的典型表現跟它的一句話總結一樣");
+            }
+        }
+
+        $this->assertCount(count(config('traits.traits')) * 4, $seen);
+    }
+
+    public function test_the_faq_explains_the_scoring_and_says_it_the_same_way(): void
+    {
+        /* 計分方式現在**只有一個出口**:常見問題(題目頁與 20 個結果頁都印)。
+           結果頁原本那個「這個分數是怎麼算出來的」區塊已經拿掉,所以這裡守的是
+           「唯一的那份說明還在,而且跟程式對得上」—— 公式、量表兩端、光譜刻度。 */
+        $scoring = collect(__('traits.faq'))
+            ->first(fn ($f) => str_contains($f['q'], '分數是怎麼算出來的'));
+
+        $this->assertNotNull($scoring, 'FAQ 少了「這個分數是怎麼算出來的?」這一題');
+
+        $formula = 'Σ(你的答案 × 權重) ÷ Σ(2 × |權重|)';
+        $this->assertStringContainsString($formula, $scoring['a'], 'FAQ 沒有把公式寫出來');
+
+        // 量表的兩端也要對得上程式,不然公式寫對了、範圍寫錯了一樣是錯的
+        $this->assertStringContainsString(TraitTestService::MIN.'(', $scoring['a']);
+        $this->assertStringContainsString('+'.TraitTestService::MAX.'(', $scoring['a']);
+        $this->assertStringContainsString(TraitTestService::AXIS_SCALE.'', $scoring['a']);
+
+        // 交卷前後都要看得到 —— 想知道分數怎麼算的人不一定已經做完測驗
+        $this->get('/tw/trait-test')->assertOk()->assertSee($scoring['q']);
+        $this->get('/tw/trait-test/'.__('traits.items.dom.slug'))->assertOk()->assertSee($scoring['q']);
+    }
+
+    public function test_the_names_only_use_the_two_agreed_suffixes(): void
+    {
+        /* 20 條名字並排的時候,後綴一亂整份清單就不像一套分類 —— 之前同時有
+           〜型／〜控／〜派／〜屬性 四種。規則收成兩條:通用後綴一律「〜型」,
+           只有使用者本來就會打進搜尋框的既有詞原樣保留。這裡把例外寫死,
+           新增屬性想再開一種後綴就會紅燈。 */
+        $keptAsIs = ['S屬性', 'M屬性', '抖M', '雙性Switch', '戀愛腦', '老司機'];
+
+        $names = [];
+        foreach (__('traits.items') as $key => $item) {
+            $name = $item['name'];
+            $names[] = $name;
+
+            if (in_array($name, $keptAsIs, true)) {
+                continue;
+            }
+
+            $this->assertStringEndsWith(
+                '型',
+                $name,
+                "{$key} 的名字「{$name}」既不是「〜型」,也不在保留的既有詞名單裡"
+            );
+        }
+
+        $this->assertSame($names, array_unique($names), '有兩個屬性同名');
+    }
+
+    public function test_each_finisher_gets_the_next_number(): void
+    {
+        /* 「你是第 N 位」。號碼要真的遞增,而且**匿名的人也要算**:trait_results
+           只存登入者,拿它 count() 會漏掉大多數受測者,所以計數是獨立的一張表。 */
+        $before = Counter::total(Counter::TRAIT_TEST);
+
+        $this->post('/tw/trait-test', ['a' => $this->allAnswers(2)]);
+        $first = session('trait_result')['ordinal'] ?? null;
+
+        $this->post('/tw/trait-test', ['a' => $this->allAnswers(2)]);
+        $second = session('trait_result')['ordinal'] ?? null;
+
+        $this->assertSame($before + 1, $first, '第一個人拿到的號碼不是接在既有累計後面');
+        $this->assertSame($before + 2, $second, '第二個人沒有拿到下一號');
+        $this->assertSame($before + 2, Counter::total(Counter::TRAIT_TEST));
+
+        // 這兩次都是匿名的:trait_results 一筆都沒有,但計數器算到了
+        $this->assertDatabaseCount('trait_results', 0);
+    }
+
+    public function test_the_number_shows_on_the_result_page_but_not_to_a_visitor(): void
+    {
+        /* 從搜尋進來的人沒做過測驗 —— 對他講「你是第幾位」是假的,所以那一行
+           必須跟著分數走,不是跟著頁面走。 */
+        $service = app(TraitTestService::class);
+        $result = $service->score($this->allAnswers(2));
+        $result['ordinal'] = 4567;
+        $slug = __('traits.items.'.$result['top'].'.slug');
+
+        $this->withSession(['trait_result' => $result])
+            ->get('/tw/trait-test/'.$slug)
+            ->assertOk()
+            // 千分位一起驗:number_format 掉了的話這裡會抓到
+            ->assertSee(__('traits.result.traveller', [
+                'n' => '4,567',
+                'total' => count(config('traits.questions')),
+            ]));
+
+        /* 一定要先清 session:測試裡的 session 會跨請求活著(Store::start() 把既有
+           attributes 併回去),不清的話下面這個「沒有分數的訪客」其實還帶著分數。 */
+        $this->flushSession();
+
+        $this->get('/tw/trait-test/'.$slug)
+            ->assertOk()
+            ->assertDontSee('tt-traveller', false);
+    }
+
+    public function test_reloading_the_result_page_does_not_bump_the_number(): void
+    {
+        /* 號碼在交卷那一刻決定。如果是在結果頁算的,每次重整、每次別人分享點進來
+           都會加一,那個數字就變成「頁面被看過幾次」而不是「幾個人做完」。 */
+        $this->post('/tw/trait-test', ['a' => $this->allAnswers(2)]);
+        $after = Counter::total(Counter::TRAIT_TEST);
+
+        $slug = __('traits.items.'.session('trait_result')['top'].'.slug');
+        $this->get('/tw/trait-test/'.$slug)->assertOk();
+        $this->get('/tw/trait-test/'.$slug)->assertOk();
+
+        $this->assertSame($after, Counter::total(Counter::TRAIT_TEST), '看結果頁把號碼往上推了');
+    }
+
+    public function test_every_bar_carries_its_own_one_liner(): void
+    {
+        /* 20 條長條如果只有名字,使用者得一條一條點進去才知道在講什麼 ——
+           而清單存在的意義就是不用點。小字掉了畫面不會壞,只會變回原來那樣,
+           所以這裡逐條對:每一個出現在清單上的名字,底下都要有它的 tag。 */
+        $service = app(TraitTestService::class);
+        $result = $service->score($this->allAnswers(2));
+
+        $html = $this->withSession(['trait_result' => $result])
+            ->get('/tw/trait-test/'.__('traits.items.'.$result['top'].'.slug'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertSame(
+            count($result['traits']),
+            substr_count($html, 'tt-bar-tag'),
+            '有長條沒有小字'
+        );
+
+        foreach (__('traits.items') as $key => $item) {
+            $this->assertStringContainsString($item['tag'], $html, "{$key} 的小字沒有印出來");
+        }
+    }
+
     public function test_the_axis_reading_follows_the_actual_score(): void
     {
         $service = app(TraitTestService::class);
@@ -366,14 +544,16 @@ class TraitTestTest extends TestCase
         $this->assertNull($left['PE']['lean']);
     }
 
-    public function test_the_quiz_still_lists_every_question_without_javascript(): void
+    public function test_the_first_page_still_lists_its_questions_without_javascript(): void
     {
-        /* 封面是 JS 加上去的增強。爬蟲與關掉 JS 的人一樣要讀得到全部題目 ——
+        /* 封面是 JS 加上去的增強。爬蟲與關掉 JS 的人一樣要讀得到第一頁的題目 ——
            收合如果是伺服器端做的,這一頁對搜尋引擎就只剩一顆按鈕。 */
         $html = $this->get('/tw/trait-test')->assertOk()->getContent();
+        $texts = __('traits.questions');
+        $steps = new QuizSteps('trait_answers', config('traits.questions'), TraitTestService::MIN, TraitTestService::MAX);
 
-        foreach (__('traits.questions') as $q) {
-            $this->assertStringContainsString($q, $html);
+        foreach ($steps->questionsOn(1) as $i) {
+            $this->assertStringContainsString(e($texts[$i]), $html);
         }
     }
 
