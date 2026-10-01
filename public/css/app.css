@@ -2632,17 +2632,19 @@ body.age-locked{overflow:hidden}
   border:1px solid rgba(244,63,94,.3);padding:4px 14px;border-radius:20px;margin-bottom:20px;
 }
 .age-overlay .age-gate-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
-.age-overlay .age-gate-btns form{flex:1;min-width:140px}
+/* 按鈕文字不准斷行(「我已滿 18 歲，進入」在手機上會被切成兩行)。
+   「進入」分到兩倍寬;一行真的放不下時,整顆「離開」換到下一行,而不是把字切開。 */
+.age-overlay .age-gate-btns form{flex:2 1 auto;min-width:0}
 .age-overlay .btn-enter{
-  background:var(--accent);color:#fff;border:none;border-radius:8px;padding:13px 32px;
-  font-size:.95rem;font-weight:700;cursor:pointer;width:100%;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;padding:13px 20px;
+  font-size:.95rem;font-weight:700;cursor:pointer;width:100%;white-space:nowrap;
   transition:background .15s ease,transform .1s ease;
 }
 .age-overlay .btn-enter:hover{background:#fb7185}
 .age-overlay .btn-enter:active{transform:scale(.98)}
 .age-overlay .btn-leave{
   background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:8px;
-  padding:13px 32px;font-size:.95rem;cursor:pointer;flex:1;min-width:100px;
+  padding:13px 20px;font-size:.95rem;cursor:pointer;flex:1 1 auto;min-width:88px;white-space:nowrap;
   display:flex;align-items:center;justify-content:center;
   transition:background .15s ease,color .15s ease,border-color .15s ease;
 }
@@ -2650,6 +2652,12 @@ body.age-locked{overflow:hidden}
 .age-overlay .age-gate-links{font-size:.8rem;color:var(--text-dim);margin-top:16px}
 .age-overlay .age-gate-links a{color:var(--text-dim);text-decoration:underline;margin:0 8px}
 .age-overlay .age-gate-links a:hover{color:var(--accent)}
+/* 手機:外框與卡片的左右留白收窄,360px 寬的手機上兩顆按鈕才排得進同一行
+   (外 24 + 卡 36 兩側合計 120px,內容只剩 240px,放不下兩顆) */
+@media(max-width:480px){
+  .age-overlay{padding:16px}
+  .age-overlay-card{padding:36px 22px}
+}
 
 /* ── 兩人對照(屬性測驗的工具頁)──
    兩個標記放在同一條雙極軌道上,距離就是差距。用 CSS 定位而不是畫 SVG:

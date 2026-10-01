@@ -39,10 +39,12 @@
         .age-gate p{line-height:1.75;margin-bottom:12px;font-size:.92rem;color:#9aa1b5}
         .age-gate .warning{font-size:.98rem;color:#e9ebf2;margin-bottom:26px;line-height:1.7}
         .age-gate-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
-        .btn-enter{background:#f43f5e;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:.95rem;font-weight:700;cursor:pointer;flex:1;min-width:140px;transition:background .15s ease,transform .1s ease}
+        .btn-enter{background:#f43f5e;color:#fff;border:none;border-radius:8px;padding:13px 20px;font-size:.95rem;font-weight:700;cursor:pointer;flex:2 1 auto;min-width:0;white-space:nowrap;transition:background .15s ease,transform .1s ease}
         .btn-enter:hover{background:#fb7185}
         .btn-enter:active{transform:scale(.98)}
-        .btn-leave{background:transparent;color:#9aa1b5;border:1px solid #2a2f42;border-radius:8px;padding:13px 32px;font-size:.95rem;cursor:pointer;flex:1;min-width:100px;transition:background .15s ease,color .15s ease,border-color .15s ease}
+        .btn-leave{background:transparent;color:#9aa1b5;border:1px solid #2a2f42;border-radius:8px;padding:13px 20px;font-size:.95rem;cursor:pointer;flex:1 1 auto;min-width:88px;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease}
+        /* 手機:收窄左右留白,360px 的手機上兩顆按鈕才排得進同一行 */
+        @media(max-width:480px){body{padding:16px}.age-gate{padding:36px 22px}}
         .btn-leave:hover{background:#1d2130;color:#e9ebf2;border-color:#3a3f56}
         .age-gate-links{font-size:.8rem;color:#6b7186;margin-top:16px}
         .age-gate-links a{color:#9aa1b5;text-decoration:underline;margin:0 8px}
