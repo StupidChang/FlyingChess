@@ -137,8 +137,11 @@
                 <span class="admin-ads-label">其他聯播網</span>
                 @foreach($ads['networks'] as $key => $net)
                     @continue($key === $ads['adapter'])
+                    {{-- 標了 forbidden 的(AdSense)不列:本站是成人內容,那家根本不能用,
+                         放在後台只會讓人以為是一個選項。設定檔裡仍保留,見 config/ads.php --}}
+                    @continue(! empty($net['forbidden']))
                     <a href="{{ $net['dashboard'] }}" target="_blank" rel="noopener noreferrer"
-                       class="admin-ads-other {{ !empty($net['forbidden']) ? 'is-forbidden' : '' }}">
+                       class="admin-ads-other">
                         <b>{{ $net['label'] }} ↗</b>
                         <em>{{ $net['hint'] }}</em>
                     </a>
@@ -245,9 +248,6 @@
 .admin-ads-other:hover{border-color:var(--gold)}
 .admin-ads-other b{display:block;font-size:.88rem;color:var(--text)}
 .admin-ads-other em{display:block;font-size:.74rem;color:var(--text-dim);font-style:normal;line-height:1.6;margin-top:3px}
-/* AdSense:成人內容啟用會違反政策,連結留著但要看得出是紅字警告 */
-.admin-ads-other.is-forbidden b{color:var(--accent)}
-.admin-ads-other.is-forbidden:hover{border-color:var(--accent)}
 .admin-bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:18px}
 .admin-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
 .admin-bar{width:100%;max-width:32px;border-radius:4px 4px 0 0;background:var(--rose,#e0507a);opacity:.85}

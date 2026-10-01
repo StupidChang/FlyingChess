@@ -60,14 +60,14 @@ class AdminAdsPanelTest extends TestCase
         $this->actingAs($this->admin())->get('/tw/admin')->assertOk()->assertSee('（2 行）');
     }
 
-    public function test_adsense_is_marked_as_not_allowed_here(): void
+    public function test_adsense_is_not_offered_in_the_panel(): void
     {
-        // 成人內容啟用 AdSense 會違反政策並可能導致帳號停用 —— 連結留著,但要看得出來
+        // 成人內容不能用 AdSense,列在「其他聯播網」只會讓人以為是一個選項
         $this->actingAs($this->admin())
             ->get('/tw/admin')
             ->assertOk()
-            ->assertSee('is-forbidden', false)
-            ->assertSee('違反 AdSense 政策');
+            ->assertSee('TrafficJunky')
+            ->assertDontSee('AdSense');
     }
 
     public function test_a_normal_user_cannot_see_the_panel(): void
