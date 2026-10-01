@@ -70,6 +70,7 @@ return [
     'history_locked' => 'Free accounts show only the last :count games — :hidden more are waiting behind an upgrade.',
     'history_upgrade_cta' => 'Upgrade for the full history',
     'tests' => 'Tests',
+    'copy_credit' => 'From :site',
     'quiz_next' => 'Next',
     'quiz_prev' => 'Back',
     'quiz_page' => 'Page :n of :total',

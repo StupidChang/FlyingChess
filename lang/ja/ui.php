@@ -70,6 +70,7 @@ return [
     'history_locked' => '無料会員は直近 :count 件のみ表示されます。あと :hidden 件はアップグレードすると閲覧できます。',
     'history_upgrade_cta' => 'アップグレードして全履歴を見る',
     'tests' => '診断',
+    'copy_credit' => '出典：:site',
     'quiz_next' => '次へ',
     'quiz_prev' => '前へ',
     'quiz_page' => ':n / :total ページ',

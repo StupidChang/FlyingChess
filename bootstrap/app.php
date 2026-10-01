@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AgeVerification;
+use App\Http\Middleware\DeterScrapers;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureNotBanned;
 use App\Http\Middleware\EnsurePremium;
@@ -100,6 +101,9 @@ return Application::configure(basePath: dirname(__DIR__))
            往前插,所以寫在後面的這一行才會先跑)—— 排在後面的話那些網址拿到的是
            301,永遠走不到這裡。見 RetiredUrls 的說明。 */
         $middleware->prepend(RetiredUrls::class);
+        /* 擋爬站工具與一次扒整站。排最前面:被擋的請求連 session、語系都不用跑。
+           經過驗證的搜尋引擎爬蟲不受頁數限制,見 DeterScrapers。 */
+        $middleware->prepend(DeterScrapers::class);
         $middleware->append(AgeVerification::class);
 
         // 流量紀錄排在年齡閘之後:被年齡閘擋下的那一次不是真的看到內容,

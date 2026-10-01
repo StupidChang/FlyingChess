@@ -70,6 +70,7 @@ return [
     'history_locked' => '免费会员只显示最近 :count 场，还有 :hidden 场需要升级才看得到。',
     'history_upgrade_cta' => '升级查看完整记录',
     'tests' => '测验',
+    'copy_credit' => '出自 :site',
     'quiz_next' => '下一页',
     'quiz_prev' => '上一页',
     'quiz_page' => '第 :n / :total 页',

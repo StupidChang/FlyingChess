@@ -111,7 +111,8 @@
 </head>
 {{-- age-locked:沒確認年齡時鎖住捲動,讓覆蓋層底下的頁面動不了。
      真正的閘門是覆蓋層本身,這個 class 只是不讓人「滑過去」。 --}}
-<body class="{{ ($ageUnverified ?? false) ? 'age-locked' : '' }}">
+{{-- data-copy-credit:複製一段長文字時,剪貼簿後面自動附上出處(見 app.js) --}}
+<body class="{{ ($ageUnverified ?? false) ? 'age-locked' : '' }}" data-copy-credit="{{ __('ui.copy_credit', ['site' => __('ui.site_name')]) }}">
 <header class="site-header">
     <div class="container">
         <a href="{{ route('home') }}" class="logo">@include('partials.heart-icon')<span>{{ __('ui.site_name') }}</span></a>
