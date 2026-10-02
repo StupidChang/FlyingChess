@@ -128,7 +128,7 @@ return [
         "I get distracted easily during sex and can't sink into it.",
         'I can usually relax completely and not think about anything else.',
         "I don't worry about not being good enough or letting them down.",
-        'I worry that my moans or my faces look weird.',
+        'I worry that my moans sound weird or my faces look weird.',
         'Being loud in bed comes naturally to me.',
         'It takes me a long time to truly loosen up.',
         "Afterward, I don't replay what I could have done better.",
