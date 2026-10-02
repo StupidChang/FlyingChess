@@ -20,6 +20,8 @@ class SiteMessage extends Notification
 
     public const KIND_WELCOME = 'welcome';
 
+    public const KIND_PROMO = 'promo';
+
     public function __construct(
         public readonly string $title,
         public readonly string $body,
@@ -35,6 +37,17 @@ class SiteMessage extends Notification
             trans('notifications.welcome_body', [], $locale),
             '/'.(LocaleHelper::localeToPrefix($locale) ?? 'tw').'/game-hall',
             self::KIND_WELCOME,
+        );
+    }
+
+    /** 推廣期間全部開放的通知(見 App\Listeners\SendPromoNotice)。 */
+    public static function promo(string $locale): self
+    {
+        return new self(
+            trans('notifications.promo_title', [], $locale),
+            trans('notifications.promo_body', [], $locale),
+            '/'.(LocaleHelper::localeToPrefix($locale) ?? 'tw').'/game-hall',
+            self::KIND_PROMO,
         );
     }
 

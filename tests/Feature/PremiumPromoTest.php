@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use App\Notifications\SiteMessage;
 use App\Support\PremiumAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 /**
@@ -58,5 +61,39 @@ class PremiumPromoTest extends TestCase
         config(['premium.promo.enabled' => true, 'ads.adapter' => 'exoclick', 'ads.exoclick.zone_home_banner' => '123']);
 
         $this->asAgeVerified()->get('/tw')->assertOk()->assertSee('data-zone="home_banner"', false);
+    }
+
+    public function test_logging_in_during_the_promo_leaves_one_notice(): void
+    {
+        config(['premium.promo.enabled' => true]);
+        $user = User::factory()->create(['locale' => 'ja']);
+
+        Auth::login($user);
+        Auth::logout();
+        Auth::login($user);   // 第二次登入不重送
+
+        $promos = $user->notifications()->where('data->kind', SiteMessage::KIND_PROMO)->get();
+        $this->assertCount(1, $promos);
+        $this->assertSame(trans('notifications.promo_title', [], 'ja'), $promos->first()->data['title']);
+        $this->assertSame('/jp/game-hall', $promos->first()->data['url']);
+    }
+
+    public function test_no_notice_when_the_promo_is_off(): void
+    {
+        $user = User::factory()->create();
+        Auth::login($user);
+
+        $this->assertSame(0, $user->notifications()->where('data->kind', SiteMessage::KIND_PROMO)->count());
+    }
+
+    public function test_a_real_password_login_gets_the_notice(): void
+    {
+        config(['premium.promo.enabled' => true]);
+        $user = User::factory()->create(['email' => 'p@example.com', 'password' => bcrypt('secret-password')]);
+
+        $this->asAgeVerified()->post('/tw/login', ['email' => 'p@example.com', 'password' => 'secret-password']);
+
+        $this->assertTrue(Auth::check());
+        $this->assertSame(1, $user->notifications()->where('data->kind', SiteMessage::KIND_PROMO)->count());
     }
 }
