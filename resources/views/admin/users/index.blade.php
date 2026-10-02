@@ -26,6 +26,14 @@
                 @include('admin._filter-tab', ['param' => 'filter', 'value' => 'admin', 'label' => '管理員'])
                 @include('admin._filter-tab', ['param' => 'filter', 'value' => 'banned', 'label' => '已封鎖'])
             </div>
+            {{-- 依註冊時的語系篩選(可複選)。最近瀏覽的語系會一直變,不拿來篩。 --}}
+            <div class="admin-filter-tabs">
+                @include('admin._filter-clear', ['params' => ['lang']])
+                @foreach(\App\Support\LocaleHelper::supported() as $code => $cfg)
+                    @include('admin._filter-tab', ['param' => 'lang', 'value' => $code, 'label' => $cfg['name']])
+                @endforeach
+                @include('admin._filter-tab', ['param' => 'lang', 'value' => 'none', 'label' => '未記錄'])
+            </div>
             <form action="{{ route('admin.users') }}" method="GET" class="admin-search">
                 {{-- 篩選現在是複選,搜尋時要把整組帶著走 --}}
                 @foreach((array) request('filter', []) as $f)
@@ -58,6 +66,7 @@
                         @include('admin._sort-header', ['key' => 'name', 'label' => '名稱'])
                         @include('admin._sort-header', ['key' => 'email', 'label' => 'Email'])
                         @include('admin._sort-header', ['key' => 'boards', 'label' => '棋盤數'])
+                        @include('admin._sort-header', ['key' => 'locale', 'label' => '語系'])
                         <th>狀態</th>
                         @include('admin._sort-header', ['key' => 'created_at', 'label' => '註冊時間'])
 
@@ -71,6 +80,13 @@
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->boards_count }}</td>
+                        {{-- 註冊時的語系;最近瀏覽用的語系不一樣時,小字標在下面 --}}
+                        <td>
+                            @include('admin._locale-name', ['locale' => $user->locale])
+                            @if($user->last_locale && $user->last_locale !== $user->locale)
+                                <div style="font-size:.75rem;color:var(--text-dim)">最近：@include('admin._locale-name', ['locale' => $user->last_locale])</div>
+                            @endif
+                        </td>
                         <td>
                             @if($user->isAdmin()) <span class="badge-admin">Admin</span> @endif
                             @if($user->isPremium()) <span class="badge-premium">Premium</span> @endif
@@ -107,7 +123,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" style="text-align:center;padding:24px">沒有找到會員</td></tr>
+                    <tr><td colspan="8" style="text-align:center;padding:24px">沒有找到會員</td></tr>
                     @endforelse
                 </tbody>
             </table>

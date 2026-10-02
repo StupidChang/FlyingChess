@@ -22,6 +22,11 @@
         <div style="margin-bottom:24px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
             <p><strong>Email：</strong>{{ $user->email }}</p>
             <p><strong>註冊時間：</strong>{{ $user->created_at->format('Y-m-d H:i') }}</p>
+            {{-- 註冊語系只在註冊時記一次;最近瀏覽的語系來自瀏覽紀錄(只留 180 天) --}}
+            <p><strong>註冊語系：</strong>@include('admin._locale-name', ['locale' => $user->locale])</p>
+            <p><strong>最近瀏覽語系：</strong>@include('admin._locale-name', ['locale' => $lastLocale])
+                @if($lastSeenAt)<span style="font-size:.85rem;color:var(--text-dim)">（{{ $lastSeenAt->format('Y-m-d H:i') }}）</span>@endif
+            </p>
             <p><strong>棋盤數：</strong>{{ $user->boards()->count() }}</p>
             <p><strong>帳號狀態：</strong>
                 @if($user->isBanned())

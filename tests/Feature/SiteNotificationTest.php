@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\PageView;
 use App\Models\User;
 use App\Notifications\SiteMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -244,6 +245,34 @@ class SiteNotificationTest extends TestCase
             ->post('/tw/admin/users/notify', $this->message(['audience' => 'all']))
             ->assertForbidden();
         $this->assertSame(0, $user->notifications()->count());
+    }
+
+    public function test_the_admin_list_shows_each_members_language(): void
+    {
+        $en = User::factory()->create(['name' => '英文會員', 'locale' => 'en']);
+        $tw = User::factory()->create(['name' => '繁中會員', 'locale' => 'zh_TW']);
+        // 用英文註冊、後來改用日文看網站
+        PageView::create(['path' => '/jp', 'locale' => 'ja', 'user_id' => $en->id, 'visitor_hash' => 'x']);
+
+        $this->actingAs($this->admin())->asAgeVerified()->get('/tw/admin/users')
+            ->assertOk()
+            ->assertSee('English')
+            ->assertSee('最近：'.config('app.available_locales.ja.name'));
+
+        // 依註冊語系篩選
+        $this->actingAs($this->admin())->asAgeVerified()->get('/tw/admin/users?lang[]=en')
+            ->assertSee('英文會員')
+            ->assertDontSee('繁中會員');
+    }
+
+    public function test_the_admin_edit_page_shows_both_languages(): void
+    {
+        $user = User::factory()->create(['locale' => 'zh_TW']);
+        PageView::create(['path' => '/en', 'locale' => 'en', 'user_id' => $user->id, 'visitor_hash' => 'x']);
+
+        $this->actingAs($this->admin())->asAgeVerified()->get("/tw/admin/users/{$user->id}/edit")
+            ->assertSee('註冊語系')->assertSee('繁體中文')
+            ->assertSee('最近瀏覽語系')->assertSee('English');
     }
 
     public function test_the_admin_edit_page_shows_what_the_user_already_received(): void

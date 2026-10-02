@@ -929,9 +929,28 @@ class AdminController extends Controller
 
     // ── Users ──
 
+    /**
+     * 每個會員最近一次瀏覽用的語系(從瀏覽紀錄找最新一筆)。
+     *
+     * users.locale 只在註冊時寫一次,之後切換語言不會更新;想知道「他現在用什麼
+     * 語言看網站」要看瀏覽紀錄。瀏覽紀錄只留 180 天,所以很久沒來的人會是 null。
+     */
+    private function lastLocaleSubquery()
+    {
+        return PageView::select('locale')
+            ->whereColumn('page_views.user_id', 'users.id')
+            ->whereNotNull('locale')
+            ->orderByDesc('id')
+            ->limit(1);
+    }
+
     public function editUser(Request $request, User $user)
     {
+        $lastView = PageView::where('user_id', $user->id)->whereNotNull('locale')->latest('id')->first();
+
         return view('admin.users.edit', [
+            'lastLocale' => $lastView?->locale,
+            'lastSeenAt' => $lastView?->created_at,
             'user' => $user,
             'return' => $this->listReturn($request),
             // 這個人最近收到的通知,發之前看得到「上一次跟他說了什麼」
@@ -1019,7 +1038,14 @@ class AdminController extends Controller
 
     public function users(Request $request)
     {
-        $query = User::withCount('boards');
+        $query = User::withCount('boards')->addSelect(['last_locale' => $this->lastLocaleSubquery()]);
+
+        /* 語系篩選看的是**註冊時的語系**(users.locale)。最近瀏覽的語系每一頁都會變,
+           拿來篩選的話,同一個人今天在這一組、明天在另一組。 */
+        $this->applyAnyOf($query, $request, 'lang', collect(LocaleHelper::supported())
+            ->mapWithKeys(fn ($cfg, $locale) => [$locale => fn ($q) => $q->where('locale', $locale)])
+            ->put('none', fn ($q) => $q->whereNull('locale'))
+            ->all());
 
         $this->applyAnyOf($query, $request, 'filter', [
             'premium' => fn ($q) => $q->whereNotNull('premium_expires_at')
@@ -1040,6 +1066,7 @@ class AdminController extends Controller
             'name' => 'name',
             'email' => 'email',
             'boards' => 'boards_count',
+            'locale' => 'locale',
             'created_at' => 'created_at',
         ], 'created_at');
 
