@@ -66,6 +66,34 @@ class SiteNotificationTest extends TestCase
             ->assertSee('<span class="nav-notif-dot" >2</span>', false);
     }
 
+    public function test_the_bell_links_to_the_full_notice_not_straight_to_its_link(): void
+    {
+        $user = User::factory()->create();
+        $user->notify(new SiteMessage('標題', str_repeat('很長的內容', 30), '/tw/game-hall'));
+        $id = $user->notifications()->sole()->id;
+
+        // 面板裡點一則是到通知頁的那一則,完整內文也在面板裡(不截斷)
+        $this->actingAs($user)->asAgeVerified()->get('/tw')
+            ->assertSee('/tw/notifications#n-'.$id, false)
+            ->assertSee(str_repeat('很長的內容', 30));
+
+        // 通知頁有完整內容與「前往」按鈕,按鈕才會帶去通知附的連結
+        $this->actingAs($user)->asAgeVerified()->get('/tw/notifications')
+            ->assertSee('id="n-'.$id.'"', false)
+            ->assertSee('/tw/notifications/'.$id, false)
+            ->assertSee(__('notifications.open'));
+    }
+
+    public function test_a_notice_without_a_link_has_no_go_button(): void
+    {
+        $user = User::factory()->create();
+        $user->notify(new SiteMessage('t', 'b'));
+        $id = $user->notifications()->sole()->id;
+
+        $this->actingAs($user)->asAgeVerified()->get('/tw/notifications')
+            ->assertDontSee('/tw/notifications/'.$id, false);
+    }
+
     public function test_opening_the_notifications_page_marks_everything_read(): void
     {
         $user = User::factory()->create();

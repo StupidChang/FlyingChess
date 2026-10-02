@@ -170,8 +170,11 @@
                             </form>
                             @endif
                         </div>
+                        {{-- 點一則是到通知頁的那一則(完整內容 + 「前往」按鈕),不是直接跳到
+                             通知附的連結 —— 直接跳走的話,使用者永遠看不完整則內容。 --}}
+                        @if($navNotifs->isNotEmpty())<div class="nav-notif-list">@endif
                         @forelse($navNotifs as $n)
-                        <a href="{{ route('notifications.open', $n->id) }}" @class(['nav-notif-item', 'is-new' => ! $n->read_at])>
+                        <a href="{{ route('notifications.index') }}#n-{{ $n->id }}" @class(['nav-notif-item', 'is-new' => ! $n->read_at])>
                             <strong>{{ $n->data['title'] ?? '' }}</strong>
                             <span class="nav-notif-body">{{ $n->data['body'] ?? '' }}</span>
                             <time>{{ $n->created_at->diffForHumans() }}</time>
@@ -182,6 +185,7 @@
                             <p>{{ __('ui.notifications_empty') }}</p>
                         </div>
                         @endforelse
+                        @if($navNotifs->isNotEmpty())</div>@endif
                         @if($navNotifs->isNotEmpty())
                         <a href="{{ route('notifications.index') }}" class="nav-notif-all">{{ __('notifications.view_all') }}</a>
                         @endif
