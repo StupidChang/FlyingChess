@@ -33,7 +33,8 @@ class NotificationController extends Controller
         $notification = $request->user()->notifications()->findOrFail($id);
         $notification->markAsRead();
 
-        $url = SiteMessage::safeUrl($notification->data['url'] ?? null);
+        // 系統通知的連結跟著目前頁面的語系走(見 SiteMessage::present())
+        $url = SiteMessage::present($notification)['url'];
 
         return $url ? redirect($url) : redirect()->route('notifications.index');
     }

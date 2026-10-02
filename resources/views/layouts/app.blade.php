@@ -174,9 +174,10 @@
                              通知附的連結 —— 直接跳走的話,使用者永遠看不完整則內容。 --}}
                         @if($navNotifs->isNotEmpty())<div class="nav-notif-list">@endif
                         @forelse($navNotifs as $n)
+                        @php $nv = \App\Notifications\SiteMessage::present($n); @endphp
                         <a href="{{ route('notifications.index') }}#n-{{ $n->id }}" @class(['nav-notif-item', 'is-new' => ! $n->read_at])>
-                            <strong>{{ $n->data['title'] ?? '' }}</strong>
-                            <span class="nav-notif-body">{{ $n->data['body'] ?? '' }}</span>
+                            <strong>{{ $nv['title'] }}</strong>
+                            <span class="nav-notif-body">{{ $nv['body'] }}</span>
                             <time>{{ $n->created_at->diffForHumans() }}</time>
                         </a>
                         @empty

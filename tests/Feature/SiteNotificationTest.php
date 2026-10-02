@@ -94,6 +94,36 @@ class SiteNotificationTest extends TestCase
             ->assertDontSee('/tw/notifications/'.$id, false);
     }
 
+    public function test_system_notices_follow_the_language_being_viewed(): void
+    {
+        // 用英文註冊的人,切到繁中、日文頁面時,同一則推廣通知要跟著換語言
+        $user = User::factory()->create(['locale' => 'en']);
+        $user->notify(SiteMessage::promo('en'));
+        $id = $user->notifications()->sole()->id;
+
+        foreach (['tw' => 'zh_TW', 'cn' => 'zh_CN', 'jp' => 'ja', 'en' => 'en'] as $prefix => $locale) {
+            $title = trans('notifications.promo_title', [], $locale);
+            $body = trans('notifications.promo_body', [], $locale);
+
+            $this->actingAs($user)->asAgeVerified()->get("/{$prefix}")
+                ->assertSee($title)->assertSee($body);
+            $this->actingAs($user)->asAgeVerified()->get("/{$prefix}/notifications")
+                ->assertSee($title)->assertSee($body);
+
+            // 「前往」也帶去同一個語系的網址
+            $this->actingAs($user)->asAgeVerified()->get("/{$prefix}/notifications/{$id}")
+                ->assertRedirect("/{$prefix}/game-hall");
+        }
+    }
+
+    public function test_an_admin_message_is_shown_as_written_in_every_language(): void
+    {
+        $user = User::factory()->create();
+        $user->notify(new SiteMessage('只有中文的公告', '內容'));
+
+        $this->actingAs($user)->asAgeVerified()->get('/en/notifications')->assertSee('只有中文的公告');
+    }
+
     public function test_opening_the_notifications_page_marks_everything_read(): void
     {
         $user = User::factory()->create();
