@@ -43,6 +43,8 @@
 .dg-die-prop .dg-dice-face{background:linear-gradient(135deg,#0d9488,#0f766e)}
 .dg-die-play .dg-dice-face{background:linear-gradient(135deg,#db2777,#9d174d)}
 .dg-die-custom .dg-dice-face{background:linear-gradient(135deg,#d9a441,#b8860b)}
+.dg-die-twist .dg-dice-face{background:linear-gradient(135deg,#ea580c,#c2410c)}
+.dg-die-who .dg-dice-face{background:linear-gradient(135deg,#475569,#334155)}
 
 /* Result glow — one-shot pulse on the settled dice */
 .dg-dice-scene.dg-glow{animation:dgGlowPulse .8s ease-out 1}
@@ -101,6 +103,17 @@
 .dg-picker-dot-prop{background:#0d9488}
 .dg-picker-dot-play{background:#db2777}
 .dg-picker-dot-custom{background:#d9a441}
+.dg-picker-dot-twist{background:#ea580c}
+/* 結果卡片:誰對誰、做什麼、轉折、計時 */
+.dg-result-who{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:.02em}
+.dg-result-twist{display:block;width:fit-content;max-width:min(440px,100%);margin:12px auto 0;padding:10px 14px;border-radius:10px;font-size:.95rem;font-weight:600;line-height:1.5;
+  color:var(--text);background:color-mix(in srgb,#ea580c 16%,var(--surface2));border:1px solid color-mix(in srgb,#ea580c 45%,var(--border))}
+.dg-timer{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.dg-timer-bar{width:min(320px,80%);height:6px;border-radius:999px;background:var(--surface2);overflow:hidden}
+.dg-timer-fill{height:100%;width:100%;background:var(--accent);transform-origin:left;transition:transform .25s linear}
+.dg-timer.is-done .dg-timer-btn{border-color:var(--accent);color:var(--accent);animation:dg-timer-flash .5s ease-in-out 3}
+@keyframes dg-timer-flash{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.dg-timer.is-done .dg-timer-btn{animation:none}}
 .dg-picker-name{flex:1;white-space:nowrap}
 .dg-picker-check{width:16px;text-align:center;color:var(--accent);font-weight:800;opacity:0;transition:opacity .15s}
 .dg-picker-item.active .dg-picker-check{opacity:1}
@@ -257,13 +270,14 @@
 
     // Each category offers gentle/bold/wild variants (wild = premium); the player
     // picks which dice to include. Custom account dice are grouped under 我的骰子.
-    var CAT_ORDER = ['action','part','time','prop','play','custom'];
+    var CAT_ORDER = ['action','part','time','prop','play','twist','custom'];
     var CAT_LABELS = {
         action: @json(__('minigame.dice_label_action')),
         part:   @json(__('minigame.dice_label_part')),
         time:   @json(__('minigame.dice_label_time')),
         prop:   @json(__('minigame.dice_label_prop')),
         play:   @json(__('minigame.dice_label_play')),
+        twist:  @json(__('minigame.dice_label_twist')),
         custom: @json(__('minigame.dice_my'))
     };
     var INT_LABELS = {
@@ -273,12 +287,18 @@
         standard: @json(__('minigame.dice_int_standard'))
     };
     var WILD_LOCKED_MSG = @json(__('minigame.dice_wild_locked'));
+    var WHO_LABEL       = @json(__('minigame.dice_label_who'));
+    var TARGET_TPL      = @json(__('minigame.dice_target', ['from' => '__FROM__', 'to' => '__TO__']));
+    var TIMER_START     = @json(__('minigame.dice_timer_start', ['time' => '__T__']));
+    var TIMER_STOP      = @json(__('minigame.dice_timer_stop'));
+    var TIMER_DONE      = @json(__('minigame.dice_timer_done'));
     var NEED_ONE_MSG    = @json(__('minigame.dice_need_one'));
 
     var enabled = {};   // die id -> true
     function defaultEnabled(){
         enabled = {};
-        ['builtin_action_gentle','builtin_part_gentle','builtin_time'].forEach(function(id){
+        // 轉折骰預設就上桌:第一輪就要有變化,不然只是「動作+部位+時間」的排列組合
+        ['builtin_action_gentle','builtin_part_gentle','builtin_time','builtin_twist_bold'].forEach(function(id){
             if(BY_ID[id]) enabled[id]=true;
         });
     }
@@ -298,6 +318,9 @@
     }
 
     function catClassOf(d){ return d.custom ? 'custom' : d.cat; }
+    /* 轉折骰的面是「短標|完整說明」:骰子上只放得下短標,結果卡片才顯示整句 */
+    function shortOf(v){ var i=String(v).indexOf('|'); return i===-1 ? v : v.slice(0,i); }
+    function longOf(v){ var i=String(v).indexOf('|'); return i===-1 ? v : v.slice(i+1); }
     function itemLabel(d){
         if(d.custom) return d.name;
         if(d.intensity) return INT_LABELS[d.intensity] || '';
@@ -396,18 +419,100 @@
         document.getElementById('roll-btn').style.display='inline-flex';
     };
 
+    /**
+     * 把這一輪各顆骰子的結果組成一張卡片:誰對誰 → 做什麼(動作、部位、道具、玩法、時間)
+     * → 轉折(完整說明)→ 有時間就給一顆計時按鈕。
+     * 不硬組成一句話:四個語系的語序不一樣,詞與詞並排比較不會出錯。
+     */
+    function composeResult(picks){
+        var from=players[turn];
+        var who=picks.filter(function(p){return p.cat==='who'})[0];
+        var to=who ? who.value : players.filter(function(_,i){return i!==turn})[0];
+        var main=picks.filter(function(p){return p.cat!=='who' && p.cat!=='twist'}).map(function(p){return shortOf(p.value)}).filter(Boolean);
+        var twists=picks.filter(function(p){return p.cat==='twist'}).map(function(p){return longOf(p.value)});
+        var timeTok=picks.filter(function(p){return p.cat==='time'})[0];
+        var seconds=timeTok ? toSeconds(timeTok.value) : 0;
+        // 轉折說「時間加倍」的話,計時器也要跟著加倍,不然按鈕跟卡片講的不一樣
+        if(seconds && twists.some(function(t){return /加倍|×\s*2|2\s*倍|double/i.test(t)})) seconds*=2;
+
+        var target=to ? TARGET_TPL.replace('__FROM__',from).replace('__TO__',to) : from;
+        var html='<div class="dg-result-who">'+escHtml(target)+'</div>'+
+            '<div class="mg-result-text">'+escHtml(main.join(' '))+'</div>';
+        twists.forEach(function(t){ html+='<div class="dg-result-twist">🔀 '+escHtml(t)+'</div>'; });
+        if(seconds){
+            html+='<div class="dg-timer"><button type="button" class="btn btn-outline dg-timer-btn"></button>'+
+                  '<div class="dg-timer-bar"><div class="dg-timer-fill"></div></div></div>';
+        }
+        return {html:html, seconds:seconds,
+                // 轉折是「再擲一次」的話,擲骰鍵要再出現,不然這一面沒辦法照做
+                reroll: twists.some(function(t){return /再擲|再掷|roll again|もう一度振/i.test(t)}),
+                history:target+'：'+main.join(' ')+(twists.length?'｜'+twists.join('｜'):'')};
+    }
+
+    /* 「30秒」「1分鐘」「2 min」「45 sec」→ 秒數。後台改過的時間面對不到格式就不給計時。 */
+    function toSeconds(v){
+        var m=String(v).match(/(\d+(?:\.\d+)?)\s*(分鐘|分钟|分|min|minutes?|秒|秒間|s|sec|seconds?)/i);
+        if(!m) return 0;
+        var n=parseFloat(m[1]);
+        return Math.round(/分|min/i.test(m[2]) ? n*60 : n);
+    }
+    function fmt(sec){ var m=Math.floor(sec/60), s=sec%60; return m+':'+(s<10?'0':'')+s; }
+
+    var timerId=null;
+    function stopTimer(){ if(timerId){clearInterval(timerId); timerId=null;} }
+    function bindTimer(root, seconds){
+        stopTimer();
+        var box=root.querySelector('.dg-timer'); if(!box) return;
+        var btn=box.querySelector('.dg-timer-btn'), fill=box.querySelector('.dg-timer-fill');
+        var label=TIMER_START.replace('__T__', fmt(seconds));
+        btn.textContent=label;
+        btn.addEventListener('click', function(){
+            if(timerId){ stopTimer(); btn.textContent=label; fill.style.transform='scaleX(1)'; return; }
+            box.classList.remove('is-done');
+            var end=Date.now()+seconds*1000;
+            var tick=function(){
+                var left=Math.max(0, Math.ceil((end-Date.now())/1000));
+                fill.style.transform='scaleX('+(left/seconds)+')';
+                btn.textContent=TIMER_STOP+' '+fmt(left);
+                if(left<=0){
+                    stopTimer(); btn.textContent=TIMER_DONE; box.classList.add('is-done');
+                    if(navigator.vibrate) navigator.vibrate([200,100,200]);
+                }
+            };
+            tick(); timerId=setInterval(tick, 250);
+        });
+    }
+
     function buildDice(){
         var defs=activeDice();
         var area=document.getElementById('dice-area');
         area.innerHTML='';
         builtDice=[];
+        /* 三人以上多一顆「對象骰」,骰面是其他玩家的名字 —— 擲到誰就對誰做。
+           兩個人的時候不用擲,對象就是另一個人。 */
+        var others=players.filter(function(_,i){return i!==turn});
+        if(others.length>=2){
+            var whoFaces=[];
+            while(whoFaces.length<6) whoFaces=whoFaces.concat(shuffled(others));
+            defs=[{who:true, faces:whoFaces.slice(0,6)}].concat(defs);
+        }
         defs.forEach(function(d,di){
+            if(d.who){
+                builtDice.push({catClass:'who',topLabel:WHO_LABEL,values:d.faces});
+                var wf='';
+                for(var k=0;k<d.faces.length;k++) wf+='<div class="dg-dice-face f'+(k+1)+'">'+escHtml(d.faces[k])+'</div>';
+                var ww=document.createElement('div');
+                ww.className='dg-dice-wrapper dg-die-who';
+                ww.innerHTML='<div class="dg-dice-label">'+escHtml(WHO_LABEL)+'</div><div class="dg-dice-scene"><div class="dg-dice" id="dice-'+di+'">'+wf+'</div></div>';
+                area.appendChild(ww);
+                return;
+            }
             var faces=(d.faces&&d.faces.length)?d.faces:[''];
             var values=shuffled(faces).slice(0,6);
             builtDice.push({catClass:catClassOf(d),topLabel:topLabelOf(d),values:values});
             var facesHtml='';
             for(var fi=0;fi<values.length;fi++){
-                facesHtml+='<div class="dg-dice-face f'+(fi+1)+'">'+escHtml(values[fi])+'</div>';
+                facesHtml+='<div class="dg-dice-face f'+(fi+1)+'">'+escHtml(shortOf(values[fi]))+'</div>';
             }
             var w=document.createElement('div');
             w.className='dg-dice-wrapper dg-die-'+catClassOf(d);
@@ -474,14 +579,15 @@
             {rx:0,ry:0},{rx:0,ry:180},{rx:0,ry:-90},{rx:0,ry:90},{rx:-90,ry:0},{rx:90,ry:0}
         ];
         var indices=[];
-        var resultTokens=[];
+        var picks=[];   // [{cat, value}]
         for(var bi=0;bi<builtDice.length;bi++){
             var vals=builtDice[bi].values;
             var idx=Math.floor(Math.random()*Math.min(vals.length,6));
             indices.push(idx);
-            resultTokens.push(vals[idx]);
+            picks.push({cat:builtDice[bi].catClass, value:vals[idx]});
         }
-        var resultText=resultTokens.join(' ');
+        var result=composeResult(picks);
+        var resultText=result.history;
 
         // Build animation params for each dice
         var ANIM_DUR=1800;
@@ -517,7 +623,9 @@
         function showResult(){
             var rd=document.getElementById('result-display');
             rd.style.display='block';
-            rd.innerHTML='<div class="mg-result-text">'+escHtml(resultText)+'</div>';
+            rd.innerHTML=result.html;
+            bindTimer(rd, result.seconds);
+            if(result.reroll) document.getElementById('roll-btn').style.display='inline-flex';
             document.getElementById('next-btn').style.display='inline-flex';
             addHistory(resultText);
             for(var g=0;g<diceParams.length;g++){
@@ -604,6 +712,7 @@
     };
 
     window.nextTurn=function(){
+        stopTimer();
         turn++;
         if(turn>=players.length){turn=0;round++;}
         if(round>6&&!IS_PREMIUM){

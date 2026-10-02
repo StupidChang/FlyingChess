@@ -50,6 +50,7 @@ class GamePrompt extends Model
             'part.gentle' => '部位・溫和', 'part.bold' => '部位・大膽', 'part.wild' => '部位・狂野',
             'prop.gentle' => '道具・溫和', 'prop.wild' => '道具・狂野',
             'play.wild' => '玩法・狂野',
+            'twist.bold' => '轉折・大膽', 'twist.wild' => '轉折・狂野',
             'time' => '時間',
         ],
     ];

@@ -1835,4 +1835,18 @@ stroke you head to toe, then fly across',
 下回合可進入' => 'Yellow player stops here
 Enter next turn',
     '鼻尖貼著鼻尖，誰先忍不住親下去，誰喝一口' => 'Nose to nose — whoever caves and kisses first takes a sip',
+
+    // 骰子遊戲:轉折骰(2026-10-02)。格式「骰面短標|擲到之後的完整說明」
+    '反過來|反過來，換對方照這個做給你' => 'Flip it|Flip it — your partner does this to you instead',
+    '時間×2|時間加倍' => 'Time ×2|Double the time',
+    '猜拳|先猜拳，輸的人脫一件再開始' => 'Rock-paper|Rock-paper-scissors first — the loser strips one piece, then start',
+    '蒙眼|被做的人蒙上眼睛，不准偷看' => 'Blindfold|Whoever is on the receiving end gets blindfolded — no peeking',
+    '說出來|做的時候一直說你有多想要，停下來就重來' => 'Say it|Keep saying how much you want it the whole time — stop talking and you start over',
+    '加碼|再擲一次，兩次的結果都要做' => 'Double up|Roll again — you have to do both results',
+    '換嘴|做到一半換成用嘴' => 'Mouth|Halfway through, switch to using your mouth',
+    '口交|做完直接幫對方口交 30 秒' => 'Blowjob|When you finish, go straight down on them for 30 seconds',
+    '別出聲|全程不准出聲，出聲就再加 1 分鐘' => 'Silent|Not a sound the whole time — make one and add 1 more minute',
+    '他指定|對方可以再指定一個部位，一起弄' => 'They pick|Your partner adds one more spot — do both at once',
+    '脫光|兩個人都脫光再做' => 'Naked|Both of you strip naked first',
+    '騎上去|做完騎上去自己動 20 下' => 'Ride|When you finish, climb on and ride them 20 times',
 ];
