@@ -619,10 +619,51 @@ class TraitTestTest extends TestCase
             ]);
         }
 
-        $this->actingAs($user)->get('/tw/profile')
+        $html = $this->actingAs($user)->get('/tw/profile')
             ->assertOk()
             ->assertSee(__('traits.profile.heading'))
-            ->assertSee('tt-spark', false);
+            ->getContent();
+
+        // 四條光譜,每條一個最新點、一個之前的點
+        $this->assertSame(4, substr_count($html, 'class="tt-axis"'));
+        $this->assertSame(4, preg_match_all('/tt-axis-dot is-now/', $html));
+        $this->assertSame(4, preg_match_all('/tt-axis-dot is-past/', $html));
+    }
+
+    public function test_each_spectrum_shows_where_you_are_and_which_way_you_moved(): void
+    {
+        $user = User::factory()->create();
+        $axes = app(TraitTestService::class)->axes();
+        $make = fn (array $a, string $at) => TraitResult::forceCreate([
+            'user_id' => $user->id, 'top_trait' => 'dom', 'traits' => [['key' => 'dom', 'pct' => 50]],
+            'axes' => $a, 'created_at' => $at, 'updated_at' => $at,
+        ]);
+        $make(['DS' => 0, 'PE' => 2, 'OR' => 1, 'IG' => -1], '2026-08-01 10:00:00');
+        $make(['DS' => 2, 'PE' => -2, 'OR' => 1, 'IG' => 0], '2026-09-01 10:00:00');
+
+        $html = $this->actingAs($user)->get('/tw/profile')->assertOk()->getContent();
+
+        // DS:+2(滿分 8)= 偏左極 25%。左極在左邊,所以點在 50 - 12.5 = 37.5%(畫在中線左邊)。
+        // 2026-10-02 第一版把正值畫到了右邊 —— 文字寫偏 S、點卻落在 M 那一側。
+        $this->assertStringContainsString(__('traits.profile.axis_lean', ['pole' => $axes['DS']['left'], 'pct' => 25]), $html);
+        $this->assertMatchesRegularExpression('/tt-axis-dot is-now is-left"\s+style="left:37\.5%"/', $html);
+        $this->assertStringContainsString(__('traits.profile.axis_moved', ['pole' => $axes['DS']['left'], 'pct' => 25]), $html);
+        // PE:+2 → -2,往右極移 50%
+        $this->assertStringContainsString(__('traits.profile.axis_moved', ['pole' => $axes['PE']['right'], 'pct' => 50]), $html);
+        // OR:沒變;IG:回到正中間
+        $this->assertStringContainsString(__('traits.profile.axis_unchanged'), $html);
+        $this->assertStringContainsString(__('traits.profile.axis_middle'), $html);
+    }
+
+    public function test_a_single_result_says_to_take_it_again(): void
+    {
+        $user = User::factory()->create();
+        TraitResult::create(['user_id' => $user->id, 'top_trait' => 'dom',
+            'traits' => [['key' => 'dom', 'pct' => 50]], 'axes' => ['DS' => 1, 'PE' => 0, 'OR' => 0, 'IG' => 0]]);
+
+        $this->actingAs($user)->get('/tw/profile')->assertOk()
+            ->assertSee(__('traits.profile.axis_first'))
+            ->assertDontSee('tt-axis-move', false);
     }
 
     public function test_the_profile_says_so_when_there_is_nothing_yet(): void

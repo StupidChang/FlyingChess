@@ -853,6 +853,15 @@ return [
         'changed' => 'Main trait changed from :from to :to',
         'same' => 'Same type as last time',
         'others' => 'Runners-up: :names',
+        'axis_axes_title' => 'Your four spectrums',
+        'axis_lean' => 'Leans :pole :pct%',
+        'axis_middle' => 'Right in the middle',
+        'axis_moved' => 'Moved :pct% toward “:pole” since last time',
+        'axis_unchanged' => 'Same as last time',
+        'axis_first' => 'Your first result. Take the test again to see which way you move.',
+        'axis_point' => ':date · :verdict',
+        'axis_now' => 'Latest',
+        'axis_past' => 'Earlier',
     ],
 
     // SEO

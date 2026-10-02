@@ -864,6 +864,15 @@ return [
         'changed' => '主屬性從 :from 換成 :to',
         'same' => '和上次同一型',
         'others' => '其次::names',
+        'axis_axes_title' => '四條光譜',
+        'axis_lean' => '偏 :pole :pct%',
+        'axis_middle' => '剛好在中間',
+        'axis_moved' => '比上次往「:pole」移動 :pct%',
+        'axis_unchanged' => '跟上次一樣',
+        'axis_first' => '第一次測驗。再測一次,就看得到你往哪邊移動。',
+        'axis_point' => ':date · :verdict',
+        'axis_now' => '最近一次',
+        'axis_past' => '之前',
     ],
 
     // SEO

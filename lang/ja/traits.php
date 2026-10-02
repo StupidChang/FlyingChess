@@ -847,6 +847,15 @@ return [
         'changed' => '主属性が :from から :to に変わりました',
         'same' => '前回と同じタイプ',
         'others' => '次点：:names',
+        'axis_axes_title' => '4つのスペクトラム',
+        'axis_lean' => ':pole寄り :pct%',
+        'axis_middle' => 'ちょうど真ん中',
+        'axis_moved' => '前回より「:pole」側へ :pct% 移動',
+        'axis_unchanged' => '前回と同じ',
+        'axis_first' => '初めての診断です。もう一度受けると、どちらへ動いたかがわかります。',
+        'axis_point' => ':date · :verdict',
+        'axis_now' => '最新',
+        'axis_past' => '以前',
     ],
 
     // SEO
