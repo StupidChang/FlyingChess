@@ -37,6 +37,7 @@ return [
     'cta_renew' => '续费延长',
     'cta_upgrade_now' => '立即升级',
     'cta_register_then' => '注册后升级',
+    'promo_notice' => '推广期间，所有付费内容免费开放中 —— 付费题库、付费棋盘、测试的完整报告都可以直接玩。',
     'unlock_with_premium' => '或开通会员，不用看广告、随时看完整报告',
     'cta_coming_soon' => '即将开放购买',
     'consent_waive_cooling_off' => '我已阅读并同意:terms，并同意本订阅于付款完成后立即开始提供，因此依法排除七日犹豫期之适用。',

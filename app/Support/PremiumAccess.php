@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\User;
 use App\Support\Payments\PaymentGateway;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -49,7 +50,27 @@ class PremiumAccess
     /** 現在能不能玩到付費內容。 */
     public static function content(?User $user): bool
     {
-        return ($user?->isPremium() ?? false) || self::rewardedActive();
+        return self::promoActive() || ($user?->isPremium() ?? false) || self::rewardedActive();
+    }
+
+    /**
+     * 推廣期間是不是全部開放(見 config/premium.php 的 promo)。
+     *
+     * 開著的時候 content() 對所有人都是 true,所以付費題庫、付費棋盤、測驗的深入
+     * 解讀全部看得到,「看廣告解鎖」的提示也不再出現。keepsakes() 在沒有金流時退回
+     * content(),所以存範本、完整紀錄也一起開放;接上金流之後那條界線照樣是硬的。
+     * 廣告不受影響 —— 廣告只看帳號是不是 Premium 會員。
+     */
+    public static function promoActive(): bool
+    {
+        if (! config('premium.promo.enabled')) {
+            return false;
+        }
+
+        $until = config('premium.promo.until');
+
+        // 填的是「最後一天」,所以那一整天都還算推廣期間
+        return ! $until || now()->lte(Carbon::parse($until)->endOfDay());
     }
 
     /**

@@ -38,6 +38,7 @@ return [
     'cta_renew' => 'Renew',
     'cta_upgrade_now' => 'Upgrade now',
     'cta_register_then' => 'Sign up to upgrade',
+    'promo_notice' => 'During our launch promotion, all paid content is free — premium prompts, premium boards and the full test reports are open to everyone.',
     'unlock_with_premium' => 'Or go Premium — the full report any time, no ads',
     'cta_coming_soon' => 'Coming soon',
     'consent_waive_cooling_off' => 'I have read and agree to the :terms, and I agree that this subscription starts immediately on payment, so the seven-day cooling-off period does not apply.',

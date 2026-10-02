@@ -2107,6 +2107,7 @@ a.gh-name{color:var(--accent)}
 .tt-deep-btn{width:100%;max-width:320px}
 .tt-deep-premium{display:block;margin-top:12px;font-size:.85rem;color:var(--gold)}
 .tt-deep-premium:hover{text-decoration:underline}
+.premium-promo{max-width:560px;margin:-12px auto 28px;padding:14px 18px;text-align:center;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--gold) 45%,var(--border));background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--text);font-size:.92rem;line-height:1.6}
 .tt-deep{border-color:rgba(217,164,65,.35)}
 
 /* 鎖住時列出「解鎖後有什麼」,把價值講清楚,讓看廣告/付費的動機更明確 */

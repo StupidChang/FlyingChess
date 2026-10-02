@@ -11,6 +11,12 @@
 <div class="premium-section">
     <h1 style="text-align:center;color:var(--gold);margin-bottom:32px">{{ __('seo.premium_title') }}</h1>
 
+    @if(\App\Support\PremiumAccess::promoActive())
+    {{-- 推廣期間全部開放(config premium.promo)。放在最上面:點進這一頁的人多半是
+         被「Premium」標籤帶進來的,第一句就該告訴他現在不用付錢。 --}}
+    <p class="premium-promo">{{ __('premium.promo_notice') }}</p>
+    @endif
+
     @if($isPremium)
     <div class="premium-status">
         <strong style="color:var(--gold)">{{ __('premium.you_are_premium') }}</strong><br>

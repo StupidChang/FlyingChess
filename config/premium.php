@@ -74,6 +74,21 @@ return [
     'free_history_limit' => (int) env('PREMIUM_FREE_HISTORY_LIMIT', 5),
 
     /*
+     * 推廣期間:所有人都玩得到付費內容,不用看廣告解鎖,也不用是會員。
+     *
+     * 2026-10-02 使用者決定:金流還沒接上,推廣期間先全部開放。廣告**照常顯示**——
+     * 廣告看的是帳號是不是 Premium 會員(partials/ad-unit),不是「玩不玩得到」,
+     * 所以這個開關不影響廣告。
+     *
+     * PREMIUM_PROMO=true 打開;PREMIUM_PROMO_UNTIL 填日期(例如 2026-12-31)就會在
+     * 那天結束後自動關閉,留空就一直開到手動關掉為止。見 PremiumAccess::promoActive()。
+     */
+    'promo' => [
+        'enabled' => (bool) env('PREMIUM_PROMO', false),
+        'until' => env('PREMIUM_PROMO_UNTIL'),
+    ],
+
+    /*
      * 看廣告換一段時間的付費內容。
      *
      * minutes 設 30 是對著「一場派對大約多久」抓的:比一場短的話會在興頭上斷掉,
