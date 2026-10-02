@@ -101,6 +101,8 @@ class DiceTwistTest extends TestCase
             array_keys($rules['part_deny']), ...array_values($rules['part_deny']),
             ...[array_keys($rules['prop_deny'])], ...array_values($rules['prop_deny']),
             ...[array_keys($rules['twist_needs'])],
+            $rules['prop_needs_play'],
+            array_keys($rules['prop_play_deny']), ...array_values($rules['prop_play_deny']),
         );
         foreach (array_unique($names) as $name) {
             $this->assertContains($name, $all, "規則裡的「{$name}」不是任何一顆骰子的骰面");
@@ -112,5 +114,11 @@ class DiceTwistTest extends TestCase
         $this->get('/tw/dice-game')->assertOk()
             ->assertSee('part_deny', false)
             ->assertSee('dg-settings', false);
+    }
+
+    public function test_the_play_die_goes_solo(): void
+    {
+        // 玩法骰本身就是一整件事;跟動作、部位、時間一起擲就變成一輪要做三件事
+        $this->assertSame(['action', 'part', 'time'], DiceGameService::rules()['play_excludes']);
     }
 }

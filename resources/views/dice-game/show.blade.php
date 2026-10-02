@@ -72,21 +72,23 @@
   100%{filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}
 }
 
-/* 結果卡片:誰對誰 → 做什麼 → 接著(玩法)→ 轉折 → 計時 */
-.dg-result{text-align:center;margin-top:18px;padding:16px 14px 18px;border-radius:14px;background:var(--bg);border:1px solid var(--border);animation:fadeIn .3s ease-out}
+/* 結果卡片:一個主角(要做什麼),其他都是配角 */
+.dg-result{text-align:center;margin-top:18px;padding:18px 14px 20px;animation:fadeIn .3s ease-out}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.dg-result-who{font-size:.9rem;font-weight:700;color:var(--text-dim);margin-bottom:8px}
-.dg-result .mg-result-text{font-size:1.45rem;font-weight:800;color:var(--text);line-height:1.35;margin:0}
-.dg-result-then{margin-top:10px;font-size:1rem;font-weight:700;color:var(--text)}
-.dg-result-then span{font-size:.75rem;font-weight:700;color:#f472b6;margin-right:6px}
-.dg-result-twist{display:block;width:fit-content;max-width:min(460px,100%);margin:12px auto 0;padding:10px 14px;border-radius:10px;font-size:.95rem;font-weight:600;line-height:1.5;
-  color:var(--text);background:color-mix(in srgb,#ea580c 16%,var(--surface2));border:1px solid color-mix(in srgb,#ea580c 45%,var(--border))}
-.dg-timer{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.dg-timer-bar{width:min(320px,80%);height:6px;border-radius:999px;background:var(--surface2);overflow:hidden}
-.dg-timer-fill{height:100%;width:100%;background:var(--accent);transform-origin:left;transition:transform .25s linear}
-.dg-timer.is-done .dg-timer-btn{border-color:var(--accent);color:var(--accent);animation:dg-timer-flash .5s ease-in-out 3}
+.dg-r-who{font-size:.85rem;font-weight:600;color:var(--text-dim);margin-bottom:6px}
+.dg-result .dg-r-hero{font-size:clamp(1.6rem,6vw,2.1rem);font-weight:800;color:var(--text);line-height:1.25;margin:0;letter-spacing:.01em}
+.dg-r-meta{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:14px}
+.dg-pill{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:999px;
+  font:inherit;font-size:.9rem;font-weight:700;color:var(--text);background:var(--surface2);border:1px solid var(--border);font-variant-numeric:tabular-nums}
+.dg-pill-prop{border-color:color-mix(in srgb,#0d9488 55%,var(--border))}
+.dg-pill-time{border-color:color-mix(in srgb,#7c3aed 60%,var(--border))}
+button.dg-pill{cursor:pointer}
+button.dg-pill:hover{background:var(--border)}
+.dg-pill-fill{position:absolute;inset:0;background:color-mix(in srgb,#7c3aed 35%,transparent);transform:scaleX(0);transform-origin:left;transition:transform .25s linear}
+.dg-pill-label{position:relative}
+.dg-pill.is-done{border-color:var(--accent);color:var(--accent);animation:dg-timer-flash .5s ease-in-out 3}
 @keyframes dg-timer-flash{50%{opacity:.35}}
-
+.dg-r-twist{margin:14px auto 0;max-width:460px;font-size:.95rem;font-weight:600;line-height:1.5;color:#fb923c}
 /* 按鈕列 */
 .dg-play .mg-action-btns{margin-top:16px}
 .dg-reset{flex-basis:100%;background:none;border:0;color:var(--text-dim);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
@@ -120,9 +122,11 @@
 .dg-manage-link{display:inline-block;margin-top:12px;font-size:.82rem;color:var(--accent)}
 .dg-manage-link:hover{text-decoration:underline}
 
-/* 最近幾輪 */
-.dg-history{display:flex;flex-direction:column;gap:6px}
-.dg-history:empty{display:none}
+/* 前幾輪 */
+.dg-hist > summary{cursor:pointer;font-size:.82rem;color:var(--text-dim);text-align:center;list-style:none;padding:4px}
+.dg-hist > summary::-webkit-details-marker{display:none}
+.dg-hist > summary:hover{color:var(--text)}
+.dg-history{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .dg-history-item{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:.78rem;
   background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-dim);animation:dgHistoryIn .35s cubic-bezier(.34,1.56,.64,1) both}
 .dg-history-round{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--surface2);color:var(--text);
@@ -130,7 +134,7 @@
 .dg-history-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes dgHistoryIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
 @media (prefers-reduced-motion: reduce){
-  .dg-dice-scene.dg-glow,.dg-history-item,.dg-timer.is-done .dg-timer-btn{animation:none}
+  .dg-dice-scene.dg-glow,.dg-history-item,.dg-pill.is-done{animation:none}
 }
 </style>
 @endsection
@@ -183,7 +187,11 @@
                 @endauth
             </details>
 
-            <div class="dg-history" id="roll-history"></div>
+            {{-- 前幾輪:預設收起來,不跟這一輪的結果搶視線 --}}
+            <details class="dg-hist" id="roll-history-box" hidden>
+                <summary></summary>
+                <div class="dg-history" id="roll-history"></div>
+            </details>
         </div>
     </div>
 </div>
@@ -222,10 +230,13 @@
         while(list.children.length > HISTORY_MAX){
             list.removeChild(list.lastChild);
         }
+        var box=document.getElementById('roll-history-box');
+        if(box){ box.hidden=false; box.querySelector('summary').textContent=HISTORY_LABEL+'('+list.children.length+')'; }
     }
     function clearHistory(){
         var list = document.getElementById('roll-history');
         if(list) list.innerHTML = '';
+        var box=document.getElementById('roll-history-box'); if(box) box.hidden=true;
     }
 
     function escHtml(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
@@ -260,7 +271,8 @@
     };
     var WILD_LOCKED_MSG = @json(__('minigame.dice_wild_locked'));
     var WHO_LABEL       = @json(__('minigame.dice_label_who'));
-    var THEN_LABEL      = @json(__('minigame.dice_then'));
+    var PLAY_ALONE_MSG  = @json(__('minigame.dice_play_alone'));
+    var HISTORY_LABEL   = @json(__('minigame.dice_history'));
     var OFF_LABEL       = @json(__('minigame.dice_off'));
     var RULES           = @json($rules);
     var TARGET_TPL      = @json(__('minigame.dice_target', ['from' => '__FROM__', 'to' => '__TO__']));
@@ -301,9 +313,9 @@
         if(d.intensity) return INT_LABELS[d.intensity] || '';
         return INT_LABELS.standard;
     }
+    // 骰子上方只寫類別:強度已經在骰子設定裡看得到,再寫一次只是多一行字
     function topLabelOf(d){
         if(d.custom) return d.name;
-        if(d.intensity) return CAT_LABELS[d.cat]+' · '+(INT_LABELS[d.intensity]||'');
         return CAT_LABELS[d.cat];
     }
     var escalate=false;
@@ -420,6 +432,16 @@
             var g=groupOf(d);
             ALL.forEach(function(o){ if(groupOf(o)===g && enabled[o.id]) enabled[o.id]=false; });
             enabled[id]=true;
+            /* 玩法骰單獨上桌:它本身就是一整件事(「後入抽插30下」),再配動作、部位、時間
+               就變成同一輪要做三件事。開玩法就關掉那幾類,開那幾類就關掉玩法。 */
+            var EXCL=RULES.play_excludes||[];
+            if(!d.custom && d.cat==='play'){
+                var closed=false;
+                ALL.forEach(function(o){ if(!o.custom && EXCL.indexOf(o.cat)!==-1 && enabled[o.id]){ enabled[o.id]=false; closed=true; } });
+                if(closed) showToast(PLAY_ALONE_MSG);
+            } else if(!d.custom && EXCL.indexOf(d.cat)!==-1){
+                ALL.forEach(function(o){ if(!o.custom && o.cat==='play') enabled[o.id]=false; });
+            }
         }
         afterPickerChange();
     };
@@ -448,7 +470,12 @@
         var actions=(by.action||[]).map(function(x){return x.key});
         var has=function(list, v){ return list && list.indexOf(v)!==-1; };
         (by.part||[]).forEach(function(p){ actions.forEach(function(a){ if(has((RULES.part_deny||{})[p.key], a)) n++; }); });
-        (by.prop||[]).forEach(function(p){ actions.forEach(function(a){ if(has((RULES.prop_deny||{})[p.key], a)) n++; }); });
+        var playsK=(by.play||[]).map(function(x){return x.key});
+        (by.prop||[]).forEach(function(p){
+            actions.forEach(function(a){ if(has((RULES.prop_deny||{})[p.key], a)) n++; });
+            if(has(RULES.prop_needs_play, p.key) && !playsK.length) n++;
+            playsK.forEach(function(pl){ if(has((RULES.prop_play_deny||{})[p.key], pl)) n++; });
+        });
         (by.time||[]).forEach(function(t){
             var sec=toSeconds(t.key);
             actions.forEach(function(a){ if(has(RULES.quick, a) && sec>(RULES.quick_max||30)) n++; });
@@ -462,6 +489,7 @@
             if(has(needs,'time') && !by.time) n++;
             if(has(needs,'part') && !by.part) n++;
             if(has(needs,'not_mouth') && actions.some(function(a){return has(RULES.mouth, a)})) n++;
+            if(has(needs,'no_play') && playsK.length) n++;
         });
         return n;
     }
@@ -484,10 +512,11 @@
         var from=players[turn];
         var who=picks.filter(function(p){return p.cat==='who'})[0];
         var to=who ? who.value : players.filter(function(_,i){return i!==turn})[0];
-        // 玩法骰本身就是一個完整的玩法(「69互舔1分鐘」),不跟動作、部位擠在同一句:
-        // 先做動作那一句當前戲,「接著」再做玩法
-        var main=picks.filter(function(p){return p.cat!=='who' && p.cat!=='twist' && p.cat!=='play'}).map(function(p){return shortOf(p.value)}).filter(Boolean);
-        var plays=picks.filter(function(p){return p.cat==='play'}).map(function(p){return p.value});
+        /* 結果卡片只有一個主角:要做什麼(動作+部位,或玩法)。其他都是配角 ——
+           誰對誰是上面一行小字,道具與時間是兩顆小標籤(時間那顆就是計時按鈕),
+           轉折是下面一行。原本每一樣都一樣大、各自一個框,眼睛不知道看哪裡。 */
+        var hero=picks.filter(function(p){return ['action','part','play','custom'].indexOf(p.cat)!==-1}).map(function(p){return p.value}).filter(Boolean);
+        var props=picks.filter(function(p){return p.cat==='prop'}).map(function(p){return p.value});
         var twists=picks.filter(function(p){return p.cat==='twist'}).map(function(p){return longOf(p.value)});
         var timeTok=picks.filter(function(p){return p.cat==='time'})[0];
         var seconds=timeTok ? toSeconds(timeTok.value) : 0;
@@ -495,18 +524,20 @@
         if(seconds && twists.some(function(t){return /加倍|×\s*2|2\s*倍|double/i.test(t)})) seconds*=2;
 
         var target=to ? TARGET_TPL.replace('__FROM__',from).replace('__TO__',to) : from;
-        var html='<div class="dg-result-who">'+escHtml(target)+'</div>'+
-            '<div class="mg-result-text">'+escHtml(main.join(' '))+'</div>';
-        plays.forEach(function(t){ html+='<div class="dg-result-then"><span>'+escHtml(THEN_LABEL)+'</span>'+escHtml(t)+'</div>'; });
-        twists.forEach(function(t){ html+='<div class="dg-result-twist">🔀 '+escHtml(t)+'</div>'; });
-        if(seconds){
-            html+='<div class="dg-timer"><button type="button" class="btn btn-outline dg-timer-btn"></button>'+
-                  '<div class="dg-timer-bar"><div class="dg-timer-fill"></div></div></div>';
+        var html='<div class="dg-r-who">'+escHtml(target)+'</div>'+
+            '<div class="mg-result-text dg-r-hero">'+escHtml(hero.join(' '))+'</div>';
+        if(props.length || seconds || (timeTok && !seconds)){
+            html+='<div class="dg-r-meta">';
+            props.forEach(function(t){ html+='<span class="dg-pill dg-pill-prop">'+escHtml(t)+'</span>'; });
+            if(seconds) html+='<button type="button" class="dg-pill dg-pill-time dg-timer-btn"><span class="dg-pill-fill"></span><span class="dg-pill-label"></span></button>';
+            else if(timeTok) html+='<span class="dg-pill dg-pill-time">'+escHtml(timeTok.value)+'</span>';
+            html+='</div>';
         }
+        twists.forEach(function(t){ html+='<div class="dg-r-twist">🔀 '+escHtml(t)+'</div>'; });
         return {html:html, seconds:seconds,
                 // 轉折是「再擲一次」的話,擲骰鍵要再出現,不然這一面沒辦法照做
                 reroll: twists.some(function(t){return /再擲|再掷|roll again|もう一度振/i.test(t)}),
-                history:target+'：'+main.join(' ')+(plays.length?'｜'+plays.join('｜'):'')+(twists.length?'｜'+twists.join('｜'):'')};
+                history:target+'：'+hero.concat(props).join(' ')+(timeTok?' '+timeTok.value:'')+(twists.length?'｜'+twists.join('｜'):'')};
     }
 
     /* 「30秒」「1分鐘」「2 min」「45 sec」→ 秒數。後台改過的時間面對不到格式就不給計時。 */
@@ -522,20 +553,21 @@
     function stopTimer(){ if(timerId){clearInterval(timerId); timerId=null;} }
     function bindTimer(root, seconds){
         stopTimer();
-        var box=root.querySelector('.dg-timer'); if(!box) return;
-        var btn=box.querySelector('.dg-timer-btn'), fill=box.querySelector('.dg-timer-fill');
-        var label=TIMER_START.replace('__T__', fmt(seconds));
-        btn.textContent=label;
+        var btn=root.querySelector('.dg-timer-btn'); if(!btn) return;
+        var label=btn.querySelector('.dg-pill-label'), fill=btn.querySelector('.dg-pill-fill');
+        var idle='⏱ '+fmt(seconds)+' ▶';
+        label.textContent=idle; btn.setAttribute('aria-label', TIMER_START.replace('__T__', fmt(seconds)));
         btn.addEventListener('click', function(){
-            if(timerId){ stopTimer(); btn.textContent=label; fill.style.transform='scaleX(1)'; return; }
-            box.classList.remove('is-done');
+            if(timerId){ stopTimer(); label.textContent=idle; fill.style.transform='scaleX(0)'; btn.classList.remove('is-running'); return; }
+            btn.classList.remove('is-done'); btn.classList.add('is-running');
             var end=Date.now()+seconds*1000;
             var tick=function(){
                 var left=Math.max(0, Math.ceil((end-Date.now())/1000));
-                fill.style.transform='scaleX('+(left/seconds)+')';
-                btn.textContent=TIMER_STOP+' '+fmt(left);
+                fill.style.transform='scaleX('+(1-left/seconds)+')';
+                label.textContent='⏸ '+fmt(left);
                 if(left<=0){
-                    stopTimer(); btn.textContent=TIMER_DONE; box.classList.add('is-done');
+                    stopTimer(); btn.classList.remove('is-running'); btn.classList.add('is-done');
+                    label.textContent=TIMER_DONE;
                     if(navigator.vibrate) navigator.vibrate([200,100,200]);
                 }
             };
