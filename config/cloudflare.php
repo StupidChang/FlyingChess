@@ -21,6 +21,10 @@
  * Cloudflare 很少改,但確實會改。改了而沒更新這裡的症狀是「網站看起來正常,
  * 但 canonical 變回 http、而且所有人的 IP 都一樣」—— 沒有錯誤訊息,只有 SEO
  * 慢慢變差,所以值得偶爾對一次。
+ *
+ * ⚠ 2026-10-02 起 nginx 也有一份同樣的清單:/etc/nginx/tls/flyingchess.conf.cloudflare-only,
+ * pillownight.com 只接受這些來源(擋掉直接打主機 IP、繞過 Cloudflare 的連線)。
+ * 改這裡就要一起改那份,而且那份漏改的症狀更嚴重:新範圍進來的訪客直接 403。
  */
 return [
     'proxies' => [

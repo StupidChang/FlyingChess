@@ -54,7 +54,6 @@ return Application::configure(basePath: dirname(__DIR__))
          */
         $middleware->trustHosts(
             at: [
-                '^flying\.104\.64\.144\.208\.nip\.io$',   // preview vhost
                 '^localhost$',
                 '^127\.0\.0\.1$',
             ],
