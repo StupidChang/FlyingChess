@@ -79,22 +79,45 @@ function applyPieceStyle(style) {
   if (board) PIECE_STYLES.forEach(s => board.classList.toggle('pieces-' + s, s === style));
   try { localStorage.setItem('pieceStyle', style); } catch (e) {}
 }
+/*
+ * 3D 棋子:用 CSS 3D 真的在空間裡疊出一顆兵。
+ *
+ * 不是 WebGL(要多載一套幾百 KB 的引擎,手機耗電),也不是一張有漸層的圖:一顆兵是
+ * 24 片圓片沿著高度往上疊(一片一片 translateZ),每片的半徑照兵的輪廓(底座 → 身體 →
+ * 領口 → 圓頭),整顆再用 rotateX 斜著看 —— 瀏覽器用透視算出來的就是一個有厚度的
+ * 實心物體。影子是地板上的另一片,跳起來的時候留在原地、跟著變小。
+ * 每片的明暗照高度與輪廓斜率算,看起來像打了頂光。
+ */
+const PAWN_SLICES = 44;
+function pawnRadius(t) {               // t:0(底)→ 1(頂),回傳底座半徑的比例
+  if (t < 0.07) return 1 - t * 1.4;                        // 底座:圓角往內收
+  if (t < 0.13) return 0.90 - (t - 0.07) * 4.5;            // 底座上緣的斜面
+  if (t < 0.50) return 0.63 - (t - 0.13) * 0.85;           // 身體:往上變細
+  if (t < 0.55) return 0.54;                               // 領口(比身體寬一圈)
+  if (t < 0.60) return 0.30;                               // 細脖子:頭跟身體分得開
+  const u = (t - 0.80) / 0.20;                             // 頭:球
+  return 0.44 * Math.sqrt(Math.max(0, 1 - u * u));
+}
+function pawn3dHtml() {
+  let slices = '';
+  for (let k = 0; k < PAWN_SLICES; k++) {
+    const t = k / (PAWN_SLICES - 1);
+    const r = pawnRadius(t);
+    if (r <= 0.03) continue;
+    /* 明暗:越高越亮(頂光);往上收的面朝上、受光,往外凸的面朝下、背光。
+       每片是純色 —— 漸層會讓每一片的邊緣變暗,疊起來就是一圈一圈的紋路。 */
+    const slope = (pawnRadius(Math.min(1, t + 0.03)) - r) / 0.03;
+    const light = Math.round(Math.max(-30, Math.min(34, t * 26 - 14 - slope * 9)));
+    slices += '<i style="--z:' + t.toFixed(3) + ';--r:' + (r * 100).toFixed(1) + '%;--l:' + light + '"></i>';
+  }
+  return '<div class="piece-shape shape-pawn" aria-hidden="true">'
+    + '<div class="p3d-floor"><div class="p3d-shadow"></div>'
+    + '<div class="p3d-body">' + slices + '<b class="p3d-shine"></b></div></div></div>';
+}
+
 function pieceShapeSvg(n) {
-  const g = 'pg' + n, h = 'ph' + n;
-  return '<svg class="piece-shape shape-pawn" viewBox="0 0 40 48" aria-hidden="true">'
-    + '<defs><linearGradient id="' + g + '" x1="0" x2="1" y1="0" y2="0">'
-    + '<stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>'
-    + '<stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient></defs>'
-    + '<ellipse cx="20" cy="44.5" rx="13" ry="3" fill="rgba(0,0,0,.45)"/>'
-    + '<g style="fill:var(--pc)" stroke="rgba(255,255,255,.85)" stroke-width="1.2" stroke-linejoin="round">'
-    + '<path d="M7.5 43.5c0-4.2 3-6.6 6.5-7.5h12c3.5.9 6.5 3.3 6.5 7.5z"/>'
-    + '<path d="M13.5 36.5c1.3-6.3 3.3-11 3.6-15.5h5.8c.3 4.5 2.3 9.2 3.6 15.5z"/>'
-    + '<ellipse cx="20" cy="21" rx="7.5" ry="2.4"/><circle cx="20" cy="12" r="7.2"/></g>'
-    + '<g fill="url(#' + g + ')">'
-    + '<path d="M7.5 43.5c0-4.2 3-6.6 6.5-7.5h12c3.5.9 6.5 3.3 6.5 7.5z"/>'
-    + '<path d="M13.5 36.5c1.3-6.3 3.3-11 3.6-15.5h5.8c.3 4.5 2.3 9.2 3.6 15.5z"/>'
-    + '<circle cx="20" cy="12" r="7.2"/></g>'
-    + '<ellipse cx="17.3" cy="9" rx="2.4" ry="1.7" fill="#fff" opacity=".7"/></svg>'
+  const h = 'ph' + n;
+  return pawn3dHtml()
     + '<svg class="piece-shape shape-heart" viewBox="0 0 40 40" aria-hidden="true">'
     + '<defs><radialGradient id="' + h + '" cx=".35" cy=".3" r=".75">'
     + '<stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/>'
@@ -879,6 +902,7 @@ function positionPiece(el, target, board, slotIndex = 0, sizeRef = null, occupan
   const size = Math.max(8, Math.min(sizeRect.width, sizeRect.height) * PIECE_SCALE[n]);
   el.style.width  = size + 'px';
   el.style.height = size + 'px';
+  el.style.setProperty('--size', size + 'px');   // 3D 棋子用它算每一片的高度(translateZ 不能用 %)
 
   const [ox, oy] = PIECE_SLOTS[n][slotIndex % n];
   const nudge = size * 0.62;
@@ -906,6 +930,7 @@ function positionPieceOnWheel(el, wheelEl, board, index, total, sizeRef) {
   const size = Math.max(10, Math.min(sizeRect.width, sizeRect.height) * 0.5);
   el.style.width  = size + 'px';
   el.style.height = size + 'px';
+  el.style.setProperty('--size', size + 'px');
 
   const wheelR = Math.min(rect.width, rect.height) / 2;
   const ring = wheelR * 0.88;
@@ -937,6 +962,17 @@ function positionPieceOnFace(el, wheelEl, board, face, sizeRef) {
   const cx = (rect.left - boardRect.left) + rect.width / 2 + ring * Math.cos(angle);
   const cy = (rect.top - boardRect.top) + rect.height / 2 + ring * Math.sin(angle);
   el.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
+}
+
+const STEP_MS = 240;
+
+/** 棋子跳一下(移動時每一格一次)。動畫在 board.css 的 .is-hopping,減少動態效果時不跳。 */
+function hopPiece(el) {
+  el.classList.remove('is-hopping');
+  void el.offsetWidth;   // 重新觸發同一個動畫
+  el.classList.add('is-hopping');
+  clearTimeout(el._hopT);
+  el._hopT = setTimeout(() => el.classList.remove('is-hopping'), STEP_MS + 20);
 }
 
 function renderPieces() {
@@ -987,6 +1023,7 @@ function renderPieces() {
       : positionPiece(el, target, board,
           occupancy[currentPos(p)].indexOf(i), cellRef, occupancy[currentPos(p)].length);
 
+    const where = waiting ? 'wheel' : String(currentPos(p));
     if (isNew) {
       // Snap into place on first placement (setup/reset/rebuild) instead
       // of visibly sliding in from the top-left corner.
@@ -996,7 +1033,11 @@ function renderPieces() {
       el.style.transition = '';
     } else {
       place();
+      // 換了格子就跳一下:一步一格地跳過去,而不是整顆滑過去
+      if (el.dataset.at !== where) hopPiece(el);
     }
+    el.dataset.at = where;
+    el.classList.toggle('is-active', i === state.current && !state.gameOver);
   });
 
   // 棋盤放不進畫面時(手機),跟著輪到的那顆棋子捲動。
@@ -1299,10 +1340,11 @@ function animateSteps(player, fromIdx, toIdx, callback) {
     renderPieces();
     const pos = currentPos(player);
     flashSquare(pos);
+    // 一格的時間 = 一跳的時間(board.css 的 piece-hop／p3d-hop),跳完落地才走下一格
     if (step >= toIdx) {
-      setTimeout(callback, 200);
+      setTimeout(callback, STEP_MS);
     } else {
-      setTimeout(nextStep, 200);
+      setTimeout(nextStep, STEP_MS);
     }
   }
   nextStep();

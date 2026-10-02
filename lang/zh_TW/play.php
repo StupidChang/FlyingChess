@@ -268,7 +268,7 @@ return [
     'capture_off' => '不用回起點',
     'piece_style' => '棋子樣式',
     'piece_style_disc' => '圓片',
-    'piece_style_pawn' => '立體棋子',
+    'piece_style_pawn' => '3D 棋子',
     'piece_style_heart' => '愛心',
     'name_dice' => '骰一個名字',
     'name_adj' => ['害羞的', '慾火', '甜甜的', '壞壞的', '偷偷的', '濕濕的', '黏人的', '性感的', '淘氣的', '貪吃的', '軟綿綿', '火辣的', '半醉的', '很會的'],

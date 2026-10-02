@@ -272,7 +272,7 @@ return [
     'capture_off' => '戻らない',
     'piece_style' => 'コマの形',
     'piece_style_disc' => 'まる',
-    'piece_style_pawn' => '立体コマ',
+    'piece_style_pawn' => '3Dコマ',
     'piece_style_heart' => 'ハート',
     'name_dice' => '名前をサイコロで決める',
     'name_adj' => ['照れ屋の', 'とろける', '甘い', 'いけない', 'こっそり', '濡れた', '甘えん坊の', 'セクシーな', 'いたずらな', '欲しがりの', 'ふわふわ', '熱い', 'ほろ酔いの', '上手な'],
