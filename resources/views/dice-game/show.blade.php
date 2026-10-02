@@ -488,8 +488,13 @@ button.dg-pill:hover{background:var(--border)}
             var needs=(RULES.twist_needs||{})[t.key]||[];
             if(has(needs,'time') && !by.time) n++;
             if(has(needs,'part') && !by.part) n++;
+            if(has(needs,'play') && !playsK.length) n++;
             if(has(needs,'not_mouth') && actions.some(function(a){return has(RULES.mouth, a)})) n++;
             if(has(needs,'no_play') && playsK.length) n++;
+            if(has(needs,'not_oral_now') && actions.some(function(a){return has(RULES.mouth, a)})
+               && (by.part||[]).some(function(p){return has(RULES.genital, p.key)})) n++;
+            var onTable=dice.map(function(b,i){return b.keys[idx[i]]});
+            ((RULES.twist_deny||{})[t.key]||[]).forEach(function(k){ if(onTable.indexOf(k)!==-1) n++; });
         });
         return n;
     }

@@ -32,7 +32,8 @@ class DiceTwistTest extends TestCase
         $free = $this->dice(false);
 
         $this->assertFalse($free['builtin_twist_bold']['locked']);
-        $this->assertCount(6, $free['builtin_twist_bold']['faces']);
+        // 題庫可以比 6 面多:骰子還是 6 面,每一局從題庫裡挑 6 個放上去(dice-game/show 的 buildDice)
+        $this->assertCount(count(DiceGameService::defaultPools()['twist.bold']), $free['builtin_twist_bold']['faces']);
         $this->assertTrue($free['builtin_twist_wild']['locked']);
         $this->assertSame([], $free['builtin_twist_wild']['faces'], '付費骰面不能送到前端');
 
@@ -58,7 +59,7 @@ class DiceTwistTest extends TestCase
         GamePrompt::where('game', 'dice_game')->where('pool', 'like', 'twist.%')->delete();
 
         $free = $this->dice(false);
-        $this->assertCount(6, $free['builtin_twist_bold']['faces']);
+        $this->assertCount(count(DiceGameService::defaultPools()['twist.bold']), $free['builtin_twist_bold']['faces']);
         // 退回預設的付費池沒有 is_paid 可言,沒權限就鎖住
         $this->assertTrue($free['builtin_twist_wild']['locked']);
     }
