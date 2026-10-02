@@ -97,12 +97,16 @@ class DiceTwistTest extends TestCase
         $all = collect(DiceGameService::defaultPools())->flatten()->all();
         $rules = DiceGameService::rules();
         $names = array_merge(
-            $rules['mouth'], $rules['quick'],
-            array_keys($rules['part_deny']), ...array_values($rules['part_deny']),
-            ...[array_keys($rules['prop_deny'])], ...array_values($rules['prop_deny']),
-            ...[array_keys($rules['twist_needs'])],
+            $rules['mouth'],
+            $rules['quick'],
+            array_keys($rules['part_deny']),
+            array_merge(...array_values($rules['part_deny'])),
+            array_keys($rules['prop_deny']),
+            array_merge(...array_values($rules['prop_deny'])),
+            array_keys($rules['twist_needs']),
             $rules['prop_needs_play'],
-            array_keys($rules['prop_play_deny']), ...array_values($rules['prop_play_deny']),
+            array_keys($rules['prop_play_deny']),
+            array_merge(...array_values($rules['prop_play_deny'])),
         );
         foreach (array_unique($names) as $name) {
             $this->assertContains($name, $all, "規則裡的「{$name}」不是任何一顆骰子的骰面");
