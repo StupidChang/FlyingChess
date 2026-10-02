@@ -38,7 +38,10 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
+            /* 同時有人寫入時,等最多 5 秒再放棄,而不是立刻丟「database is locked」。
+               SQLite 一次只能有一個寫入者,瀏覽紀錄、session 以外的寫入都會排隊;
+               流量一衝上來,null(=0 秒)的結果就是一堆 500。WAL 已經是開著的。 */
+            'busy_timeout' => env('DB_BUSY_TIMEOUT', 5000),
             'journal_mode' => null,
             'synchronous' => null,
             'transaction_mode' => 'DEFERRED',
