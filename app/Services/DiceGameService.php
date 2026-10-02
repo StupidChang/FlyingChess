@@ -137,6 +137,60 @@ class DiceGameService
         ['time',   null,     false],
     ];
 
+    /*
+     * 組合規則:擲骰時只挑說得通的組合(「吸 鎖骨」「用羽毛舔」「輕咬 2 分鐘」不會出現)。
+     *
+     * 鍵是**繁中原文**(跟翻譯字典同一套),所以四個語系共用;骰面傳到前端時帶著原文
+     * (keys),前端照這份表過濾。後台自己加的骰面對不到規則,就不受限制。
+     * 前端的挑法是:隨機抽一組 → 檢查 → 不合就重抽;真的抽不到全合的組合時,
+     * 退而取違規最少的那一組,不會卡住。見 dice-game/show 的 pickCombo()。
+     */
+    private const MOUTH = ['親', '輕咬', '舔', '吸', '用舌尖逗', '邊吸邊舔', '邊舔邊揉'];
+
+    private const RULES = [
+        // 用嘴的動作(「換成用嘴」這個轉折不會配到它們)
+        'mouth' => self::MOUTH,
+        // 一下子的動作,時間不超過 30 秒
+        'quick' => ['輕咬', '吸', '用鼻尖蹭'],
+        'quick_max' => 30,
+        // 部位 => 配不上的動作
+        'part_deny' => [
+            '耳垂' => ['揉', '磨蹭', '撫摸', '用手指玩', '用跳蛋震', '邊舔邊揉'],
+            '脖子' => ['磨蹭', '用手指玩', '用跳蛋震'],
+            '鎖骨' => ['吸', '揉', '磨蹭', '用手指玩', '用跳蛋震', '邊吸邊舔', '邊舔邊揉'],
+            '嘴唇' => ['揉', '磨蹭', '用跳蛋震'],
+            '手指' => ['揉', '磨蹭', '撫摸', '用手指玩', '用跳蛋震'],
+            '腰' => ['吸', '邊吸邊舔', '用手指玩', '用跳蛋震'],
+            '臀部' => ['吸', '用舌尖逗', '邊吸邊舔'],
+            '下腹' => ['吸', '邊吸邊舔'],
+            '隔著內褲的私處' => ['吸', '邊吸邊舔'],
+            '會陰' => ['吸'],
+        ],
+        // 道具 => 配不上的動作(眼罩、絲巾、手銬、保險套是「戴著做」的,配什麼都行)
+        'prop_deny' => [
+            '冰塊' => ['輕咬', '用鼻尖蹭', '用跳蛋震', '用手指玩'],
+            '羽毛' => ['親', '輕咬', '舔', '吸', '用舌尖逗', '邊吸邊舔', '邊舔邊揉', '揉', '用跳蛋震', '用手指玩', '用鼻尖蹭'],
+            '按摩油' => [...self::MOUTH, '用鼻尖蹭', '用跳蛋震'],
+            '溫熱毛巾' => [...self::MOUTH, '用鼻尖蹭', '用跳蛋震', '用手指玩', '磨蹭'],
+            '跳蛋' => ['親', '輕咬', '舔', '吸', '用舌尖逗', '邊吸邊舔', '用鼻尖蹭'],
+            '震動棒' => ['親', '輕咬', '舔', '吸', '用舌尖逗', '邊吸邊舔', '用鼻尖蹭'],
+            '按摩棒' => ['親', '輕咬', '舔', '吸', '用舌尖逗', '邊吸邊舔', '用鼻尖蹭'],
+            '潤滑液' => ['親', '輕咬', '吸', '用鼻尖蹭', '邊吸邊舔'],
+        ],
+        // 轉折 => 需要的條件。time:桌上要有時間骰;part:要有部位骰;
+        // not_mouth:動作本來就是用嘴的不行。狂野轉折另外要求桌上至少一顆「大膽」以上(前端)。
+        'twist_needs' => [
+            '時間×2|時間加倍' => ['time'],
+            '換嘴|做到一半換成用嘴' => ['not_mouth'],
+            '他指定|對方可以再指定一個部位，一起弄' => ['part'],
+        ],
+    ];
+
+    public static function rules(): array
+    {
+        return self::RULES;
+    }
+
     /** 程式碼裡的預設骰面,鍵是「類別.強度」(時間骰沒有強度)。 */
     public static function defaultPools(): array
     {
@@ -147,9 +201,10 @@ class DiceGameService
     {
         // 後台改過就以資料表為準;沒有資料就用程式碼裡的預設。
         // 收費是每一題自己的 is_paid,所以過濾在這一層就做完了。
-        $fromDb = GamePrompt::poolsFor('dice_game', $isPremium);
+        // 先拿繁中原文:組合規則用原文對,翻譯放到最後(見 RULES)
+        $fromDb = GamePrompt::rawPoolsFor('dice_game', $isPremium);
         $usingDefaults = empty($fromDb);
-        $pools = $fromDb ?: ContentTranslations::pools(self::defaultPools());
+        $pools = $fromDb ?: self::defaultPools();
 
         /* 資料表裡有這個遊戲、但沒有某一池(之後才加的骰子,例如轉折骰)時,那一池退回
            程式碼預設 —— 不然新骰子在已經匯入過題庫的站上會是一顆空骰。
@@ -159,7 +214,7 @@ class DiceGameService
             // 用「資料表裡有沒有這一池」判斷,不是看過濾後的結果 —— 沒有付費權限時,
             // 付費題目已經被濾掉了,那一池看起來是空的,但不代表要退回預設
             $poolsInDb = GamePrompt::where('game', 'dice_game')->distinct()->pluck('pool')->flip();
-            foreach (ContentTranslations::pools(self::defaultPools()) as $key => $faces) {
+            foreach (self::defaultPools() as $key => $faces) {
                 if (! isset($poolsInDb[$key])) {
                     $pools[$key] = $faces;
                     $fallbackPools[$key] = true;
@@ -183,6 +238,8 @@ class DiceGameService
             if ($locked) {
                 $faces = [];
             }
+            // keys 是繁中原文(組合規則用),faces 是同一批翻成目前語系,兩者一一對應
+            $keys = $locked ? [] : ContentExposure::sample(array_values(array_unique($faces)));
             $out[] = [
                 'id' => 'builtin_'.$cat.($intensity ? '_'.$intensity : ''),
                 'cat' => $cat,
@@ -190,7 +247,8 @@ class DiceGameService
                 'premium' => $premium,
                 'locked' => $locked,
                 'custom' => false,
-                'faces' => $locked ? [] : ContentExposure::sample(array_values(array_unique($faces))),
+                'keys' => $keys,
+                'faces' => array_map(fn ($t) => ContentTranslations::translate($t), $keys),
             ];
         }
 

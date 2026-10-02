@@ -22,21 +22,41 @@
 @section('styles')
 <link rel="stylesheet" href="{{ asset_v('css/minigames.css') }}">
 <style>
-/* 3D Dice */
-.dg-dice-area{display:flex;gap:38px;justify-content:center;flex-wrap:wrap;padding:34px 6px}
-.dg-dice-wrapper{text-align:center}
-.dg-dice-label{font-size:.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:600}
-.dg-dice-scene{width:80px;height:80px;perspective:300px;margin:0 auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));transform:translateZ(0)}
+/* ── 骰子遊戲(2026-10-02 重排)──
+   單欄:回合列 → 骰子舞台 → 結果卡片 → 按鈕 → 骰子設定 → 最近幾輪。
+   原本的左側長清單在窄螢幕排到骰子上面、寬螢幕又把整頁撐成三欄,改成舞台下方的
+   設定面板:每個類別一列「關|溫柔|大膽|狂野」,手機也排得下。 */
+#mg-page-root{max-width:760px}
+#setup-phase{max-width:520px;margin-left:auto;margin-right:auto}
+.dg-play{--die:84px;display:flex;flex-direction:column;gap:16px;margin-top:4px}
+@media(max-width:480px){.dg-play{--die:64px}}
+
+/* 回合列 */
+.dg-turnbar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.dg-turnbar .mg-round-badge{margin:0;font-size:.82rem;font-weight:700;color:var(--text-dim);
+  padding:4px 10px;border:1px solid var(--border);border-radius:999px;background:var(--surface)}
+.dg-turnbar .mg-current-player{margin:0;font-size:1.25rem}
+
+/* 舞台 */
+.dg-stage{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 14px 20px;
+  background-image:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 70%)}
+.dg-dice-area{display:flex;gap:22px 26px;justify-content:center;flex-wrap:wrap;padding:6px 0 4px}
+@media(max-width:480px){.dg-dice-area{gap:16px 14px}}
+.dg-dice-wrapper{text-align:center;width:calc(var(--die) + 18px)}
+.dg-dice-label{font-size:.72rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dg-dice-scene{width:var(--die);height:var(--die);perspective:320px;margin:0 auto;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));transform:translateZ(0)}
 .dg-dice{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(-20deg) rotateY(25deg);-webkit-backface-visibility:hidden;backface-visibility:hidden}
 /* outline:transparent + backface hints let the compositor anti-alias the rotated edges (kills the jaggies) */
-.dg-dice-face{position:absolute;width:80px;height:80px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2);-webkit-backface-visibility:hidden;backface-visibility:hidden;outline:1px solid transparent;text-align:center;line-height:1.2;padding:4px}
-.dg-dice-face.f1{transform:rotateY(0deg) translateZ(40px)}
-.dg-dice-face.f2{transform:rotateY(180deg) translateZ(40px)}
-.dg-dice-face.f3{transform:rotateY(90deg) translateZ(40px)}
-.dg-dice-face.f4{transform:rotateY(-90deg) translateZ(40px)}
-.dg-dice-face.f5{transform:rotateX(90deg) translateZ(40px)}
-.dg-dice-face.f6{transform:rotateX(-90deg) translateZ(40px)}
-/* Colour by dice type (stable regardless of which dice are toggled on) */
+.dg-dice-face{position:absolute;width:var(--die);height:var(--die);border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:calc(var(--die) * .17);font-weight:800;color:#fff;border:2px solid rgba(255,255,255,.22);-webkit-backface-visibility:hidden;backface-visibility:hidden;
+  outline:1px solid transparent;text-align:center;line-height:1.15;padding:5px;overflow-wrap:anywhere;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.dg-dice-face.f1{transform:rotateY(0deg) translateZ(calc(var(--die) / 2))}
+.dg-dice-face.f2{transform:rotateY(180deg) translateZ(calc(var(--die) / 2))}
+.dg-dice-face.f3{transform:rotateY(90deg) translateZ(calc(var(--die) / 2))}
+.dg-dice-face.f4{transform:rotateY(-90deg) translateZ(calc(var(--die) / 2))}
+.dg-dice-face.f5{transform:rotateX(90deg) translateZ(calc(var(--die) / 2))}
+.dg-dice-face.f6{transform:rotateX(-90deg) translateZ(calc(var(--die) / 2))}
+/* 每種骰子一個顏色,跟有沒有勾選無關 */
 .dg-die-action .dg-dice-face{background:linear-gradient(135deg,#e53935,#c62828)}
 .dg-die-part .dg-dice-face{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
 .dg-die-time .dg-dice-face{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
@@ -45,116 +65,72 @@
 .dg-die-custom .dg-dice-face{background:linear-gradient(135deg,#d9a441,#b8860b)}
 .dg-die-twist .dg-dice-face{background:linear-gradient(135deg,#ea580c,#c2410c)}
 .dg-die-who .dg-dice-face{background:linear-gradient(135deg,#475569,#334155)}
-
-/* Result glow — one-shot pulse on the settled dice */
 .dg-dice-scene.dg-glow{animation:dgGlowPulse .8s ease-out 1}
 @keyframes dgGlowPulse{
-  0%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
-  35%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3)) drop-shadow(0 0 16px rgba(255,205,90,.9))}
-  100%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
-}
-@media (prefers-reduced-motion: reduce){
-  .dg-dice-scene.dg-glow{animation:none}
+  0%{filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}
+  35%{filter:drop-shadow(0 4px 8px rgba(0,0,0,.35)) drop-shadow(0 0 16px rgba(255,205,90,.9))}
+  100%{filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}
 }
 
-/* Widen the dice game so a 3-column grid (1fr | dice | 1fr) can keep the dice
-   dead-centre on the viewport while the picker sits in an independent left
-   column — the equal side columns guarantee the picker never shifts the dice. */
-#mg-page-root{max-width:1100px}
-#setup-phase{max-width:560px;margin-left:auto;margin-right:auto}
-/* 桌機版面:對稱三欄,讓骰子區落在頁面的絕對中央。
-     [ 1fr 側欄 ] [ auto 骰子區 ] [ 1fr 空白 ]
-   左右兩個 1fr 等寬,所以中間欄的中心就是頁面的中心 —— 側欄不會把骰子推偏。
-   第三欄刻意留空,它的存在就是為了對稱。
-
-   原本的設計就是這個形狀,壞掉的原因是寬度不夠:
-   容器 .mg-page--md 內容寬只有 568px(600 − padding 32),
-   而三欄至少需要 210 + 20 + 488 + 20 + 210 = 948px,
-   且斷點只在 ≤1040px 把頁面設成 640px、沒有任何規則在更寬時放大。
-   這裡把頁面給到 1000px(內容 968px),三欄才真的排得開。 */
-#mg-page-root{max-width:1000px}
-.dg-play{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
-    align-items:start;gap:20px;margin-top:8px}
-.dg-picker{grid-column:1;justify-self:start;width:210px;text-align:left;transform:translateY(-72px)}
-.dg-main{grid-column:2;width:100%;max-width:488px;min-width:0}
-.dg-stage{width:100%;min-width:0}
-/* 頁面加寬後,標題與玩家設定表單不要跟著被拉長 */
-#setup-phase{max-width:520px;margin-left:auto;margin-right:auto}
-.dg-picker-label{font-size:.82rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;letter-spacing:.3px}
-.dg-picker-list{
-  display:flex;flex-direction:column;gap:16px;min-width:200px;
-  background:var(--surface);border:1px solid var(--border);border-radius:16px;
-  padding:16px 14px;box-shadow:0 6px 20px rgba(0,0,0,.20);
-}
-.dg-picker-group{display:flex;flex-direction:column;gap:5px}
-.dg-picker-head{font-size:.66rem;color:var(--text-dim);font-weight:800;letter-spacing:1.2px;text-transform:uppercase;opacity:.65;padding-left:4px;margin-bottom:2px}
-.dg-picker-item{
-  display:flex;align-items:center;gap:10px;
-  padding:9px 12px;border-radius:10px;cursor:pointer;
-  background:var(--surface2);border:1px solid transparent;color:var(--text-dim);
-  font-size:.9rem;font-weight:600;transition:background .15s,color .15s,border-color .15s,box-shadow .15s;
-}
-.dg-picker-item:hover{color:var(--text);background:var(--border)}
-.dg-picker-item.active{background:rgba(244,63,94,.14);border-color:var(--accent);color:var(--text);box-shadow:inset 3px 0 0 var(--accent)}
-.dg-picker-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.05)}
-.dg-picker-dot-action{background:#e53935}
-.dg-picker-dot-part{background:#2563eb}
-.dg-picker-dot-time{background:#7c3aed}
-.dg-picker-dot-prop{background:#0d9488}
-.dg-picker-dot-play{background:#db2777}
-.dg-picker-dot-custom{background:#d9a441}
-.dg-picker-dot-twist{background:#ea580c}
-/* 結果卡片:誰對誰、做什麼、轉折、計時 */
-.dg-result-who{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:.02em}
-.dg-result-twist{display:block;width:fit-content;max-width:min(440px,100%);margin:12px auto 0;padding:10px 14px;border-radius:10px;font-size:.95rem;font-weight:600;line-height:1.5;
+/* 結果卡片:誰對誰 → 做什麼 → 接著(玩法)→ 轉折 → 計時 */
+.dg-result{text-align:center;margin-top:18px;padding:16px 14px 18px;border-radius:14px;background:var(--bg);border:1px solid var(--border);animation:fadeIn .3s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.dg-result-who{font-size:.9rem;font-weight:700;color:var(--text-dim);margin-bottom:8px}
+.dg-result .mg-result-text{font-size:1.45rem;font-weight:800;color:var(--text);line-height:1.35;margin:0}
+.dg-result-then{margin-top:10px;font-size:1rem;font-weight:700;color:var(--text)}
+.dg-result-then span{font-size:.75rem;font-weight:700;color:#f472b6;margin-right:6px}
+.dg-result-twist{display:block;width:fit-content;max-width:min(460px,100%);margin:12px auto 0;padding:10px 14px;border-radius:10px;font-size:.95rem;font-weight:600;line-height:1.5;
   color:var(--text);background:color-mix(in srgb,#ea580c 16%,var(--surface2));border:1px solid color-mix(in srgb,#ea580c 45%,var(--border))}
 .dg-timer{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .dg-timer-bar{width:min(320px,80%);height:6px;border-radius:999px;background:var(--surface2);overflow:hidden}
 .dg-timer-fill{height:100%;width:100%;background:var(--accent);transform-origin:left;transition:transform .25s linear}
 .dg-timer.is-done .dg-timer-btn{border-color:var(--accent);color:var(--accent);animation:dg-timer-flash .5s ease-in-out 3}
 @keyframes dg-timer-flash{50%{opacity:.35}}
-@media (prefers-reduced-motion:reduce){.dg-timer.is-done .dg-timer-btn{animation:none}}
-.dg-picker-name{flex:1;white-space:nowrap}
-.dg-picker-check{width:16px;text-align:center;color:var(--accent);font-weight:800;opacity:0;transition:opacity .15s}
-.dg-picker-item.active .dg-picker-check{opacity:1}
-.dg-picker-item.locked{opacity:.5}
-.dg-picker-item.locked:hover{background:var(--surface2);color:var(--text-dim)}
-.dg-lock{width:16px;text-align:center;font-size:.72rem}
-.dg-manage-link{display:inline-block;margin-top:10px;font-size:.82rem;color:var(--accent)}
+
+/* 按鈕列 */
+.dg-play .mg-action-btns{margin-top:16px}
+.dg-reset{flex-basis:100%;background:none;border:0;color:var(--text-dim);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
+.dg-reset:hover{color:var(--text)}
+.mg-action-btns.dg-rolling .dg-reset{opacity:.45;pointer-events:none}
+
+/* 骰子設定 */
+.dg-settings{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px}
+.dg-settings > summary{cursor:pointer;font-weight:700;font-size:.92rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.dg-settings > summary::-webkit-details-marker{display:none}
+.dg-settings > summary::after{content:'▾';color:var(--text-dim);transition:transform .2s}
+.dg-settings[open] > summary::after{transform:rotate(180deg)}
+.dg-picker-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.dg-row{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:10px}
+.dg-row-name{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;color:var(--text)}
+.dg-picker-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.dg-picker-dot-action{background:#e53935}.dg-picker-dot-part{background:#2563eb}.dg-picker-dot-time{background:#7c3aed}
+.dg-picker-dot-prop{background:#0d9488}.dg-picker-dot-play{background:#db2777}.dg-picker-dot-custom{background:#d9a441}
+.dg-picker-dot-twist{background:#ea580c}
+.dg-seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface2);border-radius:10px;padding:3px}
+.dg-seg button{flex:1 1 0;min-width:64px;border:0;border-radius:8px;padding:7px 8px;background:none;color:var(--text-dim);
+  font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.dg-seg button:hover{color:var(--text)}
+.dg-seg button.active{background:var(--accent);color:#fff}
+.dg-seg button.locked{opacity:.5}
+.dg-seg button.is-off.active{background:var(--border);color:var(--text)}
+@media(max-width:480px){
+  .dg-row{grid-template-columns:1fr}
+  .dg-seg button{min-width:0}
+}
+.dg-manage-link{display:inline-block;margin-top:12px;font-size:.82rem;color:var(--accent)}
 .dg-manage-link:hover{text-decoration:underline}
-/* Not enough room for 3 columns → single column: picker centered above dice */
-@media(max-width:1024px){
-  #mg-page-root{max-width:640px}
-  .dg-play{grid-template-columns:1fr}
-  .dg-picker{grid-column:1;justify-self:center;width:100%;max-width:360px;margin:0 auto 22px;transform:none}
-  .dg-picker-list{max-width:360px;margin:0 auto}
-  .dg-stage{grid-column:1}
-  .dg-main{grid-column:1;max-width:none;margin:0 auto}
-}
 
-/* Result */
-.dg-result{text-align:center;padding:20px;animation:fadeIn .3s ease-out}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-
-/* Buttons visually disabled while dice are rolling (roll-btn is fully
-   hidden already; this covers the still-visible reset button) */
-.mg-action-btns.dg-rolling .btn-outline{opacity:.45;pointer-events:none;filter:grayscale(.4)}
-
-/* Roll history — small chip trail, newest on top */
-.dg-history{display:flex;flex-direction:column;gap:6px;margin-top:18px;max-width:420px;margin-left:auto;margin-right:auto}
-.dg-history-item{
-    display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:.78rem;
-    background:var(--surface,#151823);border:1px solid var(--border,#2a2f42);border-radius:8px;
-    color:var(--text-dim,#9aa1b5);animation:dgHistoryIn .35s cubic-bezier(.34,1.56,.64,1) both;
-}
-.dg-history-round{
-    flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--gold,#d9a441);color:#241a04;
-    font-weight:700;font-size:.68rem;display:flex;align-items:center;justify-content:center;
-}
+/* 最近幾輪 */
+.dg-history{display:flex;flex-direction:column;gap:6px}
+.dg-history:empty{display:none}
+.dg-history-item{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:.78rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-dim);animation:dgHistoryIn .35s cubic-bezier(.34,1.56,.64,1) both}
+.dg-history-round{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--surface2);color:var(--text);
+  font-weight:700;font-size:.68rem;display:flex;align-items:center;justify-content:center}
 .dg-history-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes dgHistoryIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
 @media (prefers-reduced-motion: reduce){
-    .dg-history-item{animation:none}
+  .dg-dice-scene.dg-glow,.dg-history-item,.dg-timer.is-done .dg-timer-btn{animation:none}
 }
 </style>
 @endsection
@@ -182,36 +158,32 @@
 
     {{-- Game Phase --}}
     <div id="game-phase" style="display:none">
-        {{-- 兩欄:側欄在整個遊戲區的最左邊(不只是骰子旁邊),
-             回合標籤與當前玩家一起移進右欄,側欄才會對齊到頁面左緣。
-             grid 放在 .dg-play 而非 #game-phase,因為 JS 會把 #game-phase
-             的 display 設成 block,那會覆蓋掉 grid。 --}}
         <div class="dg-play">
-            {{-- Left: pick which dice to use --}}
-            <aside class="dg-picker">
-                <div class="dg-picker-label">{{ __('minigame.dice_pick_tier') }}</div>
+            <div class="dg-turnbar">
+                <div class="mg-round-badge" id="turn-badge"></div>
+                <div class="mg-current-player" id="current-player"></div>
+            </div>
+
+            <div class="dg-stage">
+                <div class="dg-dice-area" id="dice-area"></div>
+                <div id="result-display" class="dg-result" style="display:none"></div>
+                <div class="mg-action-btns">
+                    <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
+                    <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
+                    <button type="button" class="dg-reset" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
+                </div>
+            </div>
+
+            {{-- 骰子設定:預設展開,玩起來之後可以收起來 --}}
+            <details class="dg-settings" open>
+                <summary>{{ __('minigame.dice_pick_tier') }}</summary>
                 <div class="dg-picker-list" id="dice-select"></div>
                 @auth
                     <a href="{{ route('dice.index') }}" class="dg-manage-link">{{ __('minigame.dice_manage') }} →</a>
                 @endauth
-            </aside>
+            </details>
 
-            {{-- Right: 回合資訊 + 骰子舞台 --}}
-            <div class="dg-main">
-                <div class="mg-round-badge" id="turn-badge"></div>
-                <div class="mg-current-player" id="current-player"></div>
-
-                <div class="dg-stage">
-                    <div class="dg-dice-area" id="dice-area"></div>
-                    <div id="result-display" class="dg-result" style="display:none"></div>
-                    <div class="dg-history" id="roll-history"></div>
-                    <div class="mg-action-btns">
-                        <button class="btn btn-gold btn-xl" id="roll-btn" onclick="rollDice()">{{ __('minigame.dice_roll') }}</button>
-                        <button class="btn btn-gold btn-xl" id="next-btn" style="display:none" onclick="nextTurn()">{{ __('minigame.next_turn') }}</button>
-                        <button class="btn btn-outline" onclick="resetGame()">{{ __('minigame.reset_game') }}</button>
-                    </div>
-                </div>
-            </div>
+            <div class="dg-history" id="roll-history"></div>
         </div>
     </div>
 </div>
@@ -288,6 +260,9 @@
     };
     var WILD_LOCKED_MSG = @json(__('minigame.dice_wild_locked'));
     var WHO_LABEL       = @json(__('minigame.dice_label_who'));
+    var THEN_LABEL      = @json(__('minigame.dice_then'));
+    var OFF_LABEL       = @json(__('minigame.dice_off'));
+    var RULES           = @json($rules);
     var TARGET_TPL      = @json(__('minigame.dice_target', ['from' => '__FROM__', 'to' => '__TO__']));
     var TIMER_START     = @json(__('minigame.dice_timer_start', ['time' => '__T__']));
     var TIMER_STOP      = @json(__('minigame.dice_timer_stop'));
@@ -342,6 +317,25 @@
      * 拿不到的(付費未解鎖的 wild 帶 locked)一律排除,升溫就停在拿得到的最高階。
      */
     function activeDice(){
+        return capTwist(rawActiveDice());
+    }
+
+    /* 狂野轉折(脫光、口交…)不配在只有溫柔骰子的桌上:轉折骰勾了狂野、但動作／部位／
+       道具／玩法都還是溫柔的話,這一輪先用大膽版的轉折。等其他骰子升上來就自動換回。 */
+    function capTwist(list){
+        var heat=0;
+        list.forEach(function(d){
+            if(!d.custom && ['action','part','prop','play'].indexOf(d.cat)!==-1) heat=Math.max(heat, {gentle:1,bold:2,wild:3}[d.intensity]||1);
+        });
+        if(heat>=2) return list;
+        return list.map(function(d){
+            if(d.custom || d.cat!=='twist' || d.intensity!=='wild') return d;
+            var bold=ALL.filter(function(x){return x.cat==='twist' && x.intensity==='bold' && !x.locked && !x.custom})[0];
+            return bold||d;
+        });
+    }
+
+    function rawActiveDice(){
         var picked=ALL.filter(function(d){return enabled[d.id] && !d.locked});
         if(!escalate) return picked;
 
@@ -367,6 +361,8 @@
         return result;
     }
 
+    /* 骰子設定:每個類別一列,「關|溫柔|大膽|狂野」單選(同一類別只上一顆)。
+       自訂骰子那一列是你自己的骰子,一樣單選。 */
     function renderDiceSelect(){
         var wrap=document.getElementById('dice-select');
         if(!wrap) return;
@@ -374,25 +370,39 @@
         CAT_ORDER.forEach(function(cat){
             var items = ALL.filter(function(d){ return cat==='custom' ? d.custom : (d.cat===cat && !d.custom); });
             if(!items.length) return;
-            var group=document.createElement('div');
-            group.className='dg-picker-group';
-            group.innerHTML='<div class="dg-picker-head">'+escHtml(CAT_LABELS[cat]||cat)+'</div>';
+            var row=document.createElement('div');
+            row.className='dg-row';
+            row.innerHTML='<div class="dg-row-name"><span class="dg-picker-dot dg-picker-dot-'+cat+'"></span>'+escHtml(CAT_LABELS[cat]||cat)+'</div>';
+            var seg=document.createElement('div');
+            seg.className='dg-seg'; seg.setAttribute('role','radiogroup'); seg.setAttribute('aria-label', CAT_LABELS[cat]||cat);
+            var anyOn=items.some(function(d){return enabled[d.id] && !d.locked});
+            var off=document.createElement('button');
+            off.type='button'; off.className='is-off'+(anyOn?'':' active'); off.textContent=OFF_LABEL;
+            off.setAttribute('aria-pressed', anyOn?'false':'true');
+            off.onclick=function(){ setGroupOff(cat) };
+            seg.appendChild(off);
             items.forEach(function(d){
-                var cc=catClassOf(d);
                 var b=document.createElement('button');
                 b.type='button';
-                var cls='dg-picker-item dg-cat-'+cc;
-                if(enabled[d.id] && !d.locked) cls+=' active';
-                if(d.locked) cls+=' locked';
-                b.className=cls;
-                b.innerHTML='<span class="dg-picker-dot dg-picker-dot-'+cc+'"></span>'+
-                    '<span class="dg-picker-name">'+escHtml(itemLabel(d))+'</span>'+
-                    (d.locked?'<span class="dg-lock">🔒</span>':'<span class="dg-picker-check">✓</span>');
-                b.onclick=function(){toggleDie(d.id)};
-                group.appendChild(b);
+                var on=enabled[d.id] && !d.locked;
+                b.className=(on?'active':'')+(d.locked?' locked':'');
+                b.setAttribute('aria-pressed', on?'true':'false');
+                b.textContent=itemLabel(d)+(d.locked?' 🔒':'');
+                b.onclick=function(){ if(!enabled[d.id]) toggleDie(d.id); };
+                seg.appendChild(b);
             });
-            wrap.appendChild(group);
+            row.appendChild(seg);
+            wrap.appendChild(row);
         });
+    }
+
+    function setGroupOff(cat){
+        if(rollAnimId) return;
+        var inGroup=function(d){ return groupOf(d)===cat; };
+        var remaining=rawActiveDice().filter(function(d){ return !inGroup(d); });
+        if(!remaining.length){ showToast(NEED_ONE_MSG); return; }
+        ALL.forEach(function(d){ if(inGroup(d)) enabled[d.id]=false; });
+        afterPickerChange();
     }
 
     function groupOf(d){ return d.custom ? 'custom' : d.cat; }
@@ -411,13 +421,59 @@
             ALL.forEach(function(o){ if(groupOf(o)===g && enabled[o.id]) enabled[o.id]=false; });
             enabled[id]=true;
         }
+        afterPickerChange();
+    };
+
+    // 換了骰子就讓這一位用新的組合重擲,不跳到下一位
+    function afterPickerChange(){
+        stopTimer();
         renderDiceSelect();
         buildDice();
-        // let the player re-roll with the new set without advancing the turn
         document.getElementById('result-display').style.display='none';
         document.getElementById('next-btn').style.display='none';
         document.getElementById('roll-btn').style.display='inline-flex';
-    };
+    }
+
+    /**
+     * 這一輪每顆骰子落在哪一面 —— 只挑說得通的組合(規則見 DiceGameService::RULES)。
+     *
+     * 隨機抽一組、檢查、不合就重抽;抽 400 次都沒有全合的(例如勾了一堆互相排斥的骰子),
+     * 就用違規最少的那一組 —— 寧可偶爾怪一點,也不能卡住不給結果。
+     * 對不到規則的骰面(後台新增的、自訂骰子)一律當作什麼都配得上。
+     */
+    var TIER_RANK={gentle:1, bold:2, wild:3};
+    function violations(dice, idx){
+        var by={}, n=0;
+        dice.forEach(function(b,i){ (by[b.catClass]=by[b.catClass]||[]).push({key:b.keys[idx[i]], tier:b.tier}); });
+        var actions=(by.action||[]).map(function(x){return x.key});
+        var has=function(list, v){ return list && list.indexOf(v)!==-1; };
+        (by.part||[]).forEach(function(p){ actions.forEach(function(a){ if(has((RULES.part_deny||{})[p.key], a)) n++; }); });
+        (by.prop||[]).forEach(function(p){ actions.forEach(function(a){ if(has((RULES.prop_deny||{})[p.key], a)) n++; }); });
+        (by.time||[]).forEach(function(t){
+            var sec=toSeconds(t.key);
+            actions.forEach(function(a){ if(has(RULES.quick, a) && sec>(RULES.quick_max||30)) n++; });
+        });
+        // 桌上最「熱」的那一顆:狂野轉折不配在只有溫柔骰子的桌上
+        var heat=0;
+        ['action','part','prop','play'].forEach(function(c){ (by[c]||[]).forEach(function(x){ heat=Math.max(heat, TIER_RANK[x.tier]||1); }); });
+        (by.twist||[]).forEach(function(t){
+            if(t.tier==='wild' && heat<2) n++;
+            var needs=(RULES.twist_needs||{})[t.key]||[];
+            if(has(needs,'time') && !by.time) n++;
+            if(has(needs,'part') && !by.part) n++;
+            if(has(needs,'not_mouth') && actions.some(function(a){return has(RULES.mouth, a)})) n++;
+        });
+        return n;
+    }
+    function pickCombo(dice){
+        var best=null, bestN=Infinity;
+        for(var tries=0; tries<400 && bestN>0; tries++){
+            var idx=dice.map(function(b){ return Math.floor(Math.random()*Math.min(b.values.length,6)); });
+            var n=violations(dice, idx);
+            if(n<bestN){ best=idx; bestN=n; }
+        }
+        return best||dice.map(function(){return 0});
+    }
 
     /**
      * 把這一輪各顆骰子的結果組成一張卡片:誰對誰 → 做什麼(動作、部位、道具、玩法、時間)
@@ -428,7 +484,10 @@
         var from=players[turn];
         var who=picks.filter(function(p){return p.cat==='who'})[0];
         var to=who ? who.value : players.filter(function(_,i){return i!==turn})[0];
-        var main=picks.filter(function(p){return p.cat!=='who' && p.cat!=='twist'}).map(function(p){return shortOf(p.value)}).filter(Boolean);
+        // 玩法骰本身就是一個完整的玩法(「69互舔1分鐘」),不跟動作、部位擠在同一句:
+        // 先做動作那一句當前戲,「接著」再做玩法
+        var main=picks.filter(function(p){return p.cat!=='who' && p.cat!=='twist' && p.cat!=='play'}).map(function(p){return shortOf(p.value)}).filter(Boolean);
+        var plays=picks.filter(function(p){return p.cat==='play'}).map(function(p){return p.value});
         var twists=picks.filter(function(p){return p.cat==='twist'}).map(function(p){return longOf(p.value)});
         var timeTok=picks.filter(function(p){return p.cat==='time'})[0];
         var seconds=timeTok ? toSeconds(timeTok.value) : 0;
@@ -438,6 +497,7 @@
         var target=to ? TARGET_TPL.replace('__FROM__',from).replace('__TO__',to) : from;
         var html='<div class="dg-result-who">'+escHtml(target)+'</div>'+
             '<div class="mg-result-text">'+escHtml(main.join(' '))+'</div>';
+        plays.forEach(function(t){ html+='<div class="dg-result-then"><span>'+escHtml(THEN_LABEL)+'</span>'+escHtml(t)+'</div>'; });
         twists.forEach(function(t){ html+='<div class="dg-result-twist">🔀 '+escHtml(t)+'</div>'; });
         if(seconds){
             html+='<div class="dg-timer"><button type="button" class="btn btn-outline dg-timer-btn"></button>'+
@@ -446,7 +506,7 @@
         return {html:html, seconds:seconds,
                 // 轉折是「再擲一次」的話,擲骰鍵要再出現,不然這一面沒辦法照做
                 reroll: twists.some(function(t){return /再擲|再掷|roll again|もう一度振/i.test(t)}),
-                history:target+'：'+main.join(' ')+(twists.length?'｜'+twists.join('｜'):'')};
+                history:target+'：'+main.join(' ')+(plays.length?'｜'+plays.join('｜'):'')+(twists.length?'｜'+twists.join('｜'):'')};
     }
 
     /* 「30秒」「1分鐘」「2 min」「45 sec」→ 秒數。後台改過的時間面對不到格式就不給計時。 */
@@ -498,7 +558,7 @@
         }
         defs.forEach(function(d,di){
             if(d.who){
-                builtDice.push({catClass:'who',topLabel:WHO_LABEL,values:d.faces});
+                builtDice.push({catClass:'who',topLabel:WHO_LABEL,values:d.faces,keys:d.faces,tier:null});
                 var wf='';
                 for(var k=0;k<d.faces.length;k++) wf+='<div class="dg-dice-face f'+(k+1)+'">'+escHtml(d.faces[k])+'</div>';
                 var ww=document.createElement('div');
@@ -507,9 +567,12 @@
                 area.appendChild(ww);
                 return;
             }
+            // 骰面與它的繁中原文一起洗牌:組合規則用原文對(見 pickCombo)
             var faces=(d.faces&&d.faces.length)?d.faces:[''];
-            var values=shuffled(faces).slice(0,6);
-            builtDice.push({catClass:catClassOf(d),topLabel:topLabelOf(d),values:values});
+            var pairs=shuffled(faces.map(function(f,i){return {text:f, key:(d.keys&&d.keys[i])||f}})).slice(0,6);
+            var values=pairs.map(function(p){return p.text});
+            builtDice.push({catClass:catClassOf(d),topLabel:topLabelOf(d),values:values,
+                            keys:pairs.map(function(p){return p.key}), tier:d.custom?null:d.intensity});
             var facesHtml='';
             for(var fi=0;fi<values.length;fi++){
                 facesHtml+='<div class="dg-dice-face f'+(fi+1)+'">'+escHtml(shortOf(values[fi]))+'</div>';
@@ -578,14 +641,8 @@
         var faceRot=[
             {rx:0,ry:0},{rx:0,ry:180},{rx:0,ry:-90},{rx:0,ry:90},{rx:-90,ry:0},{rx:90,ry:0}
         ];
-        var indices=[];
-        var picks=[];   // [{cat, value}]
-        for(var bi=0;bi<builtDice.length;bi++){
-            var vals=builtDice[bi].values;
-            var idx=Math.floor(Math.random()*Math.min(vals.length,6));
-            indices.push(idx);
-            picks.push({cat:builtDice[bi].catClass, value:vals[idx]});
-        }
+        var indices=pickCombo(builtDice);
+        var picks=builtDice.map(function(b,bi){ return {cat:b.catClass, value:b.values[indices[bi]], key:b.keys[indices[bi]]}; });
         var result=composeResult(picks);
         var resultText=result.history;
 

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Middleware\AgeVerification;
 use App\Models\GamePrompt;
 use App\Services\DiceGameService;
+use App\Support\ContentTranslations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -76,5 +77,40 @@ class DiceTwistTest extends TestCase
             ->assertSee('builtin_twist_bold', false)
             ->assertSee(__('minigame.dice_label_twist'))
             ->assertSee('dg-timer', false);
+    }
+
+    public function test_each_face_ships_with_its_original_text_for_the_combo_rules(): void
+    {
+        app()->setLocale('en');
+        foreach ($this->dice(true) as $die) {
+            $this->assertCount(count($die['faces']), $die['keys'], $die['id']);
+            foreach ($die['keys'] as $i => $key) {
+                // keys 是繁中原文,faces 是同一面的英文
+                $this->assertSame(ContentTranslations::translate($key), $die['faces'][$i]);
+            }
+        }
+    }
+
+    public function test_the_combo_rules_only_name_faces_that_exist(): void
+    {
+        // 規則表打錯一個字就默默失效(對不到骰面 = 不受限),所以每個名字都要真的是某一面
+        $all = collect(DiceGameService::defaultPools())->flatten()->all();
+        $rules = DiceGameService::rules();
+        $names = array_merge(
+            $rules['mouth'], $rules['quick'],
+            array_keys($rules['part_deny']), ...array_values($rules['part_deny']),
+            ...[array_keys($rules['prop_deny'])], ...array_values($rules['prop_deny']),
+            ...[array_keys($rules['twist_needs'])],
+        );
+        foreach (array_unique($names) as $name) {
+            $this->assertContains($name, $all, "規則裡的「{$name}」不是任何一顆骰子的骰面");
+        }
+    }
+
+    public function test_the_page_ships_the_rules(): void
+    {
+        $this->get('/tw/dice-game')->assertOk()
+            ->assertSee('part_deny', false)
+            ->assertSee('dg-settings', false);
     }
 }

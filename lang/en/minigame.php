@@ -42,6 +42,8 @@ return [
     'dice_label_play' => 'Play',
     'dice_label_twist' => 'Twist',
     'dice_label_who' => 'Who',
+    'dice_then' => 'Then',
+    'dice_off' => 'Off',
     'dice_target' => ':from → :to',
     'dice_timer_start' => '⏱ Start timer :time',
     'dice_timer_stop' => 'Stop',

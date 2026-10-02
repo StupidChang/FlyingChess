@@ -45,6 +45,8 @@ return [
     'dice_label_play' => 'プレイ',
     'dice_label_twist' => 'どんでん返し',
     'dice_label_who' => '相手',
+    'dice_then' => '続けて',
+    'dice_off' => 'オフ',
     'dice_target' => ':from → :to',
     'dice_timer_start' => '⏱ タイマー開始 :time',
     'dice_timer_stop' => 'ストップ',

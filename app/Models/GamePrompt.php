@@ -68,6 +68,16 @@ class GamePrompt extends Model
      */
     public static function poolsFor(string $game, ?bool $hasPaidAccess = null): array
     {
+        // 題目是內建內容就查翻譯字典;後台自己加的題目對不到,原樣顯示
+        return array_map(
+            fn ($items) => array_map(fn ($t) => ContentTranslations::translate($t), $items),
+            static::rawPoolsFor($game, $hasPaidAccess),
+        );
+    }
+
+    /** 同 poolsFor(),但不翻譯 —— 要拿繁中原文對規則的地方用(見 DiceGameService::RULES)。 */
+    public static function rawPoolsFor(string $game, ?bool $hasPaidAccess = null): array
+    {
         $rows = static::where('game', $game)
             ->when($hasPaidAccess === false, fn ($q) => $q->where('is_paid', false))
             ->orderBy('sort_order')->orderBy('id')
@@ -79,8 +89,6 @@ class GamePrompt extends Model
 
         return $rows->groupBy('pool')
             ->map(fn ($items) => $items->pluck('content')->all())
-            // 題目是內建內容就查翻譯字典;後台自己加的題目對不到,原樣顯示
-            ->map(fn ($items) => array_map(fn ($t) => ContentTranslations::translate($t), $items))
             ->all();
     }
 

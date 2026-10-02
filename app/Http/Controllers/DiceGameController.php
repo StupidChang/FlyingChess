@@ -32,6 +32,9 @@ class DiceGameController extends Controller
                 ])->all();
         }
 
-        return view('dice-game.show', compact('isPremium', 'dice', 'customDice'));
+        // 組合規則(哪些動作配不上哪些部位、道具、時間、轉折),前端擲骰時照著挑
+        $rules = DiceGameService::rules();
+
+        return view('dice-game.show', compact('isPremium', 'dice', 'customDice', 'rules'));
     }
 }

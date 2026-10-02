@@ -45,6 +45,8 @@ return [
     'dice_label_play' => '玩法',
     'dice_label_twist' => '轉折',
     'dice_label_who' => '對象',
+    'dice_then' => '接著',
+    'dice_off' => '關',
     'dice_target' => ':from → :to',
     'dice_timer_start' => '⏱ 開始計時 :time',
     'dice_timer_stop' => '停止',
