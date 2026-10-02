@@ -1359,6 +1359,11 @@
 /* ♂♀ 符號改由圖示負責 */
 .play-mode .board-sq.color-male::before,
 .play-mode .board-sq.color-female::before{content:none}
+/* 四色飛行棋的家門:只有某一個座位會走的格子,左邊一條座位色(board.js 的 seatLanes) */
+.play-mode .board-sq.lane-p1{box-shadow:inset 4px 0 0 var(--accent,#f43f5e)}
+.play-mode .board-sq.lane-p2{box-shadow:inset 4px 0 0 var(--blue,#38bdf8)}
+.play-mode .board-sq.lane-p3{box-shadow:inset 4px 0 0 var(--green,#4ade80)}
+.play-mode .board-sq.lane-p4{box-shadow:inset 4px 0 0 var(--yellow,#facc15)}
 /* 座位專屬格:棋子的顏色(.piece-1..4 同一組) */
 .play-mode .board-sq.color-p1{--seat:var(--accent,#f43f5e)}
 .play-mode .board-sq.color-p2{--seat:var(--blue,#38bdf8)}

@@ -79,10 +79,10 @@ class FlyingChessV8ReplicaTest extends TestCase
         $this->assertSame([7, 7], [$end->grid_row, $end->grid_col]);
     }
 
-    public function test_the_other_three_lanes_are_on_the_board_but_off_the_path(): void
+    public function test_the_shared_path_is_blue_and_leaves_the_other_three_lanes_to_their_seats(): void
     {
-        /* 另外三條家門照原圖畫出來,但不在路徑上 —— 那是別人的家門,藍色玩家
-           本來就走不到。畫出來是為了盤面長得像原圖。 */
+        /* path_data.all 是藍色那一條(路線編輯器與沒有座位概念的地方用),所以另外三條家門
+           不在 all 上 —— 它們在各自座位的路線上,見 test_every_square_is_on_some_seats_route。 */
         $board = $this->board();
         $path = $board->path_data['all'];
         $byPos = $board->squares->keyBy('position');
@@ -183,5 +183,33 @@ class FlyingChessV8ReplicaTest extends TestCase
         $texts = array_map(fn ($s) => str_replace("\n", '', (string) ($s['text'] ?? '')), $squares);
         $this->assertContains('綠色玩家停留此格下回合可進入', $texts);
         $this->assertContains('喝一杯並脫光衣服', $texts);
+    }
+
+    public function test_every_square_is_on_some_seats_route(): void
+    {
+        /* 原本只有一條路線(藍色),另外三條家門的 15 格畫在盤面上卻永遠走不到。
+           現在四個座位各走一條:四條合起來要涵蓋每一格。 */
+        $this->seed(FlyingChessV8ReplicaSeeder::class);
+        $board = Board::where('name', FlyingChessV8ReplicaSeeder::BOARD_NAME)->firstOrFail();
+        $seats = $board->path_data['seats'];
+        $cells = $board->squares->keyBy('position');
+
+        $this->assertCount(4, $seats);
+        $covered = array_unique(array_merge(...$seats));
+        $this->assertEqualsCanonicalizing($cells->keys()->all(), $covered);
+
+        foreach ($seats as $i => $path) {
+            $this->assertCount(54, $path, '外圈 48 + 家門 5 + 終點 1');
+            $this->assertSame($cells->max('position') >= 0 ? $path[53] : null, $board->path_data['all'][53], '終點是同一格');
+            // 每一步都要上下左右相鄰,斜跨的那一步不會有箭頭
+            for ($k = 0; $k < count($path) - 1; $k++) {
+                $a = $cells[$path[$k]];
+                $b = $cells[$path[$k + 1]];
+                $this->assertSame(1, abs($a->grid_row - $b->grid_row) + abs($a->grid_col - $b->grid_col),
+                    "座位 {$i} 的 {$path[$k]} → {$path[$k + 1]} 不相鄰");
+            }
+        }
+        // 藍色(第 2 位)就是原本的那一條
+        $this->assertSame($board->path_data['all'], $seats[1]);
     }
 }

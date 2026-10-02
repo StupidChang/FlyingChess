@@ -24,13 +24,15 @@ use Illuminate\Database\Seeder;
  *   - 四個肩角是「飛躍對面」格,對角互飛(fly_to)
  *   - 四個角落的 1–6 轉盤 = 我們的進場轉盤(Board::DEFAULT_START_WHEEL 就是它)
  *
- * ── 一個做不到的地方(重要)────────────────────────────────
+ * ── 四個座位各走自己的路線(2026-10-03 起)──────────────────
  *
- * 原盤是四人各走一條路線的飛行棋;我們的自訂棋盤只有**一條線性路徑**
- * (path_data 最多 all/male/female 三條,而且遊玩引擎一次走一條)。所以路徑取
- * **藍色玩家的完整路線**:入口 → 順時針繞外圈一圈 → 轉進藍色家門 → 終點,
- * 共 54 格。另外三條家門的 15 格照原圖畫在盤面上,但不在路徑上 —— 它們是別人的
- * 家門,本來就不該被藍色玩家走到。
+ * 原盤是四人各走一條路線的飛行棋。原本我們的引擎只有一條線性路徑,所以只接了藍色
+ * 那條,另外三條家門的 15 格畫在盤面上卻永遠沒有人走到。
+ *
+ * 現在 path_data 多一個 seats:第 N 位玩家走 seats[N-1]。路線是「從自己顏色的閘門
+ * 下一格出發 → 順時針繞外圈一圈 → 回到閘門 → 轉進自己的家門 → 終點」。
+ * 座位順序照棋子顏色(.piece-1..4 = 紅、藍、綠、黃),所以紅棋走紅色家門。
+ * all 仍是藍色那條,給路線編輯器與沒有座位概念的地方用。
  *
  * 真正的四人飛行棋在站上是另一套引擎(/games,GameService 的 52 格賽道),
  * 那一套的格子目前沒有文字。要把這份內容接上去是另一件事。
@@ -219,7 +221,54 @@ class FlyingChessV8ReplicaSeeder extends Seeder
         $board->squares()->where('position', '>=', count($cells))->delete();
 
         $board->update([
-            'path_data' => ['all' => range(0, $pathLength - 1), 'male' => null, 'female' => null],
+            'path_data' => [
+                'all' => range(0, $pathLength - 1), 'male' => null, 'female' => null,
+                'seats' => $this->seatPaths($cells, $pathLength),
+            ],
         ]);
+    }
+
+    /**
+     * 四個座位各自的路線。座位順序 = 棋子顏色(board.css 的 .piece-1..4:紅、藍、綠、黃)。
+     *
+     * 閘門不是手寫的:從每條家門的第一格(最外面那一格)去找外圈上跟它上下左右相鄰的
+     * 那一格,那就是這個顏色轉進家門的閘門。外圈的 position 是 0..47、順時針。
+     *
+     * @param  array<int, array>  $cells  position => [row, col, color, text]
+     * @return array<int, array<int, int>>
+     */
+    private function seatPaths(array $cells, int $pathLength): array
+    {
+        $ringSize = count(self::RING);
+        $center = $pathLength - 1;
+        $at = [];
+        foreach ($cells as $pos => [$row, $col]) {
+            $at[$row.','.$col] = $pos;
+        }
+
+        $seats = [];
+        foreach (['red', 'blue', 'green', 'yellow'] as $colour) {
+            $lane = array_map(fn ($c) => $at[$c[0].','.$c[1]], self::LANES[$colour]);
+            [$r, $c] = self::LANES[$colour][0];
+            $gate = null;
+            foreach ([[$r - 1, $c], [$r + 1, $c], [$r, $c - 1], [$r, $c + 1]] as [$nr, $nc]) {
+                $p = $at[$nr.','.$nc] ?? null;
+                if ($p !== null && $p < $ringSize) {
+                    $gate = $p;
+                    break;
+                }
+            }
+            if ($gate === null) {
+                throw new \RuntimeException("{$colour} 的家門找不到相鄰的外圈閘門");
+            }
+
+            $outer = [];
+            for ($i = 1; $i <= $ringSize; $i++) {
+                $outer[] = ($gate + $i) % $ringSize;   // 閘門下一格出發,最後一格回到閘門
+            }
+            $seats[] = array_merge($outer, $lane, [$center]);
+        }
+
+        return $seats;
     }
 }

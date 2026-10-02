@@ -173,9 +173,34 @@ function getEffectivePath(gender) {
   return Object.keys(window.SQUARES_DATA || {}).map(Number).sort((a,b)=>a-b);
 }
 
+/**
+ * 這位玩家實際走的路線。
+ *
+ * 棋盤有 seats(四色飛行棋那種「每個座位一條路線」)的話,第 N 位玩家走 seats[N-1]
+ * —— 各自從自己的閘門出發、轉進自己顏色的家門。沒有的話照舊依性別(male／female／all)。
+ * 見 FlyingChessV8ReplicaSeeder。
+ */
+function getPlayerPath(player) {
+  const seats = (window.PATH_DATA || {}).seats;
+  if (Array.isArray(seats) && seats.length && player && player.seat != null) {
+    const p = seats[player.seat % seats.length];
+    if (Array.isArray(p) && p.length) return p;
+  }
+  return getEffectivePath(player ? player.gender : 'all');
+}
+
+/** 棋盤上所有會被走到的路線(座位路線 + 共用／性別路線) */
+function allRoutes() {
+  const pd = window.PATH_DATA || {};
+  const list = [getEffectivePath('all')];
+  ['male', 'female'].forEach(g => { if (pd[g] && pd[g].length) list.push(pd[g]); });
+  (Array.isArray(pd.seats) ? pd.seats : []).forEach(p => { if (Array.isArray(p) && p.length) list.push(p); });
+  return list;
+}
+
 /** Current position ID for a player */
 function currentPos(player) {
-  const path = getEffectivePath(player.gender);
+  const path = getPlayerPath(player);
   return path[Math.min(player.stepIndex, path.length - 1)];
 }
 
@@ -416,7 +441,7 @@ function openSqInfo(pos) {
     if (sq.fly_to != null) lines.push(tp('sqInfoFly').replace(':n', sq.fly_to));
     if (sq.move_steps) lines.push(tp('sqInfoMove').replace(':n', sq.move_steps));
     if (sq.skip_turn) lines.push(tp('sqInfoSkip'));
-    if (getEffectivePath('all').indexOf(pos) === -1) lines.push(tp('sqInfoOffPath'));
+    if (!allRoutes().some(r => r.indexOf(pos) !== -1)) lines.push(tp('sqInfoOffPath'));
     lines.forEach(function (line) {
       const li = document.createElement('li');
       li.textContent = line;
@@ -685,15 +710,35 @@ function buildBoard() {
     board.style.aspectRatio = `${cols} / ${rows}`;
   }
 
-  const allPaths   = getEffectivePath('all');
-  const arrowMap   = computeArrowMap(allPaths, sqData);
+  /* 箭頭:每條會被走到的路線各算一次,同一格方向不一樣時取多數。四色飛行棋的閘門
+     那一格,只有一個顏色要轉進家門、其他三色繼續繞外圈 —— 多數決會畫「繼續繞」,
+     家門裡的每一格則各自有箭頭。 */
+  const routes = allRoutes();
+  const votes = {};
+  routes.forEach(r => {
+    const m = computeArrowMap(r, sqData);
+    Object.keys(m).forEach(k => { (votes[k] = votes[k] || {})[m[k]] = ((votes[k] || {})[m[k]] || 0) + 1; });
+  });
+  const arrowMap = {};
+  Object.keys(votes).forEach(k => {
+    arrowMap[k] = Object.keys(votes[k]).sort((a, b) => votes[k][b] - votes[k][a])[0];
+  });
+  // 只出現在某一個座位路線裡的格子(那個顏色的家門),標上座位色
+  const seatLanes = {};
+  const seatsPd = (window.PATH_DATA || {}).seats;
+  if (!isEditMode && Array.isArray(seatsPd) && seatsPd.length > 1) {
+    seatsPd.forEach((r, i) => (r || []).forEach(pos => {
+      const inOthers = seatsPd.some((o, j) => j !== i && (o || []).indexOf(pos) !== -1);
+      if (!inOthers) seatLanes[pos] = i + 1;
+    }));
+  }
 
   Object.entries(sqData).forEach(([posStr, sq]) => {
     const pos = parseInt(posStr, 10);
     if (!sq.grid_row || !sq.grid_col) return;
 
     const div = document.createElement('div');
-    div.className        = `board-sq color-${sq.color}`;
+    div.className        = `board-sq color-${sq.color}` + (seatLanes[pos] ? ` lane-p${seatLanes[pos]}` : '');
     div.id               = `sq-${pos}`;
     div.style.gridRow    = sq.grid_row - rowOffset;
     div.style.gridColumn = sq.grid_col - colOffset;
@@ -1080,6 +1125,7 @@ function startSetup() {
       stepIndex: 0, skip: false, finished: false,
       /* With a wheel, nobody is on the track until they roll an `enter` slot. */
       entered: !startWheel(),
+      seat: n - 1,   // 座位路線用(見 getPlayerPath);跟棋子顏色 .piece-N 同一個編號
       gender: (gEl && gEl.value) || (n % 2 === 1 ? 'male' : 'female')
     });
   }
@@ -1187,7 +1233,7 @@ function rollDice() {
 function animateMove(roll) {
   return new Promise(function(resolve) {
     const player  = state.players[state.current];
-    const path    = getEffectivePath(player.gender);
+    const path    = getPlayerPath(player);
     const endIdx  = path.length - 1;
     const startIdx = player.stepIndex;
     const rawNext = startIdx + roll;
@@ -1265,7 +1311,7 @@ function animateSteps(player, fromIdx, toIdx, callback) {
 function applyMoveEffect(sq, callback) {
   callback = callback || function(){};
   const player = state.players[state.current];
-  const path   = getEffectivePath(player.gender);
+  const path   = getPlayerPath(player);
   /* Structured fields win; the zh-TW text patterns are only a fallback for
      squares saved before move_steps/skip_turn existed. Parsing the wording is
      locale-bound — 前进 (zh-CN), マス, "Move forward" all fail to match. */
@@ -1366,7 +1412,10 @@ function showActionModal(roll, pos) {
     showFlyButtons(false, null);
   } else {
     textEl.textContent = sq.text || tp('normalSquare');
-    const hasFly = sq.fly_to != null;
+    /* 飛只往前:座位路線各自從不同的閘門出發,同一個飛躍格對某些顏色是「飛回頭」——
+       那種就不給飛(原版的飛躍格本來也只對特定顏色有效) */
+    const flyPath = getPlayerPath(player);
+    const hasFly = sq.fly_to != null && flyPath.indexOf(sq.fly_to) > player.stepIndex;
     showFlyButtons(hasFly, hasFly ? sq.fly_to : null);
   }
 
@@ -1523,7 +1572,7 @@ function gridSpecOverlaps(spec, from, to) {
 /** 「→ 第 N 格:內容」。玩家進場後會停在自己路徑的第一格,而路徑可以依性別或
     座位分開設定,所以不同玩家的第一格可能是不同的格子。 */
 function entryHint(player) {
-  const pos = getEffectivePath(player.gender)[0];
+  const pos = getPlayerPath(player)[0];
   const text = String(getSq(pos).text || '').split('\n')[0];
 
   return tp('wheelEnterAt', { '__N__': pos }) + (text ? '：' + text : '');
@@ -1623,10 +1672,10 @@ function confirmAction(choice) {
     const pos  = currentPos(player);
     const sq   = getSq(pos);
     if (sq.fly_to != null) {
-      const path   = getEffectivePath(player.gender);
+      const path   = getPlayerPath(player);
       const endIdx = path.length - 1;
       const flyIdx = path.indexOf(sq.fly_to);
-      if (flyIdx >= 0) {
+      if (flyIdx > player.stepIndex) {
         if (flyIdx >= endIdx) {
           player.stepIndex = endIdx;
           closeModal('action-modal');
@@ -1717,7 +1766,7 @@ function showFinishBonus(finisherIdx, mateIdx) {
 function applyFinishBonus(mateIdx, steps) {
   closeModal('bonus-modal');
   const mate = state.players[mateIdx];
-  const path = getEffectivePath(mate.gender);
+  const path = getPlayerPath(mate);
   const endIdx = path.length - 1;
   const from = mate.stepIndex;
   const to = Math.min(endIdx, from + steps);
@@ -1797,7 +1846,7 @@ function updatePosDisplay() {
   state.players.forEach((p, i) => {
     const el = document.getElementById(`p${i+1}-pos`);
     if (!el) return;
-    const path   = getEffectivePath(p.gender);
+    const path   = getPlayerPath(p);
     const endIdx = path.length - 1;
     el.textContent =
       !isOnTrack(p)            ? tp('wheelWaiting')
